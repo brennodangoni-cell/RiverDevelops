@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/webp" href="/logo.webp" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Design System Fonts: Outfit + Rajdhani (Early fetch to avoid render blocking) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://res.cloudinary.com">
+    <link rel="dns-prefetch" href="https://res.cloudinary.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Preload Critical Assets for LCP -->
+    <link rel="preload" as="image" href="/logo.webp" fetchpriority="high">
+
+    <link rel="preload" as="video"
+        href="https://res.cloudinary.com/dobo2yvgz/video/upload/f_auto,q_auto/v1771527902/hero-final-v2_ggubeo.mp4"
+        fetchpriority="high">
+
+    <title>River Creative Lab</title>
+
+    <!-- SEO & Social Sharing -->
+    <meta name="description"
+        content="Transforme sua marca com a estética do futuro. Vídeos AI cinematográficos que vendem." />
+
+    <!-- Open Graph / Facebook / WhatsApp -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://riverdevelops.com/" />
+    <meta property="og:title" content="River Creative Lab" />
+    <meta property="og:description"
+        content="Transforme sua marca com a estética do futuro. Vídeos AI cinematográficos que vendem." />
+    <meta property="og:image" content="https://riverdevelops.com/fotonova.png" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://riverdevelops.com/" />
+    <meta name="twitter:title" content="River Creative Lab" />
+    <meta name="twitter:description"
+        content="Transforme sua marca com a estética do futuro. Vídeos AI cinematográficos que vendem." />
+    <meta name="twitter:image" content="https://riverdevelops.com/fotonova.png" />
+</head>
+
+<body oncontextmenu="return false;">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+</body>
+
+</html>
