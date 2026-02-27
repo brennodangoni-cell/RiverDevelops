@@ -366,7 +366,7 @@ export default function Finance() {
                                         <div className="flex items-center gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:-translate-x-2 sm:group-hover:translate-x-0 transition-all">
                                             <button
                                                 onClick={() => handleEditTx(tx)}
-                                                className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400/70 hover:text-blue-400 hover:bg-blue-500/20 transition-all"
+                                                className="w-10 h-10 rounded-full bg-cyan-500/10 flex items-center justify-center text-cyan-400/70 hover:text-cyan-400 hover:bg-cyan-500/20 transition-all"
                                                 title="Editar Lançamento"
                                             >
                                                 <Pencil className="w-4 h-4" />
