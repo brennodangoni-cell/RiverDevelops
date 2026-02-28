@@ -16,8 +16,8 @@ function getApiKey(): string {
     const envKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
     if (envKey && envKey.trim().startsWith('AIzaSy')) return envKey.trim();
 
-    // No hardcoded key here to prevent GitHub leaks!
-    return "";
+    // DIAGNOSTIC: Force use the provided key temporarily to check if environment variables are the issue
+    return "AIzaSyB00cyFRxNDIbsk8KHyck836TP4LKTX70U";
 }
 
 export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAnalysis> {
