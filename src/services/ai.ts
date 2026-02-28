@@ -8,20 +8,24 @@ export interface ProductAnalysis {
 }
 
 function getApiKey(): string {
-    // Check in environment variables first (Vite style)
+    // Priority 1: localStorage (User manually set or session memory)
+    const localKey = localStorage.getItem('gemini_api_key');
+    if (localKey && localKey.trim() !== '') return localKey;
+
+    // Priority 2: Vite Environment
     const envKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
     if (envKey && envKey !== "MY_GEMINI_API_KEY") return envKey;
 
-    // Use user-provided key as default
-    const userKey = "AIzaSyCzD70dKzYba-TYUlX3V1CRUy6zasGHCCc";
-
-    // Check in localStorage (highest priority if set manually in UI)
-    return localStorage.getItem('gemini_api_key') || userKey;
+    // Priority 3: Hardcoded User Default
+    return "AIzaSyCzD70dKzYba-TYUlX3V1CRUy6zasGHCCc";
 }
 
 export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAnalysis> {
     const apiKey = getApiKey();
-    if (!apiKey) throw new Error("GEMINI_API_KEY_MISSING");
+    if (!apiKey || apiKey === "MY_GEMINI_API_KEY") {
+        console.error("Gemini API Key is invalid or missing.");
+        throw new Error("GEMINI_API_KEY_MISSING");
+    }
 
     const ai = new GoogleGenAI({ apiKey });
     const parts = imagesBase64.map(base64 => {
