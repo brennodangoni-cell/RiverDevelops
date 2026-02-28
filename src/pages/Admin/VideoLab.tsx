@@ -1,67 +1,74 @@
 import { useState } from 'react';
-import { Sparkles, Image as ImageIcon, Copy, Wand2, MonitorPlay, Camera, Palette, Zap, Check, Layout, ChevronLeft } from 'lucide-react';
+import { Sparkles, Image as ImageIcon, Copy, Wand2, MonitorPlay, Camera, Palette, Zap, Check, Layout, ChevronLeft, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 const PRESETS = [
     {
-        id: 'apple',
-        name: 'Estilo Apple (Clean)',
-        icon: <Zap className="w-4 h-4" />,
-        promptBase: 'Cinematic slow-motion close-up of [PRODUCT], pristine white studio background, soft professional lighting, sharp focus, 8k resolution, Minimalist aesthetic, Apple-style product photography.',
-        camera: 'Slow macro pan across the textures'
-    },
-    {
-        id: 'urban',
-        name: 'Urbano / Street',
-        icon: <Camera className="w-4 h-4" />,
-        promptBase: 'Dramatic low-angle shot of [PRODUCT] on a busy wet city street at night, neon reflections, cinematic teal and orange lighting, rain droplets, hyper-realistic, bokeh background.',
-        camera: 'Fast tracking shot at ground level'
-    },
-    {
-        id: 'luxury',
-        name: 'Luxo / Ouro',
+        id: 'premium',
+        name: 'Estilo Premium / Luxury',
         icon: <Palette className="w-4 h-4" />,
-        promptBase: 'Elegant cinematic shot of [PRODUCT] surrounded by floating gold dust and silk fabric, warm golden hour lighting, luxury atmosphere, high-end commercial style, smooth transitions.',
-        camera: 'Breathtaking 360-degree orbit'
+        color: 'text-amber-400',
+        bg: 'bg-amber-400/10',
+        scenes: [
+            { title: 'Intro Impacto', prompt: 'Cinematic wide reveal of [PRODUCT] on a rotating glass pedestal, extreme luxury studio lighting, soft golden rim light, 8k, slow dolly zoom.' },
+            { title: 'Macro Detalhe', prompt: 'Extreme macro close-up of [PRODUCT] textures and materials, soft focus background, elegant bokeh, high-speed camera. --motion 2' },
+            { title: 'Lifestyle / Uso', prompt: 'Cinematic lifestyle shot of a hand interacting with [PRODUCT] in a high-end mansion setting, warm sunset light through windows.' },
+            { title: 'Ação Dinâmica', prompt: 'Dynamic tracking shot of [PRODUCT] surrounded by silk fabric or gold particles flying in slow motion, extremely detailed.' },
+            { title: 'Final / Logo', prompt: 'Stable centered shot of [PRODUCT], clean minimalist background, professional commercial lighting, fading to black.' }
+        ]
     },
     {
-        id: 'nature',
-        name: 'Natureza / Outdoor',
-        icon: <Layout className="w-4 h-4" />,
-        promptBase: 'Action shot of [PRODUCT] in a lush tropical forest, sunlight filtering through leaves (Ray Tracing), morning mist, vibrant colors, epic commercial cinematography.',
-        camera: 'Drone-style overhead reveal'
+        id: 'street',
+        name: 'Estilo Urbano / Street',
+        icon: <Camera className="w-4 h-4" />,
+        color: 'text-cyan-400',
+        bg: 'bg-cyan-400/10',
+        scenes: [
+            { title: 'Intro Street', prompt: 'Low angle wide shot of [PRODUCT] on a rainy concrete street at night, neon reflections, cinematic teal and orange lighting.' },
+            { title: 'Detalhe Rápido', prompt: 'Handheld style macro of [PRODUCT], gritty urban texture, lens flares from passing cars, high energy.' },
+            { title: 'Ação Urbana', prompt: 'Person wearing [PRODUCT] walking fast through a hazy urban alley, cinematic motion blur, street lights flickering.' },
+            { title: 'Take Criativo', prompt: 'Time-lapse of city lights reflecting on [PRODUCT] surface, fast camera movement, edgy aesthetic.' },
+            { title: 'Final / Call', prompt: 'Close up of [PRODUCT] with a graffiti wall background, dramatic contrast, professional street photography style.' }
+        ]
     }
+];
+
+const VO_SCRIPTS = [
+    { id: 'sales', name: 'Venda Agressiva', template: 'Cansado do básico? Conheça o novo [PRODUCT]. Qualidade premium que você sente no primeiro toque. Clique agora e garanta o seu!' },
+    { id: 'emotional', name: 'Estilo Storytelling', template: 'Cada detalhe do [PRODUCT] foi pensado para você. Mais que um produto, uma experiência. Sinta a diferença de um clássico moderno.' },
+    { id: 'direct', name: 'Direto e Reto', template: 'O [PRODUCT] chegou. Design exclusivo, tecnologia de ponta e o melhor custo-benefício do mercado. Confira no link abaixo.' }
 ];
 
 export default function VideoLab() {
     const [productDesc, setProductDesc] = useState('');
     const [selectedPreset, setSelectedPreset] = useState(PRESETS[0]);
-    const [generatedPrompts, setGeneratedPrompts] = useState<string[]>([]);
+    const [generatedStoryboard, setGeneratedStoryboard] = useState<any[]>([]);
+    const [narration, setNarration] = useState<string>('');
     const [isGenerating, setIsGenerating] = useState(false);
     const navigate = useNavigate();
 
-    const generatePrompts = () => {
+    const generateStoryboard = () => {
         if (!productDesc) {
-            toast.error('Descreva o produto primeiro!');
+            toast.error('O que estamos vendendo?');
             return;
         }
 
         setIsGenerating(true);
 
-        // Simulating an AI generation logic of technical variations
         setTimeout(() => {
-            const variations = [
-                selectedPreset.promptBase.replace('[PRODUCT]', productDesc),
-                `${selectedPreset.promptBase.replace('[PRODUCT]', productDesc)} with extreme close-up on details, macro lens.`,
-                `${selectedPreset.promptBase.replace('[PRODUCT]', productDesc)} featuring a dramatic lens flare and high contrast.`,
-                `A professional product reveal of ${productDesc}, ${selectedPreset.camera}, studio lighting, masterwork.`,
-                `High-speed phantom camera footage of ${productDesc} in a liquid splash environment, hyper-detailed.`
-            ];
-            setGeneratedPrompts(variations);
+            const scenes = selectedPreset.scenes.map(s => ({
+                ...s,
+                prompt: s.prompt.replace('[PRODUCT]', productDesc)
+            }));
+
+            const vo = VO_SCRIPTS[Math.floor(Math.random() * VO_SCRIPTS.length)].template.replace('[PRODUCT]', productDesc);
+
+            setGeneratedStoryboard(scenes);
+            setNarration(vo);
             setIsGenerating(false);
-            toast.success('Lote de Prompts Gerado!');
-        }, 800);
+            toast.success('Storyboard de Produção Criado!');
+        }, 1200);
     };
 
     const copyToClipboard = (text: string) => {
@@ -142,63 +149,102 @@ export default function VideoLab() {
                             </div>
 
                             <button
-                                onClick={generatePrompts}
+                                onClick={generateStoryboard}
                                 disabled={isGenerating}
-                                className="w-full mt-8 bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(6,182,212,0.3)]"
+                                className="w-full mt-8 bg-white text-black font-bold py-4 rounded-2xl hover:bg-cyan-400 transition-all flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(255,255,255,0.1)]"
                             >
                                 {isGenerating ? (
-                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black" />
+                                    <Loader2 className="animate-spin w-5 h-5" />
                                 ) : (
                                     <>
                                         <Zap className="w-5 h-5 fill-current" />
-                                        <span>Gerar Lote de Produção</span>
+                                        <span>Criar Roteiro de Vídeo</span>
                                     </>
                                 )}
                             </button>
                         </section>
+
+                        {/* Narration Box */}
+                        {narration && (
+                            <section className="bg-cyan-500/10 border border-cyan-500/20 rounded-[2rem] p-8 backdrop-blur-xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <h3 className="text-[10px] font-bold uppercase tracking-widest text-cyan-400 mb-4 flex items-center gap-2">
+                                    <Sparkles className="w-4 h-4 shadow-[0_0_10px_cyan]" /> Sugestão de Narração (Off)
+                                </h3>
+                                <div className="bg-black/40 rounded-2xl p-4 border border-white/5 relative group">
+                                    <p className="text-sm italic text-white/80 leading-relaxed pr-8">
+                                        "{narration}"
+                                    </p>
+                                    <button
+                                        onClick={() => copyToClipboard(narration)}
+                                        className="absolute top-4 right-4 text-white/20 hover:text-white transition-colors"
+                                    >
+                                        <Copy className="w-3 h-3" />
+                                    </button>
+                                </div>
+                                <p className="text-[9px] mt-3 text-cyan-400/50 uppercase tracking-tighter">* Use o CapCut ou ElevenLabs para esta voz.</p>
+                            </section>
+                        )}
                     </div>
 
                     {/* Output Side */}
                     <div className="lg:col-span-7">
-                        <div className="bg-white/5 border border-white/10 rounded-[2rem] p-8 backdrop-blur-xl min-h-[600px] flex flex-col">
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-cyan-400 mb-8 flex items-center gap-2">
-                                <MonitorPlay className="w-4 h-4" /> 3. Prompts para Sora 2
+                        <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 backdrop-blur-xl min-h-[600px] flex flex-col relative overflow-hidden">
+                            {/* Decorative Grid */}
+                            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
+
+                            <h3 className="text-sm font-bold uppercase tracking-widest text-cyan-400 mb-8 flex items-center gap-2 relative">
+                                <MonitorPlay className="w-4 h-4" /> Storyboard: 40 Segundos de Alta Conversão
                             </h3>
 
-                            {generatedPrompts.length === 0 ? (
-                                <div className="flex-1 flex flex-col items-center justify-center opacity-20 text-center px-10">
-                                    <Sparkles className="w-16 h-16 mb-6" />
-                                    <p className="text-lg font-medium">Os prompts mágicos aparecerão aqui.</p>
-                                    <p className="text-xs mt-2 uppercase tracking-widest">Insira os dados à esquerda para começar</p>
+                            {generatedStoryboard.length === 0 ? (
+                                <div className="flex-1 flex flex-col items-center justify-center opacity-10 text-center px-10 relative">
+                                    <Layout className="w-24 h-24 mb-6 stroke-[1]" />
+                                    <p className="text-xl font-display">A linha de montagem está desligada.</p>
+                                    <p className="text-xs mt-2 uppercase tracking-[0.3em]">Configure à esquerda para produzir</p>
                                 </div>
                             ) : (
-                                <div className="space-y-6">
-                                    {generatedPrompts.map((prompt, idx) => (
-                                        <div key={idx} className="group relative bg-black/40 border border-white/5 rounded-2xl p-5 hover:border-cyan-500/30 transition-all">
-                                            <div className="flex justify-between items-start mb-3">
-                                                <span className="text-[10px] font-bold text-cyan-500/50 uppercase tracking-tighter">Take 0{idx + 1}</span>
-                                                <button
-                                                    onClick={() => copyToClipboard(prompt)}
-                                                    className="p-2 bg-white/5 rounded-lg hover:bg-cyan-500 hover:text-black transition-all text-white/40"
-                                                >
-                                                    <Copy className="w-3 h-3" />
-                                                </button>
+                                <div className="space-y-4 relative">
+                                    {generatedStoryboard.map((scene, idx) => (
+                                        <div key={idx} className="group flex flex-col sm:flex-row gap-4 bg-black/40 border border-white/5 rounded-2xl p-5 hover:border-cyan-500/30 transition-all">
+                                            <div className="flex sm:flex-col items-center justify-between sm:justify-start gap-3 sm:w-20 shrink-0">
+                                                <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-bold font-display text-white group-hover:bg-cyan-500 group-hover:text-black transition-all">
+                                                    0{idx + 1}
+                                                </div>
+                                                <div className="hidden sm:block h-full w-px bg-white/5 group-hover:bg-cyan-500/30 transition-all" />
                                             </div>
-                                            <p className="text-sm text-white/80 font-light leading-relaxed italic">
-                                                "{prompt}"
-                                            </p>
+
+                                            <div className="flex-1">
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <span className="text-[10px] font-black text-cyan-500 uppercase tracking-widest">{scene.title}</span>
+                                                    <button
+                                                        onClick={() => copyToClipboard(scene.prompt)}
+                                                        className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full hover:bg-cyan-500 hover:text-black transition-all text-[9.5px] font-bold text-white/40"
+                                                    >
+                                                        <Copy className="w-3 h-3" /> COPIAR PROMPT
+                                                    </button>
+                                                </div>
+                                                <p className="text-xs text-white/60 font-light leading-relaxed">
+                                                    {scene.prompt}
+                                                </p>
+                                            </div>
                                         </div>
                                     ))}
 
-                                    <div className="mt-8 p-6 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <Check className="w-4 h-4 text-cyan-400" />
-                                            <span className="text-xs font-bold uppercase text-cyan-400">Dica de Especialista</span>
+                                    <div className="mt-10 p-6 bg-amber-400/5 border border-amber-400/20 rounded-[2rem]">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <Check className="w-4 h-4 text-amber-400" />
+                                            <span className="text-[10px] font-black uppercase text-amber-400 tracking-tighter">Fluxo de Escala River</span>
                                         </div>
-                                        <p className="text-xs text-cyan-100/60 leading-relaxed">
-                                            Para melhores resultados na Sora 2, use a imagem original do cliente como **"Image Reference"** e cole o Take 01 acima.
-                                            Se o movimento de câmera for muito rápido, adicione "--motion 3" no final do prompt.
-                                        </p>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <p className="text-[11px] font-bold text-white/80">1. Gere os 5 Takes</p>
+                                                <p className="text-[9px] text-white/40">Use a mesma foto do cliente em todos na Sora 2.</p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[11px] font-bold text-white/80">2. Monte no CapCut</p>
+                                                <p className="text-[9px] text-white/40">Importe os takes, remova audio da Sora e grave a narração sugerida.</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             )}
