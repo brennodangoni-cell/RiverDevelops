@@ -8,14 +8,16 @@ export interface ProductAnalysis {
 }
 
 function getApiKey(): string {
+    // Priority 1: localStorage (if you ever add a UI to change keys manually)
     const localKey = localStorage.getItem('gemini_api_key');
     if (localKey && localKey.trim().startsWith('AIzaSy')) return localKey.trim();
 
+    // Priority 2: Environment Variables (from .env or Vercel dashboard)
     const envKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
     if (envKey && envKey.trim().startsWith('AIzaSy')) return envKey.trim();
 
-    // DIAGNOSTIC hardcode (will remove after test)
-    return "AIzaSyB00cyFRxNDIbsk8KHyck836TP4LKTX70U";
+    // If no key is found, will return empty which triggers an error in analyzeProduct
+    return "";
 }
 
 // Helper to list models to console if something fails
