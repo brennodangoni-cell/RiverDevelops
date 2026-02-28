@@ -7,6 +7,7 @@ import AdminLayout from './pages/Admin/AdminLayout.tsx'
 import Login from './pages/Admin/Login.tsx'
 import Dashboard from './pages/Admin/Dashboard.tsx'
 import Finance from './pages/Admin/Finance.tsx'
+import VideoLab from './pages/Admin/VideoLab.tsx'
 import './index.css'
 import axios from 'axios'
 
@@ -24,6 +25,7 @@ const router = createBrowserRouter([
         children: [
             { path: 'login', element: <Login /> },
             { path: 'financeiro', element: <Finance /> },
+            { path: 'laboratorio', element: <VideoLab /> },
             { path: '', element: <Dashboard /> }
         ]
     }

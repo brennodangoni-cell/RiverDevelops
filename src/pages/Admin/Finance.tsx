@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { ArrowUpRight, ArrowDownRight, Plus, LogOut, DollarSign, Filter, Trash2, Loader2, X, ChevronLeft, CalendarDays, Pencil } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Plus, LogOut, DollarSign, Filter, Trash2, Loader2, X, ChevronLeft, CalendarDays, Pencil, Sparkles } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
@@ -205,17 +205,13 @@ export default function Finance() {
 
                             {/* Mobile CTA */}
                             <div className="flex items-center gap-3 md:hidden">
-                                <button
-                                    onClick={() => {
-                                        setEditingTxId(null);
-                                        setNewTx({ type: 'IN', amount: '', description: '', date: getTodayLocal(), client_name: '' });
-                                        setIsModalOpen(true);
-                                    }}
-                                    className="w-10 h-10 rounded-full bg-white/5 border border-white/20 text-white flex items-center justify-center hover:bg-white/10 transition-all duration-300 relative group/btn shrink-0"
-                                    title="Nova Movimentação"
+                                <Link
+                                    to="/admin/laboratorio"
+                                    className="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center hover:bg-cyan-500/20 hover:border-cyan-500 transition-all duration-300 shrink-0 shadow-[0_0_15px_rgba(34,211,238,0.15)]"
+                                    title="Laboratório IA"
                                 >
-                                    <Plus className="w-5 h-5 opacity-80 group-hover/btn:rotate-90 transition-transform duration-300" />
-                                </button>
+                                    <Sparkles className="w-4 h-4" />
+                                </Link>
                                 <button onClick={handleLogout} className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/40 flex items-center justify-center text-red-500 shrink-0 hover:bg-red-500/20 hover:border-red-500 transition-all">
                                     <LogOut className="w-4 h-4" />
                                 </button>
@@ -241,6 +237,13 @@ export default function Finance() {
 
                         {/* Desktop CTA */}
                         <div className="hidden md:flex items-center gap-4">
+                            <Link
+                                to="/admin/laboratorio"
+                                className="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center hover:bg-cyan-500/20 hover:border-cyan-500 transition-all duration-300 shrink-0 shadow-[0_0_15px_rgba(34,211,238,0.15)]"
+                                title="Laboratório IA"
+                            >
+                                <Sparkles className="w-4 h-4" />
+                            </Link>
                             <button
                                 onClick={() => {
                                     setEditingTxId(null);
