@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-    Sparkles, Copy, Wand2,
+    Sparkles, Copy,
     Check, ChevronLeft, Loader2, Upload,
-    X, User, ArrowRight,
-    Download, ShieldCheck, ChevronRight, Video, DollarSign, LogOut
+    X, ArrowRight,
+    Download, Video, DollarSign, LogOut
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,29 +30,6 @@ interface Result {
     prompt: string;
     mockupUrl: string | null;
 }
-
-const genders = [
-    { id: 'Female', label: 'Feminino', icon: User },
-    { id: 'Male', label: 'Masculino', icon: User },
-    { id: 'Androgynous', label: 'Andrógino', icon: User },
-    { id: 'Any', label: 'Qualquer', icon: User },
-];
-
-const skinTones = [
-    { id: 'Light', label: 'Clara', color: '#fcdcb4' },
-    { id: 'Medium', label: 'Média', color: '#d09668' },
-    { id: 'Dark', label: 'Escura', color: '#6b4124' },
-    { id: 'Any', label: 'Qualquer', color: 'linear-gradient(45deg, #fcdcb4, #6b4124)' },
-];
-
-const hairColors = [
-    { id: 'Blonde', label: 'Loiro', color: '#e8c92a' },
-    { id: 'Brunette', label: 'Castanho', color: '#4a2f1d' },
-    { id: 'Black', label: 'Preto', color: '#111111' },
-    { id: 'Red', label: 'Ruivo', color: '#8c2211' },
-    { id: 'Silver', label: 'Grisalho', color: '#c0c0c0' },
-    { id: 'Any', label: 'Qualquer', color: 'linear-gradient(45deg, #e8c92a, #111111)' },
-];
 
 const lightings = [
     { id: 'Golden Hour', label: 'Golden Hour', desc: 'Luz suave e dourada do pôr do sol' },
@@ -84,8 +61,7 @@ const sequenceTitles = [
 ];
 
 export default function VideoLab() {
-    const [step, setStep] = useState<0 | 1 | 2 | 3>(1);
-    const [apiKey, setApiKey] = useState(() => localStorage.getItem('gemini_api_key') || 'AIzaSyCzD70dKzYba-TYUlX3V1CRUy6zasGHCCc');
+    const [step, setStep] = useState<1 | 2 | 3>(1);
     const [images, setImages] = useState<string[]>([]);
     const [analysis, setAnalysis] = useState<ProductAnalysis | null>(null);
     const [options, setOptions] = useState<Options>({
@@ -137,15 +113,6 @@ export default function VideoLab() {
         localStorage.removeItem('rivertasks_token');
         localStorage.removeItem('rivertasks_user');
         navigate('/admin/login');
-    };
-
-    const handleSaveKey = () => {
-        if (!apiKey.trim()) {
-            toast.error('Chave inválida');
-            return;
-        }
-        localStorage.setItem('gemini_api_key', apiKey);
-        setStep(1);
     };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -244,7 +211,14 @@ export default function VideoLab() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0a0a0a] text-[#e0e0e0] font-sans selection:bg-cyan-500/30">
+        <div className="min-h-screen bg-[#0a0a0a] text-[#e0e0e0] font-sans selection:bg-cyan-500/30 relative">
+            {/* FORCE REMOVAL OF GLOBAL BACKGROUNDS AT PAGE LEVEL */}
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                body { background-image: none !important; background-color: #0a0a0a !important; }
+                .bg-background { background-color: #0a0a0a !important; }
+            `}} />
+
             {/* Header - Solid & Clean */}
             <header className="fixed top-0 left-0 right-0 z-50 bg-[#111111] border-b border-[#222222] px-6 h-16 flex items-center justify-between">
                 <div className="flex items-center gap-6">
@@ -271,6 +245,7 @@ export default function VideoLab() {
                         <img
                             src={`/${currentUser.username?.toLowerCase() || 'default'}.webp`}
                             className="w-8 h-8 rounded-full border border-[#333] object-cover"
+                            alt="User"
                             onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${currentUser.username}&background=222&color=fff`; }}
                         />
                         <button onClick={handleLogout} className="p-2 hover:bg-red-500/10 rounded-lg text-neutral-500 hover:text-red-500 transition-all">
@@ -280,7 +255,7 @@ export default function VideoLab() {
                 </div>
             </header>
 
-            <main className="max-w-6xl mx-auto px-6 pt-24 pb-20">
+            <main className="max-w-6xl mx-auto px-6 pt-24 pb-20 relative z-10">
                 {/* Steps Bar - Clean Navigation */}
                 <div className="mb-12 flex items-center gap-4">
                     {[
@@ -321,7 +296,7 @@ export default function VideoLab() {
                                         <div className="flex flex-wrap justify-center gap-3">
                                             {images.map((img, idx) => (
                                                 <div key={idx} className="relative w-20 h-20 rounded-lg overflow-hidden border border-[#222] group">
-                                                    <img src={img} className="w-full h-full object-cover" />
+                                                    <img src={img} className="w-full h-full object-cover" alt="Uploaded" />
                                                     <button onClick={() => removeImage(idx)} className="absolute inset-0 bg-red-600/80 items-center justify-center hidden group-hover:flex transition-all">
                                                         <X className="w-4 h-4 text-white" />
                                                     </button>
@@ -438,7 +413,7 @@ export default function VideoLab() {
                                         <div className="w-full md:w-72 aspect-square md:aspect-auto bg-[#0a0a0a] border-r border-[#222] relative group">
                                             {res.mockupUrl ? (
                                                 <>
-                                                    <img src={res.mockupUrl} className="w-full h-full object-cover" />
+                                                    <img src={res.mockupUrl} className="w-full h-full object-cover" alt="Result" />
                                                     <a href={res.mockupUrl} download className="absolute top-4 right-4 w-10 h-10 bg-black/80 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-cyan-600">
                                                         <Download className="w-4 h-4" />
                                                     </a>
