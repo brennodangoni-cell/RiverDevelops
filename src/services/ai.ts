@@ -10,13 +10,14 @@ export interface ProductAnalysis {
 function getApiKey(): string {
     // Priority 1: localStorage (User manually set or session memory)
     const localKey = localStorage.getItem('gemini_api_key');
-    if (localKey && localKey.trim() !== '') return localKey;
+    // Basic validation: Standard Gemini keys start with AIzaSy
+    if (localKey && localKey.trim().startsWith('AIzaSy')) return localKey;
 
     // Priority 2: Vite Environment
     const envKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
-    if (envKey && envKey !== "MY_GEMINI_API_KEY") return envKey;
+    if (envKey && envKey.startsWith('AIzaSy')) return envKey;
 
-    // Priority 3: Hardcoded User Default
+    // Priority 3: Hardcoded User Default (The confirmed working one)
     return "AIzaSyCzD70dKzYba-TYUlX3V1CRUy6zasGHCCc";
 }
 
@@ -42,8 +43,8 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
     });
 
     const response = await ai.models.generateContent({
-        // Elite Combo: Gemini 3.1 Flash (The perfect balance of cost and intelligence for 2026)
-        model: "gemini-3.1-flash-preview",
+        // Elite Choice: Gemini 3 Flash (High efficiency, frontier performance)
+        model: "gemini-3-flash-preview",
         contents: {
             parts: [
                 ...parts,
@@ -72,10 +73,10 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
             }
         }
     }).catch(async (err) => {
-        // Fallback to 2.0 Flash
-        console.warn("Gemini 3.1 Flash not localized yet, falling back to 2.0 Flash", err);
+        // Fallback to Stable 1.5 Flash (Legacy 2.0 is restricted in 2026)
+        console.warn("Gemini 3 Flash not localized yet, falling back to 1.5 Flash", err);
         return ai.models.generateContent({
-            model: "gemini-2.0-flash",
+            model: "gemini-1.5-flash-latest",
             contents: { parts: [...parts, { text: "Analise estas imagens de produto... (Analise JSON)" }] },
             config: { responseMimeType: "application/json" }
         });
@@ -146,7 +147,7 @@ export async function generatePrompts(productDescription: string, options: any, 
   `;
 
     const response = await ai.models.generateContent({
-        model: "gemini-3.1-flash-preview", // Elite efficiency for creative text
+        model: "gemini-3-flash-preview", // Elite efficiency for creative prompts
         contents: promptContext,
         config: {
             responseMimeType: "application/json",
@@ -160,7 +161,7 @@ export async function generatePrompts(productDescription: string, options: any, 
         }
     }).catch(async () => {
         return ai.models.generateContent({
-            model: "gemini-2.0-flash",
+            model: "gemini-1.5-flash-latest",
             contents: promptContext,
             config: { responseMimeType: "application/json" }
         });
