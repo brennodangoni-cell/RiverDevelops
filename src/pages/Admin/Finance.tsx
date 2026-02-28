@@ -43,10 +43,12 @@ export default function Finance() {
     const [filter, setFilter] = useState<'ALL' | 'TODAY' | 'WEEK' | 'MONTH' | 'YEAR'>('MONTH');
     const navigate = useNavigate();
 
+    const getTodayLocal = () => new Date().toLocaleDateString('en-CA');
+
     // Modal states
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTxId, setEditingTxId] = useState<number | null>(null);
-    const [newTx, setNewTx] = useState({ type: 'IN', amount: '', description: '', date: new Date().toISOString().split('T')[0], client_name: '' });
+    const [newTx, setNewTx] = useState({ type: 'IN', amount: '', description: '', date: getTodayLocal(), client_name: '' });
 
     // Auth Check
     const userStr = localStorage.getItem('rivertasks_user');
@@ -112,7 +114,7 @@ export default function Finance() {
 
             setIsModalOpen(false);
             setEditingTxId(null);
-            setNewTx({ type: 'IN', amount: '', description: '', date: new Date().toISOString().split('T')[0], client_name: '' });
+            setNewTx({ type: 'IN', amount: '', description: '', date: getTodayLocal(), client_name: '' });
             fetchData();
         } catch (error) {
             toast.error(editingTxId ? 'Erro ao atualizar.' : 'Erro ao registrar.');
@@ -146,9 +148,9 @@ export default function Finance() {
     // Derived States
     let filteredTxs = transactions;
     const now = new Date();
+    const todayStr = now.toLocaleDateString('en-CA');
 
     if (filter === 'TODAY') {
-        const todayStr = now.toISOString().split('T')[0];
         filteredTxs = transactions.filter(t => t.date.startsWith(todayStr));
     } else if (filter === 'WEEK') {
         const weekAgo = new Date();
@@ -206,7 +208,7 @@ export default function Finance() {
                                 <button
                                     onClick={() => {
                                         setEditingTxId(null);
-                                        setNewTx({ type: 'IN', amount: '', description: '', date: new Date().toISOString().split('T')[0], client_name: '' });
+                                        setNewTx({ type: 'IN', amount: '', description: '', date: getTodayLocal(), client_name: '' });
                                         setIsModalOpen(true);
                                     }}
                                     className="w-10 h-10 rounded-full bg-white/5 border border-white/20 text-white flex items-center justify-center hover:bg-white/10 transition-all duration-300 relative group/btn shrink-0"
@@ -242,7 +244,7 @@ export default function Finance() {
                             <button
                                 onClick={() => {
                                     setEditingTxId(null);
-                                    setNewTx({ type: 'IN', amount: '', description: '', date: new Date().toISOString().split('T')[0], client_name: '' });
+                                    setNewTx({ type: 'IN', amount: '', description: '', date: getTodayLocal(), client_name: '' });
                                     setIsModalOpen(true);
                                 }}
                                 className="bg-white/5 border border-white/20 text-white pl-4 pr-5 py-2.5 rounded-full font-medium text-xs hover:bg-white/10 hover:border-white/40 hover:text-cyan-50 transition-all duration-300 flex items-center gap-2 group/btn shrink-0"
