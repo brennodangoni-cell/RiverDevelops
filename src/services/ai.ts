@@ -38,8 +38,8 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
     });
 
     const response = await ai.models.generateContent({
-        // Using Gemini 3.1 Pro Preview (The 2026 Standard) for high-precision vision analysis
-        model: "gemini-3.1-pro-preview",
+        // Elite Combo: Gemini 3.1 Flash (The perfect balance of cost and intelligence for 2026)
+        model: "gemini-3.1-flash-preview",
         contents: {
             parts: [
                 ...parts,
@@ -68,8 +68,8 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
             }
         }
     }).catch(async (err) => {
-        // Fallback to 2.0 Flash if 3.1 Pro is not available yet
-        console.warn("Gemini 3.1 Pro not available, falling back to 2.0 Flash", err);
+        // Fallback to 2.0 Flash
+        console.warn("Gemini 3.1 Flash not localized yet, falling back to 2.0 Flash", err);
         return ai.models.generateContent({
             model: "gemini-2.0-flash",
             contents: { parts: [...parts, { text: "Analise estas imagens de produto... (Analise JSON)" }] },
@@ -142,7 +142,7 @@ export async function generatePrompts(productDescription: string, options: any, 
   `;
 
     const response = await ai.models.generateContent({
-        model: "gemini-3.1-pro-preview", // Using the flagship frontier model for creative writing
+        model: "gemini-3.1-flash-preview", // Elite efficiency for creative text
         contents: promptContext,
         config: {
             responseMimeType: "application/json",
@@ -200,8 +200,8 @@ export async function generateMockup(productDescription: string, options: any, p
 
     try {
         const response = await ai.models.generateContent({
-            // Nano Banana Pro = Gemini 3 Pro Image (The ultimate image preview model)
-            model: 'gemini-3-pro-image-preview',
+            // Nano Banana 2 = Gemini 3.1 Flash Image Preview (Ultimate speed/quality combo)
+            model: 'gemini-3.1-flash-image-preview',
             contents: {
                 parts: [{ text: imagePrompt }]
             },
@@ -212,8 +212,8 @@ export async function generateMockup(productDescription: string, options: any, p
                 }
             }
         }).catch(async () => {
-            // Fallback to Imagen 2 (Standard Google Image Gen)
-            console.warn("Nano Banana Pro not available, falling back to Imagen 2");
+            // Fallback to standard
+            console.warn("Nano Banana 2 not available, falling back to Imagen 2");
             return ai.models.generateContent({
                 model: 'image-generation-002',
                 contents: { parts: [{ text: imagePrompt }] }
