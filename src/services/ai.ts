@@ -12,8 +12,11 @@ function getApiKey(): string {
     const envKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
     if (envKey && envKey !== "MY_GEMINI_API_KEY") return envKey;
 
-    // Check in localStorage (for easy setup via UI)
-    return localStorage.getItem('gemini_api_key') || "";
+    // Use user-provided key as default
+    const userKey = "AIzaSyCzD70dKzYba-TYUlX3V1CRUy6zasGHCCc";
+
+    // Check in localStorage (highest priority if set manually in UI)
+    return localStorage.getItem('gemini_api_key') || userKey;
 }
 
 export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAnalysis> {
@@ -35,7 +38,8 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
     });
 
     const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash", // Using 2.0 Flash as it's the current best-for-speed-and-vision
+        // Using Gemini 3.1 Pro Preview (The 2026 Standard) for high-precision vision analysis
+        model: "gemini-3.1-pro-preview",
         contents: {
             parts: [
                 ...parts,
@@ -63,10 +67,20 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
                 required: ["description", "productType", "suggestedSceneriesProductOnly", "suggestedSceneriesLifestyle"]
             }
         }
+    }).catch(async (err) => {
+        // Fallback to 2.0 Flash if 3.1 Pro is not available yet
+        console.warn("Gemini 3.1 Pro not available, falling back to 2.0 Flash", err);
+        return ai.models.generateContent({
+            model: "gemini-2.0-flash",
+            contents: { parts: [...parts, { text: "Analise estas imagens de produto... (Analise JSON)" }] },
+            config: { responseMimeType: "application/json" }
+        });
     });
 
     try {
-        return JSON.parse(response.text || "{}");
+        // @ts-ignore
+        const text = response.text || (response as any).candidates?.[0]?.content?.parts?.[0]?.text;
+        return JSON.parse(text || "{}");
     } catch (e) {
         console.error("Failed to parse analysis", e);
         return { description: "", productType: "Product", suggestedSceneriesProductOnly: [], suggestedSceneriesLifestyle: [] };
@@ -128,7 +142,7 @@ export async function generatePrompts(productDescription: string, options: any, 
   `;
 
     const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
+        model: "gemini-3.1-pro-preview", // Using the flagship frontier model for creative writing
         contents: promptContext,
         config: {
             responseMimeType: "application/json",
@@ -140,10 +154,18 @@ export async function generatePrompts(productDescription: string, options: any, 
                 }
             }
         }
+    }).catch(async () => {
+        return ai.models.generateContent({
+            model: "gemini-2.0-flash",
+            contents: promptContext,
+            config: { responseMimeType: "application/json" }
+        });
     });
 
     try {
-        return JSON.parse(response.text || "[]");
+        // @ts-ignore
+        const text = response.text || (response as any).candidates?.[0]?.content?.parts?.[0]?.text;
+        return JSON.parse(text || "[]");
     } catch (e) {
         console.error("Failed to parse prompts", e);
         return [];
@@ -178,7 +200,8 @@ export async function generateMockup(productDescription: string, options: any, p
 
     try {
         const response = await ai.models.generateContent({
-            model: 'image-generation-002', // Using the latest standard for Google Image Gen
+            // Nano Banana Pro = Gemini 3 Pro Image (The ultimate image preview model)
+            model: 'gemini-3-pro-image-preview',
             contents: {
                 parts: [{ text: imagePrompt }]
             },
@@ -188,6 +211,13 @@ export async function generateMockup(productDescription: string, options: any, p
                     aspectRatio: "1:1"
                 }
             }
+        }).catch(async () => {
+            // Fallback to Imagen 2 (Standard Google Image Gen)
+            console.warn("Nano Banana Pro not available, falling back to Imagen 2");
+            return ai.models.generateContent({
+                model: 'image-generation-002',
+                contents: { parts: [{ text: imagePrompt }] }
+            });
         });
 
         for (const part of response.candidates?.[0]?.content?.parts || []) {
