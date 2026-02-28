@@ -8,13 +8,16 @@ export interface ProductAnalysis {
 }
 
 function getApiKey(): string {
+    // Priority 1: localStorage (User manually set or session memory)
     const localKey = localStorage.getItem('gemini_api_key');
     if (localKey && localKey.trim().startsWith('AIzaSy')) return localKey.trim();
 
+    // Priority 2: Vite Environment (from .env file)
     const envKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
-    if (envKey && envKey.startsWith('AIzaSy')) return envKey.trim();
+    if (envKey && envKey.trim().startsWith('AIzaSy')) return envKey.trim();
 
-    return "AIzaSyCzD70dKzYba-TYUlX3V1CRUy6zasGHCCc";
+    // No hardcoded key here to prevent GitHub leaks!
+    return "";
 }
 
 export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAnalysis> {
