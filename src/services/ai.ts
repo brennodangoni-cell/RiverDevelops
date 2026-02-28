@@ -8,16 +8,24 @@ export interface ProductAnalysis {
 }
 
 function getApiKey(): string {
-    // Priority 1: localStorage (User manually set or session memory)
     const localKey = localStorage.getItem('gemini_api_key');
     if (localKey && localKey.trim().startsWith('AIzaSy')) return localKey.trim();
 
-    // Priority 2: Vite Environment (from .env file)
     const envKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
     if (envKey && envKey.trim().startsWith('AIzaSy')) return envKey.trim();
 
-    // DIAGNOSTIC: Force use the provided key temporarily to check if environment variables are the issue
+    // DIAGNOSTIC hardcode (will remove after test)
     return "AIzaSyB00cyFRxNDIbsk8KHyck836TP4LKTX70U";
+}
+
+// Helper to list models to console if something fails
+async function logAvailableModels(ai: any) {
+    try {
+        const models = await ai.models.list();
+        console.log("AVAILABLE_MODELS_LIST:", models);
+    } catch (e) {
+        console.error("Could not list models:", e);
+    }
 }
 
 export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAnalysis> {
@@ -40,7 +48,7 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
 
     try {
         const response = await ai.models.generateContent({
-            model: "gemini-1.5-flash", // Using Flash for maximum stability and speed
+            model: "gemini-1.5-flash", // Reverting to exact name but with fallback attempt
             contents: [{
                 role: 'user',
                 parts: [
@@ -77,8 +85,12 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
 
         const text = response.candidates?.[0]?.content?.parts?.[0]?.text;
         return JSON.parse(text || "{}");
-    } catch (e) {
-        console.error("Failed to analyze product", e);
+    } catch (e: any) {
+        console.error("ANALYSIS_FULL_API_ERROR_OBJECT:", e);
+        if (e.message?.includes("404")) {
+            console.warn("Model not found. Attempting to list available models...");
+            await logAvailableModels(ai);
+        }
         throw e;
     }
 }

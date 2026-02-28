@@ -141,7 +141,11 @@ export default function VideoLab() {
             setProgress(100);
             setTimeout(() => setStep(2), 300);
         } catch (error: any) {
-            toast.error("Erro na análise. Verifique sua chave.");
+            console.error("ANALYSIS_ERROR_LOG:", error);
+            const errMsg = error.message || "Erro desconhecido";
+            const detail = error.statusText || "";
+            toast.error(`Erro na análise: ${errMsg} ${detail}`, { duration: 6000 });
+            setStep(1);
         } finally {
             setIsAnalyzing(false);
             setTimeout(() => setProgress(0), 1000);
@@ -167,7 +171,10 @@ export default function VideoLab() {
                 setResults([...newResults]);
                 setProgress(20 + ((i + 1) / prompts.length) * 80);
             }
-        } catch (error) {
+        } catch (e: any) {
+            console.error("FULL_API_ERROR_OBJECT:", e);
+            if (e.message) console.error("Error Message:", e.message);
+            if (e.status) console.error("Error Status:", e.status);
             toast.error("Erro na geração.");
             setStep(2);
         } finally {
