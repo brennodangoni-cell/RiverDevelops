@@ -43,12 +43,23 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
     });
 
     const response = await ai.models.generateContent({
-        // Elite Choice: Gemini 3 Flash (High efficiency, frontier performance)
-        model: "gemini-3-flash-preview",
+        // High-Fidelity Vision: Gemini 1.5 Pro (The absolute best for detail extraction)
+        model: "gemini-1.5-pro",
         contents: {
             parts: [
                 ...parts,
-                { text: "Analise estas imagens de produto em detalhes extremos. Retorne um JSON estruturado. IMPORTANTE: O 'productType' e os cenários DEVEM estar em Português do Brasil (PT-BR). Forneça duas listas de cenários: 1) 'suggestedSceneriesProductOnly': 3 a 4 cenários de estúdio, minimalistas, 3D ou fundos infinitos focados 100% no produto. 2) 'suggestedSceneriesLifestyle': 3 a 4 cenários cinematográficos e reais onde o produto estaria inserido ou sendo usado. REGRA CRÍTICA: Se você usar qualquer termo técnico de cinema, fotografia ou arte (ex: bokeh, lente anamórfica, macro, profundidade de campo, etc) nos cenários, você DEVE explicar brevemente o que significa entre parênteses para que um usuário leigo entenda. A 'description' interna pode ser em inglês para manter a precisão técnica para os próximos passos." }
+                {
+                    text: `Analise estas imagens de produto com precisão CIRÚRGICA. Você é um Diretor de Arte sênior preparando um blueprint para o Sora 2.
+                Extraia um DNA VISUAL COMPLETO. O objetivo é que o mockup gerado depois seja IDENTICO ao produto real.
+                
+                No campo 'description', forneça um "Visual Blueprint" detalhando:
+                1. GEOMETRIA: Formatos exatos, proporções (ex: "cilindro alto com tampa arredondada"), cantos (raio de curvatura).
+                2. MATERIAIS: Textura exata (Alumínio escovado, vidro translúcido, plástico fosco), reflexividade, transparência.
+                3. BRANDING: Localização exata de logos e textos (ex: "Logo centralizado no terço superior em fonte Sans Serif prateada").
+                4. CORES: Use nomes técnicos e aproximações de tons (ex: "Azul Marinho meia-noite", "Branco Pérola acetinado").
+                5. DETALHES ÚNICOS: Ranhuras, costuras, botões, reflexos específicos.
+
+                REGRA DE IDIOMA: 'productType' e os cenários em Português. 'description' em INGLÊS TÉCNICO para máxima fidelidade na geração.` }
             ]
         },
         config: {
@@ -73,10 +84,10 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
             }
         }
     }).catch(async (err) => {
-        // Fallback to Stable 1.5 Flash (Legacy 2.0 is restricted in 2026)
-        console.warn("Gemini 3 Flash not localized yet, falling back to 1.5 Flash", err);
+        // Safe Fallback for Vision
+        console.warn("Primary vision model error, falling back to 1.5 Flash", err);
         return ai.models.generateContent({
-            model: "gemini-1.5-flash-latest",
+            model: "gemini-1.5-flash",
             contents: { parts: [...parts, { text: "Analise estas imagens de produto... (Analise JSON)" }] },
             config: { responseMimeType: "application/json" }
         });
@@ -147,7 +158,7 @@ export async function generatePrompts(productDescription: string, options: any, 
   `;
 
     const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview", // Elite efficiency for creative prompts
+        model: "gemini-1.5-flash", // Rapid prompt engineering
         contents: promptContext,
         config: {
             responseMimeType: "application/json",
@@ -161,7 +172,7 @@ export async function generatePrompts(productDescription: string, options: any, 
         }
     }).catch(async () => {
         return ai.models.generateContent({
-            model: "gemini-1.5-flash-latest",
+            model: "gemini-1.5-flash",
             contents: promptContext,
             config: { responseMimeType: "application/json" }
         });
@@ -194,18 +205,20 @@ export async function generateMockup(productDescription: string, options: any, p
         "Extra Scene 3"
     ];
 
-    const imagePrompt = `A professional product photography concept sheet showing MULTIPLE ANGLES of the exact same product in a single image.
-    Layout: A split-screen or grid collage showing front view, side view, and detail macro shots.
-    Product: ${productDescription}. CRITICAL: Maintain strict consistency with this product description. The shape, color, and branding MUST be identical across all angles.
-    Scene Focus: ${sequenceTypes[promptIndex] || "Dynamic Shot"}
-    Setting: ${options.environment}, ${options.timeOfDay}.
-    ${options.mode === 'lifestyle' ? `Featuring a ${options.skinTone} skinned ${options.gender} with ${options.hairColor} hair interacting with the product.` : 'The product is the sole focus.'}
-    ${options.supportingDescription ? `Additional Context: ${options.supportingDescription}.` : ''}
-    Style: ${options.style}. Ultra-realistic, raw photography, 8k resolution, sharp focus, highly detailed, shot on 35mm lens, photorealistic commercial photography. NO AI artifacts, highly realistic textures.`;
+    const imagePrompt = `URGENT ARCHITECTURAL REQUIREMENT: You MUST reproduce the product below with 100% IDENTICAL visual features.
+    No artistic interpretation of the product is allowed. 
+    Product Blueprint: ${productDescription}. 
+    
+    Constraint: The shape, materials, text labels, and color palette MUST be exact.
+    Scene Narrative: ${sequenceTypes[promptIndex] || "Dynamic Shot"}
+    Environment: ${options.environment}, ${options.timeOfDay}.
+    ${options.mode === 'lifestyle' ? `Featuring a ${options.skinTone} skinned ${options.gender} with ${options.hairColor} hair naturally interacting with this specific product.` : 'The product is the sole focus.'}
+    ${options.supportingDescription ? `Additional Artistic Direction: ${options.supportingDescription}.` : ''}
+    Style: ${options.style}. High-end commercial product photography, 8k, raw textures, realistic lens distortion, 35mm.`;
 
     try {
         const response = await ai.models.generateContent({
-            // Nano Banana 2 = Gemini 3.1 Flash Image Preview (Ultimate speed/quality combo)
+            // Nano Banana 2 (Stable ID)
             model: 'gemini-3.1-flash-image-preview',
             contents: {
                 parts: [{ text: imagePrompt }]
