@@ -1,158 +1,254 @@
-import { useState, useRef } from 'react';
-import { Sparkles, Image as ImageIcon, Copy, Wand2, MonitorPlay, Camera, Palette, Zap, Check, Layout, ChevronLeft, Loader2, Upload, Trash2, Mic2 } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import {
+    Sparkles, Image as ImageIcon, Copy, Wand2, MonitorPlay,
+    Zap, Check, ChevronLeft, Loader2, Upload,
+    X, SunMoon, User, RefreshCcw, ArrowRight,
+    Smartphone, Monitor, Download, Film, LayoutGrid, Key,
+    ShieldCheck, ChevronRight, Video
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { analyzeProduct, generatePrompts, generateMockup, ProductAnalysis } from '../../services/ai';
 
-const PRESETS = [
-    {
-        id: 'premium',
-        name: 'Estilo Premium / Luxury',
-        icon: <Palette className="w-4 h-4" />,
-        color: 'text-amber-400',
-        bg: 'bg-amber-400/10',
-        scenes: [
-            { title: 'Intro Impacto', prompt: 'Cinematic wide reveal of [PRODUCT] on a rotating glass pedestal, [LIGHTING], [COLORS] accents highlighted, 8k, slow dolly zoom.' },
-            { title: 'Macro Detalhe', prompt: 'Extreme macro close-up of [PRODUCT] textures and materials, [COLORS] details, soft focus background, elegant bokeh, high-speed camera. --motion 2' },
-            { title: 'Lifestyle / Uso', prompt: 'Cinematic lifestyle shot of [PRODUCT] in a high-end mansion setting, [LIGHTING], warm sunset light through windows.' },
-            { title: 'Ação Dinâmica', prompt: 'Dynamic tracking shot of [PRODUCT] surrounded by silk fabric or gold particles flying in slow motion, [COLORS] reflections, extremely detailed.' },
-            { title: 'Final / Logo', prompt: 'Stable centered shot of [PRODUCT], clean [COLOR_SCHEME] background, professional commercial lighting, fading to black.' }
-        ]
-    },
-    {
-        id: 'street',
-        name: 'Estilo Urbano / Street',
-        icon: <Camera className="w-4 h-4" />,
-        color: 'text-cyan-400',
-        bg: 'bg-cyan-400/10',
-        scenes: [
-            { title: 'Intro Street', prompt: 'Low angle wide shot of [PRODUCT] on a rainy concrete street at night, [COLORS] neon reflections, cinematic teal and orange lighting.' },
-            { title: 'Detalhe Rápido', prompt: 'Handheld style macro of [PRODUCT], gritty urban texture, lens flares from passing cars, [COLORS] highlights, high energy.' },
-            { title: 'Ação Urbana', prompt: 'Person wearing [PRODUCT] walking fast through a hazy urban alley, cinematic motion blur, [LIGHTING], street lights flickering.' },
-            { title: 'Take Criativo', prompt: 'Time-lapse of city lights reflecting on [PRODUCT] surface, [COLORS] transitions, fast camera movement, edgy aesthetic.' },
-            { title: 'Final / Call', prompt: 'Close up of [PRODUCT] with a graffiti wall background, [COLORS] contrast, dramatic [LIGHTING], professional street photography style.' }
-        ]
-    }
+type Mode = 'product_only' | 'lifestyle';
+type AspectRatio = '16:9' | '9:16';
+
+interface Options {
+    mode: Mode;
+    gender: string;
+    skinTone: string;
+    hairColor: string;
+    timeOfDay: string;
+    environment: string;
+    style: string;
+    aspectRatio: AspectRatio;
+    supportingDescription: string;
+}
+
+interface Result {
+    prompt: string;
+    mockupUrl: string | null;
+}
+
+const genders = [
+    { id: 'Female', label: 'Feminino', icon: User },
+    { id: 'Male', label: 'Masculino', icon: User },
+    { id: 'Androgynous', label: 'Andrógino', icon: User },
+    { id: 'Any', label: 'Qualquer', icon: User },
 ];
 
-const VO_SCRIPTS: Record<string, any[]> = {
-    'sales': [
-        { id: 'v1', name: 'Impacto', template: 'Cansado do básico? Conheça o novo [PRODUCT]. Qualidade premium que você sente no primeiro toque. Clique agora e garanta o seu!' },
-        { id: 'v2', name: 'Oportunidade', template: 'Design exclusivo, tecnologia de ponta e o estilo que você merece - o [PRODUCT] chegou para mudar tudo. Garanta o seu hoje.' }
-    ],
-    'emotional': [
-        { id: 'v1', name: 'Elegância', template: 'Cada detalhe do [PRODUCT] foi pensado para você. Mais que um produto, uma experiência. Sinta a diferença de um clássico moderno.' },
-        { id: 'v2', name: 'Sonho', template: 'Imagine ter o [PRODUCT] em suas mãos. Feito para quem não abre mão da excelência em cada segundo.' }
-    ]
-};
+const skinTones = [
+    { id: 'Light', label: 'Clara', color: '#fcdcb4' },
+    { id: 'Medium', label: 'Média', color: '#d09668' },
+    { id: 'Dark', label: 'Escura', color: '#6b4124' },
+    { id: 'Any', label: 'Qualquer', color: 'linear-gradient(45deg, #fcdcb4, #6b4124)' },
+];
+
+const hairColors = [
+    { id: 'Blonde', label: 'Loiro', color: '#e8c92a' },
+    { id: 'Brunette', label: 'Castanho', color: '#4a2f1d' },
+    { id: 'Black', label: 'Preto', color: '#111111' },
+    { id: 'Red', label: 'Ruivo', color: '#8c2211' },
+    { id: 'Silver', label: 'Grisalho', color: '#c0c0c0' },
+    { id: 'Any', label: 'Qualquer', color: 'linear-gradient(45deg, #e8c92a, #111111)' },
+];
+
+const lightings = [
+    { id: 'Golden Hour', label: 'Golden Hour', desc: 'Luz suave e dourada do pôr do sol', icon: SunMoon },
+    { id: 'Bright Daylight', label: 'Dia Ensolarado', desc: 'Luz forte e natural, sombras nítidas', icon: SunMoon },
+    { id: 'Night/Neon', label: 'Noite / Neon', desc: 'Escuro com luzes artificiais vibrantes', icon: SunMoon },
+    { id: 'Studio Lighting', label: 'Estúdio', desc: 'Luzes controladas, visual profissional', icon: SunMoon },
+    { id: 'Overcast/Moody', label: 'Nublado', desc: 'Luz suave sem sombras, tom dramático', icon: SunMoon },
+];
+
+const styles = [
+    { id: 'Cinematic', label: 'Cinemático', desc: 'Visual de filme, alta qualidade e profundidade' },
+    { id: 'Raw Documentary', label: 'Doc Raw', desc: 'Câmera na mão, realista, sem filtros artificiais' },
+    { id: 'Commercial', label: 'Comercial TV', desc: 'Cores vibrantes, foco absoluto no produto' },
+    { id: 'Minimalist', label: 'Minimalista', desc: 'Cenário limpo, fundo neutro, sem distrações' },
+    { id: 'Cyberpunk', label: 'Cyberpunk', desc: 'Futurista, luzes neon, tecnológico e noturno' },
+    { id: 'Vintage 35mm', label: 'Vintage 35mm', desc: 'Estilo retrô, textura de filme antigo, nostálgico' },
+];
+
+const sequenceTitles = [
+    "Cena 1: Estabelecimento (Introdução)",
+    "Cena 2: Ação e Uso (Desenvolvimento)",
+    "Cena 3: Detalhes e Textura (Clímax)",
+    "Cena 4: Ângulo Alternativo (Reação)",
+    "Cena 5: B-Roll Dinâmico (Transição)",
+    "Cena 6: Encerramento (Call to Action)",
+    "Cena 7: Extensão Extra",
+    "Cena 8: Extensão Extra",
+    "Cena 9: Extensão Extra"
+];
 
 export default function VideoLab() {
-    const [productDesc, setProductDesc] = useState('');
-    const [selectedPreset, setSelectedPreset] = useState(PRESETS[0]);
-    const [selectedVoStyle, setSelectedVoStyle] = useState('sales');
-    const [generatedStoryboard, setGeneratedStoryboard] = useState<any[]>([]);
-    const [narration, setNarration] = useState<string>('');
+    const [step, setStep] = useState<0 | 1 | 2 | 3>(1);
+    const [apiKey, setApiKey] = useState(() => localStorage.getItem('gemini_api_key') || '');
+    const [images, setImages] = useState<string[]>([]);
+    const [analysis, setAnalysis] = useState<ProductAnalysis | null>(null);
+    const [options, setOptions] = useState<Options>({
+        mode: 'lifestyle',
+        gender: 'Female',
+        skinTone: 'Medium',
+        hairColor: 'Brunette',
+        timeOfDay: 'Golden Hour',
+        environment: '',
+        style: 'Cinematic',
+        aspectRatio: '16:9',
+        supportingDescription: ''
+    });
+
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [isContinuing, setIsContinuing] = useState(false);
+    const [progress, setProgress] = useState(0);
+    const [progressText, setProgressText] = useState('');
+    const [results, setResults] = useState<Result[]>([]);
 
-    // Image Intelligence states
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const [visualData, setVisualData] = useState({ colors: '', lighting: '', scheme: 'minimalist' });
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-
     const navigate = useNavigate();
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+    // Check if API Key is set on mount
+    useEffect(() => {
+        if (!apiKey) {
+            setStep(0);
+        }
+    }, [apiKey]);
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const result = event.target?.result as string;
-            setImagePreview(result);
-            analyzeImage(result);
-        };
-        reader.readAsDataURL(file);
-    };
-
-    const analyzeImage = (dataUrl: string) => {
-        const img = new Image();
-        img.onload = () => {
-            const canvas = canvasRef.current;
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            if (!ctx) return;
-
-            // Resize canvas to a small thumbnail for faster analysis
-            canvas.width = 50;
-            canvas.height = 50;
-            ctx.drawImage(img, 0, 0, 50, 50);
-
-            let r = 0, g = 0, b = 0, brightness = 0;
-            const data = ctx.getImageData(0, 0, 50, 50).data;
-
-            for (let i = 0; i < data.length; i += 4) {
-                r += data[i];
-                g += data[i + 1];
-                b += data[i + 2];
-                brightness += (0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
-            }
-
-            const count = data.length / 4;
-            const avgR = Math.round(r / count);
-            const avgG = Math.round(g / count);
-            const avgB = Math.round(b / count);
-            const avgBrightness = brightness / count;
-
-            // Simple intelligence: detect lighting and colors
-            let lighting = 'extreme luxury studio lighting';
-            if (avgBrightness > 180) lighting = 'bright daylight, high-key lighting';
-            else if (avgBrightness < 80) lighting = 'dramatic low-key lighting, heavy shadows';
-
-            const colorNames = [];
-            if (avgR > 150 && avgG < 100 && avgB < 100) colorNames.push('deep red');
-            if (avgG > 150 && avgR < 100 && avgB < 100) colorNames.push('vibrant green');
-            if (avgB > 150 && avgR < 100 && avgG < 100) colorNames.push('electric blue');
-            if (avgR > 200 && avgG > 200 && avgB < 100) colorNames.push('golden yellow');
-            if (avgR > 200 && avgG > 200 && avgB > 200) colorNames.push('clean white');
-            if (avgR < 50 && avgG < 50 && avgB < 50) colorNames.push('matte black');
-
-            setVisualData({
-                colors: colorNames.length > 0 ? colorNames.join(' and ') : 'vibrant',
-                lighting: lighting,
-                scheme: avgBrightness > 128 ? 'bright white' : 'dark atmospheric'
-            });
-
-            toast.success('IA: Referência visual analisada!');
-        };
-        img.src = dataUrl;
-    };
-
-    const generateStoryboard = () => {
-        if (!productDesc) {
-            toast.error('O que estamos vendendo?');
+    const handleSaveKey = () => {
+        if (!apiKey.trim()) {
+            toast.error('Insira uma chave válida');
             return;
         }
+        localStorage.setItem('gemini_api_key', apiKey);
+        setStep(1);
+        toast.success('Laboratório Desbloqueado!');
+    };
 
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files) return;
+
+        Array.from(files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                if (event.target?.result) {
+                    setImages(prev => [...prev, event.target!.result as string]);
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+    };
+
+    const removeImage = (index: number) => {
+        setImages(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleAnalyze = async () => {
+        if (images.length === 0) return;
+        setIsAnalyzing(true);
+        setProgress(10);
+        setProgressText('Analisando imagens com IA...');
+        try {
+            const result = await analyzeProduct(images);
+            setProgress(100);
+            setAnalysis(result);
+            setOptions(prev => ({ ...prev, environment: result.suggestedSceneriesLifestyle[0] || '' }));
+            setTimeout(() => setStep(2), 500);
+        } catch (error: any) {
+            console.error(error);
+            if (error.message === "GEMINI_API_KEY_MISSING") {
+                setStep(0);
+            } else {
+                toast.error("Erro ao analisar produto. Verifique sua chave.");
+            }
+        } finally {
+            setIsAnalyzing(false);
+            setProgress(0);
+        }
+    };
+
+    const handleGenerate = async () => {
+        if (!analysis) return;
         setIsGenerating(true);
+        setStep(3);
+        setResults([]);
+        setProgress(5);
 
-        setTimeout(() => {
-            const scenes = selectedPreset.scenes.map(s => ({
-                ...s,
-                prompt: s.prompt
-                    .replace(/\[PRODUCT\]/g, productDesc)
-                    .replace(/\[COLORS\]/g, visualData.colors || 'product specific')
-                    .replace(/\[LIGHTING\]/g, visualData.lighting || 'cinematic lighting')
-                    .replace(/\[COLOR_SCHEME\]/g, visualData.scheme)
-            }));
+        try {
+            setProgressText('Criando prompts perfeitos para o Sora 2...');
+            const prompts = await generatePrompts(analysis.description, options);
+            setProgress(25);
 
-            const styles = VO_SCRIPTS[selectedVoStyle];
-            const vo = styles[Math.floor(Math.random() * styles.length)].template.replace(/\[PRODUCT\]/g, productDesc);
+            const newResults: Result[] = prompts.map(p => ({ prompt: p, mockupUrl: null }));
+            setResults([...newResults]);
 
-            setGeneratedStoryboard(scenes);
-            setNarration(vo);
+            for (let i = 0; i < prompts.length; i++) {
+                setProgressText(`Gerando mockup realista ${i + 1} de ${prompts.length}...`);
+                const mockupUrl = await generateMockup(analysis.description, options, i);
+                newResults[i].mockupUrl = mockupUrl;
+                setResults([...newResults]);
+                setProgress(25 + ((i + 1) / prompts.length) * 75);
+            }
+
+            setProgressText('Concluído!');
+            setTimeout(() => {
+                setProgressText('');
+                setProgress(0);
+            }, 2000);
+
+            toast.success('Roteiro e Mockups gerados!');
+        } catch (error: any) {
+            console.error(error);
+            toast.error("Erro na geração. Verifique os créditos.");
+            setStep(2);
+        } finally {
             setIsGenerating(false);
-            toast.success('Roteiro Maestro Gerado!');
-        }, 1500);
+        }
+    };
+
+    const handleContinueFlow = async () => {
+        if (!analysis) return;
+        setIsContinuing(true);
+        setProgress(10);
+
+        try {
+            setProgressText('Criando continuação da cena...');
+            const previousPrompts = results.map(r => r.prompt);
+            const newPrompts = await generatePrompts(analysis.description, options, previousPrompts);
+            setProgress(30);
+
+            const startIndex = results.length;
+            const newResults: Result[] = newPrompts.map(p => ({ prompt: p, mockupUrl: null }));
+            setResults(prev => [...prev, ...newResults]);
+
+            for (let i = 0; i < newPrompts.length; i++) {
+                const globalIndex = startIndex + i;
+                setProgressText(`Gerando mockup realista ${globalIndex + 1}...`);
+                const mockupUrl = await generateMockup(analysis.description, options, globalIndex);
+
+                setResults(prev => {
+                    const updated = [...prev];
+                    updated[globalIndex].mockupUrl = mockupUrl;
+                    return updated;
+                });
+                setProgress(30 + ((i + 1) / newPrompts.length) * 70);
+            }
+
+            setProgressText('Continuação Concluída!');
+            setTimeout(() => {
+                setProgressText('');
+                setProgress(0);
+            }, 2000);
+
+        } catch (error) {
+            console.error(error);
+            toast.error("Erro na continuação.");
+        } finally {
+            setIsContinuing(false);
+        }
     };
 
     const copyToClipboard = (text: string) => {
@@ -161,251 +257,560 @@ export default function VideoLab() {
     };
 
     return (
-        <div className="min-h-screen bg-black text-white p-4 md:p-10 font-sans">
-            <div className="max-w-6xl mx-auto pt-20">
-
-                {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-                    <div>
-                        <div className="flex items-center gap-3 mb-2">
-                            <button
-                                onClick={() => navigate('/admin')}
-                                className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all mr-2"
-                            >
-                                <ChevronLeft className="w-5 h-5 text-white/50" />
-                            </button>
+        <div className="min-h-screen bg-black text-white font-sans selection:bg-cyan-500/30 font-light">
+            {/* Header */}
+            <header className="border-b border-white/10 bg-black/50 backdrop-blur-md sticky top-0 z-50">
+                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => navigate('/admin')}
+                            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all"
+                        >
+                            <ChevronLeft className="w-5 h-5 text-white/50" />
+                        </button>
+                        <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30">
                                 <Sparkles className="w-5 h-5 text-cyan-400" />
                             </div>
-                            <h1 className="text-3xl font-display font-medium tracking-tight">Laboratório de Produção</h1>
+                            <h1 className="text-2xl font-display font-medium tracking-tight">Vitta Video Lab</h1>
                         </div>
-                        <p className="text-white/50 text-sm max-w-xl">
-                            Transforme fotos simples em prompts de alta performance para a Sora 2 em segundos.
-                            Gere variações técnicas para garantir o take perfeito.
-                        </p>
+                    </div>
+
+                    <div className="hidden md:flex items-center gap-4 text-xs font-bold uppercase tracking-widest">
+                        <span className={step >= 1 ? 'text-cyan-400' : 'text-zinc-600'}>1. Upload</span>
+                        <ChevronRight className="w-4 h-4 text-zinc-800" />
+                        <span className={step >= 2 ? 'text-cyan-400' : 'text-zinc-600'}>2. Configuração</span>
+                        <ChevronRight className="w-4 h-4 text-zinc-800" />
+                        <span className={step >= 3 ? 'text-cyan-400' : 'text-zinc-600'}>3. Storyboard</span>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => setStep(0)}
+                            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all"
+                            title="Configurar Chave"
+                        >
+                            <Key className="w-4 h-4 text-zinc-400" />
+                        </button>
                     </div>
                 </div>
+            </header>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <main className="max-w-7xl mx-auto px-6 py-12">
+                <AnimatePresence mode="wait">
 
-                    {/* Input Side */}
-                    <div className="lg:col-span-5 space-y-8 h-fit lg:sticky lg:top-[120px]">
-                        {/* 1. Referência Visual (Vision AI) */}
-                        <section className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 backdrop-blur-xl group hover:border-cyan-500/30 transition-all">
-                            <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-400 mb-6 flex items-center gap-2">
-                                <ImageIcon className="w-4 h-4" /> 1. Referência Visual (IA Vision)
-                            </h3>
+                    {/* STEP 0: API KEY SETUP */}
+                    {step === 0 && (
+                        <motion.div
+                            key="step0"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="max-w-md mx-auto py-20 text-center space-y-8"
+                        >
+                            <div className="w-20 h-20 rounded-[2rem] bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center mx-auto shadow-[0_0_50px_rgba(34,211,238,0.1)]">
+                                <ShieldCheck className="w-10 h-10 text-cyan-400" />
+                            </div>
+                            <div className="space-y-4">
+                                <h2 className="text-3xl font-display font-semibold">Desbloquear Laboratório</h2>
+                                <p className="text-zinc-400 text-sm leading-relaxed">
+                                    Integramos o <b>Gemini 2.0 Flash</b> para análise visual de produtos e geração de roteiros. Insira sua chave do Google AI Studio.
+                                </p>
+                            </div>
+                            <div className="space-y-4">
+                                <div className="relative">
+                                    <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                                    <input
+                                        type="password"
+                                        value={apiKey}
+                                        onChange={(e) => setApiKey(e.target.value)}
+                                        placeholder="Cole sua API Key aqui..."
+                                        className="w-full bg-zinc-900 border border-white/10 rounded-2xl pl-12 pr-6 py-4 text-sm focus:outline-none focus:border-cyan-500 transition-all focus:ring-1 focus:ring-cyan-500/50"
+                                    />
+                                </div>
+                                <button
+                                    onClick={handleSaveKey}
+                                    className="w-full bg-cyan-500 text-black font-bold py-4 rounded-2xl hover:bg-cyan-400 transition-all shadow-[0_10px_30px_rgba(6,182,212,0.3)]"
+                                >
+                                    AUTORIZAR ACESSO
+                                </button>
+                                <a
+                                    href="https://aistudio.google.com/app/apikey"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block text-xs text-zinc-500 hover:text-cyan-400 transition-colors uppercase font-bold tracking-widest pt-2"
+                                >
+                                    Obter Chave Grátis no Google AI Studio
+                                </a>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* STEP 1: UPLOAD */}
+                    {step === 1 && (
+                        <motion.div
+                            key="step1"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="max-w-4xl mx-auto space-y-12"
+                        >
+                            <div className="text-center space-y-4">
+                                <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-500">Inteligência Maestro</span>
+                                <h2 className="text-5xl font-display font-semibold tracking-tight">Prepare sua Lente</h2>
+                                <p className="text-zinc-400 text-lg max-w-2xl mx-auto">Nossa IA analisará a forma, textura e cor do seu produto para criar cenários hiper-realistas para o <b>Sora 2</b>.</p>
+                            </div>
 
                             <div
                                 onClick={() => fileInputRef.current?.click()}
-                                className={`relative aspect-video rounded-3xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden ${imagePreview ? 'border-cyan-500/50 bg-cyan-500/5' : 'border-white/10 hover:border-white/20 hover:bg-white/5'
-                                    }`}
+                                className="group relative"
                             >
-                                {imagePreview ? (
-                                    <>
-                                        <img src={imagePreview} className="w-full h-full object-cover" alt="Preview" />
-                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <span className="text-xs font-bold uppercase tracking-widest text-white">Trocar Foto</span>
-                                        </div>
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); setImagePreview(null); setVisualData({ colors: '', lighting: '', scheme: 'minimalist' }); }}
-                                            className="absolute top-4 right-4 p-2 bg-red-500 rounded-full hover:bg-red-600 transition-all text-white shadow-xl"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    </>
-                                ) : (
-                                    <div className="text-center p-6">
-                                        <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4 border border-white/10">
-                                            <Upload className="w-6 h-6 text-white/30" />
-                                        </div>
-                                        <p className="text-sm font-medium text-white/60">Arraste a foto do produto</p>
-                                        <p className="text-[10px] uppercase text-white/20 mt-1 tracking-widest font-bold">A inteligência lerá as cores</p>
+                                <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-[3rem] blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+                                <div className="relative border-2 border-dashed border-white/5 hover:border-cyan-500/50 bg-zinc-950 rounded-[3rem] p-20 text-center cursor-pointer transition-all flex flex-col items-center">
+                                    <input
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        className="hidden"
+                                        ref={fileInputRef}
+                                        onChange={handleImageUpload}
+                                    />
+                                    <div className="w-24 h-24 rounded-3xl bg-white/5 group-hover:bg-cyan-500/10 flex items-center justify-center mb-8 border border-white/10 group-hover:border-cyan-500/30 transition-all">
+                                        <Upload className="w-10 h-10 text-white/20 group-hover:text-cyan-400" />
                                     </div>
-                                )}
+                                    <p className="text-2xl font-medium text-white mb-2">Importar Referências</p>
+                                    <p className="text-zinc-500 text-sm uppercase tracking-widest font-bold">Arraste fotos do seu produto aqui (PNG, JPG)</p>
+                                </div>
                             </div>
-                            <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
-                            <canvas ref={canvasRef} className="hidden" />
 
-                            {visualData.colors && (
-                                <div className="mt-4 flex flex-col gap-2 animate-in fade-in slide-in-from-top-1 duration-300">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_cyan]" />
-                                        <span className="text-[10px] font-bold text-white/60 uppercase tracking-widest">IA detectou: <span className="text-white">{visualData.colors}</span></span>
+                            {images.length > 0 && (
+                                <div className="space-y-10">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                        <AnimatePresence>
+                                            {images.map((img, idx) => (
+                                                <motion.div
+                                                    initial={{ opacity: 0, scale: 0.8 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    exit={{ opacity: 0, scale: 0.8 }}
+                                                    key={idx}
+                                                    className="relative aspect-square rounded-[2rem] overflow-hidden group border border-white/10 shadow-2xl"
+                                                >
+                                                    <img src={img} alt={`Upload ${idx}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); removeImage(idx); }}
+                                                        className="absolute top-4 right-4 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white scale-0 group-hover:scale-100 transition-all hover:bg-red-600"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </motion.div>
+                                            ))}
+                                        </AnimatePresence>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_cyan]" />
-                                        <span className="text-[10px] font-bold text-white/60 uppercase tracking-widest">Iluminação: <span className="text-white">{visualData.lighting}</span></span>
+
+                                    <div className="flex justify-center">
+                                        <button
+                                            onClick={handleAnalyze}
+                                            disabled={isAnalyzing}
+                                            className="group relative px-12 py-5 rounded-[2rem] bg-white text-black font-black uppercase tracking-widest text-sm flex items-center gap-3 hover:bg-cyan-400 transition-all disabled:opacity-50"
+                                        >
+                                            {isAnalyzing ? (
+                                                <><Loader2 className="w-5 h-5 animate-spin" /> Escaneando...</>
+                                            ) : (
+                                                <><Wand2 className="w-5 h-5" /> Ativar IA Maestro</>
+                                            )}
+                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                        </button>
                                     </div>
                                 </div>
                             )}
-                        </section>
+                        </motion.div>
+                    )}
 
-                        {/* 2. Detalhes Studio */}
-                        <section className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 backdrop-blur-xl">
-                            <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-400 mb-6 flex items-center gap-2">
-                                <Wand2 className="w-4 h-4" /> 2. Maestro Engine
-                            </h3>
-
-                            <div className="space-y-6">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] ml-1">Produto / O que é?</label>
-                                    <input
-                                        type="text"
-                                        value={productDesc}
-                                        onChange={(e) => setProductDesc(e.target.value)}
-                                        placeholder="Ex: Tênis Nike Air Jordan Azul..."
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all"
-                                    />
+                    {/* STEP 2: OPTIONS */}
+                    {step === 2 && analysis && (
+                        <motion.div
+                            key="step2"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="grid grid-cols-1 lg:grid-cols-12 gap-10"
+                        >
+                            <div className="lg:col-span-4 space-y-10">
+                                {/* Vision Results Card */}
+                                <div className="bg-gradient-to-br from-cyan-500/20 to-blue-500/10 border border-cyan-500/30 rounded-[2.5rem] p-8 space-y-6 relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 p-8 opacity-10">
+                                        <Zap className="w-20 h-20 text-cyan-400" />
+                                    </div>
+                                    <div className="space-y-2 relative">
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-400">Produto Identificado</span>
+                                        <h3 className="text-3xl font-display font-semibold text-white leading-tight">{analysis.productType}</h3>
+                                    </div>
+                                    <div className="bg-black/40 p-5 rounded-2xl border border-white/5 space-y-3 relative">
+                                        <p className="text-xs text-zinc-400 uppercase font-black tracking-widest">DNA Visual</p>
+                                        <p className="text-sm text-zinc-200 leading-relaxed italic">"{analysis.description.substring(0, 150)}..."</p>
+                                    </div>
                                 </div>
 
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] ml-1">Preset de Estúdio</label>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        {PRESETS.map((preset) => (
+                                <div className="space-y-8">
+                                    {/* Aspect Ratio */}
+                                    <div className="space-y-4">
+                                        <label className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                                            <LayoutGrid className="w-3.5 h-3.5" /> Formato de Entrega
+                                        </label>
+                                        <div className="grid grid-cols-2 gap-3">
                                             <button
-                                                key={preset.id}
-                                                onClick={() => setSelectedPreset(preset)}
-                                                className={`flex items-center gap-3 p-4 rounded-2xl border transition-all ${selectedPreset.id === preset.id
-                                                    ? 'bg-white/10 border-white/40 text-white shadow-xl'
-                                                    : 'bg-white/5 border-transparent text-white/40 hover:bg-white/10'
+                                                onClick={() => setOptions({ ...options, aspectRatio: '16:9' })}
+                                                className={`py-4 rounded-2xl border transition-all flex items-center justify-center gap-3 font-bold text-xs uppercase tracking-tighter ${options.aspectRatio === '16:9' ? 'bg-cyan-500 border-cyan-500 text-black shadow-[0_0_20px_rgba(6,182,212,0.3)]' : 'bg-white/5 border-white/10 text-zinc-400 hover:border-white/20'}`}
+                                            >
+                                                <Monitor className="w-4 h-4" /> Horizontal (16:9)
+                                            </button>
+                                            <button
+                                                onClick={() => setOptions({ ...options, aspectRatio: '9:16' })}
+                                                className={`py-4 rounded-2xl border transition-all flex items-center justify-center gap-3 font-bold text-xs uppercase tracking-tighter ${options.aspectRatio === '9:16' ? 'bg-cyan-500 border-cyan-500 text-black shadow-[0_0_20px_rgba(6,182,212,0.3)]' : 'bg-white/5 border-white/10 text-zinc-400 hover:border-white/20'}`}
+                                            >
+                                                <Smartphone className="w-4 h-4" /> Vertical (9:16)
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Mode Selector */}
+                                    <div className="space-y-4">
+                                        <label className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                                            <Video className="w-3.5 h-3.5" /> Direção de Arte
+                                        </label>
+                                        <div className="grid grid-cols-1 gap-3">
+                                            <button
+                                                onClick={() => setOptions({ ...options, mode: 'product_only', environment: analysis?.suggestedSceneriesProductOnly[0] || '' })}
+                                                className={`p-6 text-left rounded-3xl border transition-all flex flex-col gap-2 ${options.mode === 'product_only' ? 'bg-cyan-500/10 border-cyan-500 shadow-[inset_0_0_20px_rgba(6,182,212,0.1)]' : 'bg-zinc-900/50 border-white/5 hover:border-white/10'}`}
+                                            >
+                                                <span className={`text-sm font-black uppercase tracking-widest ${options.mode === 'product_only' ? 'text-cyan-400' : 'text-zinc-500'}`}>Apenas Produto</span>
+                                                <span className="text-xs text-zinc-400 leading-relaxed font-light">Foco total nas texturas e design. Ideal para estúdio e 3D.</span>
+                                            </button>
+                                            <button
+                                                onClick={() => setOptions({ ...options, mode: 'lifestyle', environment: analysis?.suggestedSceneriesLifestyle[0] || '' })}
+                                                className={`p-6 text-left rounded-3xl border transition-all flex flex-col gap-2 ${options.mode === 'lifestyle' ? 'bg-cyan-500/10 border-cyan-500 shadow-[inset_0_0_20px_rgba(6,182,212,0.1)]' : 'bg-zinc-900/50 border-white/5 hover:border-white/10'}`}
+                                            >
+                                                <span className={`text-sm font-black uppercase tracking-widest ${options.mode === 'lifestyle' ? 'text-cyan-400' : 'text-zinc-500'}`}>Lifestyle (Com Modelo)</span>
+                                                <span className="text-xs text-zinc-400 leading-relaxed font-light">Produto em contexto de uso real com atores cinematográficos.</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <AnimatePresence mode="wait">
+                                        {options.mode === 'lifestyle' && (
+                                            <motion.div
+                                                initial={{ opacity: 0, height: 0 }}
+                                                animate={{ opacity: 1, height: 'auto' }}
+                                                exit={{ opacity: 0, height: 0 }}
+                                                className="space-y-8 overflow-hidden pt-4 border-t border-white/5"
+                                            >
+                                                {/* Model Casting Details */}
+                                                <div className="space-y-6">
+                                                    <div className="space-y-3">
+                                                        <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Casting: Gênero</label>
+                                                        <div className="grid grid-cols-4 gap-2">
+                                                            {genders.map(g => (
+                                                                <button
+                                                                    key={g.id}
+                                                                    onClick={() => setOptions({ ...options, gender: g.id })}
+                                                                    className={`p-3 rounded-xl border flex flex-col items-center gap-2 transition-all ${options.gender === g.id ? 'bg-cyan-500/10 border-cyan-500 text-cyan-400' : 'bg-white/5 border-transparent text-zinc-600'}`}
+                                                                >
+                                                                    <g.icon className="w-4 h-4" />
+                                                                    <span className="text-[9px] font-bold uppercase">{g.label}</span>
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="space-y-3">
+                                                        <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Tom de Pele</label>
+                                                        <div className="grid grid-cols-4 gap-2">
+                                                            {skinTones.map(s => (
+                                                                <button
+                                                                    key={s.id}
+                                                                    onClick={() => setOptions({ ...options, skinTone: s.id })}
+                                                                    className={`p-2 rounded-xl border transition-all flex flex-col items-center gap-2 ${options.skinTone === s.id ? 'border-cyan-500 bg-cyan-500/5' : 'border-transparent'}`}
+                                                                >
+                                                                    <div className="w-6 h-6 rounded-full border border-white/10" style={{ background: s.color }} />
+                                                                    <span className="text-[9px] font-bold uppercase text-zinc-500">{s.label}</span>
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="space-y-3">
+                                                        <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Tom de Cabelo</label>
+                                                        <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                                                            {hairColors.map(h => (
+                                                                <button
+                                                                    key={h.id}
+                                                                    onClick={() => setOptions({ ...options, hairColor: h.id })}
+                                                                    className={`p-2 rounded-xl border transition-all flex flex-col items-center gap-2 ${options.hairColor === h.id ? 'border-cyan-500 bg-cyan-500/5' : 'border-transparent'}`}
+                                                                >
+                                                                    <div className="w-6 h-6 rounded-full border border-white/10" style={{ background: h.color }} />
+                                                                    <span className="text-[9px] font-bold uppercase text-zinc-500">{h.label}</span>
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            </div>
+
+                            <div className="lg:col-span-8 space-y-10">
+                                <div className="bg-zinc-900/40 border border-white/5 rounded-[3rem] p-10 space-y-10 shadow-2xl backdrop-blur-3xl">
+
+                                    {/* Step Heading */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="space-y-1">
+                                            <h2 className="text-2xl font-display font-medium flex items-center gap-3">
+                                                <ImageIcon className="w-6 h-6 text-cyan-500" /> Curadoria de Cenários
+                                            </h2>
+                                            <p className="text-sm text-zinc-500">Selecione uma das sugestões da IA ou personalize o ambiente.</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Scenery Selection */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        {(options.mode === 'product_only' ? analysis.suggestedSceneriesProductOnly : analysis.suggestedSceneriesLifestyle).map((scenery, idx) => (
+                                            <button
+                                                key={idx}
+                                                onClick={() => setOptions({ ...options, environment: scenery })}
+                                                className={`p-8 rounded-3xl border text-left transition-all relative group overflow-hidden ${options.environment === scenery
+                                                        ? 'bg-cyan-500/10 border-cyan-500 shadow-xl'
+                                                        : 'bg-black/60 border-white/5 hover:border-white/20'
                                                     }`}
                                             >
-                                                <div className={`p-2 rounded-lg ${selectedPreset.id === preset.id ? preset.bg : 'bg-white/5'}`}>
-                                                    {preset.icon}
+                                                <div className="flex items-start gap-4 h-full relative z-10">
+                                                    <div className={`mt-1 w-5 h-5 rounded-full border flex-shrink-0 flex items-center justify-center ${options.environment === scenery ? 'border-cyan-500' : 'border-zinc-700'}`}>
+                                                        {options.environment === scenery && <div className="w-2 h-2 rounded-full bg-cyan-500" />}
+                                                    </div>
+                                                    <span className={`text-sm leading-relaxed ${options.environment === scenery ? 'text-white font-medium' : 'text-zinc-500'}`}>{scenery}</span>
                                                 </div>
-                                                <span className="text-[10px] font-black uppercase tracking-tighter">{preset.name}</span>
+                                                <div className={`absolute bottom-0 left-0 h-1 bg-cyan-500 transition-all duration-500 ${options.environment === scenery ? 'w-full' : 'w-0'}`} />
                                             </button>
                                         ))}
                                     </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-white/5">
+                                        <div className="space-y-4">
+                                            <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest flex items-center gap-2">
+                                                <SunMoon className="w-3.5 h-3.5" /> Iluminação & Atmosphere
+                                            </label>
+                                            <select
+                                                value={options.timeOfDay}
+                                                onChange={(e) => setOptions({ ...options, timeOfDay: e.target.value })}
+                                                className="w-full bg-black/60 border border-white/10 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:border-cyan-500"
+                                            >
+                                                {lightings.map(l => <option key={l.id} value={l.id}>{l.label} - {l.desc}</option>)}
+                                            </select>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest flex items-center gap-2">
+                                                <Film className="w-3.5 h-3.5" /> Estilo de Lente
+                                            </label>
+                                            <select
+                                                value={options.style}
+                                                onChange={(e) => setOptions({ ...options, style: e.target.value })}
+                                                className="w-full bg-black/60 border border-white/10 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:border-cyan-500"
+                                            >
+                                                {styles.map(s => <option key={s.id} value={s.id}>{s.label} - {s.desc}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4 pt-4">
+                                        <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Brainstorming Adicional (Opcional)</label>
+                                        <textarea
+                                            value={options.supportingDescription}
+                                            onChange={(e) => setOptions({ ...options, supportingDescription: e.target.value })}
+                                            placeholder="Ex: Adicionar gotas de água na superfície, flocos de neve caindo, fundo mais desfocado..."
+                                            className="w-full bg-black/60 border border-white/10 rounded-3xl px-8 py-6 text-sm text-zinc-300 focus:outline-none focus:border-cyan-500 transition-all min-h-[140px] resize-none"
+                                        />
+                                    </div>
+
+                                    <button
+                                        onClick={handleGenerate}
+                                        className="w-full group bg-white text-black font-black uppercase tracking-[0.2em] py-6 rounded-[2rem] hover:bg-cyan-400 transition-all flex items-center justify-center gap-4 text-sm shadow-[0_20px_50px_rgba(255,255,255,0.1)] hover:shadow-[0_20px_50px_rgba(34,211,238,0.2)]"
+                                    >
+                                        CONFIGURAR PRODUÇÃO <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* STEP 3: RESULTS */}
+                    {step === 3 && (
+                        <motion.div
+                            key="step3"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="space-y-12"
+                        >
+                            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
+                                            <Check className="w-4 h-4 text-emerald-400" />
+                                        </div>
+                                        <h2 className="text-3xl font-display font-semibold">Produção Concluída</h2>
+                                    </div>
+                                    <p className="text-zinc-500 text-sm">Pronto para a Sora 2. Copie os prompts e use as artes como referência de estilo.</p>
                                 </div>
 
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] ml-1">Tom da Narração</label>
-                                    <div className="flex bg-black/40 p-1 rounded-2xl border border-white/5">
-                                        <button
-                                            onClick={() => setSelectedVoStyle('sales')}
-                                            className={`flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-all ${selectedVoStyle === 'sales' ? 'bg-cyan-500 text-black font-bold shadow-lg' : 'text-white/40 hover:text-white'}`}
-                                        >
-                                            <Zap className="w-3 h-3" />
-                                            <span className="text-[10px] uppercase font-bold tracking-widest">Excited / Sales</span>
-                                        </button>
-                                        <button
-                                            onClick={() => setSelectedVoStyle('emotional')}
-                                            className={`flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-all ${selectedVoStyle === 'emotional' ? 'bg-cyan-500 text-black font-bold shadow-lg' : 'text-white/40 hover:text-white'}`}
-                                        >
-                                            <Mic2 className="w-3 h-3" />
-                                            <span className="text-[10px] uppercase font-bold tracking-widest">Calm / Store</span>
-                                        </button>
-                                    </div>
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={() => {
+                                            setStep(1);
+                                            setImages([]);
+                                            setAnalysis(null);
+                                        }}
+                                        className="px-6 py-3 rounded-2xl bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-widest"
+                                    >
+                                        <RefreshCcw className="w-4 h-4" /> Reset Lab
+                                    </button>
                                 </div>
                             </div>
 
-                            <button
-                                onClick={generateStoryboard}
-                                disabled={isGenerating}
-                                className="w-full mt-10 bg-white text-black font-bold py-[1.25rem] rounded-[1.5rem] hover:bg-cyan-400 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(255,255,255,0.1)] relative overflow-hidden group/btn"
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000" />
-                                {isGenerating ? (
-                                    <Loader2 className="animate-spin w-5 h-5 text-black" />
-                                ) : (
-                                    <>
-                                        <Sparkles className="w-5 h-5 fill-black" />
-                                        <span className="uppercase tracking-[0.1em]">Configurar Produção</span>
-                                    </>
-                                )}
-                            </button>
-                        </section>
-
-                        {/* Narration Box */}
-                        {narration && (
-                            <section className="bg-cyan-500/10 border border-cyan-500/20 rounded-[2.5rem] p-8 backdrop-blur-xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <h3 className="text-[10px] font-bold uppercase tracking-widest text-cyan-400 mb-4 flex items-center gap-2">
-                                    <Sparkles className="w-4 h-4 shadow-[0_0_10px_cyan]" /> Sugestão de Narração (Off)
-                                </h3>
-                                <div className="bg-black/40 rounded-2xl p-4 border border-white/5 relative group">
-                                    <p className="text-sm italic text-white/80 leading-relaxed pr-8">
-                                        "{narration}"
-                                    </p>
-                                    <button
-                                        onClick={() => copyToClipboard(narration)}
-                                        className="absolute top-4 right-4 text-white/20 hover:text-white transition-colors"
-                                    >
-                                        <Copy className="w-3 h-3" />
-                                    </button>
-                                </div>
-                                <p className="text-[9px] mt-3 text-cyan-400/50 uppercase tracking-tighter">* Use o CapCut ou ElevenLabs para esta voz.</p>
-                            </section>
-                        )}
-                    </div>
-
-                    {/* Output Side */}
-                    <div className="lg:col-span-7">
-                        <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 backdrop-blur-xl min-h-[600px] flex flex-col relative overflow-hidden">
-                            {/* Decorative Grid */}
-                            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
-
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-cyan-400 mb-8 flex items-center gap-2 relative">
-                                <MonitorPlay className="w-4 h-4" /> Storyboard: 40 Segundos de Alta Conversão
-                            </h3>
-
-                            {generatedStoryboard.length === 0 ? (
-                                <div className="flex-1 flex flex-col items-center justify-center opacity-10 text-center px-10 relative">
-                                    <Layout className="w-24 h-24 mb-6 stroke-[1]" />
-                                    <p className="text-xl font-display">A linha de montagem está desligada.</p>
-                                    <p className="text-xs mt-2 uppercase tracking-[0.3em]">Configure à esquerda para produzir</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-4 relative">
-                                    {generatedStoryboard.map((scene, idx) => (
-                                        <div key={idx} className="group flex flex-col sm:flex-row gap-4 bg-black/40 border border-white/5 rounded-2xl p-5 hover:border-cyan-500/30 transition-all">
-                                            <div className="flex sm:flex-col items-center justify-between sm:justify-start gap-3 sm:w-20 shrink-0">
-                                                <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-bold font-display text-white group-hover:bg-cyan-500 group-hover:text-black transition-all">
-                                                    0{idx + 1}
-                                                </div>
-                                                <div className="hidden sm:block h-full w-px bg-white/5 group-hover:bg-cyan-500/30 transition-all" />
-                                            </div>
-
-                                            <div className="flex-1">
-                                                <div className="flex justify-between items-center mb-2">
-                                                    <span className="text-[10px] font-black text-cyan-500 uppercase tracking-widest">{scene.title}</span>
-                                                    <button
-                                                        onClick={() => copyToClipboard(scene.prompt)}
-                                                        className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full hover:bg-cyan-500 hover:text-black transition-all text-[9.5px] font-bold text-white/40"
-                                                    >
-                                                        <Copy className="w-3 h-3" /> COPIAR PROMPT
-                                                    </button>
-                                                </div>
-                                                <p className="text-xs text-white/60 font-light leading-relaxed">
-                                                    {scene.prompt}
-                                                </p>
-                                            </div>
+                            {(isGenerating || isContinuing) && (
+                                <div className="bg-zinc-900/50 border border-cyan-500/20 rounded-3xl p-10 flex flex-col gap-6 backdrop-blur-sm animate-pulse">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <Loader2 className="w-6 h-6 animate-spin text-cyan-500" />
+                                            <span className="text-cyan-400 font-bold uppercase tracking-widest text-sm">{progressText}</span>
                                         </div>
-                                    ))}
-
-                                    <div className="mt-10 p-6 bg-amber-400/5 border border-amber-400/20 rounded-[2rem]">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <Check className="w-4 h-4 text-amber-400" />
-                                            <span className="text-[10px] font-black uppercase text-amber-400 tracking-tighter">Fluxo de Escala River</span>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-1">
-                                                <p className="text-[11px] font-bold text-white/80">1. Gere os 5 Takes</p>
-                                                <p className="text-[9px] text-white/40">Use a mesma foto do cliente em todos na Sora 2.</p>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <p className="text-[11px] font-bold text-white/80">2. Monte no CapCut</p>
-                                                <p className="text-[9px] text-white/40">Importe os takes, remova audio da Sora e grave a narração sugerida.</p>
-                                            </div>
-                                        </div>
+                                        <span className="text-zinc-600 font-mono text-xl">{Math.round(progress)}%</span>
+                                    </div>
+                                    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                        <motion.div
+                                            className="h-full bg-cyan-500"
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${progress}%` }}
+                                            transition={{ duration: 0.5 }}
+                                        />
                                     </div>
                                 </div>
                             )}
-                        </div>
-                    </div>
 
-                </div>
+                            <div className="grid grid-cols-1 gap-12">
+                                {results.map((result, idx) => (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 40 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: idx * 0.15 }}
+                                        key={idx}
+                                        className="group relative"
+                                    >
+                                        <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-[3rem] blur opacity-0 group-hover:opacity-100 transition duration-1000"></div>
+                                        <div className="relative bg-zinc-950 border border-white/5 rounded-[3rem] overflow-hidden flex flex-col lg:flex-row shadow-2xl">
+                                            {/* Mockup Display */}
+                                            <div className="lg:w-1/2 aspect-square bg-black relative flex items-center justify-center overflow-hidden border-b lg:border-r border-white/5 group/img">
+                                                {result.mockupUrl ? (
+                                                    <>
+                                                        <img src={result.mockupUrl} alt={`Mockup ${idx + 1}`} className="w-full h-full object-cover transition-transform duration-1000 group-hover/img:scale-110" />
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+                                                        <div className="absolute bottom-8 left-8">
+                                                            <span className="text-xs font-black uppercase tracking-[0.4em] text-white/40 mb-2 block">Reference Collage</span>
+                                                            <h4 className="text-xl font-display font-medium">Concept Visual 0{idx + 1}</h4>
+                                                        </div>
+                                                        <div className="absolute top-8 right-8 flex gap-3 translate-y-2 opacity-0 group-hover/img:translate-y-0 group-hover/img:opacity-100 transition-all duration-500">
+                                                            <a
+                                                                href={result.mockupUrl}
+                                                                download={`mockup-${idx + 1}.png`}
+                                                                className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center hover:bg-cyan-400 transition-all shadow-xl"
+                                                            >
+                                                                <Download className="w-5 h-5" />
+                                                            </a>
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <div className="flex flex-col items-center gap-4 text-zinc-700">
+                                                        <div className="w-12 h-12 border-2 border-dashed border-zinc-800 rounded-full flex items-center justify-center animate-spin">
+                                                            <Sparkles className="w-5 h-5" />
+                                                        </div>
+                                                        <span className="text-[10px] uppercase font-black tracking-widest">Orchestrating Visuals...</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Prompt Content */}
+                                            <div className="lg:flex-1 p-12 flex flex-col justify-between space-y-10">
+                                                <div className="space-y-6">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="px-5 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20">
+                                                            <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">{sequenceTitles[idx] || `Variação 0${idx + 1}`}</span>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => copyToClipboard(result.prompt)}
+                                                            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white hover:text-black transition-all group/copy"
+                                                        >
+                                                            <Copy className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                                        </button>
+                                                    </div>
+
+                                                    <div className="bg-white/5 p-8 rounded-[2rem] border border-white/5 relative">
+                                                        <p className="text-lg text-zinc-100 leading-relaxed font-light tracking-wide">
+                                                            {result.prompt}
+                                                        </p>
+                                                        <div className="mt-6 flex items-center gap-4 opacity-30">
+                                                            <div className="h-[1px] flex-1 bg-white/10" />
+                                                            <MonitorPlay className="w-4 h-4" />
+                                                            <div className="h-[1px] flex-1 bg-white/10" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
+                                                        <Film className="w-4 h-4 text-zinc-500" />
+                                                    </div>
+                                                    <div className="space-y-0.5">
+                                                        <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Sora 2 Optimization</p>
+                                                        <p className="text-xs text-zinc-400">Cinematography: {options.style} / Lighting: {options.timeOfDay}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+
+                            {!isGenerating && !isContinuing && results.length > 0 && (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="pt-12 border-t border-white/5 flex flex-col items-center gap-6"
+                                >
+                                    <p className="text-xs uppercase font-black tracking-[0.4em] text-zinc-700">Precisa de mais tempo de vídeo?</p>
+                                    <button
+                                        onClick={handleContinueFlow}
+                                        className="group relative px-10 py-5 rounded-[2rem] bg-zinc-900 border border-white/10 text-white font-black uppercase tracking-widest text-xs flex items-center gap-4 hover:border-cyan-500/50 transition-all shadow-2xl"
+                                    >
+                                        <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30">
+                                            <Video className="w-4 h-4 text-cyan-400" />
+                                        </div>
+                                        Continuar Produção (+3 Cenas)
+                                        <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                    </button>
+                                </motion.div>
+                            )}
+                        </motion.div>
+                    )}
+
+                </AnimatePresence>
+            </main>
+
+            {/* Background Decor */}
+            <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-cyan-500/10 rounded-full blur-[120px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[120px]" />
             </div>
         </div>
     );
