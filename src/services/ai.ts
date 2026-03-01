@@ -174,8 +174,17 @@ export async function analyzeProduct(imagesBase64: string[], marketingContext?: 
             parts: [
                 ...parts,
                 {
-                    text: `You are a WORLD-CLASS product photographer, commercial director, and visual analyst. Analyze these product images with EXTREME precision.
-${marketingContext ? `\nMARKETING CONTEXT (Tailor your suggested sceneries to this): \n"""\n${marketingContext}\n"""\n` : ''}
+                    text: `SYSTEM MANDATE: You are an ELITE ADVERTISING DIRECTOR and CMO.
+${marketingContext ? `
+[CRITICAL MARKETING CONTEXT - SUPER-PRIORITY]
+"""
+${marketingContext}
+"""
+MANDATE: ALL Suggested Sceneries (Lifestyle & Product-Only) MUST directly serve the marketing goals, target audience, and benefits described above. No generic suggestions allowed.
+` : ''}
+
+You are also a WORLD-CLASS product photographer and visual analyst. Analyze these product images with EXTREME precision.
+
 RETURN a JSON with the following fields:
 
 1. "description" (ENGLISH, ultra-detailed):
@@ -260,8 +269,17 @@ export async function analyzeScenery(imagesBase64: string[], marketingContext?: 
             parts: [
                 ...parts,
                 {
-                    text: `You are a WORLD-CLASS film location scout and cinematographer. Analyze these SCENERY/LOCATION images.
-${marketingContext ? `\nMARKETING CONTEXT (Tailor your suggestions to this): \n"""\n${marketingContext}\n"""\n` : ''}
+                    text: `SYSTEM MANDATE: You are an ELITE SCENERY SCOUT and NARRATIVE ARCHITECT.
+${marketingContext ? `
+[CRITICAL MARKETING CONTEXT - SUPER-PRIORITY]
+"""
+${marketingContext}
+"""
+MANDATE: Tailor ALL suggestions (Mood, Actions, Camera) to strictly serve this specific audience and marketing angle.
+` : ''}
+
+Analyze these SCENERY/LOCATION images for a high-end commercial.
+
 RETURN a JSON:
 1. "description" (ENGLISH): Ultra-detailed description of the location — architecture, nature, lighting conditions, colors, textures, atmosphere, time of day, weather.
 2. "locationType" (PORTUGUESE): Short category — e.g., "Praia", "Floresta", "Cidade Urbana", "Interior de Casa"
@@ -311,15 +329,22 @@ export async function generatePrompts(
     Create cinematic video scenes (10 seconds each) for a commercial sequence.
     ${sceneDraft ? `
     ACT AS AN ELITE AI VIDEO DIRECTOR & SORA 2 PROMPT ENGINEER.
-    USER SCENE DRAFT: "${sceneDraft}"
+    
+    [GLOBAL STRATEGY - DO NOT IGNORE]
+    The product description below contains a "MARKETING CONTEXT" section. 
+    MANDATORY: Every technical choice you make MUST amplify the marketing benefits and target audience described there.
+    
+    [USER SCENE DRAFT]
+    "${sceneDraft}"
     
     TASK: EXPAND THIS DRAFT INTO AN ULTRA-TECHNICAL SORA 2 BLUEPRINT (999,999% IMPROVEMENT).
     - Transform the user's idea into a professional cinematic masterpiece.
-    - USE 4-LAYER EXPANSION:
+    - USE 5-LAYER MASTER EXPANSION:
+      0. MARKETING ALIGNMENT: Explicitly incorporate the target audience and benefits (e.g., if it's for pregnant women, ensure the environment and model's relief are central).
       1. TECHNICAL SETTING: Define the lens (Anamorphic/35mm), camera movement (dolly zoom, gimbal tracking), and framing.
       2. NARRATIVE ACTION: Describe the physical weight, the relief, the microscopic muscle movement, the fabric touching the skin.
       3. MACRO DETAILS: Focus on the product's premium textures, the exact logo placement, and light reflecting off materials.
-      4. LIGHTING & ATMOSPHERE: Define the volumetric lighting, color grade (teal & orange, cinematic noir, etc.), and environmental particles (dust motes, steam, moisture).
+      4. LIGHTING & ATMOSPHERE: Define the volumetric lighting, color grade (teal & orange, cinematic noir, etc.), and environmental particles.
     
     - MANDATORY: If the user mentions relief or pain, describe the VISUAL representation of that (e.g., tension leaving the face, the product absorbing the weight).
     - Format: Natural, flowing prose. No technical labels. Length: ~150-200 words.
