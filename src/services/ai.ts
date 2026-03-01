@@ -367,8 +367,9 @@ MANDATORY QUALITY:
 - Photorealistic, cinematic, modern color grading.
 - Specify camera movement, lens, depth of field naturally within the prose.
 - Include ambient audio description at the end of each prompt.
-- No text overlays, no subtitles, no watermarks, no logos.
+- No text overlays, no subtitles, no watermarks. The product's OWN branding/logo IS allowed and should be visible.
 - No physics violations. Real gravity, real materials, real light.
+- BRANDING: In at least one scene, angle the product so its logo/brand name is clearly readable.
 - Keep descriptions to 3-6 sentences maximum.
 `;
 
@@ -439,15 +440,15 @@ export async function generateMockup(
     ];
 
     const focusInstructions = [
-        "Focus on the environment and how the product fits in. Show the whole object.",
-        "Focus on the interaction/movement. The product must remain 100% rigid and faithful.",
-        "Hyper-zoom on materials and textures. Branding must be perfectly clear.",
-        "Show the silhouette from a clean side angle.",
-        "Show it from directly above. Clean geometry.",
-        "Majestic hero angle, looking up at the product.",
-        "Dynamic scene.",
-        "Lifestyle action.",
-        "Product focus."
+        "Focus on the environment and how the product fits in. Show the whole object with logo/branding clearly visible.",
+        "Focus on the interaction/movement. The product must remain 100% rigid and faithful. Logo must be readable.",
+        "Hyper-zoom on materials, textures, AND the logo/branding. Text must be perfectly sharp and legible.",
+        "Show the silhouette from a clean side angle. If the logo is on this side, it must be clearly visible.",
+        "Show it from directly above. Clean geometry. Any top branding must be sharp.",
+        "Majestic hero angle, looking up at the product. Branding facing camera.",
+        "Dynamic scene. Logo visible.",
+        "Lifestyle action. Logo visible.",
+        "Product focus. Logo prominently displayed."
     ];
 
     const imagePrompt = `TASK: Generate a PROFESSIONAL PRODUCT CONCEPT SHEET (Collage).
@@ -459,21 +460,31 @@ CRITICAL — PRODUCT FIDELITY (CLONE MODE):
 - ZERO HALLUCINATION: Do not change colors, do not add fake logos, do not simplify the design. 
 - CONSISTENCY: Every view in this collage MUST show the same identical product.
 
+⚠️ LOGO & BRANDING FIDELITY — HIGHEST PRIORITY:
+- The product's LOGO/BRAND NAME must be CLEARLY VISIBLE and PERFECTLY READABLE in EVERY view.
+- Copy the EXACT logo from the reference photos: same font, same size, same position, same color, same orientation.
+- The logo must NEVER be blurry, distorted, partially hidden, or replaced with gibberish text.
+- If the reference shows text like "RIDER", "Nike", "adidas" etc., reproduce it LETTER BY LETTER.
+- In the HERO SHOT, the logo must be PROMINENTLY displayed — angle the product so the logo faces the camera.
+- In at least ONE detail view, include a CLOSE-UP of the logo/branding area.
+- DO NOT invent fake brand names or logos. Only reproduce what exists in the reference photos.
+
 QUANTITY RULE (CRITICAL):
 - The product is a ${productDescription.includes('pair') || productDescription.includes('shoes') || productDescription.includes('flip-flop') || productDescription.includes('sandal') ? 'PAIR (2 Items)' : 'SINGLE UNIT (1 Item)'}. 
 - HERO SHOT (Left) MUST show the product exactly as sold (e.g., BOTH items of a pair).
 - If it's a pair, do not show only one shoe/sandal.
 
 COLLAGE LAYOUT:
-- MAIN HERO SHOT (LEFT, 60%): The product in the requested environment.
-- ANGLE VIEWS (RIGHT STACK, 40%): 3 technical detail views (e.g. Sole, Interior, Logos).
+- MAIN HERO SHOT (LEFT, 60%): The product in the requested environment. Logo clearly visible.
+- ANGLE VIEWS (RIGHT STACK, 40%): 3 technical detail views — one MUST be a close-up of the logo/branding.
 
 SHOT SPECIFIC FOCUS: ${focusInstructions[promptIndex] || "Hero product focus"}
 
 LIFESTYLE EXECUTION (ANCHOR MODE):
 - TALENT: ${options.mode === 'lifestyle' ? `A ${options.gender} model (${options.hairColor} hair) is PHYSICALLY ${productDescription.includes('shoe') || productDescription.includes('flip-flop') || productDescription.includes('sandal') ? 'WEARING' : 'USING'} the product. 
 - ANCHOR RULE: The product is fixed. Draw the person *fitting* the product.
-- RIGIDITY: The product does not bend or distort based on the person's pose.` : 'Product only, no people. Hero composition.'}
+- RIGIDITY: The product does not bend or distort based on the person's pose.
+- LOGO VISIBLE: Even in lifestyle shots, the product's branding/logo must be readable.` : 'Product only, no people. Hero composition. Logo prominently displayed.'}
 
 SCENE DATA:
 IDENTIFIER: ${productDescription}
