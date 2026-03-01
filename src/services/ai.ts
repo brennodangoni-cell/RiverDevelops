@@ -310,10 +310,20 @@ export async function generatePrompts(
     let taskDescription = `
     Create cinematic video scenes (10 seconds each) for a commercial sequence.
     ${sceneDraft ? `
+    ACT AS AN ELITE AI VIDEO DIRECTOR & SORA 2 PROMPT ENGINEER.
     USER SCENE DRAFT: "${sceneDraft}"
-    TASK: TRANSFORM THIS DRAFT INTO A PROFESSIONAL SORA 2 BLUEPRINT. 
-    Keep the core action and emotion but use cinematic prose, detailed textures, and technical lighting.
-    Generate ONLY THIS SCENE.
+    
+    TASK: EXPAND THIS DRAFT INTO AN ULTRA-TECHNICAL SORA 2 BLUEPRINT (999,999% IMPROVEMENT).
+    - Transform the user's idea into a professional cinematic masterpiece.
+    - USE 4-LAYER EXPANSION:
+      1. TECHNICAL SETTING: Define the lens (Anamorphic/35mm), camera movement (dolly zoom, gimbal tracking), and framing.
+      2. NARRATIVE ACTION: Describe the physical weight, the relief, the microscopic muscle movement, the fabric touching the skin.
+      3. MACRO DETAILS: Focus on the product's premium textures, the exact logo placement, and light reflecting off materials.
+      4. LIGHTING & ATMOSPHERE: Define the volumetric lighting, color grade (teal & orange, cinematic noir, etc.), and environmental particles (dust motes, steam, moisture).
+    
+    - MANDATORY: If the user mentions relief or pain, describe the VISUAL representation of that (e.g., tension leaving the face, the product absorbing the weight).
+    - Format: Natural, flowing prose. No technical labels. Length: ~150-200 words.
+    - Generate ONLY THIS ONE MASTER SCENE.
     ` : (detectedColors && detectedColors.length > 1 ? `
     DETECTION: We found ${detectedColors.length} unique color variants in the product photos: ${detectedColors.join(', ')}.
     GOAL: Generate EXACTLY ${detectedColors.length} scenes, ONE FOR EACH COLOR VARIANT. 
@@ -510,7 +520,7 @@ COLLAGE LAYOUT:
 - MAIN HERO SHOT (LEFT, 60%): The product in the requested environment. Logo clearly visible.
 - ANGLE VIEWS (RIGHT STACK, 40%): 3 technical detail views — one MUST be a close-up of the logo/branding.
 
-SHOT SPECIFIC FOCUS: ${promptText ? `Aperfeiçoe este cenário técnico em um mockup fotorealista: "${promptText}".` : (focusInstructions[promptIndex] || "Hero product focus")}
+SHOT SPECIFIC FOCUS: ${promptText ? `TRANSFORM THIS SCRIPT INTO A HIGH-END REPRODUCTION: "${promptText}". If the text describes pain, show it in the model's face/posture. If it describes relief, show it. The product MUST be 100% rigid, faithful, and the logo must be sharp and legible in every view of this custom scene.` : (focusInstructions[promptIndex] || "Hero product focus")}
 
 LIFESTYLE EXECUTION (ANCHOR MODE):
 - TALENT: ${options.mode === 'lifestyle' ? `A ${options.gender} model (${options.hairColor} hair) is PHYSICALLY ${productDescription.includes('shoe') || productDescription.includes('flip-flop') || productDescription.includes('sandal') ? 'WEARING' : 'USING'} the product. 
