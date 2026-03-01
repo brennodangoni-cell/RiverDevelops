@@ -366,33 +366,32 @@ export async function generateMockup(
         "Extra Scene 3"
     ];
 
-    const imagePrompt = `TASK: Generate a PROFESSIONAL PRODUCT CONCEPT SHEET (Collage).
-GOAL: Create a single 16:9 image containing a HERO SHOT and MULTIPLE detail views.
+    const imagePrompt = `TASK: Generate a PROFESSIONAL PRODUCT CONCEPT SHEET (Collage) with Lifestyle Interaction.
+GOAL: Create a single 16:9 image containing a HERO LIFESTYLE SHOT and MULTIPLE detail views.
 
 CRITICAL — PRODUCT FIDELITY (CLONE MODE):
-- I have attached ${productImages?.length || 0} REAL PHOTOGRAPHS of this product. 
-- These photos are the ABSOLUTE GROUND TRUTH. 
-- You MUST create a PIXEL-PERFECT DIGITAL TWIN of the product shown in the photos.
-- DO NOT CHANGE: Shape, silhouette, color shades (hex codes), materials, branding, logos, or text.
-- If the text description below conflicts with the attached photos, FOLLOW THE PHOTOS ONLY.
-- ZERO HALLUCINATION: Do not add any elements to the product that aren't in the photos.
-- Every single view in the collage MUST show the SAME IDENTICAL object.
+- ABSOLUTE GROUND TRUTH: Use the ${productImages?.length || 0} attached photos as the ONLY source for the product's appearance.
+- PIXEL-PERFECT DIGITAL TWIN: Every single pixel of the product (shape, silhouette, branding, logos, materials, texture) MUST be an exact clone of the reference photos.
+- NO GENERALIZATION: Even in lifestyle shots, DO NOT use a generic version of the product. It MUST be the exact one from the photos.
+- IDENTICAL BRANDING: Logos and brand marks must be identical across all views in the collage.
 
 COLLAGE LAYOUT:
-- MAIN HERO SHOT (LEFT, 60%): The product in the requested environment.
-- ANGLE VIEWS (RIGHT STACK, 40%): 3 to 4 distinct views (Sole, Side, Top, Heel, Detail). 
+- MAIN HERO SHOT (LEFT, 60%): The product being used/worn/displayed in the requested lifestyle environment.
+- ANGLE VIEWS (RIGHT STACK, 40%): 3 to 4 distinct views (Sole, Side, Top, Heel, Detail) proving this is the exact product from the photos.
 
 QUANTITY RULE:
 - The product is a ${productDescription.includes('pair') ? 'PAIR' : 'SINGLE UNIT'}. 
-- The HERO shot MUST show the complete set/pair (e.g., TWO flip-flops).
-- The detail views on the right can show individual units from different angles.
+- The HERO shot MUST show the complete set/pair.
+
+LIFESTYLE EXECUTION:
+- TALENT: ${options.mode === 'lifestyle' ? `A ${options.gender} model with ${options.hairColor} hair naturally interacting with the product. THE PRODUCT MUST REMAIN THE STAR.` : 'Product only, no people. Absolute hero shot.'}
+- INTERACTION: The talent should interact with the product without obscuring its key features, logos, or unique shapes.
 
 SCENE DATA:
 PRODUCT IDENTIFIER: ${productDescription}
-HERO SCENE: ${sequenceTypes[promptIndex] || "Hero product shot"}
+HERO SCENE: ${sequenceTypes[promptIndex] || "Action hero product shot"}
 ENVIRONMENT: ${options.environment}, ${options.timeOfDay} lighting.
-${options.mode === 'lifestyle' ? `TALENT: A ${options.gender} model with ${options.hairColor} hair naturally interacting with the product in the HERO shot.` : 'FOCUS: Product only, no people. Absolute focus on the object.'}
-STYLE: ${options.style}. High-end commercial photography, ultra-sharp focus, 8k textures, photorealistic materials.`;
+STYLE: ${options.style}. High-end commercial photography, ultra-sharp focus on the product, 8k materials.`;
 
     // Build content parts: reference images (if available) + text prompt
     const contentParts: any[] = [];
