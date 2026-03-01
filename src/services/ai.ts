@@ -9,7 +9,7 @@ export interface ProductAnalysis {
 
 // "Golden Combination" from AI_MODELS_DOC.md
 const BRAIN_MODEL = "gemini-3.1-pro-preview";
-const IMAGE_MODEL = "gemini-3.1-flash-image-preview";
+const IMAGE_MODEL = "gemini-3-pro-image-preview";
 
 function getApiKey(): string {
     const localKey = localStorage.getItem('gemini_api_key');
