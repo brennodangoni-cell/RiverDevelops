@@ -60,6 +60,22 @@ function getApiKey(): string {
 }
 
 // =======================================================================
+// UNIVERSAL BASE64 PARSER (handles ANY mime type)
+// =======================================================================
+function parseBase64(base64: string): { data: string; mimeType: string } {
+    // Match ANY data URI: data:image/jpeg, data:application/octet-stream, etc.
+    const match = base64.match(/^data:([^;]+);base64,(.*)$/);
+    if (match) {
+        let mimeType = match[1];
+        // Force image mime type — octet-stream means the browser didn't recognize it
+        if (!mimeType.startsWith('image/')) mimeType = 'image/jpeg';
+        return { data: match[2], mimeType };
+    }
+    // No prefix — assume raw base64 JPEG
+    return { data: base64, mimeType: 'image/jpeg' };
+}
+
+// =======================================================================
 // IMAGE COMPRESSION (Fix #6)
 // =======================================================================
 function compressImage(base64: string, maxSize = 1024): Promise<string> {
@@ -136,13 +152,8 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
 
     const ai = new GoogleGenAI({ apiKey });
 
-    // Compress images before sending (Fix #6)
-    const compressed = await compressImages(imagesBase64);
-
-    const parts = compressed.map(base64 => {
-        const mimeTypeMatch = base64.match(/^data:(image\/[a-zA-Z+]+);base64,/);
-        const mimeType = mimeTypeMatch ? mimeTypeMatch[1] : 'image/jpeg';
-        const data = base64.replace(/^data:image\/[a-zA-Z+]+;base64,/, '');
+    const parts = imagesBase64.map(b64 => {
+        const { data, mimeType } = parseBase64(b64);
         return { inlineData: { data, mimeType } };
     });
 
@@ -357,9 +368,7 @@ CRITICAL: The product in the generated image must be IDENTICAL to the reference 
     // Add up to 3 reference images for the mockup (Fix #1)
     if (productImages && productImages.length > 0) {
         for (const img of productImages) {
-            const mimeTypeMatch = img.match(/^data:(image\/[a-zA-Z+]+);base64,/);
-            const mimeType = mimeTypeMatch ? mimeTypeMatch[1] : 'image/jpeg';
-            const data = img.replace(/^data:image\/[a-zA-Z+]+;base64,/, '');
+            const { data, mimeType } = parseBase64(img);
             contentParts.push({ inlineData: { data, mimeType } });
         }
     }
