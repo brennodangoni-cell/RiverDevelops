@@ -225,6 +225,8 @@ END OF MASTER SPECIFICATION
     ${sora2MasterSkeleton}
 
     CRITICAL RULE: The final generated prompts MUST be entirely in ENGLISH, as Sora 2 understands English best. Do not output the prompts in Portuguese.
+
+    SORA 2 SAFETY COMPLIANCE: When describing people/actors in the scene, use simple, professional casting language (e.g., "a young woman", "a man in his 30s"). Do NOT include overly detailed physical descriptions of skin, body features, or appearance that could be flagged as suggestive content by Sora 2's safety filters. Keep human descriptions brief and professional.
   `;
 
     const response = await ai.models.generateContent({
@@ -274,7 +276,7 @@ export async function generateMockup(productDescription: string, options: any, p
     Product: ${productDescription}. CRITICAL: Maintain strict consistency with this product description. The shape, color, and branding MUST be identical across all angles.
     Scene Focus: ${sequenceTypes[promptIndex] || "Dynamic Shot"}
     Setting: ${options.environment}, ${options.timeOfDay}.
-    ${options.mode === 'lifestyle' ? `Featuring a ${options.skinTone} skinned ${options.gender} with ${options.hairColor} hair interacting with the product.` : 'The product is the sole focus.'}
+    ${options.mode === 'lifestyle' ? `Featuring a ${options.gender} with ${options.hairColor} hair interacting with the product.` : 'The product is the sole focus.'}
     ${options.supportingDescription ? `Additional Context: ${options.supportingDescription}.` : ''}
     Style: ${options.style}. Ultra-realistic, raw photography, 8k resolution, sharp focus, highly detailed, shot on 35mm lens, photorealistic commercial photography. NO AI artifacts, highly realistic textures.`;
 
