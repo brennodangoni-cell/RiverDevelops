@@ -7,9 +7,9 @@ export interface ProductAnalysis {
     suggestedSceneriesLifestyle: string[];
 }
 
-// THE STRATEGY: Use the "Golden Combination" from AI_MODELS_DOC.md
-const BRAIN_MODEL = "gemini-3.1-pro-preview";
-const VISION_MODEL = "gemini-3.1-flash-image-preview";
+// THE STRATEGY: Use the stable high-intelligence model (1.5 Pro) to avoid 404/Not Found errors.
+const BRAIN_MODEL = "gemini-1.5-pro";
+const VISION_MODEL = "gemini-1.5-pro";
 
 function getApiKey(): string {
     const localKey = localStorage.getItem('gemini_api_key');
@@ -80,6 +80,8 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
 
 export async function generatePrompts(productDescription: string, options: any, previousPrompts?: string[]): Promise<string[]> {
     const apiKey = getApiKey();
+    if (!apiKey) throw new Error("GEMINI_API_KEY_MISSING");
+
     const ai = new GoogleGenAI({ apiKey });
 
     const sora2MasterSkeleton = `
@@ -227,7 +229,9 @@ END OF MASTER SPECIFICATION
 
     const response = await ai.models.generateContent({
         model: BRAIN_MODEL,
-        contents: promptContext,
+        contents: {
+            parts: [{ text: promptContext }]
+        },
         config: {
             responseMimeType: "application/json",
             responseSchema: {
