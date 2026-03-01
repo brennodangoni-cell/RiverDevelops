@@ -355,39 +355,59 @@ export async function generateMockup(
 
     const ai = new GoogleGenAI({ apiKey });
     const sequenceTypes = [
-        "Wide Establishing Shot, showing the environment and introducing the product.",
-        "Medium Action Shot, showing the product in use or dynamic display.",
-        "Extreme Close-up Macro Shot, focusing on textures, materials, and branding.",
-        "Alternative Angle or Reaction Shot, showing a different perspective.",
-        "Dynamic B-Roll Shot, highly stylized.",
-        "Final Outro Shot, majestic and leaving space for a logo.",
+        "Wide Establishing Shot, environment focus.",
+        "Medium Action Shot, product in use focus.",
+        "Extreme Close-up Macro Shot, texture focus.",
+        "Side Profile Shot, shape focus.",
+        "Top View Shot, interior/upper focus.",
+        "Low Angle Hero Shot, status focus.",
         "Extra Scene 1",
         "Extra Scene 2",
         "Extra Scene 3"
+    ];
+
+    const focusInstructions = [
+        "Focus on the environment and how the product fits in. Show the whole object.",
+        "Focus on the interaction/movement. The product must remain 100% rigid and faithful.",
+        "Hyper-zoom on materials and textures. Branding must be perfectly clear.",
+        "Show the silhouette from a clean side angle.",
+        "Show it from directly above. Clean geometry.",
+        "Majestic hero angle, looking up at the product.",
+        "Dynamic scene.",
+        "Lifestyle action.",
+        "Product focus."
     ];
 
     const imagePrompt = `TASK: Generate a PROFESSIONAL PRODUCT CONCEPT SHEET (Collage).
 GOAL: Create a single 16:9 image containing a HERO SHOT and MULTIPLE detail views.
 
 CRITICAL — PRODUCT FIDELITY (CLONE MODE):
-- ABSOLUTE GROUND TRUTH: Use the ${productImages?.length || 0} attached photos as the ONLY template for the product.
-- PIXEL-PERFECT CLONE: The product in ALL views (including lifestyle) MUST be an exact replica of the photos — shape, colors, logos, and materials.
-- ZERO GENERALIZATION: Do not use a generic version. The person MUST be wearing/using THIS EXACT SPECIFIC product.
+- PHOTOGRAPHIC TEMPLATE: Use the ${productImages?.length || 0} attached photos. They are the 100% SOURCE OF TRUTH.
+- PIXEL-PERFECT CLONE: Every pixel of the product (shape, silhouette, branding, logos, materials, texture) MUST be an exact replica of the photos.
+- ZERO HALLUCINATION: Do not change colors, do not add fake logos, do not simplify the design. 
+- CONSISTENCY: Every view in this collage MUST show the same identical product.
+
+QUANTITY RULE (CRITICAL):
+- The product is a ${productDescription.includes('pair') || productDescription.includes('shoes') || productDescription.includes('flip-flop') || productDescription.includes('sandal') ? 'PAIR (2 Items)' : 'SINGLE UNIT (1 Item)'}. 
+- HERO SHOT (Left) MUST show the product exactly as sold (e.g., BOTH items of a pair).
+- If it's a pair, do not show only one shoe/sandal.
 
 COLLAGE LAYOUT:
-- MAIN HERO SHOT (LEFT, 60%): The product being PHYSICALLY USED/WORN in the environment.
-- ANGLE VIEWS (RIGHT STACK, 40%): 3 to 4 technical views (Sole, Side, Top, Detail) for fidelity check.
+- MAIN HERO SHOT (LEFT, 60%): The product in the requested environment.
+- ANGLE VIEWS (RIGHT STACK, 40%): 3 technical detail views (e.g. Sole, Interior, Logos).
+
+SHOT SPECIFIC FOCUS: ${focusInstructions[promptIndex] || "Hero product focus"}
 
 LIFESTYLE EXECUTION (ANCHOR MODE):
 - TALENT: ${options.mode === 'lifestyle' ? `A ${options.gender} model (${options.hairColor} hair) is PHYSICALLY ${productDescription.includes('shoe') || productDescription.includes('flip-flop') || productDescription.includes('sandal') ? 'WEARING' : 'USING'} the product. 
-- ANCHOR RULE: The product is the anchor of the scene. Draw the person to fit the product perfectly. 
-- VISIBILITY: Ensure the brand logos/unique shapes are clearly visible while being used.` : 'Product only, no people. Absolute hero shot.'}
+- ANCHOR RULE: The product is fixed. Draw the person *fitting* the product.
+- RIGIDITY: The product does not bend or distort based on the person's pose.` : 'Product only, no people. Hero composition.'}
 
 SCENE DATA:
-PRODUCT: ${productDescription}
-HERO SCENE: ${sequenceTypes[promptIndex] || "Action hero product shot"}
+IDENTIFIER: ${productDescription}
+HERO SCENE: ${sequenceTypes[promptIndex] || "Action hero shot"}
 ENVIRONMENT: ${options.environment}, ${options.timeOfDay} lighting.
-STYLE: ${options.style}. High-end commercial photography, 8k textures.`;
+STYLE: ${options.style}. High-end commercial photography, studio-quality, 8k textures.`;
 
     // Build content parts: reference images (if available) + text prompt
     const contentParts: any[] = [];

@@ -266,12 +266,14 @@ export default function VideoLab() {
             const newResults: Result[] = prompts.map(p => ({ prompt: p, mockupUrl: null }));
             setResults([...newResults]);
 
-            // Generate mockups in PARALLEL (Fix #3) with original images (Fix #1)
-            setProgressText(`Renderizando ${prompts.length} Mockups em paralelo...`);
-            const mockupPromises = prompts.map((_, i) =>
-                generateMockup(finalDescription, options, i, compressedImages)
-                    .catch(e => { console.warn(`Mockup ${i + 1} failed:`, e); return null; })
-            );
+            // Generate mockups in SEQUENTIAL-PARALLEL (Fix #3) with original images (Fix #1)
+            setProgressText(`Renderizando ${prompts.length} Mockups com Fidelidade Pro...`);
+            const mockupPromises = prompts.map(async (_, i) => {
+                // Delay each call by 1.5s to avoid rate limiting the Pro model
+                await new Promise(r => setTimeout(r, i * 1500));
+                return generateMockup(finalDescription, options, i, compressedImages)
+                    .catch(e => { console.warn(`Mockup ${i + 1} failed:`, e); return null; });
+            });
             const mockupResults = await Promise.allSettled(mockupPromises);
             mockupResults.forEach((result, i) => {
                 if (result.status === 'fulfilled') {
@@ -384,7 +386,7 @@ export default function VideoLab() {
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold tracking-tight text-white">River Sora Lab</h1>
-                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v12.6</span></p>
+                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v12.7</span></p>
                         </div>
                     </div>
                 </div>
