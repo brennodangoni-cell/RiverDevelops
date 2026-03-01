@@ -148,7 +148,7 @@ export default function VideoLab() {
                     try {
                         const canvas = document.createElement('canvas');
                         let { width, height } = img;
-                        const maxSize = 1024;
+                        const maxSize = 768;
                         if (width > maxSize || height > maxSize) {
                             const ratio = Math.min(maxSize / width, maxSize / height);
                             width = Math.round(width * ratio);
@@ -158,7 +158,7 @@ export default function VideoLab() {
                         canvas.height = height;
                         const ctx = canvas.getContext('2d')!;
                         ctx.drawImage(img, 0, 0, width, height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.85));
+                        resolve(canvas.toDataURL('image/jpeg', 0.75));
                     } catch (_) {
                         resolve(dataUrl); // fallback to original
                     }
@@ -386,7 +386,7 @@ export default function VideoLab() {
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold tracking-tight text-white">River Sora Lab</h1>
-                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v12.8</span></p>
+                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v12.9</span></p>
                         </div>
                     </div>
                 </div>

@@ -10,8 +10,9 @@ export interface ProductAnalysis {
 // =======================================================================
 // MODEL CONFIGURATION WITH FALLBACK CHAIN (Fix #4)
 // =======================================================================
-const BRAIN_MODELS = ["gemini-3.1-pro-preview", "gemini-2.5-pro", "gemini-2.5-flash"];
-const IMAGE_MODELS = ["gemini-3-pro-image-preview", "gemini-3.1-flash-image-preview"];
+const BRAIN_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.1-pro-preview"];
+const ANALYSIS_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro"];
+const IMAGE_MODELS = ["gemini-3.1-flash-image-preview", "gemini-3-pro-image-preview"];
 
 // =======================================================================
 // ERROR TYPES (Fix #2 - Specific error handling)
@@ -157,7 +158,7 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
         return { inlineData: { data, mimeType } };
     });
 
-    const response = await generateWithFallback(ai, BRAIN_MODELS, (model) => ({
+    const response = await generateWithFallback(ai, ANALYSIS_MODELS, (model) => ({
         model,
         contents: {
             parts: [
@@ -415,9 +416,12 @@ STYLE: ${options.style}. High-end commercial photography, studio-quality, 8k tex
     // Build content parts: reference images (if available) + text prompt
     const contentParts: any[] = [];
 
-    // Add all reference images for the mockup
+    // Send max 3 reference images to save tokens/cost (first, middle, last for best coverage)
     if (productImages && productImages.length > 0) {
-        for (const img of productImages) {
+        const selected = productImages.length <= 3
+            ? productImages
+            : [productImages[0], productImages[Math.floor(productImages.length / 2)], productImages[productImages.length - 1]];
+        for (const img of selected) {
             const { data, mimeType } = parseBase64(img);
             contentParts.push({ inlineData: { data, mimeType } });
         }
