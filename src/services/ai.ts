@@ -7,10 +7,48 @@ export interface ProductAnalysis {
     suggestedSceneriesLifestyle: string[];
 }
 
-// "Golden Combination" from AI_MODELS_DOC.md
-const BRAIN_MODEL = "gemini-3.1-pro-preview";
-const IMAGE_MODEL = "gemini-3-pro-image-preview";
+// =======================================================================
+// MODEL CONFIGURATION WITH FALLBACK CHAIN (Fix #4)
+// =======================================================================
+const BRAIN_MODELS = ["gemini-3.1-pro-preview", "gemini-2.5-pro", "gemini-2.5-flash"];
+const IMAGE_MODELS = ["gemini-3-pro-image-preview", "gemini-3.1-flash-image-preview"];
 
+// =======================================================================
+// ERROR TYPES (Fix #2 - Specific error handling)
+// =======================================================================
+export class AIError extends Error {
+    type: 'SAFETY_FILTER' | 'RATE_LIMIT' | 'MODEL_NOT_FOUND' | 'API_KEY_MISSING' | 'TIMEOUT' | 'UNKNOWN';
+    retryable: boolean;
+    constructor(message: string, type: AIError['type'], retryable = false) {
+        super(message);
+        this.type = type;
+        this.retryable = retryable;
+    }
+}
+
+function classifyError(e: any): AIError {
+    const msg = e?.message || e?.toString() || '';
+    if (msg.includes('API key') || msg.includes('API_KEY')) {
+        return new AIError('Chave API do Gemini não encontrada ou inválida.', 'API_KEY_MISSING', false);
+    }
+    if (msg.includes('safety') || msg.includes('SAFETY') || msg.includes('suggestive') || msg.includes('racy') || msg.includes('blocked')) {
+        return new AIError('Conteúdo bloqueado pelo filtro de segurança. Tente ajustar as opções.', 'SAFETY_FILTER', true);
+    }
+    if (msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('rate')) {
+        return new AIError('Limite de requisições atingido. Aguarde alguns segundos.', 'RATE_LIMIT', true);
+    }
+    if (msg.includes('404') || msg.includes('not found') || msg.includes('NOT_FOUND')) {
+        return new AIError('Modelo não disponível. Tentando modelo alternativo...', 'MODEL_NOT_FOUND', true);
+    }
+    if (msg.includes('timeout') || msg.includes('DEADLINE')) {
+        return new AIError('Timeout na requisição. Tentando novamente...', 'TIMEOUT', true);
+    }
+    return new AIError(`Erro inesperado: ${msg.slice(0, 100)}`, 'UNKNOWN', true);
+}
+
+// =======================================================================
+// API KEY
+// =======================================================================
 function getApiKey(): string {
     const localKey = localStorage.getItem('gemini_api_key');
     if (localKey && localKey.trim().startsWith('AIzaSy')) return localKey.trim();
@@ -21,30 +59,99 @@ function getApiKey(): string {
     return "";
 }
 
+// =======================================================================
+// IMAGE COMPRESSION (Fix #6)
+// =======================================================================
+function compressImage(base64: string, maxSize = 1024): Promise<string> {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let { width, height } = img;
+
+            if (width > maxSize || height > maxSize) {
+                const ratio = Math.min(maxSize / width, maxSize / height);
+                width = Math.round(width * ratio);
+                height = Math.round(height * ratio);
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d')!;
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.85));
+        };
+        img.onerror = () => resolve(base64); // fallback to original
+        img.src = base64;
+    });
+}
+
+export async function compressImages(images: string[]): Promise<string[]> {
+    return Promise.all(images.map(img => compressImage(img)));
+}
+
+// =======================================================================
+// HELPER: Generate with fallback chain (Fix #4)
+// =======================================================================
+async function generateWithFallback(
+    ai: GoogleGenAI,
+    models: string[],
+    requestBuilder: (model: string) => any,
+    maxRetries = 1
+): Promise<any> {
+    let lastError: any;
+
+    for (const model of models) {
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+            try {
+                const request = requestBuilder(model);
+                return await ai.models.generateContent(request);
+            } catch (e: any) {
+                lastError = e;
+                const classified = classifyError(e);
+                console.warn(`[AI] Model ${model} attempt ${attempt + 1} failed:`, classified.type, classified.message);
+
+                if (classified.type === 'MODEL_NOT_FOUND') break; // skip to next model
+                if (classified.type === 'API_KEY_MISSING') throw classified;
+                if (classified.type === 'SAFETY_FILTER') throw classified;
+                if (!classified.retryable) throw classified;
+
+                // Wait before retry (exponential backoff)
+                if (attempt < maxRetries) {
+                    await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
+                }
+            }
+        }
+    }
+
+    throw classifyError(lastError);
+}
+
+// =======================================================================
+// 1. ANALYZE PRODUCT
+// =======================================================================
 export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAnalysis> {
     const apiKey = getApiKey();
-    if (!apiKey) throw new Error("GEMINI_API_KEY_MISSING");
+    if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
 
     const ai = new GoogleGenAI({ apiKey });
-    const parts = imagesBase64.map(base64 => {
+
+    // Compress images before sending (Fix #6)
+    const compressed = await compressImages(imagesBase64);
+
+    const parts = compressed.map(base64 => {
         const mimeTypeMatch = base64.match(/^data:(image\/[a-zA-Z+]+);base64,/);
         const mimeType = mimeTypeMatch ? mimeTypeMatch[1] : 'image/jpeg';
         const data = base64.replace(/^data:image\/[a-zA-Z+]+;base64,/, '');
-
-        return {
-            inlineData: {
-                data,
-                mimeType,
-            }
-        };
+        return { inlineData: { data, mimeType } };
     });
 
-    const response = await ai.models.generateContent({
-        model: BRAIN_MODEL,
+    const response = await generateWithFallback(ai, BRAIN_MODELS, (model) => ({
+        model,
         contents: {
             parts: [
                 ...parts,
-                { text: "Analise estas imagens de produto em detalhes extremos. Retorne um JSON estruturado. IMPORTANTE: O 'productType' e os cenários DEVEM estar em Português do Brasil (PT-BR). Forneça duas listas de cenários: 1) 'suggestedSceneriesProductOnly': 3 a 4 cenários de estúdio, minimalistas, 3D ou fundos infinitos focados 100% no produto. 2) 'suggestedSceneriesLifestyle': 3 a 4 cenários cinematográficos e reais onde o produto estaria inserido ou sendo usado. REGRA CRÍTICA: Se você usar qualquer termo técnico de cinema, fotografia ou arte (ex: bokeh, lente anamórfica, macro, profundidade de campo, etc) nos cenários, você DEVE explicar brevemente o que significa entre parênteses para que um usuário leigo entenda. A 'description' interna pode ser em inglês para manter a precisão técnica para os próximos passos." }
+                { text: "Analise estas imagens de produto em detalhes extremos. Retorne um JSON estruturado. IMPORTANTE: O 'productType' e os cenários DEVEM estar em Português do Brasil (PT-BR). Forneça duas listas de cenários: 1) 'suggestedSceneriesProductOnly': 3 a 4 cenários de estúdio, minimalistas, 3D ou fundos infinitos focados 100% no produto. 2) 'suggestedSceneriesLifestyle': 3 a 4 cenários cinematográficos e reais onde o produto estaria inserido ou sendo usado. REGRA CRÍTICA: Se você usar qualquer termo técnico de cinema, fotografia ou arte (ex: bokeh, lente anamórfica, macro, profundidade de campo, etc) nos cenários, você DEVE explicar brevemente o que significa entre parênteses para que um usuário leigo entenda. A 'description' interna DEVE ser em INGLÊS e extremamente detalhada — inclua: forma exata, dimensões aproximadas, cores exatas (hex se possível), materiais, texturas, logos, textos visíveis, marcas, reflexos, e QUALQUER detalhe visual que diferencie este produto de outros similares. Quanto mais precisa, melhor." }
             ]
         },
         config: {
@@ -52,35 +159,38 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
             responseSchema: {
                 type: Type.OBJECT,
                 properties: {
-                    description: { type: Type.STRING, description: "Highly precise description of the product's shape, color, texture, materials, branding, text, and unique visual features." },
-                    productType: { type: Type.STRING, description: "A short category name (e.g., 'Sneakers', 'Skincare Bottle', 'Electronics')." },
+                    description: { type: Type.STRING, description: "Ultra-precise English description of the product including exact shape, dimensions, colors, materials, textures, branding, text, logos, and unique visual features." },
+                    productType: { type: Type.STRING, description: "A short category name in Portuguese (e.g., 'Tênis', 'Garrafa de Skincare', 'Eletrônico')." },
                     suggestedSceneriesProductOnly: {
                         type: Type.ARRAY,
                         items: { type: Type.STRING },
-                        description: "Array of 3-4 studio, minimalist, or 3D environment descriptions."
+                        description: "Array of 3-4 studio, minimalist, or 3D environment descriptions in Portuguese."
                     },
                     suggestedSceneriesLifestyle: {
                         type: Type.ARRAY,
                         items: { type: Type.STRING },
-                        description: "Array of 3-4 cinematic, real-world environment descriptions."
+                        description: "Array of 3-4 cinematic, real-world environment descriptions in Portuguese."
                     }
                 },
                 required: ["description", "productType", "suggestedSceneriesProductOnly", "suggestedSceneriesLifestyle"]
             }
         }
-    });
+    }));
 
     try {
         return JSON.parse(response.text || "{}");
     } catch (e) {
         console.error("Failed to parse analysis", e);
-        return { description: "", productType: "Product", suggestedSceneriesProductOnly: [], suggestedSceneriesLifestyle: [] };
+        return { description: "", productType: "Produto", suggestedSceneriesProductOnly: [], suggestedSceneriesLifestyle: [] };
     }
 }
 
+// =======================================================================
+// 2. GENERATE PROMPTS
+// =======================================================================
 export async function generatePrompts(productDescription: string, options: any, previousPrompts?: string[]): Promise<string[]> {
     const apiKey = getApiKey();
-    if (!apiKey) throw new Error("GEMINI_API_KEY_MISSING");
+    if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
 
     const ai = new GoogleGenAI({ apiKey });
 
@@ -176,8 +286,8 @@ HARD RULES: No text overlays | No subtitles | No watermarks | No logos (except p
     SORA 2 SAFETY: When describing people, use brief professional casting terms (e.g., "a young woman", "a man in his 30s"). Avoid overly detailed physical descriptions.
   `;
 
-    const response = await ai.models.generateContent({
-        model: BRAIN_MODEL,
+    const response = await generateWithFallback(ai, BRAIN_MODELS, (model) => ({
+        model,
         contents: {
             parts: [{ text: promptContext }]
         },
@@ -191,7 +301,7 @@ HARD RULES: No text overlays | No subtitles | No watermarks | No logos (except p
                 }
             }
         }
-    });
+    }));
 
     try {
         return JSON.parse(response.text || "[]");
@@ -201,9 +311,17 @@ HARD RULES: No text overlays | No subtitles | No watermarks | No logos (except p
     }
 }
 
-export async function generateMockup(productDescription: string, options: any, promptIndex: number): Promise<string | null> {
+// =======================================================================
+// 3. GENERATE MOCKUP (Fix #1 — Now receives original product images!)
+// =======================================================================
+export async function generateMockup(
+    productDescription: string,
+    options: any,
+    promptIndex: number,
+    productImages?: string[]  // NEW: Original product photos for reference
+): Promise<string | null> {
     const apiKey = getApiKey();
-    if (!apiKey) throw new Error("GEMINI_API_KEY_MISSING");
+    if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
 
     const ai = new GoogleGenAI({ apiKey });
     const sequenceTypes = [
@@ -221,22 +339,37 @@ export async function generateMockup(productDescription: string, options: any, p
     const imagePrompt = `TASK: Generate a single photorealistic commercial product image.
 
 ABSOLUTE PRIORITY — PRODUCT IDENTITY FIDELITY:
-The following product description was extracted from real photographs. You MUST reproduce the product EXACTLY as described below. Every detail matters — exact shape, exact colors, exact branding/text/logos, exact materials and textures. If the description says "red cap with white text reading XYZ", the image MUST show a red cap with white text reading XYZ. DO NOT improvise, change, or omit any visual element.
+${productImages && productImages.length > 0 ? 'Reference photos of the REAL product are attached. The generated image MUST faithfully reproduce THIS EXACT product — same shape, same colors, same branding, same materials. Use the photos as your ground truth.' : 'The following description was extracted from real photographs. Reproduce the product EXACTLY as described.'}
 
-PRODUCT (reproduce EXACTLY): ${productDescription}
+PRODUCT DESCRIPTION: ${productDescription}
 
 SCENE: ${sequenceTypes[promptIndex] || "Dynamic commercial shot"}
 ENVIRONMENT: ${options.environment}, ${options.timeOfDay} lighting.
 ${options.mode === 'lifestyle' ? `TALENT: A ${options.gender} model with ${options.hairColor} hair naturally interacting with the product.` : 'FOCUS: Product only, no people. Hero shot.'}
 ${options.supportingDescription ? `CONTEXT: ${options.supportingDescription}.` : ''}
-STYLE: ${options.style}. Professional commercial photography, studio-quality, sharp focus, clean background, product clearly visible and dominant in frame. Photorealistic textures, accurate materials, no AI artifacts.`;
+STYLE: ${options.style}. Professional commercial photography, studio-quality, sharp focus, clean background, product clearly visible and dominant in frame. Photorealistic textures, accurate materials, no AI artifacts.
+
+CRITICAL: The product in the generated image must be IDENTICAL to the reference photos. Do not change any visual element.`;
+
+    // Build content parts: reference images (if available) + text prompt
+    const contentParts: any[] = [];
+
+    // Add up to 3 reference images for the mockup (Fix #1)
+    if (productImages && productImages.length > 0) {
+        for (const img of productImages) {
+            const mimeTypeMatch = img.match(/^data:(image\/[a-zA-Z+]+);base64,/);
+            const mimeType = mimeTypeMatch ? mimeTypeMatch[1] : 'image/jpeg';
+            const data = img.replace(/^data:image\/[a-zA-Z+]+;base64,/, '');
+            contentParts.push({ inlineData: { data, mimeType } });
+        }
+    }
+
+    contentParts.push({ text: imagePrompt });
 
     try {
-        const response = await ai.models.generateContent({
-            model: IMAGE_MODEL,
-            contents: {
-                parts: [{ text: imagePrompt }]
-            },
+        const response = await generateWithFallback(ai, IMAGE_MODELS, (model) => ({
+            model,
+            contents: { parts: contentParts },
             config: {
                 // @ts-ignore
                 imageConfig: {
@@ -244,15 +377,17 @@ STYLE: ${options.style}. Professional commercial photography, studio-quality, sh
                     imageSize: "1K"
                 }
             }
-        });
+        }));
 
         for (const part of response.candidates?.[0]?.content?.parts || []) {
             if (part.inlineData) {
                 return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
             }
         }
-    } catch (e) {
-        console.error("Failed to generate mockup", e);
+    } catch (e: any) {
+        const classified = classifyError(e);
+        console.error("Mockup generation failed:", classified.type, classified.message);
+        throw classified;
     }
     return null;
 }

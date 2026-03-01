@@ -9,7 +9,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import axios from 'axios';
-import { analyzeProduct, generatePrompts, generateMockup, ProductAnalysis } from '../../services/ai';
+import { analyzeProduct, generatePrompts, generateMockup, AIError, ProductAnalysis } from '../../services/ai';
 
 interface Result {
     prompt: string;
@@ -71,7 +71,9 @@ const sequenceTitles = [
 export default function VideoLab() {
     const [step, setStep] = useState<1 | 2 | 3>(1);
     const [images, setImages] = useState<string[]>([]);
+    const [compressedImages, setCompressedImages] = useState<string[]>([]);
     const [analysis, setAnalysis] = useState<ProductAnalysis | null>(null);
+    const [editableDescription, setEditableDescription] = useState('');
     const [options, setOptions] = useState({
         mode: 'product_only',
         environment: '',
@@ -135,13 +137,39 @@ export default function VideoLab() {
         navigate('/admin/login');
     };
 
+    const compressOnUpload = (base64: string): Promise<string> => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let { width, height } = img;
+                const maxSize = 1024;
+                if (width > maxSize || height > maxSize) {
+                    const ratio = Math.min(maxSize / width, maxSize / height);
+                    width = Math.round(width * ratio);
+                    height = Math.round(height * ratio);
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d')!;
+                ctx.drawImage(img, 0, 0, width, height);
+                resolve(canvas.toDataURL('image/jpeg', 0.85));
+            };
+            img.onerror = () => resolve(base64);
+            img.src = base64;
+        });
+    };
+
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (!files) return;
         Array.from(files).forEach(file => {
             const reader = new FileReader();
-            reader.onload = (event) => {
-                if (event.target?.result) setImages(prev => [...prev, event.target!.result as string]);
+            reader.onload = async (event) => {
+                if (event.target?.result) {
+                    const compressed = await compressOnUpload(event.target.result as string);
+                    setImages(prev => [...prev, compressed]);
+                }
             };
             reader.readAsDataURL(file);
         });
@@ -149,20 +177,56 @@ export default function VideoLab() {
 
     const removeImage = (index: number) => setImages(prev => prev.filter((_, i) => i !== index));
 
+    // Simulated progress helper (Fix #5)
+    const simulateProgress = (startVal: number, endVal: number, durationMs: number) => {
+        const steps = 20;
+        const increment = (endVal - startVal) / steps;
+        const interval = durationMs / steps;
+        let current = startVal;
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= endVal) { clearInterval(timer); return; }
+            setProgress(Math.round(current));
+        }, interval);
+        return timer;
+    };
+
+    // Error toast helper (Fix #2)
+    const showError = (e: any) => {
+        if (e instanceof AIError) {
+            const icons: Record<string, string> = {
+                SAFETY_FILTER: '🛡️', RATE_LIMIT: '⏳', MODEL_NOT_FOUND: '🔍',
+                API_KEY_MISSING: '🔑', TIMEOUT: '⏱️', UNKNOWN: '❌'
+            };
+            toast.error(`${icons[e.type] || '❌'} ${e.message}`);
+        } else {
+            toast.error('Erro inesperado. Tente novamente.');
+        }
+    };
+
     const handleAnalyze = async () => {
         if (images.length === 0) return;
         setIsAnalyzing(true);
-        setProgress(15);
+        setProgress(5);
         setProgressText('Analisando DNA Visual do Produto...');
+        const progressTimer = simulateProgress(5, 85, 30000);
         try {
+            // Images are already compressed on upload
+            setCompressedImages(images);
             const result = await analyzeProduct(images);
+            clearInterval(progressTimer);
             setAnalysis(result);
+            setEditableDescription(result.description);
             setOptions(prev => ({ ...prev, environment: result.suggestedSceneriesLifestyle[0] || '' }));
             setProgress(100);
+            // Save to session (Fix #9)
+            sessionStorage.setItem('sora_analysis', JSON.stringify(result));
+            sessionStorage.setItem('sora_images', JSON.stringify(images));
             setTimeout(() => setStep(2), 500);
         } catch (error: any) {
-            console.error("ANALYSIS_ERROR_LOG:", error);
-            toast.error(`Erro na análise visual. Tente novamente.`);
+            clearInterval(progressTimer);
+            console.error('ANALYSIS_ERROR_LOG:', error);
+            showError(error);
             setStep(1);
         } finally {
             setIsAnalyzing(false);
@@ -175,23 +239,37 @@ export default function VideoLab() {
         setIsGenerating(true);
         setStep(3);
         setResults([]);
-        setProgress(5);
+        setProgress(3);
         try {
-            setProgressText('Engenharia de Prompts (Sora 2 Master Skeleton)...');
-            const prompts = await generatePrompts(analysis.description, options);
+            // Use editable description (Fix #7)
+            const finalDescription = editableDescription || analysis.description;
+            setProgressText('Engenharia de Prompts (Sora 2 Compact Skeleton)...');
+            const progressTimer = simulateProgress(3, 18, 45000);
+            const prompts = await generatePrompts(finalDescription, options);
+            clearInterval(progressTimer);
             setProgress(20);
             const newResults: Result[] = prompts.map(p => ({ prompt: p, mockupUrl: null }));
             setResults([...newResults]);
-            for (let i = 0; i < prompts.length; i++) {
-                setProgressText(`Renderizando Mockup ${i + 1} (1K RAW)...`);
-                const mockupUrl = await generateMockup(analysis.description, options, i);
-                newResults[i].mockupUrl = mockupUrl;
-                setResults([...newResults]);
-                setProgress(20 + ((i + 1) / prompts.length) * 80);
-            }
+
+            // Generate mockups in PARALLEL (Fix #3) with original images (Fix #1)
+            setProgressText(`Renderizando ${prompts.length} Mockups em paralelo...`);
+            const mockupPromises = prompts.map((_, i) =>
+                generateMockup(finalDescription, options, i, compressedImages)
+                    .catch(e => { console.warn(`Mockup ${i + 1} failed:`, e); return null; })
+            );
+            const mockupResults = await Promise.allSettled(mockupPromises);
+            mockupResults.forEach((result, i) => {
+                if (result.status === 'fulfilled') {
+                    newResults[i].mockupUrl = result.value;
+                }
+            });
+            setResults([...newResults]);
+            setProgress(100);
+            // Save results to session (Fix #9)
+            sessionStorage.setItem('sora_results', JSON.stringify(newResults));
         } catch (e: any) {
-            console.error("FULL_API_ERROR_OBJECT:", e);
-            toast.error("Erro na geração da sequência.");
+            console.error('FULL_API_ERROR_OBJECT:', e);
+            showError(e);
             setStep(2);
         } finally {
             setIsGenerating(false);
@@ -201,33 +279,39 @@ export default function VideoLab() {
 
     const handleContinueFlow = async () => {
         if (!analysis) return;
+        const finalDescription = editableDescription || analysis.description;
         setIsContinuing(true);
-        setProgress(10);
+        setProgress(5);
         try {
             setProgressText('Expandindo Sequência Narrativa...');
+            const progressTimer = simulateProgress(5, 28, 40000);
             const previousPrompts = results.map(r => r.prompt);
-            const newPrompts = await generatePrompts(
-                analysis.description,
-                options,
-                previousPrompts
-            );
+            const newPrompts = await generatePrompts(finalDescription, options, previousPrompts);
+            clearInterval(progressTimer);
             setProgress(30);
             const startIndex = results.length;
             const newResults: Result[] = newPrompts.map(p => ({ prompt: p, mockupUrl: null }));
             setResults(prev => [...prev, ...newResults]);
-            for (let i = 0; i < newPrompts.length; i++) {
-                const globalIndex = startIndex + i;
-                setProgressText(`Renderizando Mockup Extra ${i + 1}...`);
-                const mockupUrl = await generateMockup(analysis.description, options, globalIndex);
-                setResults(prev => {
-                    const updated = [...prev];
-                    updated[globalIndex].mockupUrl = mockupUrl;
-                    return updated;
+
+            // Parallel mockups (Fix #3)
+            setProgressText(`Renderizando ${newPrompts.length} Mockups extras em paralelo...`);
+            const mockupPromises = newPrompts.map((_, i) =>
+                generateMockup(finalDescription, options, startIndex + i, compressedImages)
+                    .catch(e => { console.warn(`Mockup extra ${i + 1} failed:`, e); return null; })
+            );
+            const mockupResults = await Promise.allSettled(mockupPromises);
+            setResults(prev => {
+                const updated = [...prev];
+                mockupResults.forEach((result, i) => {
+                    if (result.status === 'fulfilled') {
+                        updated[startIndex + i].mockupUrl = result.value;
+                    }
                 });
-                setProgress(30 + ((i + 1) / newPrompts.length) * 70);
-            }
-        } catch (error) {
-            toast.error("Erro na expansão da sequência.");
+                return updated;
+            });
+            setProgress(100);
+        } catch (error: any) {
+            showError(error);
         } finally {
             setIsContinuing(false);
             setTimeout(() => setProgress(0), 1000);
@@ -236,16 +320,16 @@ export default function VideoLab() {
 
     const handleRegenerateTake = async (index: number) => {
         if (!analysis) return;
+        const finalDescription = editableDescription || analysis.description;
         toast.promise(
             (async () => {
-                const newOptions = { ...options, supportingDescription: `Regenerate scene ${index + 1} with a new perspective.` };
+                const newOptions = { ...options, supportingDescription: `Regenerate scene ${index + 1} with a completely different creative angle.` };
                 const newPrompts = await generatePrompts(
-                    analysis.description,
-                    newOptions,
+                    finalDescription, newOptions,
                     results.slice(0, index).map(r => r.prompt)
                 );
                 const newPrompt = newPrompts[0];
-                const mockupUrl = await generateMockup(analysis.description, newOptions, index);
+                const mockupUrl = await generateMockup(finalDescription, newOptions, index, compressedImages);
                 setResults(prev => {
                     const updated = [...prev];
                     updated[index] = { prompt: newPrompt, mockupUrl };
@@ -255,7 +339,7 @@ export default function VideoLab() {
             {
                 loading: 'Regenerando take com nova perspectiva...',
                 success: 'Take atualizado com sucesso!',
-                error: 'Erro ao regenerar take.',
+                error: (e) => e instanceof AIError ? e.message : 'Erro ao regenerar take.',
             }
         );
     };
@@ -285,7 +369,7 @@ export default function VideoLab() {
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold tracking-tight text-white">River Sora Lab</h1>
-                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v10.1</span></p>
+                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v11.0</span></p>
                         </div>
                     </div>
                 </div>
@@ -395,8 +479,15 @@ export default function VideoLab() {
                                         <label className="text-[9px] font-semibold text-cyan-500 uppercase tracking-[0.2em]">Identified Subject</label>
                                         <p className="text-xl font-medium text-white tracking-tight">{analysis.productType}</p>
                                     </div>
-                                    <div className="p-5 bg-black/40 border border-white/5 rounded-2xl">
-                                        <p className="text-xs text-zinc-400 leading-relaxed font-light italic">"{analysis.description.substring(0, 180)}..."</p>
+                                    {/* Editable Product Description (Fix #7) */}
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-semibold text-zinc-500 uppercase tracking-[0.2em]">Descrição AI (editável)</label>
+                                        <textarea
+                                            value={editableDescription}
+                                            onChange={(e) => setEditableDescription(e.target.value)}
+                                            className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-xs text-zinc-300 font-mono leading-relaxed outline-none focus:border-cyan-500/50 min-h-[120px] resize-y transition-colors"
+                                        />
+                                        <p className="text-[9px] text-zinc-600">Corrija detalhes do produto aqui se necessário</p>
                                     </div>
 
                                     <div className="pt-6 border-t border-white/5 space-y-4">
