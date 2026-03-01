@@ -7,9 +7,9 @@ export interface ProductAnalysis {
     suggestedSceneriesLifestyle: string[];
 }
 
-// THE STRATEGY: Use the stable high-intelligence model (1.5 Pro) to avoid 404/Not Found errors.
-const BRAIN_MODEL = "gemini-1.5-pro";
-const VISION_MODEL = "gemini-1.5-pro";
+// THE STRATEGY: Use the official Gemini 3 Pro — state-of-the-art reasoning + vision + image gen.
+const BRAIN_MODEL = "gemini-3-pro";
+const VISION_MODEL = "gemini-3-pro";
 
 function getApiKey(): string {
     const localKey = localStorage.getItem('gemini_api_key');
