@@ -7,8 +7,9 @@ export interface ProductAnalysis {
     suggestedSceneriesLifestyle: string[];
 }
 
-// THE STRATEGY: Use the cutting-edge available Flash model for 2026.
-const STABLE_MODEL = "gemini-2.5-flash";
+// THE STRATEGY: Use the cutting-edge available models for 2026.
+const BRAIN_MODEL = "gemini-2.0-flash-thinking-exp"; // For complex prompt generation
+const VISION_MODEL = "gemini-2.0-pro-exp"; // For high-fidelity visual tasks e análise
 
 function getApiKey(): string {
     const localKey = localStorage.getItem('gemini_api_key');
@@ -40,27 +41,28 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
 
     try {
         const response = await ai.models.generateContent({
-            model: STABLE_MODEL,
+            model: VISION_MODEL,
             contents: [{
                 role: 'user',
                 parts: [
                     ...parts,
                     {
-                        text: `You are a Senior Cinematographer and AI Video Specialist for Sora 2.
-                    SYSTEM DIRECTIVE: Act as a "Physical World Simulator & Forensic Architect". 
+                        text: `You are a Senior Product Cinematographer and Visual Identity Architect.
+                    SYSTEM DIRECTIVE: Analyze this product with extreme forensic precision. 
                     
-                    TASK: Create an "Immutable Physical Manifest" of the product. 
+                    TASK: Create a "Digital Twin Visual Blueprint". 
                     INSPECTION PROTOCOL:
-                    - Image 1 is the MASTER ANCHOR for geometry and color.
-                    - Images 2-7 are TECHNICAL SUPPLEMENTS for hidden details and textures.
+                    - Extract every material nuance: texture, reflectivity, weight appearance.
+                    - Identify exact colors (hex or descriptive) and branding placement.
+                    - Define the 3D footprint: dimensions, scale, and characteristic silhouette.
                     
-                    In 'description', provide a "SORA 2 RIGID BODY MANIFEST" (Strictly Technical English):
-                    1. GEOMETRIC INTEGRITY: Define the product as a "Solid, Non-Deformable Rigid Body". Specify its fixed mesh structure.
-                    2. MATERIAL DNA: Define the exact surface texture so it doesn't "morph" into other materials.
-                    3. VOLUME STABILITY: State that the volumetric volume is constant and immutable.
-                    4. ANCHOR POINTS: Identify key rigid points (e.g., "Fixed strap attachment", "Solid base") that cannot move or warp.
+                    In 'description', provide a "CINEMATIC MASTER BLUEPRINT" (Strictly English):
+                    1. VISUAL IDENTITY: Exact description of the product as a fixed, high-end commercial asset.
+                    2. MATERIAL PHYSICS: How light reacts to its surfaces (e.g., "brushed titanium with soft micro-reflections").
+                    3. UNCHANGING ATTRIBUTES: List things that Sora 2 must NEVER change (logos, specific curves, material types).
+                    4. SCALE & PROPORTION: The product's size relative to common environments.
                     
-                    REGRA: 'productType' e cenários em Português. 'description' deve ser o MASTER RIGID MANIFEST em Inglês.`
+                    REGRA: 'productType' e cenários em Português. 'description' deve ser o MASTER BLUEPRINT em Inglês.`
                     }
                 ]
             }],
@@ -93,32 +95,52 @@ export async function generatePrompts(productDescription: string, options: any, 
 
     const textEnabled = !!options.includeText;
     const voiceEnabled = !!options.includeVoice;
+    const isScriptMode = options.mode === 'script' && !!options.script;
 
-    const promptContext = `
-    ACT AS A SORA 2 RIGID-BODY SIMULATION ENGINEER.
-    Product Manifest: ${productDescription}
+    const promptContext = isScriptMode ? `
+    ACT AS A SORA 2 MASTER SCRIPT-TO-VISUAL ADAPTER.
+    
+    PRODUCT BLUEPRINT: ${productDescription}
+    RAW SCRIPT:
+    """
+    ${options.script}
+    """
+    
+    TASK: BREAK DOWN THE ENTIRE SCRIPT INTO A COMPLETE STORYBOARD.
+    1. READ every section (Hook, Development, Closing).
+    2. GENERATE a high-fidelity Sora 2 prompt for EVERY visual scene described or implied.
+    3. INTEGRITY: The product (${productDescription}) must be the persistent hero in every scene.
+    4. LANGUAGE: The script is in ${options.language}, but the SORA 2 prompts MUST be in TECHNICAL CINEMATIC ENGLISH.
+    5. FORMATTING: Return a JSON array of strings. Each string = one scene prompt. 
+    6. Ensure NO scene is left out. If the script has 5-8 scenes, return 5-8 prompts.
+    ` : `
+    ACT AS A WORLD-CLASS AI VIDEO DIRECTOR FOR SORA 2.
+    Product Blueprint: ${productDescription}
     Context: Mode=${options.mode}, Style=${options.style}, Lighting=${options.timeOfDay}, Aspect Ratio=${options.aspectRatio}, Environment=${options.environment}.
     
-    ANTI-MORPHING PROTOCOL (CRITICAL):
-    - FIXED GEOMETRY: The product is a SOLID, RIGID OBJECT. It cannot morph, melt, or change shape.
-    - OBJECT PERMANENCE: Every pixel of the product must remain consistent from Frame 1 to Frame 300. 
-    - RIGID PHYSICS: No fluid dynamics on the product body. Only external light and camera movement are dynamic.
+    CINEMATIC DIRECTIVES (CRITICAL):
+    - OBJECT PERMANENCE: The product is the anchor. It must remain 100% physically identical to the reference throughout the shot.
+    - NO MORPHING: Describe the product as a physical object, NOT a digital effect. Use "A high-end [Product Name] captured in 8k".
+    - CAMERA DYNAMICS: Focus on premium camera movements.
     
-    SIMULATION LOGIC:
-    - Describe the scene with a "STABLE RENDER" focus. 
-    - Use "Locked 3D Mesh" terminology to prevent Sora from inventing new parts.
+    SCENE LOGIC:
+    - Avoid technical simulation jargon. Use descriptive, evocative language.
+    - ${options.supportingDescription || ''}
     
     STRICT TEXT/VOICE ENFORCEMENT:
     - ON-SCREEN TEXT STATUS: ${textEnabled ? `ENABLED (Include minimalist high-end typography pointers in ${options.language || 'Portuguese'})` : 'STRICTLY DISABLED. No text allowed.'}
     - VOICE-OVER STATUS: ${voiceEnabled ? `ENABLED (Write compelling scripts in ${options.language || 'Portuguese'})` : 'STRICTLY DISABLED. No narration allowed.'}
     
-    OUTPUT: A JSON array of 3 highly technical "Rigid Simulation Commands" for Sora 2. Focus on "GEOMETRIC STABILITY".
-    ${previousPrompts && previousPrompts.length > 0 ? `PREVIOUS CONTINUITY: ${previousPrompts.join(' | ')}. Expand the story from these scenes.` : ''}
+    OUTPUT PROTOCOL: 
+    - The overall prompt MUST be in English.
+    - Focus on "Frame 0 Fidelity".
+    - Provide a JSON array of 3 cinematic "Director Directives" for Sora 2.
+    ${previousPrompts && previousPrompts.length > 0 ? `STORY CONTINUITY: Building upon: ${previousPrompts.join(' | ')}.` : ''}
     `;
 
     try {
         const response = await ai.models.generateContent({
-            model: STABLE_MODEL,
+            model: BRAIN_MODEL,
             contents: [{
                 role: 'user',
                 parts: [{ text: promptContext }]
@@ -145,17 +167,16 @@ export async function generateMockup(productDescription: string, scenePrompt: st
     const ai = new GoogleGenAI({ apiKey });
 
     const imageRequestPrompt = `
-    TASK: ULTRA-HIGH-FIDELITY PRODUCT PLACEMENT.
-    SCENE CONTEXT: "${scenePrompt}"
+    TASK: CREATE AN ULTRA-REALISTIC CINEMATIC MOCKUP.
+    SCENE: "${scenePrompt}"
+    PRODUCT BLUEPRINT: ${productDescription}
     
-    STRICT VISUAL RULES:
-    1. PIXEL-LINK IDENTITY: The product in the mockup MUST BE A 1:1 CLONE of the attached photos (Use Image 1 as the master reference).
-    2. ZERO REDESIGN: Do not change the shape, logos, colors, or materials. Do not "beautify" or generalize. 
-    3. SCENE INTEGRATION: Place the EXACT product from the photo into the "${scenePrompt}" environment. 
-    4. SURFACE PHYSICS: Lighting in the scene must react to the materials (described as: ${productDescription}) but without altering the product's physical identity.
+    CRITICAL FIDELITY RULES:
+    1. EXCLUSIVITY: Only the product from the reference images exists. Do not substitute with generic versions.
+    2. PHYSICS: High-end production lighting (rim light, soft shadows, caustic reflections).
+    3. POSITIONING: Center the product as the hero of the frame.
     
-    OUTPUT: One single, cinematic, photorealistic master commercial frame. 
-    Goal: If the product in the mockup is different from the photo, it is a failure. Accuracy is the only metric.
+    OUTPUT: Direct Image Generation. Photorealistic Commercial Quality.
     `;
 
     const imageParts = (imagesBase64 || []).map(base64 => {
@@ -165,7 +186,7 @@ export async function generateMockup(productDescription: string, scenePrompt: st
 
     try {
         const response = await ai.models.generateContent({
-            model: 'models/nano-banana-pro-preview',
+            model: VISION_MODEL, // Using Pro Exp for best visual fidelity if output is supported
             contents: [{
                 role: 'user',
                 parts: [
@@ -185,3 +206,4 @@ export async function generateMockup(productDescription: string, scenePrompt: st
     }
     return null;
 }
+

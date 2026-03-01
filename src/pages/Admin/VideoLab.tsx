@@ -84,6 +84,7 @@ export default function VideoLab() {
         skinTone: 'Light',
         hairColor: 'Blonde',
         supportingDescription: '',
+        script: '',
         includeText: false,
         includeVoice: false,
         language: 'Português'
@@ -204,11 +205,7 @@ export default function VideoLab() {
             setProgressText('Expandindo sequência...');
             const previousPrompts = results.map(r => r.prompt);
             const newPrompts = await generatePrompts(
-                `${analysis.description}
-    OUTPUT: A JSON array of 3 highly detailed English technical prompts containing all metadata and text/voice data as part of the scene description. Be extremely specific about the product's Material Shader Matrix throughout.
-    
-    ${previousPrompts && previousPrompts.length > 0 ? `PREVIOUS CONTINUITY: ${previousPrompts.join(' | ')}. Expand the story.` : ''}
-    `,
+                analysis.description,
                 options,
                 previousPrompts
             );
@@ -230,8 +227,33 @@ export default function VideoLab() {
             toast.error("Erro na expansão.");
         } finally {
             setIsContinuing(false);
-            setTimeout(() => setProgress(0), 2000);
+            setTimeout(() => setProgress(0), 1000);
         }
+    };
+
+    const handleRegenerateTake = async (index: number) => {
+        if (!analysis) return;
+        toast.promise(
+            (async () => {
+                const newPrompts = await generatePrompts(
+                    analysis.description,
+                    { ...options, supportingDescription: `Regenerate scene ${index + 1} with a new perspective.` },
+                    results.slice(0, index).map(r => r.prompt)
+                );
+                const newPrompt = newPrompts[0]; // Take the first variation
+                const mockupUrl = await generateMockup(analysis.description, newPrompt, images);
+                setResults(prev => {
+                    const updated = [...prev];
+                    updated[index] = { prompt: newPrompt, mockupUrl };
+                    return updated;
+                });
+            })(),
+            {
+                loading: 'Regenerando take...',
+                success: 'Take atualizado!',
+                error: 'Erro ao regenerar.',
+            }
+        );
     };
 
     const copyToClipboard = (text: string) => {
@@ -355,9 +377,14 @@ export default function VideoLab() {
                                 </div>
                                 <div className="space-y-3 pt-4 border-t border-[#1a1a1a]">
                                     <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Modo da Sequência</label>
-                                    <div className="flex gap-2">
-                                        <button onClick={() => setOptions({ ...options, mode: 'product_only', environment: analysis.suggestedSceneriesProductOnly[0] })} className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest rounded border transition-all ${options.mode === 'product_only' ? 'bg-cyan-600/10 border-cyan-600 text-cyan-500' : 'bg-[#1a1a1a] border-[#222] text-neutral-500'}`}>Estúdio</button>
-                                        <button onClick={() => setOptions({ ...options, mode: 'lifestyle', environment: analysis.suggestedSceneriesLifestyle[0] })} className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest rounded border transition-all ${options.mode === 'lifestyle' ? 'bg-cyan-600/10 border-cyan-600 text-cyan-500' : 'bg-[#1a1a1a] border-[#222] text-neutral-500'}`}>Cena Real</button>
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex gap-2">
+                                            <button onClick={() => setOptions({ ...options, mode: 'product_only', environment: analysis.suggestedSceneriesProductOnly[0] })} className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest rounded border transition-all ${options.mode === 'product_only' ? 'bg-cyan-600/10 border-cyan-600 text-cyan-500' : 'bg-[#1a1a1a] border-[#222] text-neutral-500'}`}>Estúdio</button>
+                                            <button onClick={() => setOptions({ ...options, mode: 'lifestyle', environment: analysis.suggestedSceneriesLifestyle[0] })} className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest rounded border transition-all ${options.mode === 'lifestyle' ? 'bg-cyan-600/10 border-cyan-600 text-cyan-500' : 'bg-[#1a1a1a] border-[#222] text-neutral-500'}`}>Cena Real</button>
+                                        </div>
+                                        <button onClick={() => setOptions({ ...options, mode: 'script' })} className={`w-full py-3 text-[10px] font-bold uppercase tracking-widest rounded border transition-all ${options.mode === 'script' ? 'bg-purple-600/10 border-purple-600 text-purple-500' : 'bg-[#1a1a1a] border-[#222] text-neutral-500'}`}>
+                                            <Sparkles className="w-3 h-3 inline mr-2" /> Colar Roteiro (Manual)
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -365,23 +392,43 @@ export default function VideoLab() {
                             {/* Panel: Scenery Selection */}
                             <div className="lg:col-span-2 space-y-8">
                                 <div className="bg-[#111111] border border-[#222222] rounded-2xl p-8">
-                                    <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400 mb-6">Selecione o Ambiente</h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        {(options.mode === 'product_only' ? analysis.suggestedSceneriesProductOnly : analysis.suggestedSceneriesLifestyle).map((s, idx) => (
-                                            <button
-                                                key={idx}
-                                                onClick={() => setOptions({ ...options, environment: s })}
-                                                className={`p-4 rounded-xl border text-left transition-all ${options.environment === s ? 'bg-cyan-600/5 border-cyan-600 text-white' : 'bg-[#1a1a1a] border-[#222] text-neutral-500 hover:border-[#333]'}`}
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${options.environment === s ? 'bg-cyan-600 border-cyan-500' : 'border-neutral-700'}`}>
-                                                        {options.environment === s && <Check className="w-2.5 h-2.5 text-white" />}
+                                    <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400 mb-6">
+                                        {options.mode === 'script' ? 'Detalhamento do Roteiro' : 'Selecione o Ambiente'}
+                                    </h3>
+
+                                    {options.mode === 'script' ? (
+                                        <div className="space-y-4">
+                                            <p className="text-[11px] text-neutral-500 uppercase font-bold tracking-widest">Cole seu roteiro completo abaixo:</p>
+                                            <textarea
+                                                value={options.script}
+                                                onChange={(e) => setOptions({ ...options, script: e.target.value })}
+                                                placeholder="Ex: Cena 1: Pescador agachado... Cena 2: Close no sol..."
+                                                className="w-full bg-[#1a1a1a] border border-[#222] rounded-xl p-6 text-sm text-white outline-none focus:border-purple-600 min-h-[300px] font-mono leading-relaxed"
+                                            />
+                                            <div className="p-4 bg-purple-900/10 border border-purple-900/40 rounded-lg">
+                                                <p className="text-[10px] text-purple-400 leading-relaxed">
+                                                    <strong>Dica:</strong> O Diretor IA irá analisar cada bloco do seu roteiro e gerar um take específico para cada ação descrita, mantendo a fidelidade visual do produto em todos os frames.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            {(options.mode === 'product_only' ? analysis.suggestedSceneriesProductOnly : analysis.suggestedSceneriesLifestyle).map((s, idx) => (
+                                                <button
+                                                    key={idx}
+                                                    onClick={() => setOptions({ ...options, environment: s })}
+                                                    className={`p-4 rounded-xl border text-left transition-all ${options.environment === s ? 'bg-cyan-600/5 border-cyan-600 text-white' : 'bg-[#1a1a1a] border-[#222] text-neutral-500 hover:border-[#333]'}`}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${options.environment === s ? 'bg-cyan-600 border-cyan-500' : 'border-neutral-700'}`}>
+                                                            {options.environment === s && <Check className="w-2.5 h-2.5 text-white" />}
+                                                        </div>
+                                                        <span className="text-[11px] leading-relaxed">{s}</span>
                                                     </div>
-                                                    <span className="text-[11px] leading-relaxed">{s}</span>
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
 
                                     <div className="grid grid-cols-2 gap-6 mt-8 pt-8 border-t border-[#1a1a1a]">
                                         <div className="space-y-3">
@@ -595,7 +642,13 @@ export default function VideoLab() {
                                                     <SunMoon className="w-3 h-3 text-neutral-600" />
                                                     <span className="text-[8px] font-bold uppercase tracking-widest text-neutral-600">{options.timeOfDay}</span>
                                                 </div>
-                                                <div className="ml-auto flex gap-2">
+                                                <div className="ml-auto flex gap-4">
+                                                    <button
+                                                        onClick={() => handleRegenerateTake(i)}
+                                                        className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-cyan-600 hover:text-cyan-400 transition-colors"
+                                                    >
+                                                        <Sparkles className="w-3.5 h-3.5" /> Regenerar Take
+                                                    </button>
                                                     {options.includeText && <span className="text-[7px] bg-cyan-900/20 text-cyan-400 border border-cyan-900/40 px-2 py-0.5 rounded uppercase font-bold">Graphic Overlays</span>}
                                                     {options.includeVoice && <span className="text-[7px] bg-purple-900/20 text-purple-400 border border-purple-900/40 px-2 py-0.5 rounded uppercase font-bold">Direct Voicover</span>}
                                                 </div>
