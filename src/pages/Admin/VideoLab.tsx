@@ -92,6 +92,7 @@ export default function VideoLab() {
     const [compressedImages, setCompressedImages] = useState<string[]>([]); // base64 for API
     const [analysis, setAnalysis] = useState<ProductAnalysis | null>(null);
     const [editableDescription, setEditableDescription] = useState('');
+    const [marketingContext, setMarketingContext] = useState('');
     const [options, setOptions] = useState({
         mode: 'product_only',
         environment: '',
@@ -310,7 +311,10 @@ export default function VideoLab() {
         setProgress(3);
         try {
             // Use editable description (Fix #7)
-            const finalDescription = editableDescription || analysis.description;
+            const baseDescription = editableDescription || analysis.description;
+            const finalDescription = marketingContext.trim()
+                ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
+                : baseDescription;
             setProgressText('Engenharia de Prompts (Sora 2 Compact Skeleton)...');
             const progressTimer = simulateProgress(3, 18, 45000);
             const prompts = await generatePrompts(finalDescription, options);
@@ -349,7 +353,10 @@ export default function VideoLab() {
 
     const handleContinueFlow = async () => {
         if (!analysis) return;
-        const finalDescription = editableDescription || analysis.description;
+        const baseDescription = editableDescription || analysis.description;
+        const finalDescription = marketingContext.trim()
+            ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
+            : baseDescription;
         setIsContinuing(true);
         setProgress(5);
         try {
@@ -390,7 +397,10 @@ export default function VideoLab() {
 
     const handleRegenerateTake = async (index: number) => {
         if (!analysis) return;
-        const finalDescription = editableDescription || analysis.description;
+        const baseDescription = editableDescription || analysis.description;
+        const finalDescription = marketingContext.trim()
+            ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
+            : baseDescription;
         toast.promise(
             (async () => {
                 const newOptions = { ...options, supportingDescription: `Regenerate scene ${index + 1} with a completely different creative angle.` };
@@ -412,6 +422,46 @@ export default function VideoLab() {
                 error: (e) => e instanceof AIError ? e.message : 'Erro ao regenerar take.',
             }
         );
+    };
+
+    const handleRegenerateMockup = async (index: number) => {
+        if (!analysis) return;
+        const baseDescription = editableDescription || analysis.description;
+        const finalDescription = marketingContext.trim()
+            ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
+            : baseDescription;
+
+        toast.promise(
+            (async () => {
+                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages);
+                setResults(prev => {
+                    const updated = [...prev];
+                    updated[index] = { ...updated[index], mockupUrl };
+                    return updated;
+                });
+            })(),
+            {
+                loading: 'Renderizando novo mockup para este blueprint...',
+                success: 'Mockup atualizado!',
+                error: (e) => e instanceof AIError ? e.message : 'Erro ao renderizar mockup.',
+            }
+        );
+    };
+
+    const updatePrompt = (index: number, newPrompt: string) => {
+        setResults(prev => {
+            const updated = [...prev];
+            updated[index] = { ...updated[index], prompt: newPrompt };
+            return updated;
+        });
+    };
+
+    const addManualScene = () => {
+        setResults(prev => [...prev, { prompt: '', mockupUrl: null }]);
+        // Scroll to bottom
+        setTimeout(() => {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }, 100);
     };
 
     const copyToClipboard = (text: string) => {
@@ -709,6 +759,21 @@ export default function VideoLab() {
                                             />
                                         </div>
                                     )}
+
+                                    {/* Marketing Context Box */}
+                                    <div className="space-y-2 mt-6">
+                                        <label className="text-[9px] font-semibold text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                                            <Settings2 className="w-3 h-3" /> Contexto de Marketing (opcional)
+                                        </label>
+                                        <textarea
+                                            value={marketingContext}
+                                            onChange={(e) => setMarketingContext(e.target.value)}
+                                            placeholder="Ex: Mulher grávida 30+ usando o chinelo — alivia dor e inchaço nos pés e pernas. Vídeo para Instagram Reels voltado para gestantes."
+                                            className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-xs text-zinc-300 leading-relaxed outline-none focus:border-amber-500/50 min-h-[80px] resize-y transition-colors placeholder:text-zinc-600"
+                                        />
+                                        <p className="text-[9px] text-zinc-600">Público-alvo, benefícios, plataforma, tom do vídeo... A IA vai usar isso pra gerar mockups e prompts mais precisos.</p>
+                                    </div>
+
                                     <button
                                         onClick={handleAnalyze}
                                         disabled={isAnalyzing || (imageFiles.length === 0 && !editableDescription.trim())}
@@ -1047,7 +1112,9 @@ export default function VideoLab() {
                                             <div className="mb-6 flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-2 h-2 rounded-full bg-cyan-500 shadow-[0_0_10px_rgba(8,145,178,0.8)]" />
-                                                    <span className="text-xs font-semibold text-white uppercase tracking-[0.15em]">{sequenceTitles[i] || `Sequence ${i + 1}`}</span>
+                                                    <span className="text-xs font-semibold text-white uppercase tracking-[0.15em]">
+                                                        {options.mode === 'script' ? `CENA ${i + 1}` : sequenceTitles[i] || `TAKE ${i + 1}`}
+                                                    </span>
                                                 </div>
                                                 <button onClick={() => copyToClipboard(res.prompt)} className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full transition-all">
                                                     <Copy className="w-3.5 h-3.5" /> Copy Blueprint
@@ -1055,10 +1122,13 @@ export default function VideoLab() {
                                             </div>
 
                                             <div className="flex-1">
-                                                <div className="p-6 bg-black/40 border border-white/5 rounded-2xl max-h-[360px] overflow-y-auto custom-scrollbar">
-                                                    <p className="text-xs text-zinc-300 leading-relaxed font-mono whitespace-pre-wrap">
-                                                        {res.prompt || "Generating deterministic skeleton..."}
-                                                    </p>
+                                                <div className="bg-black/40 border border-white/5 rounded-2xl p-1 focus-within:border-cyan-500/30 transition-colors">
+                                                    <textarea
+                                                        value={res.prompt}
+                                                        onChange={(e) => updatePrompt(i, e.target.value)}
+                                                        placeholder="Crie seu prompt ou use o gerado pela IA..."
+                                                        className="w-full bg-transparent p-5 text-xs text-zinc-300 leading-relaxed font-mono resize-none custom-scrollbar min-h-[140px] lg:min-h-[220px] outline-none"
+                                                    />
                                                 </div>
                                             </div>
 
@@ -1073,8 +1143,11 @@ export default function VideoLab() {
                                                         <span className="text-[9px] font-semibold uppercase tracking-wider text-zinc-400">{options.style}</span>
                                                     </div>
                                                 </div>
-                                                <div className="ml-auto">
-                                                    <button onClick={() => handleRegenerateTake(i)} className="w-9 h-9 flex items-center justify-center bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 hover:text-cyan-300 rounded-full transition-all" title="Regenerar este take">
+                                                <div className="ml-auto flex items-center gap-3">
+                                                    <button onClick={() => handleRegenerateMockup(i)} className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white rounded-full transition-all" title="Regenerar apenas o mockup deste prompt">
+                                                        <Camera className="w-4 h-4" />
+                                                    </button>
+                                                    <button onClick={() => handleRegenerateTake(i)} className="w-9 h-9 flex items-center justify-center bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 hover:text-cyan-300 rounded-full transition-all" title="Regenerar este take completo (Novo Prompt + Mockup)">
                                                         <Dice5 className="w-4 h-4" />
                                                     </button>
                                                 </div>
@@ -1085,9 +1158,12 @@ export default function VideoLab() {
                             </div>
 
                             {!isGenerating && !isContinuing && results.length > 0 && (
-                                <div className="pt-12 flex flex-col items-center">
+                                <div className="pt-12 flex flex-wrap justify-center gap-4">
                                     <button onClick={handleContinueFlow} className="group bg-white/[0.03] border border-white/10 hover:border-cyan-500/50 hover:bg-cyan-500/5 text-zinc-300 hover:text-cyan-400 px-10 py-5 rounded-full text-[11px] font-semibold uppercase tracking-[0.2em] flex items-center gap-3 transition-all duration-300 shadow-lg">
                                         <Video className="w-4 h-4" /> Expand Narrative (+3 Scenes)
+                                    </button>
+                                    <button onClick={addManualScene} className="bg-cyan-500 hover:bg-cyan-400 text-black px-10 py-5 rounded-full text-[11px] font-bold uppercase tracking-[0.2em] flex items-center gap-3 transition-all duration-300 shadow-xl shadow-cyan-900/20">
+                                        <Check className="w-4 h-4" /> Add Scene Manually
                                     </button>
                                 </div>
                             )}

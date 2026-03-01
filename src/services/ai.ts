@@ -305,15 +305,20 @@ export async function generatePrompts(productDescription: string, options: any, 
 
     if (isScriptMode) {
         taskDescription = `
-    You are adapting a script into visual scenes for Sora 2.
+    ACT AS A STRICT SCRIPT-TO-VISUAL ADAPTER.
     
-    SCRIPT:
+    RAW SCRIPT:
     """
     ${options.script}
     """
     
-    Break the script into as many visual scenes as needed (not fixed to 3).
-    Each scene = 10 seconds of video. Write a natural, cinematic prose prompt for each.
+    TASK: BREAK DOWN THE SCRIPT INTO A COMPLETE STORYBOARD.
+    - Analyze every action, benefit, and scene described in the script.
+    - GENERATE a natural prose Sora 2 prompt for EVERY distinct moment or "Cena" implied.
+    - DO NOT hallucinate extra scenes not in the script.
+    - DO NOT ignore the benefits or marketing context mentioned (e.g. swelling relief, target audience).
+    - If the script has 4 moments, generate exactly 4 prompts.
+    - Each prompt must follow the cinematic prose style defined below.
         `;
     } else if (previousPrompts && previousPrompts.length > 0) {
         taskDescription = `
