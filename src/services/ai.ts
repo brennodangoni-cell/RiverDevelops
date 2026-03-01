@@ -7,6 +7,15 @@ export interface ProductAnalysis {
     suggestedSceneriesLifestyle: string[];
 }
 
+export interface SceneryAnalysis {
+    description: string;
+    locationType: string;
+    mood: string;
+    suggestedActions: string[];
+    suggestedCameraAngles: string[];
+    suggestedAudio: string[];
+}
+
 // =======================================================================
 // MODEL CONFIGURATION WITH FALLBACK CHAIN (Fix #4)
 // =======================================================================
@@ -227,6 +236,56 @@ RETURN a JSON with the following fields:
 }
 
 // =======================================================================
+// 1B. ANALYZE SCENERY (Scene Mode)
+// =======================================================================
+export async function analyzeScenery(imagesBase64: string[]): Promise<SceneryAnalysis> {
+    const apiKey = getApiKey();
+    if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
+    const ai = new GoogleGenAI({ apiKey });
+    const parts = imagesBase64.map(b64 => {
+        const { data, mimeType } = parseBase64(b64);
+        return { inlineData: { data, mimeType } };
+    });
+
+    const response = await generateWithFallback(ai, ANALYSIS_MODELS, (model) => ({
+        model,
+        contents: {
+            parts: [
+                ...parts,
+                {
+                    text: `You are a WORLD-CLASS film location scout and cinematographer. Analyze these SCENERY/LOCATION images.
+
+RETURN a JSON:
+1. "description" (ENGLISH): Ultra-detailed description of the location — architecture, nature, lighting conditions, colors, textures, atmosphere, time of day, weather.
+2. "locationType" (PORTUGUESE): Short category — e.g., "Praia", "Floresta", "Cidade Urbana", "Interior de Casa"
+3. "mood" (ENGLISH): The emotional mood this location evokes — e.g., "serene and peaceful", "gritty and urban"
+4. "suggestedActions" (PORTUGUESE): 4 actions/events that could naturally happen in this location for a commercial video. Each should describe WHO does WHAT with EMOTION.
+5. "suggestedCameraAngles" (ENGLISH): 4 camera techniques ideal for this location. E.g., "Drone pullback revealing the full landscape"
+6. "suggestedAudio" (ENGLISH): 4 ambient sound + music combinations. E.g., "Ocean waves crashing + soft acoustic guitar"` }
+            ]
+        },
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    description: { type: Type.STRING },
+                    locationType: { type: Type.STRING },
+                    mood: { type: Type.STRING },
+                    suggestedActions: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    suggestedCameraAngles: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    suggestedAudio: { type: Type.ARRAY, items: { type: Type.STRING } }
+                },
+                required: ["description", "locationType", "mood", "suggestedActions", "suggestedCameraAngles", "suggestedAudio"]
+            }
+        }
+    }));
+
+    try { return JSON.parse(response.text || "{}"); }
+    catch { return { description: "", locationType: "Local", mood: "", suggestedActions: [], suggestedCameraAngles: [], suggestedAudio: [] }; }
+}
+
+// =======================================================================
 // 2. GENERATE PROMPTS
 // =======================================================================
 export async function generatePrompts(productDescription: string, options: any, previousPrompts?: string[]): Promise<string[]> {
@@ -312,11 +371,17 @@ HARD RULES: No text overlays | No subtitles | No watermarks | No logos (except p
     
     Video Style Options:
     - Aspect Ratio: ${options.aspectRatio}
-    - Mode: ${options.mode === 'lifestyle' ? 'Lifestyle (Someone using the product)' : options.mode === 'script' ? 'Script Adaptation' : 'Product Only'}
+    - Mode: ${options.mode === 'lifestyle' ? 'Lifestyle (Someone using the product)' : options.mode === 'script' ? 'Script Adaptation' : options.mode === 'scenery' ? 'Scenery/Location Video' : 'Product Only'}
     ${options.mode === 'lifestyle' ? `
     - Actor Gender: ${options.gender}
     - Actor Skin Tone: ${options.skinTone}
     - Actor Hair Color: ${options.hairColor}
+    ` : ''}
+    ${options.mode === 'scenery' ? `
+    - Camera Technique: ${(options as any).cameraAngle || 'Cinematic orbit'}
+    - Scene Action: ${(options as any).sceneAction || 'Ambient establishing shot'}
+    - Audio Design: ${(options as any).audioDesign || 'Natural ambient sounds'}
+    - Animation Speed: ${(options as any).animationSpeed || 'Normal'}
     ` : ''}
     - Time of Day/Lighting: ${options.timeOfDay}
     - Environment/Setting: ${options.environment}

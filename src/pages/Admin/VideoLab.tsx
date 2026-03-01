@@ -10,7 +10,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import axios from 'axios';
-import { analyzeProduct, generatePrompts, generateMockup, AIError, ProductAnalysis } from '../../services/ai';
+import { analyzeProduct, analyzeScenery, generatePrompts, generateMockup, AIError, ProductAnalysis, SceneryAnalysis } from '../../services/ai';
 
 interface Result {
     prompt: string;
@@ -104,6 +104,10 @@ export default function VideoLab() {
         supportingDescription: '',
         script: '',
         characters: '',
+        cameraAngle: '',
+        sceneAction: '',
+        audioDesign: '',
+        animationSpeed: 'Normal',
         includeText: false,
         includeVoice: false,
         language: 'Português'
@@ -120,6 +124,7 @@ export default function VideoLab() {
     const [showMockupLib, setShowMockupLib] = useState(false);
     const [favorites, setFavorites] = useState<FavoriteProject[]>([]);
     const [savedMockups, setSavedMockups] = useState<SavedMockup[]>([]);
+    const [sceneryData, setSceneryData] = useState<SceneryAnalysis | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
@@ -275,6 +280,8 @@ export default function VideoLab() {
             setCompressedImages(validImages);
             setProgressText('Analisando DNA Visual do Produto...');
             const result = await analyzeProduct(validImages);
+            // Also run scenery analysis in background for Scene Mode
+            analyzeScenery(validImages).then(sd => setSceneryData(sd)).catch(() => { });
             clearInterval(progressTimer);
             setAnalysis(result);
             setEditableDescription(result.description);
@@ -530,7 +537,7 @@ export default function VideoLab() {
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold tracking-tight text-white">River Sora Lab</h1>
-                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v13.2</span></p>
+                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v13.3</span></p>
                         </div>
                     </div>
                 </div>
@@ -742,8 +749,11 @@ export default function VideoLab() {
                                                 <button onClick={() => setOptions({ ...options, mode: 'product_only', environment: analysis.suggestedSceneriesProductOnly[0] })} className={`py-4 text-[10px] font-semibold uppercase tracking-[0.1em] rounded-xl border transition-all duration-300 ${options.mode === 'product_only' ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400 shadow-[0_0_15px_rgba(8,145,178,0.15)]' : 'bg-white/[0.02] border-white/5 text-zinc-500 hover:bg-white/5'}`}>Studio</button>
                                                 <button onClick={() => setOptions({ ...options, mode: 'lifestyle', environment: analysis.suggestedSceneriesLifestyle[0] })} className={`py-4 text-[10px] font-semibold uppercase tracking-[0.1em] rounded-xl border transition-all duration-300 ${options.mode === 'lifestyle' ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400 shadow-[0_0_15px_rgba(8,145,178,0.15)]' : 'bg-white/[0.02] border-white/5 text-zinc-500 hover:bg-white/5'}`}>Lifestyle</button>
                                             </div>
-                                            <button onClick={() => setOptions({ ...options, mode: 'script' })} className={`w-full py-4 text-[10px] font-semibold uppercase tracking-[0.1em] rounded-xl border transition-all duration-300 flex items-center justify-center gap-2 ${options.mode === 'script' ? 'bg-purple-500/10 border-purple-500/30 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.15)]' : 'bg-white/[0.02] border-white/5 text-zinc-500 hover:bg-white/5'}`}>
-                                                <Layers className="w-3.5 h-3.5" /> Manual Script
+                                            <button onClick={() => setOptions({ ...options, mode: 'script' })} className={`flex-1 py-4 text-[10px] font-semibold uppercase tracking-[0.1em] rounded-xl border transition-all duration-300 flex items-center justify-center gap-2 ${options.mode === 'script' ? 'bg-purple-500/10 border-purple-500/30 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.15)]' : 'bg-white/[0.02] border-white/5 text-zinc-500 hover:bg-white/5'}`}>
+                                                <Layers className="w-3.5 h-3.5" /> Script
+                                            </button>
+                                            <button onClick={() => setOptions({ ...options, mode: 'scenery' })} className={`flex-1 py-4 text-[10px] font-semibold uppercase tracking-[0.1em] rounded-xl border transition-all duration-300 flex items-center justify-center gap-2 ${options.mode === 'scenery' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)]' : 'bg-white/[0.02] border-white/5 text-zinc-500 hover:bg-white/5'}`}>
+                                                <Camera className="w-3.5 h-3.5" /> Cenários
                                             </button>
                                         </div>
                                     </div>
@@ -756,7 +766,7 @@ export default function VideoLab() {
                                     <div className="flex items-center gap-3 mb-8">
                                         <Settings2 className="w-5 h-5 text-zinc-400" />
                                         <h3 className="text-sm font-medium tracking-tight text-white">
-                                            {options.mode === 'script' ? 'Script Detailing' : 'Environment & Aesthetics'}
+                                            {options.mode === 'script' ? 'Script Detailing' : options.mode === 'scenery' ? 'Scene Direction' : 'Environment & Aesthetics'}
                                         </h3>
                                     </div>
 
@@ -796,20 +806,84 @@ export default function VideoLab() {
                                         </div>
                                     )}
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10 pt-10 border-t border-white/5">
-                                        <div className="space-y-4">
-                                            <label className="text-[9px] font-semibold text-zinc-500 uppercase tracking-[0.2em]">Lighting Physics</label>
-                                            <select value={options.timeOfDay} onChange={(e) => setOptions({ ...options, timeOfDay: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-xs text-zinc-300 outline-none focus:border-cyan-500/50 appearance-none cursor-pointer transition-colors">
-                                                {lightings.map(l => <option key={l.id} value={l.id}>{l.label}</option>)}
-                                            </select>
+                                    {options.mode === 'scenery' && (
+                                        <div className="space-y-6">
+                                            <p className="text-xs text-zinc-500">Configure as cenas baseadas nas suas fotos de local. A IA vai gerar prompts otimizados para vídeo ambientais e cinematográficos.</p>
+
+                                            {/* Camera Angle */}
+                                            <div className="space-y-3">
+                                                <label className="text-[9px] font-semibold text-zinc-500 uppercase tracking-[0.2em]">Técnica de Câmera</label>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    {['Drone pullback', 'Tracking dolly shot', 'Slow cinematic orbit', 'Handheld POV', 'Time-lapse', 'Low-angle hero shot'].map(angle => (
+                                                        <button key={angle} onClick={() => setOptions({ ...options, cameraAngle: angle })} className={`p-3 rounded-xl border text-left text-[10px] transition-all ${options.cameraAngle === angle ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-white/[0.02] border-white/5 text-zinc-500 hover:bg-white/5'}`}>{angle}</button>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Scene Action */}
+                                            <div className="space-y-3">
+                                                <label className="text-[9px] font-semibold text-zinc-500 uppercase tracking-[0.2em]">Ação da Cena</label>
+                                                <input
+                                                    value={options.sceneAction}
+                                                    onChange={(e) => setOptions({ ...options, sceneAction: e.target.value })}
+                                                    placeholder="Ex: Casal caminhando ao pôr do sol, crianças brincando na areia..."
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-zinc-300 outline-none focus:border-emerald-500/50 transition-colors"
+                                                />
+                                                {sceneryData && sceneryData.suggestedActions.length > 0 && (
+                                                    <div className="flex flex-wrap gap-2 mt-2">
+                                                        {sceneryData.suggestedActions.map((a, idx) => (
+                                                            <button key={idx} onClick={() => setOptions({ ...options, sceneAction: a })} className={`px-3 py-1.5 rounded-full text-[9px] border transition-all ${options.sceneAction === a ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-white/[0.02] border-white/5 text-zinc-500 hover:bg-white/5'}`}>{a}</button>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Audio Design */}
+                                            <div className="space-y-3">
+                                                <label className="text-[9px] font-semibold text-zinc-500 uppercase tracking-[0.2em]">Design de Áudio</label>
+                                                <input
+                                                    value={options.audioDesign}
+                                                    onChange={(e) => setOptions({ ...options, audioDesign: e.target.value })}
+                                                    placeholder="Ex: Ondas do mar + violão acústico suave"
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-zinc-300 outline-none focus:border-emerald-500/50 transition-colors"
+                                                />
+                                                {sceneryData && sceneryData.suggestedAudio.length > 0 && (
+                                                    <div className="flex flex-wrap gap-2 mt-2">
+                                                        {sceneryData.suggestedAudio.map((a, idx) => (
+                                                            <button key={idx} onClick={() => setOptions({ ...options, audioDesign: a })} className={`px-3 py-1.5 rounded-full text-[9px] border transition-all ${options.audioDesign === a ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-white/[0.02] border-white/5 text-zinc-500 hover:bg-white/5'}`}>{a}</button>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Animation Speed */}
+                                            <div className="space-y-3">
+                                                <label className="text-[9px] font-semibold text-zinc-500 uppercase tracking-[0.2em]">Velocidade da Animação</label>
+                                                <div className="flex gap-3">
+                                                    {['Slow Motion', 'Normal', 'Fast', 'Time-lapse'].map(speed => (
+                                                        <button key={speed} onClick={() => setOptions({ ...options, animationSpeed: speed })} className={`flex-1 py-3 rounded-xl border text-[10px] font-semibold uppercase tracking-wider transition-all ${options.animationSpeed === speed ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-white/[0.02] border-white/5 text-zinc-500 hover:bg-white/5'}`}>{speed}</button>
+                                                    ))}
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="space-y-4">
-                                            <label className="text-[9px] font-semibold text-zinc-500 uppercase tracking-[0.2em]">Visual Realism Level</label>
-                                            <select value={options.style} onChange={(e) => setOptions({ ...options, style: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-xs text-zinc-300 outline-none focus:border-cyan-500/50 appearance-none cursor-pointer transition-colors">
-                                                {styles.map(st => <option key={st.id} value={st.id}>{st.label}</option>)}
-                                            </select>
+                                    )}
+
+                                    {options.mode !== 'script' && options.mode !== 'scenery' && (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10 pt-10 border-t border-white/5">
+                                            <div className="space-y-4">
+                                                <label className="text-[9px] font-semibold text-zinc-500 uppercase tracking-[0.2em]">Lighting Physics</label>
+                                                <select value={options.timeOfDay} onChange={(e) => setOptions({ ...options, timeOfDay: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-xs text-zinc-300 outline-none focus:border-cyan-500/50 appearance-none cursor-pointer transition-colors">
+                                                    {lightings.map(l => <option key={l.id} value={l.id}>{l.label}</option>)}
+                                                </select>
+                                            </div>
+                                            <div className="space-y-4">
+                                                <label className="text-[9px] font-semibold text-zinc-500 uppercase tracking-[0.2em]">Visual Realism Level</label>
+                                                <select value={options.style} onChange={(e) => setOptions({ ...options, style: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-xs text-zinc-300 outline-none focus:border-cyan-500/50 appearance-none cursor-pointer transition-colors">
+                                                    {styles.map(st => <option key={st.id} value={st.id}>{st.label}</option>)}
+                                                </select>
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
 
                                     {/* Lifestyle Personalization */}
                                     {options.mode === 'lifestyle' && (
