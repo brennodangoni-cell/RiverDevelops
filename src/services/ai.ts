@@ -150,7 +150,7 @@ export async function generateMockup(productDescription: string, options: any, p
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash-image', // SPECIFIC MODEL FOR IMAGES
+            model: 'models/nano-banana-pro-preview', // UPGRADED TO PRO MODEL
             contents: [{
                 role: 'user',
                 parts: [
