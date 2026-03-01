@@ -139,22 +139,17 @@ export async function generateMockup(productDescription: string, scenePrompt: st
     const ai = new GoogleGenAI({ apiKey });
 
     const imageRequestPrompt = `
-    MASTER DIRECTIVE: ABSOLUTE SOURCE CLONING.
-    REFERENCE ASSET: ${productDescription}
+    TASK: ULTRA-HIGH-FIDELITY PRODUCT PLACEMENT.
+    SCENE CONTEXT: "${scenePrompt}"
     
-    ANCHORING RULE:
-    - Image 1 is your ONLY source for the primary shape and global color.
-    - Images 2-7 provide technical supplements for details (Logos, Texture grain).
-    - DO NOT "average" the images. If Image 2 is from a different angle, do not let its angle affect the MAIN PANEL of the output.
+    STRICT VISUAL RULES:
+    1. PIXEL-LINK IDENTITY: The product in the mockup MUST BE A 1:1 CLONE of the attached photos (Use Image 1 as the master reference).
+    2. ZERO REDESIGN: Do not change the shape, logos, colors, or materials. Do not "beautify" or generalize. 
+    3. SCENE INTEGRATION: Place the EXACT product from the photo into the "${scenePrompt}" environment. 
+    4. SURFACE PHYSICS: Lighting in the scene must react to the materials (described as: ${productDescription}) but without altering the product's physical identity.
     
-    TECHNICAL STORYBOARD GRID:
-    - MAIN PANEL: Showcase the EXACT product from the photos in the scene: "${scenePrompt}".
-    - DETAIL PANELS: Show 100% accurate macro shots of the materials described in the manifest. 
-    
-    SORA 2 PRE-VISUALIZATION:
-    - This mockup must serve as the ground truth for Sora 2. 
-    - No design variation permitted across frames. 
-    - Physics-accurate reflections and high-fidelity rendering.
+    OUTPUT: One single, cinematic, photorealistic master commercial frame. 
+    Goal: If the product in the mockup is different from the photo, it is a failure. Accuracy is the only metric.
     `;
 
     const imageParts = (imagesBase64 || []).map(base64 => {
