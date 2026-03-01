@@ -225,28 +225,31 @@ export async function generatePrompts(productDescription: string, options: any, 
     const ai = new GoogleGenAI({ apiKey });
 
     const sora2MasterSkeleton = `
-SORA 2 – COMPACT DETERMINISTIC PROMPT SKELETON v2
+SORA 2 – COMPACT DETERMINISTIC PROMPT SKELETON v3
 Strict interpretation only. No creative reinterpretation. No fabrication.
 
 [1] OUTPUT: Aspect Ratio: [INSERT] | Resolution: 4K | 60fps | Duration: 10s | HDR: yes | No auto-reframing, zoom, or crop.
 
 [2] ENVIRONMENT: Type: [INSERT] | Location: [INSERT] | Surface/terrain: [INSERT] | Background layers: [INSERT] | Atmosphere: [INSERT] | Weather: [INSERT] | Dominant colors: [INSERT]
 
-[3] SUBJECT: Entity: Product | Product identity: [INSERT EXACT PRODUCT DESCRIPTION] | Identity lock: absolute, no mutations | Pose/orientation: [INSERT] | Must remain fully visible for entire duration | Zero occlusion
-${options.mode === 'lifestyle' ? '[ACTOR]: A [INSERT gender] in their [INSERT age range]s, wearing [INSERT clothing]. Keep description brief and professional. No detailed physical trait descriptions.' : '[NO HUMAN ACTORS]'}
+[3] SUBJECT: Entity: Product | Identity: [INSERT EXACT PRODUCT DESCRIPTION] | Identity lock: absolute, no mutations | Must remain fully visible for entire duration | Zero occlusion.
+${options.mode === 'lifestyle' ? `
+[ACTOR]: A [INSERT gender] [INSERT age range], wearing [INSERT clothing].
+[INTERACTION]: PHYSICAL CONTACT MANDATORY. The actor MUST be [INSERT: wearing/holding/using/stepping into] the product throughout. The product is the center of the action.
+[PROXIMITY]: The actor's body/limbs and the product MUST be in the same focus plane, occupying at least 40% of the frame together. No distant background actors.
+` : '[NO HUMAN ACTORS]'}
 
-[4] ACTION: Initial state: [INSERT] | Motion: [INSERT] | End state: [INSERT] | Real-time speed | Earth gravity | No teleportation, morphing, or time jumps | Continuous motion
+[4] ACTION: Initial state: [INSERT] | Motion: [INSERT] | End state: [INSERT] | Real-time speed | Earth gravity | No teleportation, morphing, or time jumps | Continuous motion.
 
-[5] CAMERA: Position: [INSERT relative to subject] | Lens: [INSERT mm equivalent] | Aperture: [INSERT] | Focus: locked on product | Movement: [INSERT type + speed] | Gimbal-stabilized | No handheld shake | Cinematic motion blur
+[5] CAMERA: Position: [INSERT relative to subject] | Lens: [INSERT mm equivalent] | Aperture: [INSERT] | Focus: locked on product | Movement: [INSERT type + speed] | Gimbal-stabilized | Cinematic motion blur.
 
-[6] LIGHTING: Source: [INSERT natural/artificial] | Direction: [INSERT] | Color temperature: [INSERT K] | Shadow softness: [INSERT] | No clipped highlights | No crushed blacks
+[6] LIGHTING: Source: [INSERT natural/artificial] | Direction: [INSERT] | Color temperature: [INSERT K] | Shadow softness: [INSERT] | No clipped highlights | No crushed blacks.
 
-[7] STYLE: Photorealistic | Modern color grading | [INSERT contrast/saturation] | No CGI look | No cartoon | No AI artifacts | No film grain unless specified
+[7] STYLE: Photorealistic | Modern color grading | [INSERT contrast/saturation] | No CGI look | No AI artifacts.
 
-[8] AUDIO: Ambient sounds: [INSERT] | Music: [INSERT genre], non-diegetic, background volume
-${options.mode === 'lifestyle' ? 'Dialogue: [INSERT brief description if needed]' : 'No dialogue'}
+[8] AUDIO: Ambient sounds: [INSERT] | Music: [INSERT genre], non-diegetic.
 
-HARD RULES: No text overlays | No subtitles | No watermarks | No logos (except product) | No duplicated limbs | No object mutation | Consistent lighting across all frames | No flickering | No physics violations
+HARD RULES: No text overlays | No subtitles | No watermarks | No logos (except product) | No physics violations | ACTOR AND PRODUCT MUST INTERACT PHYSICALLY — product cannot be isolated from actor in lifestyle mode.
   `;
 
     let taskDescription = `
