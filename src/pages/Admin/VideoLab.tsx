@@ -125,6 +125,7 @@ export default function VideoLab() {
     const [showMockupLib, setShowMockupLib] = useState(false);
     const [favorites, setFavorites] = useState<FavoriteProject[]>([]);
     const [savedMockups, setSavedMockups] = useState<SavedMockup[]>([]);
+    const [renderAllOnInit, setRenderAllOnInit] = useState(false);
     const [sceneryData, setSceneryData] = useState<SceneryAnalysis | null>(null);
     const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
@@ -312,9 +313,15 @@ export default function VideoLab() {
         try {
             // Use editable description (Fix #7)
             const baseDescription = editableDescription || analysis.description;
-            const finalDescription = marketingContext.trim()
+            // Inject Hex Colors for fidelity
+            const hexInfo = analysis.dominantHexColors?.length ? `\nADOPT THESE EXACT HEX COLORS: ${analysis.dominantHexColors.join(', ')}` : '';
+            // Inject Selling Points to influence storyboard
+            const hooksInfo = analysis.sellingPoints?.length ? `\nPONTOS DE VENDA A DESTACAR: ${analysis.sellingPoints.slice(0, 2).join(', ')}` : '';
+
+            const finalDescription = (marketingContext.trim()
                 ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
-                : baseDescription;
+                : baseDescription) + hexInfo + hooksInfo;
+
             setProgressText('Engenharia de Prompts (Sora 2 Cinematic Engine)...');
             const progressTimer = simulateProgress(3, 18, 45000);
             const prompts = await generatePrompts(finalDescription, options, undefined, analysis.colors);
@@ -324,15 +331,18 @@ export default function VideoLab() {
             setResults([...newResults]);
 
             // Generate mockups in SEQUENTIAL-PARALLEL (Fix #3) with original images (Fix #1)
-            setProgressText(`Renderizando ${prompts.length} Mockups com Fidelidade Pro...`);
-            const mockupPromises = prompts.map(async (_, i) => {
+            // ECONOMY MODE: If not renderAllOnInit, only render the FIRST one (index 0)
+            const targets = renderAllOnInit ? prompts : prompts.slice(0, 1);
+            setProgressText(`Renderizando ${targets.length} Mockup(s) com Fidelidade Pro...`);
+
+            const mockupPromises = targets.map(async (_, i) => {
                 // Delay each call by 1.5s to avoid rate limiting the Pro model
                 await new Promise(r => setTimeout(r, i * 1500));
-                return generateMockup(finalDescription, options, i, compressedImages)
+                return generateMockup(finalDescription, options, i, compressedImages, prompts[i])
                     .catch(e => { console.warn(`Mockup ${i + 1} failed:`, e); return null; });
             });
-            const mockupResults = await Promise.allSettled(mockupPromises);
-            mockupResults.forEach((result, i) => {
+            const mockupResultsArr = await Promise.allSettled(mockupPromises);
+            mockupResultsArr.forEach((result, i) => {
                 if (result.status === 'fulfilled') {
                     newResults[i].mockupUrl = result.value;
                 }
@@ -500,6 +510,43 @@ export default function VideoLab() {
         setTimeout(() => {
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }, 100);
+    };
+
+    const handleRenderAllVisible = async () => {
+        if (!analysis) return;
+        const baseDescription = editableDescription || analysis.description;
+        const hexInfo = analysis.dominantHexColors?.length ? `\nADOPT THESE EXACT HEX COLORS: ${analysis.dominantHexColors.join(', ')}` : '';
+        const hooksInfo = analysis.sellingPoints?.length ? `\nPONTOS DE VENDA A DESTACAR: ${analysis.sellingPoints.slice(0, 2).join(', ')}` : '';
+
+        const finalDescription = (marketingContext.trim()
+            ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
+            : baseDescription) + hexInfo + hooksInfo;
+
+        const missingIndices = results.map((r, i) => r.mockupUrl === null ? i : -1).filter(i => i !== -1);
+        if (missingIndices.length === 0) {
+            toast.success('Todos os mockups já foram renderizados!');
+            return;
+        }
+
+        toast.promise(
+            (async () => {
+                for (const index of missingIndices) {
+                    const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, results[index].prompt);
+                    setResults(prev => {
+                        const updated = [...prev];
+                        updated[index] = { ...updated[index], mockupUrl };
+                        return updated;
+                    });
+                    // Small delay between calls
+                    await new Promise(r => setTimeout(r, 1000));
+                }
+            })(),
+            {
+                loading: `Renderizando ${missingIndices.length} mockups pendentes...`,
+                success: 'Storyboard completo!',
+                error: 'Erro ao renderizar mockups.',
+            }
+        );
     };
 
     const copyToClipboard = (text: string) => {
@@ -1054,8 +1101,46 @@ export default function VideoLab() {
                                         </div>
                                     </div>
 
+                                    {/* Smart Economy & Strategy DNA */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-10 pt-10 border-t border-white/5">
+                                        <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-5 space-y-4">
+                                            <label className="text-[9px] font-semibold text-cyan-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                                                <Star className="w-3 h-3" /> DNA Estratégico do Produto
+                                            </label>
+                                            <div className="space-y-2">
+                                                {analysis.sellingPoints?.map((sp, idx) => (
+                                                    <div key={idx} className="flex items-center gap-3 text-[10px] text-zinc-400 font-light">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-500/50" />
+                                                        {sp}
+                                                    </div>
+                                                ))}
+                                                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/5">
+                                                    {analysis.dominantHexColors?.map((c, idx) => (
+                                                        <div key={idx} className="w-5 h-5 rounded-md border border-white/10" style={{ backgroundColor: c }} title={c} />
+                                                    ))}
+                                                    <span className="text-[9px] text-zinc-500 ml-2 font-mono uppercase">Paleta Extraída</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div
+                                            onClick={() => setRenderAllOnInit(!renderAllOnInit)}
+                                            className={`p-5 rounded-2xl border cursor-pointer transition-all ${!renderAllOnInit ? 'bg-emerald-500/5 border-emerald-500/30' : 'bg-white/[0.02] border-white/5 opacity-60'}`}
+                                        >
+                                            <div className="flex items-start gap-4">
+                                                <div className={`mt-0.5 w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center transition-colors ${!renderAllOnInit ? 'bg-emerald-500 border-emerald-400' : 'border-zinc-600'}`}>
+                                                    {!renderAllOnInit && <Check className="w-2.5 h-2.5 text-black" />}
+                                                </div>
+                                                <div>
+                                                    <span className="text-xs font-semibold text-white block mb-1">Modo Econômico (Recomendado)</span>
+                                                    <span className="text-[10px] text-zinc-400 leading-normal block">Gera apenas o primeiro mockup automaticamente. Você economiza 66% dos créditos iniciais e renderiza os outros apenas se gostar dos prompts.</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div className="mt-12">
-                                        <button onClick={handleGenerate} className="w-full bg-white hover:bg-zinc-200 text-black font-bold uppercase tracking-[0.2em] text-xs py-5 rounded-full transition-all duration-300 flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:shadow-[0_0_40px_rgba(255,255,255,0.2)]">
+                                        <button onClick={handleGenerate} className="w-full bg-white hover:bg-zinc-200 text-black font-bold uppercase tracking-[0.2em] text-xs py-5 rounded-full transition-all duration-300 shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:shadow-[0_0_40px_rgba(255,255,255,0.2)] flex items-center justify-center gap-3">
                                             Generate Master Sequence <ArrowRight className="w-4 h-4" />
                                         </button>
                                     </div>
@@ -1068,21 +1153,32 @@ export default function VideoLab() {
                     {step === 3 && (
                         <motion.div key="s3" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
                             <div className="flex items-center justify-between mb-8">
-                                <div>
-                                    <h2 className="text-2xl font-medium tracking-tight text-white">Production Results</h2>
-                                    <p className="text-sm text-zinc-500 font-light mt-1">Sora 2 Deterministic Blueprints & 1K Mockups</p>
+                                <div className="flex flex-col">
+                                    <h1 className="text-2xl font-light text-white tracking-tight flex items-center gap-3">
+                                        Storyboard <span className="text-cyan-500 text-sm font-bold uppercase tracking-[0.3em]">Cinematic</span>
+                                    </h1>
+                                    <p className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">DNA do Produto + Contexto de Marketing + Sora 2 Blueprint Engine</p>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <button onClick={goBackToConfigure} className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-cyan-400 hover:text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 px-4 py-2.5 rounded-full transition-all" title="Voltar para configuração sem perder mockups">
+                                    {results.some(r => r.mockupUrl === null) && (
+                                        <button
+                                            onClick={handleRenderAllVisible}
+                                            className="h-10 px-6 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 rounded-full flex items-center gap-2 transition-all border border-cyan-500/30 shadow-[0_0_15px_rgba(8,145,178,0.2)]"
+                                        >
+                                            <Camera className="w-4 h-4" />
+                                            <span className="text-[10px] font-bold uppercase tracking-widest">Renderizar Todos</span>
+                                        </button>
+                                    )}
+                                    <button onClick={goBackToConfigure} className="h-10 px-4 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-cyan-400 hover:text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 rounded-full transition-all" title="Voltar para configuração sem perder mockups">
                                         <ArrowLeft className="w-3.5 h-3.5" /> Editar
                                     </button>
-                                    <button onClick={saveToFavorites} className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-yellow-400 hover:text-yellow-300 bg-yellow-500/10 hover:bg-yellow-500/20 px-4 py-2.5 rounded-full transition-all" title="Salvar nos favoritos">
+                                    <button onClick={saveToFavorites} className="h-10 px-4 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-yellow-400 hover:text-yellow-300 bg-yellow-500/10 hover:bg-yellow-500/20 rounded-full transition-all" title="Salvar nos favoritos">
                                         <Star className="w-3.5 h-3.5" /> Salvar
                                     </button>
-                                    <button onClick={downloadAllPrompts} className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 px-4 py-2.5 rounded-full transition-all" title="Baixar .txt com prompts + mockups">
+                                    <button onClick={downloadAllPrompts} className="h-10 px-4 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-full transition-all" title="Baixar .txt com prompts + mockups">
                                         <FileDown className="w-3.5 h-3.5" /> Export
                                     </button>
-                                    <button onClick={() => { setStep(1); setImageFiles([]); setPreviewUrls([]); setCompressedImages([]); setResults([]); setAnalysis(null); }} className="text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-400 hover:text-white px-4 py-2.5 bg-white/5 hover:bg-white/10 rounded-full transition-all">New</button>
+                                    <button onClick={() => { setStep(1); setImageFiles([]); setPreviewUrls([]); setCompressedImages([]); setResults([]); setAnalysis(null); }} className="h-10 px-4 text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all">Novo</button>
                                 </div>
                             </div>
 
@@ -1129,18 +1225,17 @@ export default function VideoLab() {
                                                     </div>
                                                 </>
                                             ) : (
-                                                <div className="flex flex-col items-center justify-center h-full gap-5 text-zinc-600 p-12 text-center">
-                                                    {isGenerating || isContinuing ? (
-                                                        <>
-                                                            <Loader2 className="w-8 h-8 animate-spin text-cyan-500/50" />
-                                                            <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Rendering Frame...</span>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Camera className="w-10 h-10 text-zinc-700" />
-                                                            <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-600">Render Failed.<br />Try regenerating.</span>
-                                                        </>
-                                                    )}
+                                                <div className="flex flex-col items-center justify-center gap-5 p-12">
+                                                    <div className="w-16 h-16 rounded-full bg-white/[0.03] border border-white/5 flex items-center justify-center mb-2">
+                                                        <Camera className="w-8 h-8 text-zinc-700" />
+                                                    </div>
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); handleRegenerateMockup(i); }}
+                                                        className="px-6 py-2.5 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(8,145,178,0.1)] hover:shadow-[0_0_30px_rgba(8,145,178,0.2)]"
+                                                    >
+                                                        Renderizar Mockup
+                                                    </button>
+                                                    <p className="text-[9px] text-zinc-600 uppercase tracking-tight font-medium">Economia Ativa: Renderize apenas se gostar do prompt</p>
                                                 </div>
                                             )}
                                         </div>

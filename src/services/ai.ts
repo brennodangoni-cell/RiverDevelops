@@ -6,6 +6,8 @@ export interface ProductAnalysis {
     suggestedSceneriesProductOnly: string[];
     suggestedSceneriesLifestyle: string[];
     colors?: string[]; // Unique colors seen in images
+    sellingPoints?: string[]; // Top 3 marketing hooks/advantages
+    dominantHexColors?: string[]; // Precise hex codes extracted from photos
 }
 
 export interface SceneryAnalysis {
@@ -212,7 +214,11 @@ RETURN a JSON with the following fields:
    - WHAT HAPPENS in the scene (storytelling micro-narrative)
    - Example: "Jovem caminhando na orla ao amanhecer, câmera foca nos pés calçando o chinelo enquanto pisa na areia molhada — mood aspiracional e livre."
 
-5. "colors" (ENGLISH): List of all unique colors/variations of the product seen in the provided images (e.g. ["Solid Black", "Ocean Blue", "Pure White"]). If only one color is present, return a single item.` }
+5. "colors" (ENGLISH): List of all unique colors/variations of the product seen in the provided images (e.g. ["Solid Black", "Ocean Blue", "Pure White"]). If only one color is present, return a single item.
+
+6. "sellingPoints" (PORTUGUESE): List the TOP 3 Visual/Technical Selling Points that should be highlighted in a commercial (e.g., "Sola anatômica ultra-macia", "Logo em alto relevo", "Textura antiderrapante").
+
+7. "dominantHexColors": List the 3 most important HEX CODES (e.g. ["#000000", "#FFFFFF"]) detected in the product images to ensure color perfect consistency across all scenes.` }
             ]
         },
         config: {
@@ -236,9 +242,19 @@ RETURN a JSON with the following fields:
                         type: Type.ARRAY,
                         items: { type: Type.STRING },
                         description: "List of all unique color variations detected in the provided images."
+                    },
+                    sellingPoints: {
+                        type: Type.ARRAY,
+                        items: { type: Type.STRING },
+                        description: "Top 3 marketing hooks/technical advantages in Portuguese."
+                    },
+                    dominantHexColors: {
+                        type: Type.ARRAY,
+                        items: { type: Type.STRING },
+                        description: "List of precise hex codes extracted (e.g. ['#FFFFFF'])."
                     }
                 },
-                required: ["description", "productType", "suggestedSceneriesProductOnly", "suggestedSceneriesLifestyle", "colors"]
+                required: ["description", "productType", "suggestedSceneriesProductOnly", "suggestedSceneriesLifestyle", "colors", "sellingPoints", "dominantHexColors"]
             }
         }
     }));
