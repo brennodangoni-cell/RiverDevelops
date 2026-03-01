@@ -86,6 +86,7 @@ export default function VideoLab() {
         hairColor: 'Blonde',
         supportingDescription: '',
         script: '',
+        characters: '',
         includeText: false,
         includeVoice: false,
         language: 'Português'
@@ -415,6 +416,22 @@ export default function VideoLab() {
         setStep(2);
     };
 
+    const regenerateSuggestions = async () => {
+        if (!analysis || compressedImages.length === 0) {
+            toast.error('Sem imagens para re-analisar.');
+            return;
+        }
+        toast.promise(
+            (async () => {
+                const result = await analyzeProduct(compressedImages);
+                setAnalysis(result);
+                setEditableDescription(result.description);
+                setOptions(prev => ({ ...prev, environment: (prev.mode === 'lifestyle' ? result.suggestedSceneriesLifestyle[0] : result.suggestedSceneriesProductOnly[0]) || '' }));
+            })(),
+            { loading: 'Regenerando sugestões de cena...', success: 'Novas sugestões geradas!', error: 'Erro ao regenerar.' }
+        );
+    };
+
     return (
         <div className="min-h-screen bg-[#030303] text-zinc-300 font-sans selection:bg-cyan-500/30 relative overflow-hidden">
             {/* Atmospheric Background */}
@@ -435,7 +452,7 @@ export default function VideoLab() {
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold tracking-tight text-white">River Sora Lab</h1>
-                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v13.0</span></p>
+                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v13.1</span></p>
                         </div>
                     </div>
                 </div>
@@ -601,26 +618,34 @@ export default function VideoLab() {
                                             <textarea
                                                 value={options.script}
                                                 onChange={(e) => setOptions({ ...options, script: e.target.value })}
-                                                placeholder="Paste your full script here. The AI Director will break it down into 3 distinct Sora 2 prompts..."
+                                                placeholder="Cole seu roteiro completo aqui. A IA vai quebrá-lo em tantas cenas quantas ele precisar..."
                                                 className="w-full bg-black/40 border border-white/10 rounded-2xl p-6 text-sm text-zinc-300 outline-none focus:border-purple-500/50 min-h-[300px] font-mono leading-relaxed transition-colors"
                                             />
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            {(options.mode === 'product_only' ? analysis.suggestedSceneriesProductOnly : analysis.suggestedSceneriesLifestyle).map((s, idx) => (
-                                                <button
-                                                    key={idx}
-                                                    onClick={() => setOptions({ ...options, environment: s })}
-                                                    className={`p-5 rounded-2xl border text-left transition-all duration-300 ${options.environment === s ? 'bg-cyan-500/5 border-cyan-500/30 text-white shadow-[0_0_20px_rgba(8,145,178,0.1)]' : 'bg-white/[0.02] border-white/5 text-zinc-400 hover:border-white/10 hover:bg-white/[0.04]'}`}
-                                                >
-                                                    <div className="flex items-start gap-4">
-                                                        <div className={`mt-0.5 w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center transition-colors ${options.environment === s ? 'bg-cyan-500 border-cyan-400' : 'border-zinc-600'}`}>
-                                                            {options.environment === s && <Check className="w-2.5 h-2.5 text-black" />}
-                                                        </div>
-                                                        <span className="text-xs leading-relaxed font-light">{s}</span>
-                                                    </div>
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-[9px] font-semibold text-zinc-500 uppercase tracking-[0.2em]">Cenários Sugeridos</label>
+                                                <button onClick={regenerateSuggestions} className="w-7 h-7 flex items-center justify-center bg-white/5 hover:bg-cyan-500/20 text-zinc-500 hover:text-cyan-400 rounded-full transition-all" title="Gerar novas sugestões">
+                                                    <Dice5 className="w-3.5 h-3.5" />
                                                 </button>
-                                            ))}
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {(options.mode === 'product_only' ? analysis.suggestedSceneriesProductOnly : analysis.suggestedSceneriesLifestyle).map((s, idx) => (
+                                                    <button
+                                                        key={idx}
+                                                        onClick={() => setOptions({ ...options, environment: s })}
+                                                        className={`p-5 rounded-2xl border text-left transition-all duration-300 ${options.environment === s ? 'bg-cyan-500/5 border-cyan-500/30 text-white shadow-[0_0_20px_rgba(8,145,178,0.1)]' : 'bg-white/[0.02] border-white/5 text-zinc-400 hover:border-white/10 hover:bg-white/[0.04]'}`}
+                                                    >
+                                                        <div className="flex items-start gap-4">
+                                                            <div className={`mt-0.5 w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center transition-colors ${options.environment === s ? 'bg-cyan-500 border-cyan-400' : 'border-zinc-600'}`}>
+                                                                {options.environment === s && <Check className="w-2.5 h-2.5 text-black" />}
+                                                            </div>
+                                                            <span className="text-xs leading-relaxed font-light">{s}</span>
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
                                     )}
 
@@ -670,6 +695,16 @@ export default function VideoLab() {
                                                         ))}
                                                     </div>
                                                 </div>
+                                            </div>
+                                            <div className="mt-6 space-y-2">
+                                                <span className="text-[10px] text-zinc-400">Sora 2 Characters <span className="text-zinc-600">(opcional)</span></span>
+                                                <input
+                                                    value={options.characters}
+                                                    onChange={(e) => setOptions({ ...options, characters: e.target.value })}
+                                                    placeholder="Ex: @Alex @Maya — mantém consistência do personagem"
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-zinc-300 outline-none focus:border-purple-500/50 font-mono transition-colors"
+                                                />
+                                                <p className="text-[9px] text-zinc-600">Use @tags do Sora 2 para manter o mesmo personagem entre cenas</p>
                                             </div>
                                         </motion.div>
                                     )}
@@ -841,6 +876,6 @@ export default function VideoLab() {
                     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
                 `}} />
             </main>
-        </div>
+        </div >
     );
 }

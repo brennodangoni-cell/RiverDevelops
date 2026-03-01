@@ -164,7 +164,7 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
             parts: [
                 ...parts,
                 {
-                    text: `You are a WORLD-CLASS product photographer and visual analyst. Analyze these product images with EXTREME precision.
+                    text: `You are a WORLD-CLASS product photographer, commercial director, and visual analyst. Analyze these product images with EXTREME precision.
 
 RETURN a JSON with the following fields:
 
@@ -180,9 +180,19 @@ RETURN a JSON with the following fields:
 
 2. "productType" (PORTUGUESE): Short category name
 
-3. "suggestedSceneriesProductOnly" (PORTUGUESE): 3-4 studio/minimalist scenes. If technical terms are used, explain them in parentheses.
+3. "suggestedSceneriesProductOnly" (PORTUGUESE): 4 REAL COMMERCIAL VIDEO SCENARIOS for product-only shots. Each must describe:
+   - The ENVIRONMENT (where)
+   - The ACTION/MOVEMENT (what happens in the scene)
+   - The EMOTION/MOOD (what feeling it evokes)
+   - Example: "Plataforma giratória em estúdio escuro com iluminação rim light — câmera orbita lentamente revelando cada detalhe do produto. Mood: premium e misterioso."
+   DO NOT just list locations. Describe FULL SCENES that would work as TV commercials or social media ads.
 
-4. "suggestedSceneriesLifestyle" (PORTUGUESE): 3-4 real-world cinematic scenes. If technical terms are used, explain them in parentheses.` }
+4. "suggestedSceneriesLifestyle" (PORTUGUESE): 4 REAL COMMERCIAL VIDEO SCENARIOS with people using the product. Each must describe:
+   - WHO is using/wearing the product and HOW
+   - WHERE the action takes place
+   - WHAT HAPPENS in the scene (storytelling micro-narrative)
+   - Example: "Jovem caminhando na orla ao amanhecer, câmera foca nos pés calçando o chinelo enquanto pisa na areia molhada — mood aspiracional e livre."
+   These must feel like real TV commercial storyboard descriptions.` }
             ]
         },
         config: {
@@ -250,6 +260,8 @@ ${options.mode === 'lifestyle' ? `
 
 [8] AUDIO: Ambient sounds: [INSERT] | Music: [INSERT genre], non-diegetic.
 
+[SORA 2 CHARACTERS]: If the prompt mentions a character using the @tag format (e.g., @Alex, @Maya), include the tag exactly as written in the [ACTOR] field. Sora 2 will use its built-in character consistency engine.
+
 HARD RULES: No text overlays | No subtitles | No watermarks | No logos (except product) | No physics violations | ACTOR AND PRODUCT MUST INTERACT PHYSICALLY — product cannot be isolated from actor in lifestyle mode.
   `;
 
@@ -275,9 +287,11 @@ HARD RULES: No text overlays | No subtitles | No watermarks | No logos (except p
     """
     
     TASK: BREAK DOWN THE ENTIRE SCRIPT INTO A COMPLETE STORYBOARD.
-    1. READ every section (Hook, Development, Closing).
-    2. GENERATE a high-fidelity Sora 2 prompt for EVERY visual scene described or implied.
-    3. For EACH scene, use the EXACT SORA 2 COMPACT SKELETON format.
+    1. READ every section — Hook, Development, Climax, Closing.
+    2. GENERATE a Sora 2 prompt for EVERY visual scene described or implied.
+    3. Generate AS MANY SCENES AS THE SCRIPT NEEDS (not fixed to 3). If the script has 5 distinct moments, generate 5 prompts. If it has 8, generate 8.
+    4. For EACH scene, use the EXACT SORA 2 COMPACT SKELETON format.
+    5. Each scene = 10 seconds of video.
     `;
     } else if (previousPrompts && previousPrompts.length > 0) {
         taskDescription = `
