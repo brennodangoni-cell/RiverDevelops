@@ -364,7 +364,16 @@ export async function generatePrompts(
 
     const isScriptMode = options.mode === 'script' && !!options.script;
 
-    if (isScriptMode) {
+    if (sceneDraft) {
+        // Task description for "Magic" expansion is already set above in the initialization
+        // We just ensure it's not overwritten by the following logic blocks.
+        if (previousPrompts && previousPrompts.length > 0) {
+            taskDescription += `\n\nCONTINUITY CONTEXT (Optional): 
+            Maintain the lighting and camera style of previous scenes, but IGNORE their specific narrative. 
+            Follow the USER SCENE DRAFT above as your primary mission.
+            Previous scenes: ${previousPrompts.join(' | ')}`;
+        }
+    } else if (isScriptMode) {
         taskDescription = `
     ACT AS A STRICT SCRIPT-TO-VISUAL ADAPTER.
     
