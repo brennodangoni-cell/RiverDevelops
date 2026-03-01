@@ -219,9 +219,8 @@ export default function VideoLab() {
             setEditableDescription(result.description);
             setOptions(prev => ({ ...prev, environment: result.suggestedSceneriesLifestyle[0] || '' }));
             setProgress(100);
-            // Save to session (Fix #9)
-            sessionStorage.setItem('sora_analysis', JSON.stringify(result));
-            sessionStorage.setItem('sora_images', JSON.stringify(images));
+            // Save analysis to session (lightweight, no images)
+            try { sessionStorage.setItem('sora_analysis', JSON.stringify(result)); } catch (_) { }
             setTimeout(() => setStep(2), 500);
         } catch (error: any) {
             clearInterval(progressTimer);
@@ -266,7 +265,7 @@ export default function VideoLab() {
             setResults([...newResults]);
             setProgress(100);
             // Save results to session (Fix #9)
-            sessionStorage.setItem('sora_results', JSON.stringify(newResults));
+            try { sessionStorage.setItem('sora_results', JSON.stringify(newResults)); } catch (_) { }
         } catch (e: any) {
             console.error('FULL_API_ERROR_OBJECT:', e);
             showError(e);
