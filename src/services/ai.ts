@@ -48,20 +48,22 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
                     ...parts,
                     {
                         text: `You are a Senior Cinematographer and AI Video Specialist for Sora 2.
-                    Analyze ALL these product images as a single Multi-Angle Data Set. 
+                    SYSTEM DIRECTIVE: Perform a "Sequential Multi-Angle Forensic Inspection". 
+                    Process EVERY image provided one by one to build a single "MASTER PRODUCT IDENTITY".
                     
-                    STRICT CORRELATION RULE:
-                    - Cross-reference all angles to identify EXACT micro-details (stitching patterns, sole textures, buckle materials, logo engravings).
-                    - If an angle shows a hidden detail, it MUST BE RETAINED in the master description.
-                    - ZERO INVENTION: Do not guess brand names if not clear.
+                    STRICT INSPECTION RULES:
+                    - IMAGE-BY-IMAGE CATALOGING: Identify unique details in Image 1, cross-reference with Image 2, then 3, and so on.
+                    - MASTER PHYSICAL RECORD: Create a technical record of logos, exact stitching counts, material grain depth, and geometric curvatures.
+                    - ZERO VARIATION: The analysis must result in a FIXED digital twin definition. Do not generalize.
+                    - If Image A shows a detail hidden in Image B, that detail MUST be part of the final identity.
                     
-                    In 'description', provide a "Sora 2 Technical Master Blueprint" in English:
-                    1. FULL-MESH GEOMETRY: 3D volume, exact proportions, curvature radii.
-                    2. MATERIAL SHADER MATRIX: Define physical properties (e.g., "Roughness: 0.2, Metalness: 0.8, Clearcoat: 1.0"). Describe texture maps (Albedo, Normal, Displacement).
-                    3. LIGHT REACTION: How surface behaves under specialized lighting (e.g., "Sharp specular highlights on edges, diffuse scattering on central body").
-                    4. ANGLE-SPECIFIC NOTES: Mention details visible from specific perspectives (3:4 view, profile view) to ensure 360 consistency.
+                    In 'description', provide a "MASTER DIGITAL TWIN SPECIFICATION" in English:
+                    1. ABSOLUTE GEOMETRY: Volumetric measurements and proportions of every component.
+                    2. MATERIAL DNA: Pixel-level surface description (e.g., "High-specularity polished brass", "Porous EVA foam with specific hexagonal pattern").
+                    3. BRANDING REGISTRY: Exact placement, font weight, and embossing depth of all logos.
+                    4. FORENSIC NOTES: Catalog any unique wear, specific factory marks, or distinct textures visible in ANY of the photos.
                     
-                    REGRA: 'productType' e cenários em Português. 'description' deve ser o MASTER BLUEPRINT técnico em Inglês.`
+                    REGRA: 'productType' e cenários em Português. 'description' deve ser o MASTER DIGITAL TWIN em Inglês.`
                     }
                 ]
             }],
@@ -149,30 +151,27 @@ export async function generateMockup(productDescription: string, scenePrompt: st
     const ai = new GoogleGenAI({ apiKey });
 
     // ZERO-INVENTION MAPPING: Map the scene context to the EXACT product in photos
-    // VISUAL ANCHOR FIDELITY PROTOCOL: Absolute product cloning.
+    // FORENSIC RECONSTRUCTION PROTOCOL: Absolute product cloning.
     const imageRequestPrompt = `
-    CRITICAL INSTRUCTION: ACT AS A PIXEL-PERFECT IMAGE CLONING SYSTEM.
-    You are NOT allowed to deviate from the reference photos.
+    MASTER DIRECTIVE: 1:1 PHYSICAL RECONSTRUCTION.
+    The images provided are your ONLY SOURCE OF TRUTH. 
+    You are performing a Forensic Reconstruction of the product.
     
-    1. VISUAL IDENTITY LOCK:
-    - Use the EXACT same product visible in the attached photos. 
-    - Every logo, stitching pattern, material grain, and color hex MUST match the source perfectly.
-    - DO NOT simplify. DO NOT "beautify" or change proportions. 
+    1. DIGITAL TWIN RECONSTRUCTION:
+    - Treat every photo as a technical reference for a specific part of the product.
+    - REPEAT: Every logo, stitch, texture, and color MUST be a 100% clone from the photos.
+    - If a detail appears in ANY of the reference photos, it MUST appear in the mockup. 
+    - ZERO DEVIATION. Any artistic "improvement" is a FAILURE.
     
-    2. TECHNICAL STORYBOARD GRID TASK:
-    - Create a single professional storyboard grid image.
-    - MAIN PANEL: Showcase the EXACT product in the scene: "${scenePrompt}".
-    - TECHNICAL PANELS: Show the product from DIFFERENT ANGLES (Front, Profile, Detail) exactly as seen in the reference photos.
+    2. TECHNICAL STORYBOARD GRID (STRICT FIDELITY):
+    - Create a professionalStoryboard Grid. 
+    - MAIN PANEL: The product strictly reconstructed in: "${scenePrompt}".
+    - TECHNICAL PANELS: Sequential views (e.g., Close-up, Profile, Top) showing the EXACT same physical object with 100% consistent materials.
     
-    3. PIXEL-BY-PIXEL COMPARISON:
-    - Cross-reference the master Technical Blueprint: ${productDescription}.
-    - Ensure the material physics (Roughness, Specularity) are identical to the source photos.
-    - The product must look like the SAME PHYSICAL OBJECT in every panel of the grid.
-    
-    4. QUALITY:
-    - Photorealistic excellence.
-    - High-end studio lighting consistent with ${scenePrompt}.
-    - ZERO INVENTION. If it's not in the photos, it doesn't belong in the mockup.
+    3. VISUAL ANCHORING:
+    - Anchor all pixels to the "MASTER DIGITAL TWIN SPECIFICATION": ${productDescription}.
+    - The product's identity must be unshakeable across all grid panels. 
+    - Materials must react to the studio lighting in ${scenePrompt} identical to how they react in the reference photos.
     `;
 
     const imageParts = (imagesBase64 || []).map(base64 => {
