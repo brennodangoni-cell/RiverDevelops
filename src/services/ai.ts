@@ -7,11 +7,9 @@ export interface ProductAnalysis {
     suggestedSceneriesLifestyle: string[];
 }
 
-// THE STRATEGY: "Golden Combination" from AI_MODELS_DOC.md
-// BRAIN = 3.1 Pro Preview (most intelligent, for analysis + Master Skeleton prompts)
-// IMAGE = 3.1 Flash Image Preview (optimized for photorealistic mockup generation)
-const BRAIN_MODEL = "gemini-3.1-pro-preview";
-const IMAGE_MODEL = "gemini-3.1-flash-image-preview";
+// Models chosen by user
+const BRAIN_MODEL = "gemini-3-pro";
+const IMAGE_MODEL = "gemini-3-pro-image";
 
 function getApiKey(): string {
     const localKey = localStorage.getItem('gemini_api_key');
