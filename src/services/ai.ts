@@ -57,8 +57,9 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
                     
                     In 'description', provide a "Sora 2 Technical Master Blueprint" in English:
                     1. FULL-MESH GEOMETRY: 3D volume, exact proportions, curvature radii.
-                    2. MATERIAL PHYSICS: Multi-layered shaders (e.g., "Matte leather with subtle grain visibility, metallic gold-finish hardware with fingerprint-resistant coating").
-                    3. ANGLE-SPECIFIC NOTES: Mention details visible from specific perspectives to ensure 360 consistency.
+                    2. MATERIAL SHADER MATRIX: Define physical properties (e.g., "Roughness: 0.2, Metalness: 0.8, Clearcoat: 1.0"). Describe texture maps (Albedo, Normal, Displacement).
+                    3. LIGHT REACTION: How surface behaves under specialized lighting (e.g., "Sharp specular highlights on edges, diffuse scattering on central body").
+                    4. ANGLE-SPECIFIC NOTES: Mention details visible from specific perspectives (3:4 view, profile view) to ensure 360 consistency.
                     
                     REGRA: 'productType' e cenários em Português. 'description' deve ser o MASTER BLUEPRINT técnico em Inglês.`
                     }
@@ -101,18 +102,22 @@ export async function generatePrompts(productDescription: string, options: any, 
     - ON-SCREEN TEXT: ${options.includeText ? 'ENABLED (Include minimalist high-end typography pointers)' : 'STRICTLY DISABLED (Do not write any text on screen)'}
     - VOICE-OVER SCRIPTS: ${options.includeVoice ? 'ENABLED (Write compelling, emotive scripts)' : 'STRICTLY DISABLED (No narration scripts allowed)'}
     
-    TASK: Generate 3 cinematic scenes (10s each). 
-    Each prompt must follow Sora 2 technical syntax and include:
-    1. CAMERA: Dynamic movement (Parallax, Vertigo effect, Anamorphic lens, FPV drone).
-    2. PHYSICS: Accurate gravity, fluid dynamics, and light interaction.
-    3. OVERLAYS: If enabled, define EXACT text content and voice-over lines in ${options.language}. 
-    - SCENERY: Use the "${options.environment}" setup for all scenes.
+    TASK: Generate 3 cinematic scenes (10s each) following a "Hook -> Feature -> Reveal" commercial arc.
     
-    EXEMPLO DE TONE OF VOICE: Se for 'Cinematic', o tom deve ser épico. Se for 'Minimalist', deve ser limpo e luxuoso.
+    CINEMATOGRAPHIC METADATA (Include in EVERY prompt):
+    - CAMERA: Technical move (e.g., "360 orbit at 24fps", "Push-in on 35mm Anamorphic").
+    - LENS: Specify glass (e.g., "T2.0, 85mm Prime").
+    - LIGHTING: Technical setup (e.g., "Rembrandt Lighting, Rim light at 5600K").
+    - PHYSICS: Fluid dynamics, micro-particulates, or motion blur specs.
     
-    ${previousPrompts && previousPrompts.length > 0 ? `PREVIOUS CONTINUITY: ${previousPrompts.join(' | ')}. Expand the story.` : ''}
+    SPECIAL DIRECTIVES:
+    - LANGUAGE: ${options.language || 'Portuguese'}
+    - ON-SCREEN TEXT: ${options.includeText ? 'ENABLED (Include minimalist high-end typography pointers)' : 'STRICTLY DISABLED (Do not write any text on screen)'}
+    - VOICE-OVER SCRIPTS: ${options.includeVoice ? 'ENABLED (Write compelling, emotive scripts)' : 'STRICTLY DISABLED (No narration scripts allowed)'}
     
-    OUTPUT: A JSON array of 3 highly detailed English technical prompts containing all text/voice data as part of the scene description.
+    OUTPUT: A JSON array of 3 highly detailed English technical prompts containing all metadata and text/voice data as part of the scene description. Be extremely specific about the product's Material Shader Matrix throughout.
+    
+    ${previousPrompts && previousPrompts.length > 0 ? `PREVIOUS CONTINUITY: ${previousPrompts.join(' | ')}. Expand the story from these scenes.` : ''}
     `;
 
     try {

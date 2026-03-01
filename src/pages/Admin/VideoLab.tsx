@@ -202,7 +202,16 @@ export default function VideoLab() {
         setProgress(10);
         try {
             setProgressText('Expandindo sequência...');
-            const newPrompts = await generatePrompts(analysis.description, options, results.map(r => r.prompt));
+            const previousPrompts = results.map(r => r.prompt);
+            const newPrompts = await generatePrompts(
+                `${analysis.description}
+    OUTPUT: A JSON array of 3 highly detailed English technical prompts containing all metadata and text/voice data as part of the scene description. Be extremely specific about the product's Material Shader Matrix throughout.
+    
+    ${previousPrompts && previousPrompts.length > 0 ? `PREVIOUS CONTINUITY: ${previousPrompts.join(' | ')}. Expand the story.` : ''}
+    `,
+                options,
+                previousPrompts
+            );
             setProgress(30);
             const startIndex = results.length;
             const newResults: Result[] = newPrompts.map(p => ({ prompt: p, mockupUrl: null }));
@@ -525,16 +534,20 @@ export default function VideoLab() {
                             )}
 
                             {/* Storyboard List */}
-                            <div className="grid grid-cols-1 gap-6">
+                            <div className="grid grid-cols-1 gap-8">
                                 {results.map((res, i) => (
-                                    <div key={i} className="bg-[#111111] border border-[#222222] rounded-2xl overflow-hidden flex flex-col md:flex-row h-auto md:h-72">
-                                        <div className="w-full md:w-72 aspect-square md:aspect-auto bg-[#0a0a0a] border-r border-[#222] relative group">
+                                    <div key={i} className="bg-[#111111] border border-[#222222] rounded-2xl overflow-hidden flex flex-col lg:flex-row min-h-[320px]">
+                                        <div className="w-full lg:w-[400px] aspect-video lg:aspect-auto bg-[#0a0a0a] border-b lg:border-r lg:border-b-0 border-[#222] relative group">
                                             {res.mockupUrl ? (
                                                 <>
                                                     <img src={res.mockupUrl} className="w-full h-full object-cover" alt="Result" />
                                                     <a href={res.mockupUrl} download className="absolute top-4 right-4 w-10 h-10 bg-black/80 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-cyan-600">
                                                         <Download className="w-4 h-4" />
                                                     </a>
+                                                    <div className="absolute bottom-4 left-4 flex gap-2">
+                                                        <span className="bg-black/80 text-[7px] font-bold text-cyan-500 px-2 py-1 rounded border border-cyan-900/40 uppercase tracking-tighter">AI Master Take</span>
+                                                        <span className="bg-black/80 text-[7px] font-bold text-neutral-400 px-2 py-1 rounded border border-neutral-800 uppercase tracking-tighter">8K RAW</span>
+                                                    </div>
                                                 </>
                                             ) : (
                                                 <div className="flex flex-col items-center justify-center h-full gap-4 text-neutral-700 bg-neutral-900/40 p-12 text-center">
@@ -552,19 +565,40 @@ export default function VideoLab() {
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="flex-1 p-8 flex flex-col justify-between">
-                                            <div className="space-y-4">
-                                                <div className="flex items-center justify-between">
+                                        <div className="flex-1 p-8 flex flex-col">
+                                            <div className="mb-6 flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-2 h-2 rounded-full bg-cyan-600 animate-pulse" />
                                                     <span className="text-[10px] font-bold text-cyan-600 uppercase tracking-widest">{sequenceTitles[i] || `Parte ${i + 1}`}</span>
-                                                    <button onClick={() => copyToClipboard(res.prompt)} className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-neutral-500 hover:text-white transition-colors">
-                                                        <Copy className="w-3.5 h-3.5" /> Copiar Prompt
-                                                    </button>
                                                 </div>
-                                                <p className="text-sm text-neutral-300 leading-relaxed font-light">"{res.prompt}"</p>
+                                                <button onClick={() => copyToClipboard(res.prompt)} className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-neutral-500 hover:text-white transition-colors">
+                                                    <Copy className="w-3.5 h-3.5" /> Copiar Prompt de Produção
+                                                </button>
                                             </div>
-                                            <div className="pt-6 border-t border-[#1a1a1a] flex gap-4">
-                                                <span className="text-[8px] font-bold uppercase tracking-widest text-neutral-600">Ratio: {options.aspectRatio}</span>
-                                                <span className="text-[8px] font-bold uppercase tracking-widest text-neutral-600">Estampa: {options.style}</span>
+
+                                            <div className="flex-1">
+                                                <div className="p-5 bg-black/40 border border-[#222] rounded-xl">
+                                                    <p className="text-xs text-neutral-300 leading-relaxed font-light whitespace-pre-wrap">"{res.prompt}"</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-8 pt-6 border-t border-[#1a1a1a] flex flex-wrap gap-4">
+                                                <div className="flex items-center gap-2">
+                                                    <Monitor className="w-3 h-3 text-neutral-600" />
+                                                    <span className="text-[8px] font-bold uppercase tracking-widest text-neutral-600">{options.aspectRatio}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Palette className="w-3 h-3 text-neutral-600" />
+                                                    <span className="text-[8px] font-bold uppercase tracking-widest text-neutral-600">{options.style}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <SunMoon className="w-3 h-3 text-neutral-600" />
+                                                    <span className="text-[8px] font-bold uppercase tracking-widest text-neutral-600">{options.timeOfDay}</span>
+                                                </div>
+                                                <div className="ml-auto flex gap-2">
+                                                    {options.includeText && <span className="text-[7px] bg-cyan-900/20 text-cyan-400 border border-cyan-900/40 px-2 py-0.5 rounded uppercase font-bold">Graphic Overlays</span>}
+                                                    {options.includeVoice && <span className="text-[7px] bg-purple-900/20 text-purple-400 border border-purple-900/40 px-2 py-0.5 rounded uppercase font-bold">Direct Voicover</span>}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
