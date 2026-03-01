@@ -424,6 +424,44 @@ export default function VideoLab() {
         );
     };
 
+    const handleMagicEnhance = async (index: number) => {
+        if (!analysis) return;
+        const currentDraft = results[index].prompt;
+        if (!currentDraft.trim()) {
+            toast.error('Escreva uma ideia curta primeiro para a Mágica funcionar!');
+            return;
+        }
+
+        const baseDescription = editableDescription || analysis.description;
+        const finalDescription = marketingContext.trim()
+            ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
+            : baseDescription;
+
+        toast.promise(
+            (async () => {
+                const newPrompts = await generatePrompts(
+                    finalDescription,
+                    options,
+                    results.slice(0, index).map(r => r.prompt),
+                    analysis.colors,
+                    currentDraft
+                );
+                const newPrompt = newPrompts[0];
+                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, newPrompt);
+                setResults(prev => {
+                    const updated = [...prev];
+                    updated[index] = { prompt: newPrompt, mockupUrl };
+                    return updated;
+                });
+            })(),
+            {
+                loading: 'Mágica de Cena: Criando Blueprint & Mockup...',
+                success: 'Cena aprimorada e renderizada!',
+                error: (e) => e instanceof AIError ? e.message : 'Erro na Mágica de Cena.',
+            }
+        );
+    };
+
     const handleRegenerateMockup = async (index: number) => {
         if (!analysis) return;
         const baseDescription = editableDescription || analysis.description;
@@ -433,7 +471,7 @@ export default function VideoLab() {
 
         toast.promise(
             (async () => {
-                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages);
+                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, results[index].prompt);
                 setResults(prev => {
                     const updated = [...prev];
                     updated[index] = { ...updated[index], mockupUrl };
@@ -1144,10 +1182,18 @@ export default function VideoLab() {
                                                     </div>
                                                 </div>
                                                 <div className="ml-auto flex items-center gap-3">
-                                                    <button onClick={() => handleRegenerateMockup(i)} className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white rounded-full transition-all" title="Regenerar apenas o mockup deste prompt">
+                                                    <button
+                                                        onClick={() => handleMagicEnhance(i)}
+                                                        className="h-9 px-4 flex items-center justify-center bg-cyan-500 hover:bg-cyan-400 text-black rounded-full transition-all gap-2 shadow-lg shadow-cyan-900/10"
+                                                        title="Mágica: Transformar rascunho em Blueprint Pro + Mockup"
+                                                    >
+                                                        <Wand2 className="w-3.5 h-3.5" />
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider">Mágica</span>
+                                                    </button>
+                                                    <button onClick={() => handleRegenerateMockup(i)} className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white rounded-full transition-all" title="Apenas Mockup (usa o texto atual)">
                                                         <Camera className="w-4 h-4" />
                                                     </button>
-                                                    <button onClick={() => handleRegenerateTake(i)} className="w-9 h-9 flex items-center justify-center bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 hover:text-cyan-300 rounded-full transition-all" title="Regenerar este take completo (Novo Prompt + Mockup)">
+                                                    <button onClick={() => handleRegenerateTake(i)} className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white rounded-full transition-all" title="Aleatório (Novo Prompt + Mockup)">
                                                         <Dice5 className="w-4 h-4" />
                                                     </button>
                                                 </div>

@@ -299,7 +299,8 @@ export async function generatePrompts(
     productDescription: string,
     options: any,
     previousPrompts?: string[],
-    detectedColors?: string[]
+    detectedColors?: string[],
+    sceneDraft?: string // Specific scene draft to polish
 ): Promise<string[]> {
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
@@ -308,7 +309,12 @@ export async function generatePrompts(
 
     let taskDescription = `
     Create cinematic video scenes (10 seconds each) for a commercial sequence.
-    ${detectedColors && detectedColors.length > 1 ? `
+    ${sceneDraft ? `
+    USER SCENE DRAFT: "${sceneDraft}"
+    TASK: TRANSFORM THIS DRAFT INTO A PROFESSIONAL SORA 2 BLUEPRINT. 
+    Keep the core action and emotion but use cinematic prose, detailed textures, and technical lighting.
+    Generate ONLY THIS SCENE.
+    ` : (detectedColors && detectedColors.length > 1 ? `
     DETECTION: We found ${detectedColors.length} unique color variants in the product photos: ${detectedColors.join(', ')}.
     GOAL: Generate EXACTLY ${detectedColors.length} scenes, ONE FOR EACH COLOR VARIANT. 
     Organize the sequence to showcase the variety:
@@ -318,7 +324,7 @@ export async function generatePrompts(
     Scene 1 — THE HOOK: Wide establishing shot. Reveal the product and environment dramatically.
     Scene 2 — THE ACTION: Medium tracking shot. Show the product in motion or being used.
     Scene 3 — THE CLIMAX: Extreme close-up / macro. Focus on textures, materials, and premium details.
-    `}
+    `)}
     `;
 
     const isScriptMode = options.mode === 'script' && !!options.script;
@@ -446,7 +452,8 @@ export async function generateMockup(
     productDescription: string,
     options: any,
     promptIndex: number,
-    productImages?: string[]  // NEW: Original product photos for reference
+    productImages: string[],
+    promptText?: string // Optional: use the actual prompt text for the mockup
 ): Promise<string | null> {
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
@@ -503,7 +510,7 @@ COLLAGE LAYOUT:
 - MAIN HERO SHOT (LEFT, 60%): The product in the requested environment. Logo clearly visible.
 - ANGLE VIEWS (RIGHT STACK, 40%): 3 technical detail views — one MUST be a close-up of the logo/branding.
 
-SHOT SPECIFIC FOCUS: ${focusInstructions[promptIndex] || "Hero product focus"}
+SHOT SPECIFIC FOCUS: ${promptText ? `Aperfeiçoe este cenário técnico em um mockup fotorealista: "${promptText}".` : (focusInstructions[promptIndex] || "Hero product focus")}
 
 LIFESTYLE EXECUTION (ANCHOR MODE):
 - TALENT: ${options.mode === 'lifestyle' ? `A ${options.gender} model (${options.hairColor} hair) is PHYSICALLY ${productDescription.includes('shoe') || productDescription.includes('flip-flop') || productDescription.includes('sandal') ? 'WEARING' : 'USING'} the product. 
