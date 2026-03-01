@@ -2,14 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
     Sparkles, Copy, Check, ChevronLeft, Loader2, Upload,
     X, ArrowRight, Download, Video, DollarSign, LogOut,
-    Smartphone, Monitor, Camera, Palette,
+    User, Smartphone, Monitor, Camera, SunMoon, Palette,
     Layers, Wand2, PlayCircle, Settings2
 } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { BrowserRouter, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import toast from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import axios from 'axios';
-import { analyzeProduct, generatePrompts, generateMockup, ProductAnalysis } from '../../services/ai';
+import { analyzeProduct, generatePrompts, generateMockup, ProductAnalysis } from './services/ai';
 
 interface Result {
     prompt: string;
@@ -68,7 +68,7 @@ const sequenceTitles = [
     "Cena 9: Extensão Extra"
 ];
 
-export default function VideoLab() {
+function VideoLab() {
     const [step, setStep] = useState<1 | 2 | 3>(1);
     const [images, setImages] = useState<string[]>([]);
     const [analysis, setAnalysis] = useState<ProductAnalysis | null>(null);
@@ -99,15 +99,6 @@ export default function VideoLab() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
     const currentUser = JSON.parse(localStorage.getItem('rivertasks_user') || '{}');
-
-    // Sync API Key from localStorage for persistence if needed by ai.ts
-    useEffect(() => {
-        const localApiKey = localStorage.getItem('gemini_api_key');
-        if (!localApiKey) {
-            const envKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
-            if (envKey) localStorage.setItem('gemini_api_key', envKey);
-        }
-    }, []);
 
     useEffect(() => {
         const fetchBalance = async () => {
@@ -337,9 +328,9 @@ export default function VideoLab() {
                         <motion.div key="s1" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="flex flex-col items-center">
                             <div className="w-full max-w-2xl bg-white/[0.02] border border-white/[0.05] backdrop-blur-3xl rounded-3xl p-12 text-center shadow-2xl">
                                 <input type="file" multiple accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
-
-                                <div
-                                    onClick={() => fileInputRef.current?.click()}
+                                
+                                <div 
+                                    onClick={() => fileInputRef.current?.click()} 
                                     className="group cursor-pointer flex flex-col items-center gap-6 py-20 border-2 border-dashed border-white/10 hover:border-cyan-500/50 hover:bg-cyan-500/[0.02] rounded-2xl transition-all duration-500"
                                 >
                                     <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-zinc-400 group-hover:text-cyan-400 group-hover:scale-110 transition-all duration-500 shadow-inner">
@@ -355,11 +346,11 @@ export default function VideoLab() {
                                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-8 pt-8 border-t border-white/5 w-full">
                                         <div className="flex justify-center gap-2 w-full mb-8">
                                             {images.map((img, idx) => (
-                                                <motion.div
-                                                    initial={{ scale: 0.8, opacity: 0 }}
-                                                    animate={{ scale: 1, opacity: 1 }}
-                                                    transition={{ delay: idx * 0.05 }}
-                                                    key={idx}
+                                                <motion.div 
+                                                    initial={{ scale: 0.8, opacity: 0 }} 
+                                                    animate={{ scale: 1, opacity: 1 }} 
+                                                    transition={{ delay: idx * 0.05 }} 
+                                                    key={idx} 
                                                     className="relative flex-1 max-w-[6rem] aspect-square rounded-xl overflow-hidden border border-white/10 group shadow-lg"
                                                 >
                                                     <img src={img} className="w-full h-full object-cover" alt="Uploaded" />
@@ -371,9 +362,9 @@ export default function VideoLab() {
                                                 </motion.div>
                                             ))}
                                         </div>
-                                        <button
-                                            onClick={handleAnalyze}
-                                            disabled={isAnalyzing}
+                                        <button 
+                                            onClick={handleAnalyze} 
+                                            disabled={isAnalyzing} 
                                             className="w-full py-5 bg-white hover:bg-zinc-200 disabled:bg-white/5 disabled:text-zinc-500 text-black font-bold uppercase tracking-[0.2em] text-xs rounded-2xl transition-all duration-300 shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:shadow-[0_0_40px_rgba(255,255,255,0.2)] flex items-center justify-center gap-3"
                                         >
                                             {isAnalyzing ? <><Loader2 className="w-5 h-5 animate-spin" /> Extracting Visual DNA...</> : <>Analyze Product <ArrowRight className="w-4 h-4" /></>}
@@ -387,7 +378,7 @@ export default function VideoLab() {
                     {/* STEP 2: CONFIGURATION */}
                     {step === 2 && analysis && (
                         <motion.div key="s2" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-
+                            
                             {/* Left Column: Summary & Mode */}
                             <div className="lg:col-span-4 space-y-6">
                                 <div className="bg-white/[0.02] border border-white/[0.05] backdrop-blur-3xl rounded-3xl p-8 space-y-6 shadow-2xl">
@@ -398,7 +389,7 @@ export default function VideoLab() {
                                     <div className="p-5 bg-black/40 border border-white/5 rounded-2xl">
                                         <p className="text-xs text-zinc-400 leading-relaxed font-light italic">"{analysis.description.substring(0, 180)}..."</p>
                                     </div>
-
+                                    
                                     <div className="pt-6 border-t border-white/5 space-y-4">
                                         <label className="text-[9px] font-semibold text-zinc-500 uppercase tracking-[0.2em]">Sequence Mode</label>
                                         <div className="flex flex-col gap-3">
@@ -593,7 +584,7 @@ export default function VideoLab() {
                                                 </div>
                                             )}
                                         </div>
-
+                                        
                                         {/* Prompt Section */}
                                         <div className="flex-1 p-8 lg:p-10 flex flex-col">
                                             <div className="mb-6 flex items-center justify-between">
@@ -649,16 +640,29 @@ export default function VideoLab() {
                         </motion.div>
                     )}
                 </AnimatePresence>
-
-                {/* Custom Scrollbar Styles */}
-                <style dangerouslySetInnerHTML={{
-                    __html: `
-                    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-                    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
-                    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-                    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
-                `}} />
             </main>
+            
+            {/* Custom Scrollbar Styles */}
+            <style dangerouslySetInnerHTML={{__html: `
+                .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+            `}} />
         </div>
+    );
+}
+
+export default function App() {
+    return (
+        <BrowserRouter>
+            <Toaster 
+                position="top-center" 
+                toastOptions={{ 
+                    style: { background: '#111', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '100px', fontSize: '12px', fontWeight: 500, padding: '12px 24px' } 
+                }} 
+            />
+            <VideoLab />
+        </BrowserRouter>
     );
 }
