@@ -162,7 +162,26 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
         contents: {
             parts: [
                 ...parts,
-                { text: "Analise estas imagens de produto em detalhes extremos. Retorne um JSON estruturado. IMPORTANTE: O 'productType' e os cenários DEVEM estar em Português do Brasil (PT-BR). Forneça duas listas de cenários: 1) 'suggestedSceneriesProductOnly': 3 a 4 cenários de estúdio, minimalistas, 3D ou fundos infinitos focados 100% no produto. 2) 'suggestedSceneriesLifestyle': 3 a 4 cenários cinematográficos e reais onde o produto estaria inserido ou sendo usado. REGRA CRÍTICA: Se você usar qualquer termo técnico de cinema, fotografia ou arte (ex: bokeh, lente anamórfica, macro, profundidade de campo, etc) nos cenários, você DEVE explicar brevemente o que significa entre parênteses para que um usuário leigo entenda. A 'description' interna DEVE ser em INGLÊS e extremamente detalhada — inclua: forma exata, dimensões aproximadas, cores exatas (hex se possível), materiais, texturas, logos, textos visíveis, marcas, reflexos, e QUALQUER detalhe visual que diferencie este produto de outros similares. Quanto mais precisa, melhor." }
+                {
+                    text: `You are a WORLD-CLASS product photographer and visual analyst. Analyze these product images with EXTREME precision.
+
+RETURN a JSON with the following fields:
+
+1. "description" (ENGLISH, ultra-detailed):
+   - Exact shape, silhouette, and form factor
+   - Exact colors (use hex codes when possible)
+   - Materials and textures (matte, glossy, rubber, leather, fabric, etc.)
+   - All visible text, logos, brand names, and their exact placement
+   - QUANTITY: How many items make up this product? (e.g., flip-flops/sandals/shoes = PAIR of 2, earrings = PAIR of 2, a single bottle = 1, a kit = specify count). ALWAYS mention the correct quantity.
+   - How the product is typically displayed/sold (e.g., "always shown as a pair", "comes in a box", "single unit")
+   - Size relative to common objects if discernible
+   - Any unique visual details that differentiate this exact product from similar ones
+
+2. "productType" (PORTUGUESE): Short category name
+
+3. "suggestedSceneriesProductOnly" (PORTUGUESE): 3-4 studio/minimalist scenes. If technical terms are used, explain them in parentheses.
+
+4. "suggestedSceneriesLifestyle" (PORTUGUESE): 3-4 real-world cinematic scenes. If technical terms are used, explain them in parentheses.` }
             ]
         },
         config: {
@@ -170,7 +189,7 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
             responseSchema: {
                 type: Type.OBJECT,
                 properties: {
-                    description: { type: Type.STRING, description: "Ultra-precise English description of the product including exact shape, dimensions, colors, materials, textures, branding, text, logos, and unique visual features." },
+                    description: { type: Type.STRING, description: "Ultra-precise English description including shape, colors (hex), materials, textures, branding, text, logos, QUANTITY (pair/single/set), display convention, and all unique visual features." },
                     productType: { type: Type.STRING, description: "A short category name in Portuguese (e.g., 'Tênis', 'Garrafa de Skincare', 'Eletrônico')." },
                     suggestedSceneriesProductOnly: {
                         type: Type.ARRAY,
@@ -347,20 +366,24 @@ export async function generateMockup(
         "Extra Scene 3"
     ];
 
-    const imagePrompt = `TASK: Generate a single photorealistic commercial product image.
+    const imagePrompt = `TASK: Generate a single photorealistic commercial product photograph.
 
-ABSOLUTE PRIORITY — PRODUCT IDENTITY FIDELITY:
-${productImages && productImages.length > 0 ? 'Reference photos of the REAL product are attached. The generated image MUST faithfully reproduce THIS EXACT product — same shape, same colors, same branding, same materials. Use the photos as your ground truth.' : 'The following description was extracted from real photographs. Reproduce the product EXACTLY as described.'}
+RULE #1 — PRODUCT IDENTITY (HIGHEST PRIORITY):
+${productImages && productImages.length > 0 ? 'I am attaching REAL PHOTOS of this product. Study them carefully. The generated image MUST show the EXACT SAME product — same shape, same colors, same branding, same materials, same proportions. These photos are your GROUND TRUTH. Do NOT deviate.' : 'Reproduce the product EXACTLY as described below. Do not deviate.'}
 
-PRODUCT DESCRIPTION: ${productDescription}
+RULE #2 — QUANTITY:
+The product description specifies how many items make up this product. If it says "pair" (e.g., flip-flops, shoes, sandals, earrings), you MUST show BOTH items (2 units) in the image. If it says "single", show 1. If it says "set of 3", show 3. NEVER show the wrong quantity.
+
+RULE #3 — LOOK AT THE REFERENCE PHOTOS:
+If reference photos are attached, match EXACTLY: the shape/silhouette, the color palette, any text/logos/branding, the material finish (matte vs glossy), and the quantity of items shown.
+
+PRODUCT: ${productDescription}
 
 SCENE: ${sequenceTypes[promptIndex] || "Dynamic commercial shot"}
 ENVIRONMENT: ${options.environment}, ${options.timeOfDay} lighting.
-${options.mode === 'lifestyle' ? `TALENT: A ${options.gender} model with ${options.hairColor} hair naturally interacting with the product.` : 'FOCUS: Product only, no people. Hero shot.'}
+${options.mode === 'lifestyle' ? `TALENT: A ${options.gender} model with ${options.hairColor} hair naturally interacting with the product.` : 'COMPOSITION: Product only, no people. Hero shot with the product as the absolute star of the frame.'}
 ${options.supportingDescription ? `CONTEXT: ${options.supportingDescription}.` : ''}
-STYLE: ${options.style}. Professional commercial photography, studio-quality, sharp focus, clean background, product clearly visible and dominant in frame. Photorealistic textures, accurate materials, no AI artifacts.
-
-CRITICAL: The product in the generated image must be IDENTICAL to the reference photos. Do not change any visual element.`;
+STYLE: ${options.style}. Professional commercial photography, studio-quality, sharp focus, clean composition. Photorealistic textures, accurate materials. No AI artifacts, no distortion.`;
 
     // Build content parts: reference images (if available) + text prompt
     const contentParts: any[] = [];
