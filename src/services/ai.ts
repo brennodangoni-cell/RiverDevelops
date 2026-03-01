@@ -54,13 +54,13 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
                     - Image 1 is the MASTER ANCHOR for geometry and color.
                     - Images 2-7 are TECHNICAL SUPPLEMENTS for hidden details and textures.
                     
-                    In 'description', provide a "SORA 2 PHYSICS MANIFEST" (Strictly Technical English):
-                    1. VOLUMETRIC MESH: Exact 3D dimensions, thickness, and curvature radii.
-                    2. SURFACE SHADER MATRIX: Pixel-perfect material specs (e.g., "Roughness Map: 0.15, SPEC: 0.9, IOR: 1.45").
-                    3. LIGHT INTERACTION: Describe exact subsurface scattering, anisotropic reflections, and shadow density.
-                    4. FORENSIC IDENTITY: Every stitch, embossed logo, and manufacturing mark visible in the photos MUST be cataloged as a REQUIRED element.
+                    In 'description', provide a "SORA 2 RIGID BODY MANIFEST" (Strictly Technical English):
+                    1. GEOMETRIC INTEGRITY: Define the product as a "Solid, Non-Deformable Rigid Body". Specify its fixed mesh structure.
+                    2. MATERIAL DNA: Define the exact surface texture so it doesn't "morph" into other materials.
+                    3. VOLUME STABILITY: State that the volumetric volume is constant and immutable.
+                    4. ANCHOR POINTS: Identify key rigid points (e.g., "Fixed strap attachment", "Solid base") that cannot move or warp.
                     
-                    REGRA: 'productType' e cenários em Português. 'description' deve ser o MASTER PHYSICAL MANIFEST em Inglês.`
+                    REGRA: 'productType' e cenários em Português. 'description' deve ser o MASTER RIGID MANIFEST em Inglês.`
                     }
                 ]
             }],
@@ -95,22 +95,24 @@ export async function generatePrompts(productDescription: string, options: any, 
     const voiceEnabled = !!options.includeVoice;
 
     const promptContext = `
-    ACT AS A SORA 2 WORLD SIMULATOR ARCHITECT.
+    ACT AS A SORA 2 RIGID-BODY SIMULATION ENGINEER.
     Product Manifest: ${productDescription}
     Context: Mode=${options.mode}, Style=${options.style}, Lighting=${options.timeOfDay}, Aspect Ratio=${options.aspectRatio}, Environment=${options.environment}.
     
-    SORA 2 SIMULATION LOGIC:
-    - Focus on "PHYSICS-ACCURATE MOTION": Describe gravity, inertia, and light bounce as if in a simulator.
-    - PRODUCT INTEGRITY: The product manifest is NON-NEGOTIABLE. It must be treated as a fixed 3D asset.
-    - CINEMATOGRAPHY: Specify camera sensors (e.g., Arri Alexa look) and lens optics (e.g., Master Prime glass).
+    ANTI-MORPHING PROTOCOL (CRITICAL):
+    - FIXED GEOMETRY: The product is a SOLID, RIGID OBJECT. It cannot morph, melt, or change shape.
+    - OBJECT PERMANENCE: Every pixel of the product must remain consistent from Frame 1 to Frame 300. 
+    - RIGID PHYSICS: No fluid dynamics on the product body. Only external light and camera movement are dynamic.
+    
+    SIMULATION LOGIC:
+    - Describe the scene with a "STABLE RENDER" focus. 
+    - Use "Locked 3D Mesh" terminology to prevent Sora from inventing new parts.
     
     STRICT TEXT/VOICE ENFORCEMENT:
-    - ON-SCREEN TEXT STATUS: ${textEnabled ? `ENABLED (Include minimalist high-end typography pointers in ${options.language || 'Portuguese'})` : 'STRICTLY DISABLED. FORBIDDEN. Do not mention ANY text, layers, or floating words.'}
+    - ON-SCREEN TEXT STATUS: ${textEnabled ? `ENABLED (Include minimalist high-end typography pointers in ${options.language || 'Portuguese'})` : 'STRICTLY DISABLED. No text allowed.'}
     - VOICE-OVER STATUS: ${voiceEnabled ? `ENABLED (Write compelling scripts in ${options.language || 'Portuguese'})` : 'STRICTLY DISABLED. No narration allowed.'}
     
-    ${!textEnabled ? 'CRITICAL: The resulting prompts MUST NOT contain mentions of "text", "overlay", "on-screen", or "typography".' : ''}
-    
-    OUTPUT: A JSON array of 3 highly technical "Simulation Instructions" for Sora 2. 
+    OUTPUT: A JSON array of 3 highly technical "Rigid Simulation Commands" for Sora 2. Focus on "GEOMETRIC STABILITY".
     ${previousPrompts && previousPrompts.length > 0 ? `PREVIOUS CONTINUITY: ${previousPrompts.join(' | ')}. Expand the story from these scenes.` : ''}
     `;
 
