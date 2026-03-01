@@ -7,9 +7,11 @@ export interface ProductAnalysis {
     suggestedSceneriesLifestyle: string[];
 }
 
-// THE STRATEGY: Use the official Gemini 3 Pro — state-of-the-art reasoning + vision + image gen.
-const BRAIN_MODEL = "gemini-3-pro";
-const VISION_MODEL = "gemini-3-pro";
+// THE STRATEGY: Use stable GA models confirmed on ai.google.dev/gemini-api/docs/models
+// BRAIN = 2.5 Pro (deepest reasoning for Master Skeleton)
+// VISION = 2.5 Flash (fast multimodal for image analysis + structured output)
+const BRAIN_MODEL = "gemini-2.5-pro";
+const VISION_MODEL = "gemini-2.5-flash";
 
 function getApiKey(): string {
     const localKey = localStorage.getItem('gemini_api_key');
