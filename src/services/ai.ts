@@ -7,11 +7,11 @@ export interface ProductAnalysis {
     suggestedSceneriesLifestyle: string[];
 }
 
-// THE STRATEGY: Use stable GA models confirmed on ai.google.dev/gemini-api/docs/models
-// BRAIN = 2.5 Pro (deepest reasoning for Master Skeleton)
-// VISION = 2.5 Flash (fast multimodal for image analysis + structured output)
-const BRAIN_MODEL = "gemini-2.5-pro";
-const VISION_MODEL = "gemini-2.5-flash";
+// THE STRATEGY: "Golden Combination" from AI_MODELS_DOC.md
+// BRAIN = 3.1 Pro Preview (most intelligent, for analysis + Master Skeleton prompts)
+// IMAGE = 3.1 Flash Image Preview (optimized for photorealistic mockup generation)
+const BRAIN_MODEL = "gemini-3.1-pro-preview";
+const IMAGE_MODEL = "gemini-3.1-flash-image-preview";
 
 function getApiKey(): string {
     const localKey = localStorage.getItem('gemini_api_key');
@@ -42,7 +42,7 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
     });
 
     const response = await ai.models.generateContent({
-        model: VISION_MODEL,
+        model: BRAIN_MODEL,
         contents: {
             parts: [
                 ...parts,
@@ -282,9 +282,16 @@ export async function generateMockup(productDescription: string, options: any, p
 
     try {
         const response = await ai.models.generateContent({
-            model: VISION_MODEL,
+            model: IMAGE_MODEL,
             contents: {
                 parts: [{ text: imagePrompt }]
+            },
+            config: {
+                // @ts-ignore
+                imageConfig: {
+                    aspectRatio: "1:1",
+                    imageSize: "1K"
+                }
             }
         });
 
