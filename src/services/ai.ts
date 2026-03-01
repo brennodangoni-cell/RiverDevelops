@@ -7,9 +7,9 @@ export interface ProductAnalysis {
     suggestedSceneriesLifestyle: string[];
 }
 
-// THE STRATEGY: Use the high-end Professional Pro model (latest 2.0 Pro) for maximum intelligence.
-const BRAIN_MODEL = "gemini-2.0-pro-exp-02-05";
-const VISION_MODEL = "gemini-2.0-pro-exp-02-05";
+// THE STRATEGY: Use the "Golden Combination" from AI_MODELS_DOC.md
+const BRAIN_MODEL = "gemini-3.1-pro-preview";
+const VISION_MODEL = "gemini-3.1-flash-image-preview";
 
 function getApiKey(): string {
     const localKey = localStorage.getItem('gemini_api_key');
