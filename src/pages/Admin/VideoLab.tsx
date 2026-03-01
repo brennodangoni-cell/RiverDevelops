@@ -457,17 +457,19 @@ export default function VideoLab() {
                                         </div>
 
                                         {/* Language Selector */}
-                                        <div className="space-y-4">
-                                            <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Idioma do Roteiro</label>
-                                            <div className="grid grid-cols-3 gap-2">
-                                                {['Português', 'English', 'Español'].map(lang => (
-                                                    <button key={lang} onClick={() => setOptions({ ...options, language: lang })} className={`py-3 px-2 rounded border text-[9px] font-bold uppercase tracking-widest transition-all ${options.language === lang ? 'bg-cyan-600/10 border-cyan-600 text-cyan-500 shadow-[0_0_15px_rgba(8,145,178,0.1)]' : 'bg-[#1a1a1a] border-[#222] text-neutral-500'}`}>
-                                                        {lang}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                            <p className="text-[8px] text-neutral-600 italic leading-tight">* Textos e falas serão gerados neste idioma para o Sora 2.</p>
-                                        </div>
+                                        {(options.includeText || options.includeVoice) && (
+                                            <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
+                                                <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Idioma do Roteiro</label>
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    {['Português', 'English', 'Español'].map(lang => (
+                                                        <button key={lang} onClick={() => setOptions({ ...options, language: lang })} className={`py-3 px-2 rounded border text-[9px] font-bold uppercase tracking-widest transition-all ${options.language === lang ? 'bg-cyan-600/10 border-cyan-600 text-cyan-500 shadow-[0_0_15px_rgba(8,145,178,0.1)]' : 'bg-[#1a1a1a] border-[#222] text-neutral-500'}`}>
+                                                            {lang}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                <p className="text-[8px] text-neutral-600 italic leading-tight">* Textos e falas serão gerados neste idioma para o Sora 2.</p>
+                                            </motion.div>
+                                        )}
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-6 mt-8 pt-8 border-t border-[#1a1a1a]">

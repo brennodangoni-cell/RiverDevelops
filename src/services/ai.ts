@@ -94,18 +94,19 @@ export async function generatePrompts(productDescription: string, options: any, 
     const promptContext = `
     ACT AS AN AWARD-WINNING COMMERCIAL DIRECTOR (Nike/Apple standards).
     Product Blueprint: ${productDescription}
-    Scene Setup: Mode=${options.mode}, Style=${options.style}, Lighting=${options.timeOfDay}, Aspect Ratio=${options.aspectRatio}.
+    Scene Setup: Mode=${options.mode}, Style=${options.style}, Lighting=${options.timeOfDay}, Aspect Ratio=${options.aspectRatio}, Environment=${options.environment}.
     
     SPECIAL DIRECTIVES:
     - LANGUAGE: ${options.language || 'Portuguese'}
-    - ON-SCREEN TEXT: ${options.includeText ? 'ENABLED (Include minimalist high-end typography pointers)' : 'DISABLED'}
-    - VOICE-OVER SCRIPTS: ${options.includeVoice ? 'ENABLED (Write compelling, emotive scripts)' : 'DISABLED'}
+    - ON-SCREEN TEXT: ${options.includeText ? 'ENABLED (Include minimalist high-end typography pointers)' : 'STRICTLY DISABLED (Do not write any text on screen)'}
+    - VOICE-OVER SCRIPTS: ${options.includeVoice ? 'ENABLED (Write compelling, emotive scripts)' : 'STRICTLY DISABLED (No narration scripts allowed)'}
     
     TASK: Generate 3 cinematic scenes (10s each). 
     Each prompt must follow Sora 2 technical syntax and include:
     1. CAMERA: Dynamic movement (Parallax, Vertigo effect, Anamorphic lens, FPV drone).
     2. PHYSICS: Accurate gravity, fluid dynamics, and light interaction.
     3. OVERLAYS: If enabled, define EXACT text content and voice-over lines in ${options.language}. 
+    - SCENERY: Use the "${options.environment}" setup for all scenes.
     
     EXEMPLO DE TONE OF VOICE: Se for 'Cinematic', o tom deve ser épico. Se for 'Minimalist', deve ser limpo e luxuoso.
     
@@ -150,13 +151,14 @@ export async function generateMockup(productDescription: string, scenePrompt: st
     Photos attached. Use EXACT details. DO NOT add new logos or features. 
     DNA Profile: ${productDescription}
     
-    SCENE TO RENDER:
+    SCENE TO RENDER (STRICT ENVIRONMENT):
     ${scenePrompt}
     
     CINEMATOGRAPHY RULES:
     - Zero invention of product details.
     - Photorealistic rendering.
     - Match everything from the reference photos carefully.
+    - ENVIRONMENT: Use EXACTLY the scenery described in the SCENE TO RENDER. Do not add background elements not described.
     - Output must be a direct visual representation of the provided SCENE PROMPT.
     `;
 
