@@ -8,7 +8,6 @@ export interface ProductAnalysis {
 }
 
 // THE STRATEGY: Use the cutting-edge available Flash model for 2026.
-// Based on our curl check and error logs, 'gemini-2.5-flash' is the required modern model.
 const STABLE_MODEL = "gemini-2.5-flash";
 
 function getApiKey(): string {
@@ -48,22 +47,20 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
                     ...parts,
                     {
                         text: `You are a Senior Cinematographer and AI Video Specialist for Sora 2.
-                    SYSTEM DIRECTIVE: Perform a "Sequential Multi-Angle Forensic Inspection". 
-                    Process EVERY image provided one by one to build a single "MASTER PRODUCT IDENTITY".
+                    SYSTEM DIRECTIVE: Act as a "Physical World Simulator & Forensic Architect". 
                     
-                    STRICT INSPECTION RULES:
-                    - IMAGE-BY-IMAGE CATALOGING: Identify unique details in Image 1, cross-reference with Image 2, then 3, and so on.
-                    - MASTER PHYSICAL RECORD: Create a technical record of logos, exact stitching counts, material grain depth, and geometric curvatures.
-                    - ZERO VARIATION: The analysis must result in a FIXED digital twin definition. Do not generalize.
-                    - If Image A shows a detail hidden in Image B, that detail MUST be part of the final identity.
+                    TASK: Create an "Immutable Physical Manifest" of the product. 
+                    INSPECTION PROTOCOL:
+                    - Image 1 is the MASTER ANCHOR for geometry and color.
+                    - Images 2-7 are TECHNICAL SUPPLEMENTS for hidden details and textures.
                     
-                    In 'description', provide a "MASTER DIGITAL TWIN SPECIFICATION" in English:
-                    1. ABSOLUTE GEOMETRY: Volumetric measurements and proportions of every component.
-                    2. MATERIAL DNA: Pixel-level surface description (e.g., "High-specularity polished brass", "Porous EVA foam with specific hexagonal pattern").
-                    3. BRANDING REGISTRY: Exact placement, font weight, and embossing depth of all logos.
-                    4. FORENSIC NOTES: Catalog any unique wear, specific factory marks, or distinct textures visible in ANY of the photos.
+                    In 'description', provide a "SORA 2 PHYSICS MANIFEST" (Strictly Technical English):
+                    1. VOLUMETRIC MESH: Exact 3D dimensions, thickness, and curvature radii.
+                    2. SURFACE SHADER MATRIX: Pixel-perfect material specs (e.g., "Roughness Map: 0.15, SPEC: 0.9, IOR: 1.45").
+                    3. LIGHT INTERACTION: Describe exact subsurface scattering, anisotropic reflections, and shadow density.
+                    4. FORENSIC IDENTITY: Every stitch, embossed logo, and manufacturing mark visible in the photos MUST be cataloged as a REQUIRED element.
                     
-                    REGRA: 'productType' e cenários em Português. 'description' deve ser o MASTER DIGITAL TWIN em Inglês.`
+                    REGRA: 'productType' e cenários em Português. 'description' deve ser o MASTER PHYSICAL MANIFEST em Inglês.`
                     }
                 ]
             }],
@@ -95,34 +92,20 @@ export async function generatePrompts(productDescription: string, options: any, 
     const ai = new GoogleGenAI({ apiKey });
 
     const promptContext = `
-    ACT AS AN AWARD-WINNING COMMERCIAL DIRECTOR (Nike/Apple standards).
-    Product Blueprint: ${productDescription}
-    Scene Setup: Mode=${options.mode}, Style=${options.style}, Lighting=${options.timeOfDay}, Aspect Ratio=${options.aspectRatio}, Environment=${options.environment}.
+    ACT AS A SORA 2 WORLD SIMULATOR ARCHITECT.
+    Product Manifest: ${productDescription}
+    Context: Mode=${options.mode}, Style=${options.style}, Lighting=${options.timeOfDay}, Aspect Ratio=${options.aspectRatio}, Environment=${options.environment}.
+    
+    SORA 2 SIMULATION LOGIC:
+    - Focus on "PHYSICS-ACCURATE MOTION": Describe gravity, inertia, and light bounce as if in a simulator.
+    - PRODUCT INTEGRITY: The product manifest is NON-NEGOTIABLE. It must be treated as a fixed 3D asset.
+    - CINEMATOGRAPHY: Specify camera sensors (e.g., Arri Alexa look) and lens optics (e.g., Master Prime glass).
     
     SPECIAL DIRECTIVES:
     - LANGUAGE: ${options.language || 'Portuguese'}
-    - ON-SCREEN TEXT: ${options.includeText ? 'ENABLED (Include minimalist high-end typography pointers)' : 'STRICTLY DISABLED (Do not write any text on screen)'}
-    - VOICE-OVER SCRIPTS: ${options.includeVoice ? 'ENABLED (Write compelling, emotive scripts)' : 'STRICTLY DISABLED (No narration scripts allowed)'}
+    - OVERLAYS: ${options.includeText || options.includeVoice ? 'Active technical pointers in ' + options.language : 'Strictly visual simulation only'}
     
-    TASK: Generate 3 cinematic scenes (10s each) following a "Hook -> Feature -> Reveal" commercial arc.
-    
-    IMMUTABLE IDENTITY RULE:
-    - You MUST use the EXACT same technical description for the product in every single prompt. 
-    - The product's geometry, materials, and branding must be a "COPY-PASTE" of the Master Digital Twin in every scene. 
-    - ONLY change the Camera, Lighting, and Environment and Text/Voice sections.
-    
-    CINEMATOGRAPHIC METADATA (Include in EVERY prompt):
-    - CAMERA: Technical move (e.g., "360 orbit at 24fps", "Push-in on 35mm Anamorphic").
-    - LENS: Specify glass (e.g., "T2.0, 85mm Prime").
-    - LIGHTING: Technical setup (e.g., "Rembrandt Lighting, Rim light at 5600K").
-    - PHYSICS: Fluid dynamics, micro-particulates, or motion blur specs.
-    
-    SPECIAL DIRECTIVES:
-    - LANGUAGE: ${options.language || 'Portuguese'}
-    - ON-SCREEN TEXT: ${options.includeText ? 'ENABLED (Include minimalist high-end typography pointers)' : 'STRICTLY DISABLED (Do not write any text on screen)'}
-    - VOICE-OVER SCRIPTS: ${options.includeVoice ? 'ENABLED (Write compelling, emotive scripts)' : 'STRICTLY DISABLED (No narration scripts allowed)'}
-    
-    OUTPUT: A JSON array of 3 highly detailed English technical prompts. Ensure the product is the "LOCKED ANCHOR" in all 3.
+    OUTPUT: A JSON array of 3 highly technical "Simulation Instructions" for Sora 2. Focus on why the video won't "hallucinate" (e.g., specific particle collision or light path tracing).
     
     ${previousPrompts && previousPrompts.length > 0 ? `PREVIOUS CONTINUITY: ${previousPrompts.join(' | ')}. Expand the story from these scenes.` : ''}
     `;
@@ -155,26 +138,23 @@ export async function generateMockup(productDescription: string, scenePrompt: st
     const apiKey = getApiKey();
     const ai = new GoogleGenAI({ apiKey });
 
-    // ZERO-INVENTION MAPPING: Map the scene context to the EXACT product in photos
-    // FORENSIC RECONSTRUCTION PROTOCOL: Absolute product cloning.
     const imageRequestPrompt = `
-    MASTER DIRECTIVE: 1:1 PHYSICAL RECONSTRUCTION.
-    The images provided are your ONLY SOURCE OF TRUTH for the object. 
+    MASTER DIRECTIVE: ABSOLUTE SOURCE CLONING.
+    REFERENCE ASSET: ${productDescription}
     
-    1. DIGITAL TWIN RECONSTRUCTION:
-    - ANY artistic change to the product in Scene 2 or 3 is a CRITICAL FAILURE. 
-    - Maintain 100% VISUAL CONTINUITY with the reference photos for every pixel of the product.
-    - EVERY LOGO, STITCH, AND TEXTURE must be a clone.
+    ANCHORING RULE:
+    - Image 1 is your ONLY source for the primary shape and global color.
+    - Images 2-7 provide technical supplements for details (Logos, Texture grain).
+    - DO NOT "average" the images. If Image 2 is from a different angle, do not let its angle affect the MAIN PANEL of the output.
     
-    2. TECHNICAL STORYBOARD GRID (STRICT FIDELITY):
-    - Create a professional Storyboard Grid. 
+    TECHNICAL STORYBOARD GRID:
     - MAIN PANEL: Showcase the EXACT product from the photos in the scene: "${scenePrompt}".
-    - TECHNICAL PANELS: Close-up and Profile views showing the SAME PHYSICAL OBJECT found in the photos.
+    - DETAIL PANELS: Show 100% accurate macro shots of the materials described in the manifest. 
     
-    3. VISUAL ANCHORING:
-    - MASTER SPECIFICATION: ${productDescription}.
-    - Do not allow the environment in "${scenePrompt}" to change the product's design. 
-    - Lighting in the scene must bounce off the product's materials exactly as they appear in the photos.
+    SORA 2 PRE-VISUALIZATION:
+    - This mockup must serve as the ground truth for Sora 2. 
+    - No design variation permitted across frames. 
+    - Physics-accurate reflections and high-fidelity rendering.
     `;
 
     const imageParts = (imagesBase64 || []).map(base64 => {
@@ -184,7 +164,7 @@ export async function generateMockup(productDescription: string, scenePrompt: st
 
     try {
         const response = await ai.models.generateContent({
-            model: 'models/nano-banana-pro-preview', // UPGRADED TO PRO MODEL
+            model: 'models/nano-banana-pro-preview',
             contents: [{
                 role: 'user',
                 parts: [
