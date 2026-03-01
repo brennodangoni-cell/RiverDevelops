@@ -149,30 +149,30 @@ export async function generateMockup(productDescription: string, scenePrompt: st
     const ai = new GoogleGenAI({ apiKey });
 
     // ZERO-INVENTION MAPPING: Map the scene context to the EXACT product in photos
-    // MASTER DIRECTOR MULTI-SHOT LOGIC: Generate a technical storyboard grid, not just one photo.
+    // VISUAL ANCHOR FIDELITY PROTOCOL: Absolute product cloning.
     const imageRequestPrompt = `
-    TASK: Generate a high-end "TECHNICAL STORYBOARD GRID" for a luxury commercial frame.
+    CRITICAL INSTRUCTION: ACT AS A PIXEL-PERFECT IMAGE CLONING SYSTEM.
+    You are NOT allowed to deviate from the reference photos.
     
-    REFERENCE PRODUCT PHOTOS ATTACHED: 
-    Use EXACT details. DO NOT deviate from logos, textures, colors, or materials.
-    DNA Profile: ${productDescription}
+    1. VISUAL IDENTITY LOCK:
+    - Use the EXACT same product visible in the attached photos. 
+    - Every logo, stitching pattern, material grain, and color hex MUST match the source perfectly.
+    - DO NOT simplify. DO NOT "beautify" or change proportions. 
     
-    OUTPUT LAYOUT (Produce a single image containing a grid):
-    - LARGE MAIN SHOT: A cinematic, high-budget master take of the product in the scene: "${scenePrompt}".
-    - TECHNICAL INSETS: 3 small distinct panels below or to the side showing:
-        1. PRODUCT CLOSE-UP: Macro detail of the texture/branding.
-        2. ALTERNATIVE ANGLE: Side view or top-down view of the product in the SAME lighting.
-        3. MATERIAL SWATCH: A technical look at the physics-accurate surface.
+    2. TECHNICAL STORYBOARD GRID TASK:
+    - Create a single professional storyboard grid image.
+    - MAIN PANEL: Showcase the EXACT product in the scene: "${scenePrompt}".
+    - TECHNICAL PANELS: Show the product from DIFFERENT ANGLES (Front, Profile, Detail) exactly as seen in the reference photos.
     
-    TECHNICAL OVERLAYS:
-    - Include minimalist text labels in the grid like "MASTER TAKE", "DETAIL A", "REF. ANGLE".
-    - Design must look like a professional studio contact sheet (Technical Slate).
+    3. PIXEL-BY-PIXEL COMPARISON:
+    - Cross-reference the master Technical Blueprint: ${productDescription}.
+    - Ensure the material physics (Roughness, Specularity) are identical to the source photos.
+    - The product must look like the SAME PHYSICAL OBJECT in every panel of the grid.
     
-    CINEMATOGRAPHY:
-    - Global Lighting must be perfectly consistent across all grid panels.
-    - Photorealistic rendering (8k, RAW file, high dynamic range).
-    - Match everything from the reference photos to the pixel.
-    - Zero invention of product details.
+    4. QUALITY:
+    - Photorealistic excellence.
+    - High-end studio lighting consistent with ${scenePrompt}.
+    - ZERO INVENTION. If it's not in the photos, it doesn't belong in the mockup.
     `;
 
     const imageParts = (imagesBase64 || []).map(base64 => {
