@@ -48,20 +48,19 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
                     ...parts,
                     {
                         text: `You are a Senior Cinematographer and AI Video Specialist for Sora 2.
-                    Analyze these product images to extract a FIXED VISUAL DNA for a high-end commercial.
+                    Analyze ALL these product images as a single Multi-Angle Data Set. 
                     
-                    STRICT RULES:
-                    - ZERO INVENTION: Do not add logos, textures, colors, or features NOT VISIBLE in the images.
-                    - MICRO-DNA: Capture the specific wear, unique labeling, or exact manufacturing finish.
-                    - If a detail is blurry, describe the macro-shape but do not guess the text.
+                    STRICT CORRELATION RULE:
+                    - Cross-reference all angles to identify EXACT micro-details (stitching patterns, sole textures, buckle materials, logo engravings).
+                    - If an angle shows a hidden detail, it MUST BE RETAINED in the master description.
+                    - ZERO INVENTION: Do not guess brand names if not clear.
                     
-                    In 'description', provide a "Sora 2 Technical Blueprint" in English:
-                    1. PRODUCT MESH: Define the exact 3D geometry (e.g., "Sleek matte black cylindrical bottle with a chrome-finished beveled cap").
-                    2. SURFACE PHYSICS: Describe how it reacts to light (e.g., "Highly anisotropic brushed metal reflections, slight subsurface scattering on plastics").
-                    3. BRANDING COORDINATES: Exact placement of logos (e.g., "Minimalist white sans-serif logo vertically aligned in the center-left quadrant").
-                    4. IDENTIFIABLE MARKS: Mention specific imperfections or unique labels visible in the photos.
+                    In 'description', provide a "Sora 2 Technical Master Blueprint" in English:
+                    1. FULL-MESH GEOMETRY: 3D volume, exact proportions, curvature radii.
+                    2. MATERIAL PHYSICS: Multi-layered shaders (e.g., "Matte leather with subtle grain visibility, metallic gold-finish hardware with fingerprint-resistant coating").
+                    3. ANGLE-SPECIFIC NOTES: Mention details visible from specific perspectives to ensure 360 consistency.
                     
-                    REGRA: 'productType' e cenários em Português. 'description' deve ser um PROMPT MASTER em Inglês para manter a consistência entre o Mockup e o Vídeo final.`
+                    REGRA: 'productType' e cenários em Português. 'description' deve ser o MASTER BLUEPRINT técnico em Inglês.`
                     }
                 ]
             }],
@@ -70,7 +69,7 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
                 responseSchema: {
                     type: Type.OBJECT,
                     properties: {
-                        description: { type: Type.STRING, description: "Technical cinematography blueprint for Sora 2." },
+                        description: { type: Type.STRING, description: "Master technical blueprint based on ALL provided angles." },
                         productType: { type: Type.STRING },
                         suggestedSceneriesProductOnly: { type: Type.ARRAY, items: { type: Type.STRING } },
                         suggestedSceneriesLifestyle: { type: Type.ARRAY, items: { type: Type.STRING } }
@@ -93,21 +92,26 @@ export async function generatePrompts(productDescription: string, options: any, 
     const ai = new GoogleGenAI({ apiKey });
 
     const promptContext = `
-    ACT AS A SORA 2 DIRECTOR. 
-    Product DNA: ${productDescription}
-    Settings: Mode=${options.mode}, Style=${options.style}, Light=${options.timeOfDay}, Ratio=${options.aspectRatio}.
+    ACT AS AN AWARD-WINNING COMMERCIAL DIRECTOR (Nike/Apple standards).
+    Product Blueprint: ${productDescription}
+    Scene Setup: Mode=${options.mode}, Style=${options.style}, Lighting=${options.timeOfDay}, Aspect Ratio=${options.aspectRatio}.
     
-    TASK: Generate a 3-scene cinematic sequence (10s each) for Sora 2.
+    SPECIAL DIRECTIVES:
+    - LANGUAGE: ${options.language || 'Portuguese'}
+    - ON-SCREEN TEXT: ${options.includeText ? 'ENABLED (Include minimalist high-end typography pointers)' : 'DISABLED'}
+    - VOICE-OVER SCRIPTS: ${options.includeVoice ? 'ENABLED (Write compelling, emotive scripts)' : 'DISABLED'}
     
-    SORA 2 REQUIREMENTS:
-    - Use technical camera terms (Tracking shot, Handheld, Slow-motion 120fps, Rack focus).
-    - Maintain visual consistency (The product MUST NOT change its design between scenes).
-    - Lighting: Must be consistent with ${options.timeOfDay}.
-    - Movement: Fluid transitions.
+    TASK: Generate 3 cinematic scenes (10s each). 
+    Each prompt must follow Sora 2 technical syntax and include:
+    1. CAMERA: Dynamic movement (Parallax, Vertigo effect, Anamorphic lens, FPV drone).
+    2. PHYSICS: Accurate gravity, fluid dynamics, and light interaction.
+    3. OVERLAYS: If enabled, define EXACT text content and voice-over lines in ${options.language}. 
     
-    ${previousPrompts && previousPrompts.length > 0 ? `This is a CONTINUATION. Previous scenes: ${previousPrompts.join(' | ')}. Avoid repetition.` : ''}
+    EXEMPLO DE TONE OF VOICE: Se for 'Cinematic', o tom deve ser épico. Se for 'Minimalist', deve ser limpo e luxuoso.
     
-    OUTPUT: A JSON array with exactly 3 highly detailed English prompts. Focus on photorealism and physics-accurate motion.
+    ${previousPrompts && previousPrompts.length > 0 ? `PREVIOUS CONTINUITY: ${previousPrompts.join(' | ')}. Expand the story.` : ''}
+    
+    OUTPUT: A JSON array of 3 highly detailed English technical prompts containing all text/voice data as part of the scene description.
     `;
 
     try {

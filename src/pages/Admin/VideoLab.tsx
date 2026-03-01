@@ -4,28 +4,14 @@ import {
     Check, ChevronLeft, Loader2, Upload,
     X, ArrowRight,
     Download, Video, DollarSign, LogOut,
-    User, Smartphone, Monitor, Camera
+    User, Smartphone, Monitor, Camera,
+    SunMoon, Palette
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { analyzeProduct, generatePrompts, generateMockup, ProductAnalysis } from '../../services/ai';
-
-type Mode = 'product_only' | 'lifestyle';
-type AspectRatio = '16:9' | '9:16';
-
-interface Options {
-    mode: Mode;
-    gender: string;
-    skinTone: string;
-    hairColor: string;
-    timeOfDay: string;
-    environment: string;
-    style: string;
-    aspectRatio: AspectRatio;
-    supportingDescription: string;
-}
 
 interface Result {
     prompt: string;
@@ -88,16 +74,19 @@ export default function VideoLab() {
     const [step, setStep] = useState<1 | 2 | 3>(1);
     const [images, setImages] = useState<string[]>([]);
     const [analysis, setAnalysis] = useState<ProductAnalysis | null>(null);
-    const [options, setOptions] = useState<Options>({
-        mode: 'lifestyle',
-        gender: 'Female',
-        skinTone: 'Medium',
-        hairColor: 'Brunette',
-        timeOfDay: 'Golden Hour',
+    const [options, setOptions] = useState({
+        mode: 'product_only',
         environment: '',
         style: 'Cinematic',
+        timeOfDay: 'Golden Hour',
         aspectRatio: '16:9',
-        supportingDescription: ''
+        gender: 'Female',
+        skinTone: 'Light',
+        hairColor: 'Blonde',
+        supportingDescription: '',
+        includeText: false,
+        includeVoice: false,
+        language: 'Português'
     });
 
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -441,6 +430,46 @@ export default function VideoLab() {
                                         </div>
                                     )}
 
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 pt-8 border-t border-[#1a1a1a]">
+                                        {/* Overlay Options */}
+                                        <div className="space-y-4">
+                                            <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Elementos Narrativos</label>
+                                            <div className="flex flex-col gap-3">
+                                                <button onClick={() => setOptions({ ...options, includeText: !options.includeText })} className={`flex items-center justify-between p-3 rounded border transition-all ${options.includeText ? 'bg-cyan-600/10 border-cyan-800 text-cyan-500' : 'bg-[#1a1a1a] border-[#222] text-neutral-500'}`}>
+                                                    <div className="flex items-center gap-3">
+                                                        <SunMoon className={`w-4 h-4 ${options.includeText ? 'text-cyan-500' : 'text-neutral-500'}`} />
+                                                        <span className="text-[10px] font-bold uppercase tracking-widest">Textos na Tela</span>
+                                                    </div>
+                                                    <div className={`w-8 h-4 rounded-full relative transition-all ${options.includeText ? 'bg-cyan-600' : 'bg-[#333]'}`}>
+                                                        <div className={`absolute top-1 w-2 h-2 rounded-full bg-white transition-all ${options.includeText ? 'left-5' : 'left-1'}`} />
+                                                    </div>
+                                                </button>
+                                                <button onClick={() => setOptions({ ...options, includeVoice: !options.includeVoice })} className={`flex items-center justify-between p-3 rounded border transition-all ${options.includeVoice ? 'bg-cyan-600/10 border-cyan-800 text-cyan-500' : 'bg-[#1a1a1a] border-[#222] text-neutral-500'}`}>
+                                                    <div className="flex items-center gap-3">
+                                                        <Palette className={`w-4 h-4 ${options.includeVoice ? 'text-cyan-500' : 'text-neutral-500'}`} />
+                                                        <span className="text-[10px] font-bold uppercase tracking-widest">Locução/Voz</span>
+                                                    </div>
+                                                    <div className={`w-8 h-4 rounded-full relative transition-all ${options.includeVoice ? 'bg-cyan-600' : 'bg-[#333]'}`}>
+                                                        <div className={`absolute top-1 w-2 h-2 rounded-full bg-white transition-all ${options.includeVoice ? 'left-5' : 'left-1'}`} />
+                                                    </div>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Language Selector */}
+                                        <div className="space-y-4">
+                                            <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Idioma do Roteiro</label>
+                                            <div className="grid grid-cols-3 gap-2">
+                                                {['Português', 'English', 'Español'].map(lang => (
+                                                    <button key={lang} onClick={() => setOptions({ ...options, language: lang })} className={`py-3 px-2 rounded border text-[9px] font-bold uppercase tracking-widest transition-all ${options.language === lang ? 'bg-cyan-600/10 border-cyan-600 text-cyan-500 shadow-[0_0_15px_rgba(8,145,178,0.1)]' : 'bg-[#1a1a1a] border-[#222] text-neutral-500'}`}>
+                                                        {lang}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            <p className="text-[8px] text-neutral-600 italic leading-tight">* Textos e falas serão gerados neste idioma para o Sora 2.</p>
+                                        </div>
+                                    </div>
+
                                     <div className="grid grid-cols-2 gap-6 mt-8 pt-8 border-t border-[#1a1a1a]">
                                         <div className="space-y-3">
                                             <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Formato (Aspect Ratio)</label>
@@ -462,7 +491,7 @@ export default function VideoLab() {
                                     </div>
 
                                     <button onClick={handleGenerate} className="w-full mt-10 bg-white hover:bg-neutral-200 text-black font-black uppercase tracking-[0.2em] text-[11px] py-5 rounded transition-all flex items-center justify-center gap-3 active:scale-[0.98]">
-                                        Gerar Sequência Profissional <ArrowRight className="w-4 h-4" />
+                                        Gerar Comercial Profissional <ArrowRight className="w-4 h-4" />
                                     </button>
                                 </div>
                             </div>
