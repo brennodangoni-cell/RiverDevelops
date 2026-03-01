@@ -125,6 +125,7 @@ export default function VideoLab() {
     const [favorites, setFavorites] = useState<FavoriteProject[]>([]);
     const [savedMockups, setSavedMockups] = useState<SavedMockup[]>([]);
     const [sceneryData, setSceneryData] = useState<SceneryAnalysis | null>(null);
+    const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
@@ -1006,7 +1007,7 @@ export default function VideoLab() {
                                         <div className="w-full lg:w-[480px] aspect-square lg:aspect-auto bg-black/50 border-b lg:border-r lg:border-b-0 border-white/5 relative group">
                                             {res.mockupUrl ? (
                                                 <>
-                                                    <img src={res.mockupUrl} className="w-full h-full object-cover" alt="Result" />
+                                                    <img src={res.mockupUrl} className="w-full h-full object-cover cursor-pointer" alt="Result" onClick={() => setLightboxUrl(res.mockupUrl)} />
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                                                     <div className="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
                                                         <button onClick={() => copyMockupImage(res.mockupUrl!)} className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-cyan-500 hover:scale-110 shadow-xl border border-white/20 transition-all" title="Copiar mockup">
@@ -1103,6 +1104,41 @@ export default function VideoLab() {
                     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
                 `}} />
             </main>
+
+            {/* === LIGHTBOX MODAL === */}
+            <AnimatePresence>
+                {lightboxUrl && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-center justify-center p-8"
+                        onClick={() => setLightboxUrl(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                            className="relative max-w-[90vw] max-h-[90vh]"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <img src={lightboxUrl} className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl border border-white/10 object-contain" alt="Mockup Full" />
+                            <div className="absolute top-4 right-4 flex gap-2">
+                                <button onClick={() => copyMockupImage(lightboxUrl)} className="w-10 h-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-cyan-500 transition-all border border-white/20" title="Copiar">
+                                    <Copy className="w-4 h-4" />
+                                </button>
+                                <a href={lightboxUrl} download className="w-10 h-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-cyan-500 transition-all border border-white/20" title="Baixar">
+                                    <Download className="w-4 h-4" />
+                                </a>
+                                <button onClick={() => setLightboxUrl(null)} className="w-10 h-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-red-500 transition-all border border-white/20" title="Fechar">
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div >
     );
 }
