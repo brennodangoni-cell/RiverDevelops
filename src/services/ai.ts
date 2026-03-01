@@ -7,9 +7,9 @@ export interface ProductAnalysis {
     suggestedSceneriesLifestyle: string[];
 }
 
-// THE STRATEGY: Use the cutting-edge available models for 2026.
-const BRAIN_MODEL = "gemini-2.0-flash-thinking-exp"; // For complex prompt generation
-const VISION_MODEL = "gemini-2.0-pro-exp"; // For high-fidelity visual tasks e análise
+// THE STRATEGY: Use the most stable and powerful available models.
+const BRAIN_MODEL = "gemini-2.0-flash"; // More stable than thinking-exp for general use
+const VISION_MODEL = "gemini-2.0-flash"; // Flash has excellent vision and is widely available
 
 function getApiKey(): string {
     const localKey = localStorage.getItem('gemini_api_key');
