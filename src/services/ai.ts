@@ -7,9 +7,9 @@ export interface ProductAnalysis {
     suggestedSceneriesLifestyle: string[];
 }
 
-// Models chosen by user
-const BRAIN_MODEL = "gemini-3-pro";
-const IMAGE_MODEL = "gemini-3-pro-image";
+// "Golden Combination" from AI_MODELS_DOC.md
+const BRAIN_MODEL = "gemini-3.1-pro-preview";
+const IMAGE_MODEL = "gemini-3.1-flash-image-preview";
 
 function getApiKey(): string {
     const localKey = localStorage.getItem('gemini_api_key');
