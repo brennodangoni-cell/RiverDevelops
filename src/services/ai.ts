@@ -157,7 +157,7 @@ async function generateWithFallback(
 // =======================================================================
 // 1. ANALYZE PRODUCT
 // =======================================================================
-export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAnalysis> {
+export async function analyzeProduct(imagesBase64: string[], marketingContext?: string): Promise<ProductAnalysis> {
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
 
@@ -175,7 +175,7 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
                 ...parts,
                 {
                     text: `You are a WORLD-CLASS product photographer, commercial director, and visual analyst. Analyze these product images with EXTREME precision.
-
+${marketingContext ? `\nMARKETING CONTEXT (Tailor your suggested sceneries to this): \n"""\n${marketingContext}\n"""\n` : ''}
 RETURN a JSON with the following fields:
 
 1. "description" (ENGLISH, ultra-detailed):
@@ -245,7 +245,7 @@ RETURN a JSON with the following fields:
 // =======================================================================
 // 1B. ANALYZE SCENERY (Scene Mode)
 // =======================================================================
-export async function analyzeScenery(imagesBase64: string[]): Promise<SceneryAnalysis> {
+export async function analyzeScenery(imagesBase64: string[], marketingContext?: string): Promise<SceneryAnalysis> {
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
     const ai = new GoogleGenAI({ apiKey });
@@ -261,7 +261,7 @@ export async function analyzeScenery(imagesBase64: string[]): Promise<SceneryAna
                 ...parts,
                 {
                     text: `You are a WORLD-CLASS film location scout and cinematographer. Analyze these SCENERY/LOCATION images.
-
+${marketingContext ? `\nMARKETING CONTEXT (Tailor your suggestions to this): \n"""\n${marketingContext}\n"""\n` : ''}
 RETURN a JSON:
 1. "description" (ENGLISH): Ultra-detailed description of the location — architecture, nature, lighting conditions, colors, textures, atmosphere, time of day, weather.
 2. "locationType" (PORTUGUESE): Short category — e.g., "Praia", "Floresta", "Cidade Urbana", "Interior de Casa"

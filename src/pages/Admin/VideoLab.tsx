@@ -281,9 +281,9 @@ export default function VideoLab() {
             const validImages = base64Images.filter(b => b.length > 0);
             setCompressedImages(validImages);
             setProgressText('Analisando DNA Visual do Produto...');
-            const result = await analyzeProduct(validImages);
+            const result = await analyzeProduct(validImages, marketingContext);
             // Also run scenery analysis in background for Scene Mode
-            analyzeScenery(validImages).then(sd => setSceneryData(sd)).catch(() => { });
+            analyzeScenery(validImages, marketingContext).then(sd => setSceneryData(sd)).catch(() => { });
             clearInterval(progressTimer);
             setAnalysis(result);
             setEditableDescription(result.description);
