@@ -106,6 +106,11 @@ export async function generatePrompts(productDescription: string, options: any, 
     
     TASK: Generate 3 cinematic scenes (10s each) following a "Hook -> Feature -> Reveal" commercial arc.
     
+    IMMUTABLE IDENTITY RULE:
+    - You MUST use the EXACT same technical description for the product in every single prompt. 
+    - The product's geometry, materials, and branding must be a "COPY-PASTE" of the Master Digital Twin in every scene. 
+    - ONLY change the Camera, Lighting, and Environment and Text/Voice sections.
+    
     CINEMATOGRAPHIC METADATA (Include in EVERY prompt):
     - CAMERA: Technical move (e.g., "360 orbit at 24fps", "Push-in on 35mm Anamorphic").
     - LENS: Specify glass (e.g., "T2.0, 85mm Prime").
@@ -117,7 +122,7 @@ export async function generatePrompts(productDescription: string, options: any, 
     - ON-SCREEN TEXT: ${options.includeText ? 'ENABLED (Include minimalist high-end typography pointers)' : 'STRICTLY DISABLED (Do not write any text on screen)'}
     - VOICE-OVER SCRIPTS: ${options.includeVoice ? 'ENABLED (Write compelling, emotive scripts)' : 'STRICTLY DISABLED (No narration scripts allowed)'}
     
-    OUTPUT: A JSON array of 3 highly detailed English technical prompts containing all metadata and text/voice data as part of the scene description. Be extremely specific about the product's Material Shader Matrix throughout.
+    OUTPUT: A JSON array of 3 highly detailed English technical prompts. Ensure the product is the "LOCKED ANCHOR" in all 3.
     
     ${previousPrompts && previousPrompts.length > 0 ? `PREVIOUS CONTINUITY: ${previousPrompts.join(' | ')}. Expand the story from these scenes.` : ''}
     `;
@@ -154,24 +159,22 @@ export async function generateMockup(productDescription: string, scenePrompt: st
     // FORENSIC RECONSTRUCTION PROTOCOL: Absolute product cloning.
     const imageRequestPrompt = `
     MASTER DIRECTIVE: 1:1 PHYSICAL RECONSTRUCTION.
-    The images provided are your ONLY SOURCE OF TRUTH. 
-    You are performing a Forensic Reconstruction of the product.
+    The images provided are your ONLY SOURCE OF TRUTH for the object. 
     
     1. DIGITAL TWIN RECONSTRUCTION:
-    - Treat every photo as a technical reference for a specific part of the product.
-    - REPEAT: Every logo, stitch, texture, and color MUST be a 100% clone from the photos.
-    - If a detail appears in ANY of the reference photos, it MUST appear in the mockup. 
-    - ZERO DEVIATION. Any artistic "improvement" is a FAILURE.
+    - ANY artistic change to the product in Scene 2 or 3 is a CRITICAL FAILURE. 
+    - Maintain 100% VISUAL CONTINUITY with the reference photos for every pixel of the product.
+    - EVERY LOGO, STITCH, AND TEXTURE must be a clone.
     
     2. TECHNICAL STORYBOARD GRID (STRICT FIDELITY):
-    - Create a professionalStoryboard Grid. 
-    - MAIN PANEL: The product strictly reconstructed in: "${scenePrompt}".
-    - TECHNICAL PANELS: Sequential views (e.g., Close-up, Profile, Top) showing the EXACT same physical object with 100% consistent materials.
+    - Create a professional Storyboard Grid. 
+    - MAIN PANEL: Showcase the EXACT product from the photos in the scene: "${scenePrompt}".
+    - TECHNICAL PANELS: Close-up and Profile views showing the SAME PHYSICAL OBJECT found in the photos.
     
     3. VISUAL ANCHORING:
-    - Anchor all pixels to the "MASTER DIGITAL TWIN SPECIFICATION": ${productDescription}.
-    - The product's identity must be unshakeable across all grid panels. 
-    - Materials must react to the studio lighting in ${scenePrompt} identical to how they react in the reference photos.
+    - MASTER SPECIFICATION: ${productDescription}.
+    - Do not allow the environment in "${scenePrompt}" to change the product's design. 
+    - Lighting in the scene must bounce off the product's materials exactly as they appear in the photos.
     `;
 
     const imageParts = (imagesBase64 || []).map(base64 => {
