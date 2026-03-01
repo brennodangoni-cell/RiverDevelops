@@ -218,14 +218,18 @@ export async function generateMockup(productDescription: string, options: any, p
         "Extra Scene 3"
     ];
 
-    const imagePrompt = `A professional product photography concept sheet showing MULTIPLE ANGLES of the exact same product in a single image.
-    Layout: A split-screen or grid collage showing front view, side view, and detail macro shots.
-    Product: ${productDescription}. CRITICAL: Maintain strict consistency with this product description. The shape, color, and branding MUST be identical across all angles.
-    Scene Focus: ${sequenceTypes[promptIndex] || "Dynamic Shot"}
-    Setting: ${options.environment}, ${options.timeOfDay}.
-    ${options.mode === 'lifestyle' ? `Featuring a ${options.gender} with ${options.hairColor} hair interacting with the product.` : 'The product is the sole focus.'}
-    ${options.supportingDescription ? `Additional Context: ${options.supportingDescription}.` : ''}
-    Style: ${options.style}. Ultra-realistic, raw photography, 8k resolution, sharp focus, highly detailed, shot on 35mm lens, photorealistic commercial photography. NO AI artifacts, highly realistic textures.`;
+    const imagePrompt = `TASK: Generate a single photorealistic commercial product image.
+
+ABSOLUTE PRIORITY — PRODUCT IDENTITY FIDELITY:
+The following product description was extracted from real photographs. You MUST reproduce the product EXACTLY as described below. Every detail matters — exact shape, exact colors, exact branding/text/logos, exact materials and textures. If the description says "red cap with white text reading XYZ", the image MUST show a red cap with white text reading XYZ. DO NOT improvise, change, or omit any visual element.
+
+PRODUCT (reproduce EXACTLY): ${productDescription}
+
+SCENE: ${sequenceTypes[promptIndex] || "Dynamic commercial shot"}
+ENVIRONMENT: ${options.environment}, ${options.timeOfDay} lighting.
+${options.mode === 'lifestyle' ? `TALENT: A ${options.gender} model with ${options.hairColor} hair naturally interacting with the product.` : 'FOCUS: Product only, no people. Hero shot.'}
+${options.supportingDescription ? `CONTEXT: ${options.supportingDescription}.` : ''}
+STYLE: ${options.style}. Professional commercial photography, studio-quality, sharp focus, clean background, product clearly visible and dominant in frame. Photorealistic textures, accurate materials, no AI artifacts.`;
 
     try {
         const response = await ai.models.generateContent({
