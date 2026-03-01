@@ -123,9 +123,25 @@ export async function generateMockup(productDescription: string, options: any, p
     const apiKey = getApiKey();
     const ai = new GoogleGenAI({ apiKey });
 
-    const sequenceTypes = ["Wide Shot", "Action Shot", "Macro Shot", "Alternative", "B-Roll", "Outro"];
+    const sequenceTypes = [
+        "Wide Establishing Shot, showing the environment and introducing the product.",
+        "Medium Action Shot, showing the product in use or dynamic display.",
+        "Extreme Close-up Macro Shot, focusing on textures, materials, and branding.",
+        "Alternative Angle or Reaction Shot, showing a different perspective.",
+        "Dynamic B-Roll Shot, highly stylized.",
+        "Final Outro Shot, majestic and leaving space for a logo.",
+        "Extra Scene 1",
+        "Extra Scene 2",
+        "Extra Scene 3"
+    ];
+
     const imagePrompt = `REFERENCE PHOTOS ATTACHED. Produce a mockup IDENTICAL to these photos. 
-    Product: ${productDescription}. Scene: ${sequenceTypes[promptIndex] || "Dynamic"}. Env: ${options.environment}. Style: ${options.style}. 8k photorealistic.`;
+    Product: ${productDescription}. 
+    Scene Focus: ${sequenceTypes[promptIndex] || "Dynamic Shot"}.
+    Setting: ${options.environment}, ${options.timeOfDay}. 
+    Style: ${options.style}. 
+    ${options.mode === 'lifestyle' ? `Featuring a ${options.skinTone} skinned ${options.gender} with ${options.hairColor} hair interacting with the product.` : 'The product is the sole focus.'}
+    8k photorealistic, raw photography, sharp focus, highly detailed, shot on 35mm lens.`;
 
     const imageParts = (imagesBase64 || []).map(base64 => {
         const data = base64.replace(/^data:image\/[a-zA-Z+]+;base64,/, '');
@@ -134,7 +150,7 @@ export async function generateMockup(productDescription: string, options: any, p
 
     try {
         const response = await ai.models.generateContent({
-            model: STABLE_MODEL,
+            model: 'gemini-2.5-flash-image', // SPECIFIC MODEL FOR IMAGES
             contents: [{
                 role: 'user',
                 parts: [

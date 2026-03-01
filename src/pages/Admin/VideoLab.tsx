@@ -3,7 +3,8 @@ import {
     Sparkles, Copy,
     Check, ChevronLeft, Loader2, Upload,
     X, ArrowRight,
-    Download, Video, DollarSign, LogOut
+    Download, Video, DollarSign, LogOut,
+    User, Smartphone, Monitor, Camera
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,6 +31,29 @@ interface Result {
     prompt: string;
     mockupUrl: string | null;
 }
+
+const genders = [
+    { id: 'Female', label: 'Feminino', icon: User },
+    { id: 'Male', label: 'Masculino', icon: User },
+    { id: 'Androgynous', label: 'Andrógino', icon: User },
+    { id: 'Any', label: 'Qualquer', icon: User },
+];
+
+const skinTones = [
+    { id: 'Light', label: 'Clara', color: '#fcdcb4' },
+    { id: 'Medium', label: 'Média', color: '#d09668' },
+    { id: 'Dark', label: 'Escura', color: '#6b4124' },
+    { id: 'Any', label: 'Qualquer', color: 'linear-gradient(45deg, #fcdcb4, #6b4124)' },
+];
+
+const hairColors = [
+    { id: 'Blonde', label: 'Loiro', color: '#e8c92a' },
+    { id: 'Brunette', label: 'Castanho', color: '#4a2f1d' },
+    { id: 'Black', label: 'Preto', color: '#111111' },
+    { id: 'Red', label: 'Ruivo', color: '#8c2211' },
+    { id: 'Silver', label: 'Grisalho', color: '#c0c0c0' },
+    { id: 'Any', label: 'Qualquer', color: 'linear-gradient(45deg, #e8c92a, #111111)' },
+];
 
 const lightings = [
     { id: 'Golden Hour', label: 'Golden Hour', desc: 'Luz suave e dourada do pôr do sol' },
@@ -376,13 +400,69 @@ export default function VideoLab() {
                                         </div>
                                     </div>
 
-                                    <div className="mt-8 space-y-3">
-                                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Direção Extra</label>
-                                        <textarea value={options.supportingDescription} onChange={(e) => setOptions({ ...options, supportingDescription: e.target.value })} placeholder="Descreva detalhes específicos da cena..." className="w-full bg-[#1a1a1a] border border-[#222] rounded-xl px-4 py-4 text-[11px] text-white outline-none focus:border-cyan-600 h-24 resize-none" />
+                                    {/* Lifestyle Personalization */}
+                                    {options.mode === 'lifestyle' && (
+                                        <div className="mt-8 pt-8 border-t border-[#1a1a1a] space-y-8">
+                                            <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400">Personalização Humana</h3>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                                {/* Gender */}
+                                                <div className="space-y-3">
+                                                    <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Gênero</label>
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        {genders.map(g => (
+                                                            <button key={g.id} onClick={() => setOptions({ ...options, gender: g.id })} className={`py-2 px-3 rounded border text-[10px] font-bold uppercase tracking-widest transition-all ${options.gender === g.id ? 'bg-cyan-600/10 border-cyan-600 text-cyan-500' : 'bg-[#1a1a1a] border-[#222] text-neutral-500'}`}>
+                                                                {g.label}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                {/* Skin Tone */}
+                                                <div className="space-y-3">
+                                                    <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Tom de Pele</label>
+                                                    <div className="flex gap-2">
+                                                        {skinTones.map(s => (
+                                                            <button key={s.id} onClick={() => setOptions({ ...options, skinTone: s.id })} className={`w-8 h-8 rounded-full border-2 transition-all ${options.skinTone === s.id ? 'border-white scale-110 shadow-[0_0_10px_rgba(255,255,255,0.3)]' : 'border-transparent'}`} style={{ background: s.color }} title={s.label} />
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                {/* Hair Color */}
+                                                <div className="space-y-3">
+                                                    <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Cabelo</label>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {hairColors.map(h => (
+                                                            <button key={h.id} onClick={() => setOptions({ ...options, hairColor: h.id })} className={`w-8 h-8 rounded-full border-2 transition-all ${options.hairColor === h.id ? 'border-white scale-110 shadow-[0_0_10px_rgba(255,255,255,0.3)]' : 'border-transparent'}`} style={{ background: h.color }} title={h.label} />
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="grid grid-cols-2 gap-6 mt-8 pt-8 border-t border-[#1a1a1a]">
+                                        <div className="space-y-3">
+                                            <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Formato (Aspect Ratio)</label>
+                                            <div className="flex gap-2">
+                                                <button onClick={() => setOptions({ ...options, aspectRatio: '16:9' })} className={`flex-1 py-3 flex flex-col items-center gap-1 rounded border transition-all ${options.aspectRatio === '16:9' ? 'bg-cyan-600/10 border-cyan-600 text-cyan-500' : 'bg-[#1a1a1a] border-[#222] text-neutral-500'}`}>
+                                                    <Monitor className="w-4 h-4" />
+                                                    <span className="text-[9px] font-bold uppercase">16:9 Full</span>
+                                                </button>
+                                                <button onClick={() => setOptions({ ...options, aspectRatio: '9:16' })} className={`flex-1 py-3 flex flex-col items-center gap-1 rounded border transition-all ${options.aspectRatio === '9:16' ? 'bg-cyan-600/10 border-cyan-600 text-cyan-500' : 'bg-[#1a1a1a] border-[#222] text-neutral-500'}`}>
+                                                    <Smartphone className="w-4 h-4" />
+                                                    <span className="text-[9px] font-bold uppercase">9:16 Mobile</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Direção Extra</label>
+                                            <textarea value={options.supportingDescription} onChange={(e) => setOptions({ ...options, supportingDescription: e.target.value })} placeholder="Ex: Câmera lenta, luz de neon azul..." className="w-full bg-[#1a1a1a] border border-[#222] rounded px-4 py-2.5 text-[11px] text-white outline-none focus:border-cyan-600 h-[52px] resize-none" />
+                                        </div>
                                     </div>
 
-                                    <button onClick={handleGenerate} className="w-full mt-8 bg-white hover:bg-neutral-200 text-black font-black uppercase tracking-[0.2em] text-[11px] py-5 rounded transition-all flex items-center justify-center gap-3">
-                                        Gerar Sequência Completa <ArrowRight className="w-4 h-4" />
+                                    <button onClick={handleGenerate} className="w-full mt-10 bg-white hover:bg-neutral-200 text-black font-black uppercase tracking-[0.2em] text-[11px] py-5 rounded transition-all flex items-center justify-center gap-3 active:scale-[0.98]">
+                                        Gerar Sequência Profissional <ArrowRight className="w-4 h-4" />
                                     </button>
                                 </div>
                             </div>
@@ -426,9 +506,18 @@ export default function VideoLab() {
                                                     </a>
                                                 </>
                                             ) : (
-                                                <div className="flex flex-col items-center justify-center h-full gap-2 text-neutral-700">
-                                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                                    <span className="text-[8px] font-bold uppercase tracking-tighter">Renderizando...</span>
+                                                <div className="flex flex-col items-center justify-center h-full gap-4 text-neutral-700 bg-neutral-900/40 p-12 text-center">
+                                                    {isGenerating || isContinuing ? (
+                                                        <>
+                                                            <Loader2 className="w-6 h-6 animate-spin text-cyan-800" />
+                                                            <span className="text-[9px] font-black uppercase tracking-widest opacity-50">Processando Frames...</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Camera className="w-8 h-8 text-neutral-800" />
+                                                            <span className="text-[9px] font-black uppercase tracking-widest text-neutral-700">Erro na Renderização Visual.<br />Tente gerar novamente.</span>
+                                                        </>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>
