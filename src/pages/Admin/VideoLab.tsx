@@ -1004,23 +1004,23 @@ export default function VideoLab() {
                                 {results.map((res, i) => (
                                     <div key={i} className="bg-white/[0.02] border border-white/[0.05] backdrop-blur-3xl rounded-3xl overflow-hidden flex flex-col lg:flex-row shadow-2xl">
                                         {/* Image Section */}
-                                        <div className="w-full lg:w-[480px] aspect-square lg:aspect-auto bg-black/50 border-b lg:border-r lg:border-b-0 border-white/5 relative group">
+                                        <div className="w-full lg:w-[480px] aspect-square lg:aspect-auto bg-black/50 border-b lg:border-r lg:border-b-0 border-white/5 relative group cursor-pointer" onClick={() => res.mockupUrl && setLightboxUrl(res.mockupUrl)}>
                                             {res.mockupUrl ? (
                                                 <>
-                                                    <img src={res.mockupUrl} className="w-full h-full object-cover cursor-pointer" alt="Result" onClick={() => setLightboxUrl(res.mockupUrl)} />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                                                    <div className="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                                        <button onClick={() => copyMockupImage(res.mockupUrl!)} className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-cyan-500 hover:scale-110 shadow-xl border border-white/20 transition-all" title="Copiar mockup">
+                                                    <img src={res.mockupUrl} className="w-full h-full object-cover" alt="Result" />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                                                    <div className="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 z-10">
+                                                        <button onClick={(e) => { e.stopPropagation(); copyMockupImage(res.mockupUrl!); }} className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-cyan-500 hover:scale-110 shadow-xl border border-white/20 transition-all" title="Copiar mockup">
                                                             <Copy className="w-4 h-4" />
                                                         </button>
-                                                        <button onClick={() => saveMockupToLibrary(res.mockupUrl!, `Cena ${i + 1}`)} className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-purple-500 hover:scale-110 shadow-xl border border-white/20 transition-all" title="Salvar na biblioteca">
+                                                        <button onClick={(e) => { e.stopPropagation(); saveMockupToLibrary(res.mockupUrl!, `Cena ${i + 1}`); }} className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-purple-500 hover:scale-110 shadow-xl border border-white/20 transition-all" title="Salvar na biblioteca">
                                                             <BookImage className="w-4 h-4" />
                                                         </button>
-                                                        <a href={res.mockupUrl} download className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-cyan-500 hover:scale-110 shadow-xl border border-white/20 transition-all" title="Baixar mockup">
+                                                        <a href={res.mockupUrl} download onClick={(e) => e.stopPropagation()} className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-cyan-500 hover:scale-110 shadow-xl border border-white/20 transition-all" title="Baixar mockup">
                                                             <Download className="w-4 h-4" />
                                                         </a>
                                                     </div>
-                                                    <div className="absolute bottom-6 left-6 flex gap-2">
+                                                    <div className="absolute bottom-6 left-6 flex gap-2 pointer-events-none">
                                                         <span className="bg-black/60 backdrop-blur-md text-[9px] font-semibold text-cyan-400 px-3 py-1.5 rounded-full border border-cyan-500/30 uppercase tracking-wider">AI Master Take</span>
                                                         <span className="bg-black/60 backdrop-blur-md text-[9px] font-semibold text-zinc-300 px-3 py-1.5 rounded-full border border-white/10 uppercase tracking-wider">1K RAW</span>
                                                     </div>
