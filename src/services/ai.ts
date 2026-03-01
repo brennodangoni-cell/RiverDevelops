@@ -366,32 +366,28 @@ export async function generateMockup(
         "Extra Scene 3"
     ];
 
-    const imagePrompt = `TASK: Generate a PROFESSIONAL PRODUCT CONCEPT SHEET (Collage) with Lifestyle Interaction.
-GOAL: Create a single 16:9 image containing a HERO LIFESTYLE SHOT and MULTIPLE detail views.
+    const imagePrompt = `TASK: Generate a PROFESSIONAL PRODUCT CONCEPT SHEET (Collage).
+GOAL: Create a single 16:9 image containing a HERO SHOT and MULTIPLE detail views.
 
 CRITICAL — PRODUCT FIDELITY (CLONE MODE):
-- ABSOLUTE GROUND TRUTH: Use the ${productImages?.length || 0} attached photos as the ONLY source for the product's appearance.
-- PIXEL-PERFECT DIGITAL TWIN: Every single pixel of the product (shape, silhouette, branding, logos, materials, texture) MUST be an exact clone of the reference photos.
-- NO GENERALIZATION: Even in lifestyle shots, DO NOT use a generic version of the product. It MUST be the exact one from the photos.
-- IDENTICAL BRANDING: Logos and brand marks must be identical across all views in the collage.
+- ABSOLUTE GROUND TRUTH: Use the ${productImages?.length || 0} attached photos as the ONLY template for the product.
+- PIXEL-PERFECT CLONE: The product in ALL views (including lifestyle) MUST be an exact replica of the photos — shape, colors, logos, and materials.
+- ZERO GENERALIZATION: Do not use a generic version. The person MUST be wearing/using THIS EXACT SPECIFIC product.
 
 COLLAGE LAYOUT:
-- MAIN HERO SHOT (LEFT, 60%): The product being used/worn/displayed in the requested lifestyle environment.
-- ANGLE VIEWS (RIGHT STACK, 40%): 3 to 4 distinct views (Sole, Side, Top, Heel, Detail) proving this is the exact product from the photos.
+- MAIN HERO SHOT (LEFT, 60%): The product being PHYSICALLY USED/WORN in the environment.
+- ANGLE VIEWS (RIGHT STACK, 40%): 3 to 4 technical views (Sole, Side, Top, Detail) for fidelity check.
 
-QUANTITY RULE:
-- The product is a ${productDescription.includes('pair') ? 'PAIR' : 'SINGLE UNIT'}. 
-- The HERO shot MUST show the complete set/pair.
-
-LIFESTYLE EXECUTION:
-- TALENT: ${options.mode === 'lifestyle' ? `A ${options.gender} model with ${options.hairColor} hair naturally interacting with the product. THE PRODUCT MUST REMAIN THE STAR.` : 'Product only, no people. Absolute hero shot.'}
-- INTERACTION: The talent should interact with the product without obscuring its key features, logos, or unique shapes.
+LIFESTYLE EXECUTION (ANCHOR MODE):
+- TALENT: ${options.mode === 'lifestyle' ? `A ${options.gender} model (${options.hairColor} hair) is PHYSICALLY ${productDescription.includes('shoe') || productDescription.includes('flip-flop') || productDescription.includes('sandal') ? 'WEARING' : 'USING'} the product. 
+- ANCHOR RULE: The product is the anchor of the scene. Draw the person to fit the product perfectly. 
+- VISIBILITY: Ensure the brand logos/unique shapes are clearly visible while being used.` : 'Product only, no people. Absolute hero shot.'}
 
 SCENE DATA:
-PRODUCT IDENTIFIER: ${productDescription}
+PRODUCT: ${productDescription}
 HERO SCENE: ${sequenceTypes[promptIndex] || "Action hero product shot"}
 ENVIRONMENT: ${options.environment}, ${options.timeOfDay} lighting.
-STYLE: ${options.style}. High-end commercial photography, ultra-sharp focus on the product, 8k materials.`;
+STYLE: ${options.style}. High-end commercial photography, 8k textures.`;
 
     // Build content parts: reference images (if available) + text prompt
     const contentParts: any[] = [];
