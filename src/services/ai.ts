@@ -366,30 +366,33 @@ export async function generateMockup(
         "Extra Scene 3"
     ];
 
-    const imagePrompt = `TASK: Generate a PRODUCT PHOTOGRAPHY CONCEPT SHEET — a single image containing MULTIPLE views of the product in a professional collage layout.
+    const imagePrompt = `TASK: Generate a PROFESSIONAL PRODUCT CONCEPT SHEET (Collage).
+GOAL: Create a single 16:9 image containing a HERO SHOT and MULTIPLE detail views.
 
-LAYOUT (MANDATORY):
-- LEFT SIDE (60% of image): One large HERO shot of the product in a scene context.
-- RIGHT SIDE (40% of image): A vertical stack of 3 to 4 SMALLER images showing the product from different angles (top view, side profile, bottom/sole, back view, close-up detail, etc.).
-- The layout must look like a professional e-commerce product presentation or Amazon listing hero image.
-- Soft shadows between panels. Clean, cohesive lighting across all views. Same background tone throughout.
+CRITICAL — PRODUCT FIDELITY (CLONE MODE):
+- I have attached ${productImages?.length || 0} REAL PHOTOGRAPHS of this product. 
+- These photos are the ABSOLUTE GROUND TRUTH. 
+- You MUST create a PIXEL-PERFECT DIGITAL TWIN of the product shown in the photos.
+- DO NOT CHANGE: Shape, silhouette, color shades (hex codes), materials, branding, logos, or text.
+- If the text description below conflicts with the attached photos, FOLLOW THE PHOTOS ONLY.
+- ZERO HALLUCINATION: Do not add any elements to the product that aren't in the photos.
+- Every single view in the collage MUST show the SAME IDENTICAL object.
 
-RULE #1 — PRODUCT IDENTITY (HIGHEST PRIORITY):
-${productImages && productImages.length > 0 ? 'I am attaching REAL PHOTOS of this product. Study them carefully. Every view in the concept sheet MUST show the EXACT SAME product — same shape, same colors, same branding, same materials, same proportions. These photos are your GROUND TRUTH. Do NOT deviate.' : 'Reproduce the product EXACTLY as described below. Do not deviate.'}
+COLLAGE LAYOUT:
+- MAIN HERO SHOT (LEFT, 60%): The product in the requested environment.
+- ANGLE VIEWS (RIGHT STACK, 40%): 3 to 4 distinct views (Sole, Side, Top, Heel, Detail). 
 
-RULE #2 — QUANTITY:
-The product description specifies how many items make up this product. If it says "pair" (e.g., flip-flops, shoes, sandals), the HERO shot MUST show BOTH items (the pair). The angle views on the right can show individual items from different angles.
+QUANTITY RULE:
+- The product is a ${productDescription.includes('pair') ? 'PAIR' : 'SINGLE UNIT'}. 
+- The HERO shot MUST show the complete set/pair (e.g., TWO flip-flops).
+- The detail views on the right can show individual units from different angles.
 
-RULE #3 — REFERENCE FIDELITY:
-If reference photos are attached, match EXACTLY: the shape/silhouette, the color palette, any text/logos/branding, the material finish (matte vs glossy).
-
-PRODUCT: ${productDescription}
-
-HERO SCENE TYPE: ${sequenceTypes[promptIndex] || "Dynamic commercial shot"}
+SCENE DATA:
+PRODUCT IDENTIFIER: ${productDescription}
+HERO SCENE: ${sequenceTypes[promptIndex] || "Hero product shot"}
 ENVIRONMENT: ${options.environment}, ${options.timeOfDay} lighting.
-${options.mode === 'lifestyle' ? `HERO SHOT: A ${options.gender} model with ${options.hairColor} hair naturally interacting with the product. The angle views on the right show the product alone.` : 'HERO SHOT: Product in environment context. Angle views show isolated product details.'}
-${options.supportingDescription ? `CONTEXT: ${options.supportingDescription}.` : ''}
-STYLE: ${options.style}. Ultra-professional product photography. Studio-quality. Sharp focus across all panels. Photorealistic textures, accurate materials. No AI artifacts, no distortion. 4K quality rendering.`;
+${options.mode === 'lifestyle' ? `TALENT: A ${options.gender} model with ${options.hairColor} hair naturally interacting with the product in the HERO shot.` : 'FOCUS: Product only, no people. Absolute focus on the object.'}
+STYLE: ${options.style}. High-end commercial photography, ultra-sharp focus, 8k textures, photorealistic materials.`;
 
     // Build content parts: reference images (if available) + text prompt
     const contentParts: any[] = [];
