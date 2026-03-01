@@ -47,17 +47,16 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
                 parts: [
                     ...parts,
                     {
-                        text: `Analise estas imagens de produto com precisão CIRÚRGICA. Você é um Diretor de Arte sênior preparando um blueprint para o Sora 2.
-                    Extraia um DNA VISUAL COMPLETO. O objetivo é que o mockup gerado depois seja IDENTICO ao produto real.
+                        text: `You are a Senior Cinematographer and AI Video Specialist for Sora 2.
+                    Analyze these product images to extract a FIXED VISUAL DNA for a high-end commercial.
                     
-                    No campo 'description', forneça um "Visual Blueprint" detalhando:
-                    1. GEOMETRIA: Formatos exatos, proporções (ex: "cilindro alto com tampa arredondada"), cantos (raio de curvatura).
-                    2. MATERIAIS: Textura exata (Alumínio escovado, vidro translúcido, plástico fosco), reflexividade, transparência.
-                    3. BRANDING: Localização exata de logos e textos (ex: "Logo centralizado no terço superior em fonte Sans Serif prateada").
-                    4. CORES: Use nomes técnicos e aproximações de tons (ex: "Azul Marinho meia-noite", "Branco Pérola acetinado").
-                    5. DETALHES ÚNICOS: Ranhuras, costuras, botões, reflexos específicos.
-    
-                    REGRA DE IDIOMA: 'productType' e os cenários em Português. 'description' em INGLÊS TÉCNICO para máxima fidelidade na geração.`
+                    In 'description', provide a "Sora 2 Technical Blueprint" in English:
+                    1. PRODUCT MESH: Define the exact 3D geometry (e.g., "Sleek matte black cylindrical bottle with a chrome-finished beveled cap").
+                    2. SURFACE PHYSICS: Describe how it reacts to light (e.g., "Highly anisotropic brushed metal reflections, slight subsurface scattering on plastics").
+                    3. BRANDING COORDINATES: Exact placement of logos (e.g., "Minimalist white sans-serif logo vertically aligned in the center-left quadrant").
+                    4. COLOR PROFILE: Use hex-like accuracy (e.g., "Deep Obsidian #0A0A0A base with Metallic Bronze #CD7F32 accents").
+                    
+                    REGRA: 'productType' e cenários em Português. 'description' deve ser um PROMPT MASTER em Inglês para manter a consistência entre o Mockup e o Vídeo final.`
                     }
                 ]
             }],
@@ -66,7 +65,7 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
                 responseSchema: {
                     type: Type.OBJECT,
                     properties: {
-                        description: { type: Type.STRING, description: "Highly precise technical visual description." },
+                        description: { type: Type.STRING, description: "Technical cinematography blueprint for Sora 2." },
                         productType: { type: Type.STRING },
                         suggestedSceneriesProductOnly: { type: Type.ARRAY, items: { type: Type.STRING } },
                         suggestedSceneriesLifestyle: { type: Type.ARRAY, items: { type: Type.STRING } }
@@ -88,12 +87,23 @@ export async function generatePrompts(productDescription: string, options: any, 
     const apiKey = getApiKey();
     const ai = new GoogleGenAI({ apiKey });
 
-    let taskDescription = `Task: Create a cohesive 3-part commercial video sequence for Sora 2. 3 scenes of 10s each.`;
-    if (previousPrompts && previousPrompts.length > 0) {
-        taskDescription = `Task: CONTINUE the commercial. Previous: ${previousPrompts.join('\n')}. Generate next 3 scenes.`;
-    }
-
-    const promptContext = `Product Description: ${productDescription}\nOptions: ${JSON.stringify(options)}\n${taskDescription}\nOutput only JSON array of 3 English prompts.`;
+    const promptContext = `
+    ACT AS A SORA 2 DIRECTOR. 
+    Product DNA: ${productDescription}
+    Settings: Mode=${options.mode}, Style=${options.style}, Light=${options.timeOfDay}, Ratio=${options.aspectRatio}.
+    
+    TASK: Generate a 3-scene cinematic sequence (10s each) for Sora 2.
+    
+    SORA 2 REQUIREMENTS:
+    - Use technical camera terms (Tracking shot, Handheld, Slow-motion 120fps, Rack focus).
+    - Maintain visual consistency (The product MUST NOT change its design between scenes).
+    - Lighting: Must be consistent with ${options.timeOfDay}.
+    - Movement: Fluid transitions.
+    
+    ${previousPrompts && previousPrompts.length > 0 ? `This is a CONTINUATION. Previous scenes: ${previousPrompts.join(' | ')}. Avoid repetition.` : ''}
+    
+    OUTPUT: A JSON array with exactly 3 highly detailed English prompts. Focus on photorealism and physics-accurate motion.
+    `;
 
     try {
         const response = await ai.models.generateContent({
