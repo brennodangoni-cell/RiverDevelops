@@ -315,9 +315,9 @@ export default function VideoLab() {
             const finalDescription = marketingContext.trim()
                 ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
                 : baseDescription;
-            setProgressText('Engenharia de Prompts (Sora 2 Compact Skeleton)...');
+            setProgressText('Engenharia de Prompts (Sora 2 Cinematic Engine)...');
             const progressTimer = simulateProgress(3, 18, 45000);
-            const prompts = await generatePrompts(finalDescription, options);
+            const prompts = await generatePrompts(finalDescription, options, undefined, analysis.colors);
             clearInterval(progressTimer);
             setProgress(20);
             const newResults: Result[] = prompts.map(p => ({ prompt: p, mockupUrl: null }));
@@ -363,7 +363,7 @@ export default function VideoLab() {
             setProgressText('Expandindo Sequência Narrativa...');
             const progressTimer = simulateProgress(5, 28, 40000);
             const previousPrompts = results.map(r => r.prompt);
-            const newPrompts = await generatePrompts(finalDescription, options, previousPrompts);
+            const newPrompts = await generatePrompts(finalDescription, options, previousPrompts, analysis.colors);
             clearInterval(progressTimer);
             setProgress(30);
             const startIndex = results.length;

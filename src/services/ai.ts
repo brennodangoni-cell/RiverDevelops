@@ -5,6 +5,7 @@ export interface ProductAnalysis {
     productType: string;
     suggestedSceneriesProductOnly: string[];
     suggestedSceneriesLifestyle: string[];
+    colors?: string[]; // Unique colors seen in images
 }
 
 export interface SceneryAnalysis {
@@ -201,7 +202,8 @@ RETURN a JSON with the following fields:
    - WHERE the action takes place
    - WHAT HAPPENS in the scene (storytelling micro-narrative)
    - Example: "Jovem caminhando na orla ao amanhecer, câmera foca nos pés calçando o chinelo enquanto pisa na areia molhada — mood aspiracional e livre."
-   These must feel like real TV commercial storyboard descriptions.` }
+
+5. "colors" (ENGLISH): List of all unique colors/variations of the product seen in the provided images (e.g. ["Solid Black", "Ocean Blue", "Pure White"]). If only one color is present, return a single item.` }
             ]
         },
         config: {
@@ -220,9 +222,14 @@ RETURN a JSON with the following fields:
                         type: Type.ARRAY,
                         items: { type: Type.STRING },
                         description: "Array of 3-4 cinematic, real-world environment descriptions in Portuguese."
+                    },
+                    colors: {
+                        type: Type.ARRAY,
+                        items: { type: Type.STRING },
+                        description: "List of all unique color variations detected in the provided images."
                     }
                 },
-                required: ["description", "productType", "suggestedSceneriesProductOnly", "suggestedSceneriesLifestyle"]
+                required: ["description", "productType", "suggestedSceneriesProductOnly", "suggestedSceneriesLifestyle", "colors"]
             }
         }
     }));
@@ -288,17 +295,30 @@ RETURN a JSON:
 // =======================================================================
 // 2. GENERATE PROMPTS
 // =======================================================================
-export async function generatePrompts(productDescription: string, options: any, previousPrompts?: string[]): Promise<string[]> {
+export async function generatePrompts(
+    productDescription: string,
+    options: any,
+    previousPrompts?: string[],
+    detectedColors?: string[]
+): Promise<string[]> {
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
 
     const ai = new GoogleGenAI({ apiKey });
 
     let taskDescription = `
-    Create 3 cinematic video scenes (10 seconds each) for a 30-second commercial:
+    Create cinematic video scenes (10 seconds each) for a commercial sequence.
+    ${detectedColors && detectedColors.length > 1 ? `
+    DETECTION: We found ${detectedColors.length} unique color variants in the product photos: ${detectedColors.join(', ')}.
+    GOAL: Generate EXACTLY ${detectedColors.length} scenes, ONE FOR EACH COLOR VARIANT. 
+    Organize the sequence to showcase the variety:
+    ${detectedColors.map((color, i) => `- Scene ${i + 1}: Highlighting the ${color} version in a cohesive environment.`).join('\n')}
+    ` : `
+    GOAL: Create 3 cinematic video scenes (10 seconds each) for a 30-second commercial:
     Scene 1 — THE HOOK: Wide establishing shot. Reveal the product and environment dramatically.
     Scene 2 — THE ACTION: Medium tracking shot. Show the product in motion or being used.
     Scene 3 — THE CLIMAX: Extreme close-up / macro. Focus on textures, materials, and premium details.
+    `}
     `;
 
     const isScriptMode = options.mode === 'script' && !!options.script;
