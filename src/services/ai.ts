@@ -7,9 +7,9 @@ export interface ProductAnalysis {
     suggestedSceneriesLifestyle: string[];
 }
 
-// THE STRATEGY: Use the most stable and powerful available models.
-const BRAIN_MODEL = "gemini-2.0-flash"; // More stable than thinking-exp for general use
-const VISION_MODEL = "gemini-2.0-flash"; // Flash has excellent vision and is widely available
+// THE STRATEGY: Use the professional grade model for maximum intelligence and visual fidelity.
+const BRAIN_MODEL = "gemini-1.5-pro";
+const VISION_MODEL = "gemini-1.5-pro";
 
 function getApiKey(): string {
     const localKey = localStorage.getItem('gemini_api_key');
