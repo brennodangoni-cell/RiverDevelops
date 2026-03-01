@@ -294,110 +294,99 @@ export async function generatePrompts(productDescription: string, options: any, 
 
     const ai = new GoogleGenAI({ apiKey });
 
-    const sora2MasterSkeleton = `
-SORA 2 – COMPACT DETERMINISTIC PROMPT SKELETON v3
-Strict interpretation only. No creative reinterpretation. No fabrication.
-
-[1] OUTPUT: Aspect Ratio: [INSERT] | Resolution: 4K | 60fps | Duration: 10s | HDR: yes | No auto-reframing, zoom, or crop.
-
-[2] ENVIRONMENT: Type: [INSERT] | Location: [INSERT] | Surface/terrain: [INSERT] | Background layers: [INSERT] | Atmosphere: [INSERT] | Weather: [INSERT] | Dominant colors: [INSERT]
-
-[3] SUBJECT: Entity: Product | Identity: [INSERT EXACT PRODUCT DESCRIPTION] | Identity lock: absolute, no mutations | Must remain fully visible for entire duration | Zero occlusion.
-${options.mode === 'lifestyle' ? `
-[ACTOR]: A [INSERT gender] [INSERT age range], wearing [INSERT clothing].
-[INTERACTION]: PHYSICAL CONTACT MANDATORY. The actor MUST be [INSERT: wearing/holding/using/stepping into] the product throughout. The product is the center of the action.
-[PROXIMITY]: The actor's body/limbs and the product MUST be in the same focus plane, occupying at least 40% of the frame together. No distant background actors.
-` : '[NO HUMAN ACTORS]'}
-
-[4] ACTION: Initial state: [INSERT] | Motion: [INSERT] | End state: [INSERT] | Real-time speed | Earth gravity | No teleportation, morphing, or time jumps | Continuous motion.
-
-[5] CAMERA: Position: [INSERT relative to subject] | Lens: [INSERT mm equivalent] | Aperture: [INSERT] | Focus: locked on product | Movement: [INSERT type + speed] | Gimbal-stabilized | Cinematic motion blur.
-
-[6] LIGHTING: Source: [INSERT natural/artificial] | Direction: [INSERT] | Color temperature: [INSERT K] | Shadow softness: [INSERT] | No clipped highlights | No crushed blacks.
-
-[7] STYLE: Photorealistic | Modern color grading | [INSERT contrast/saturation] | No CGI look | No AI artifacts.
-
-[8] AUDIO: Ambient sounds: [INSERT] | Music: [INSERT genre], non-diegetic.
-
-[SORA 2 CHARACTERS]: If the prompt mentions a character using the @tag format (e.g., @Alex, @Maya), include the tag exactly as written in the [ACTOR] field. Sora 2 will use its built-in character consistency engine.
-
-HARD RULES: No text overlays | No subtitles | No watermarks | No logos (except product) | No physics violations | ACTOR AND PRODUCT MUST INTERACT PHYSICALLY — product cannot be isolated from actor in lifestyle mode.
-  `;
-
     let taskDescription = `
-    Task: Create a cohesive 3-part commercial video sequence for OpenAI's Sora 2. 
-    The goal is to generate 3 different prompts (10 seconds each) that can be stitched together into a seamless 30-second commercial without feeling repetitive.
-    
-    Structure the 3 prompts as follows:
-    1. [The Hook / Establishing Shot]: Wide or medium-wide shot. Introduce the environment, the atmosphere, and reveal the product in a cinematic way.
-    2. [The Action / Feature]: Medium or tracking shot. Show the product in action, being used (if lifestyle), or dynamic movement around the product (if product only).
-    3. [The Climax / Macro]: Extreme close-up or macro shot. Focus on the texture, materials, branding, and fine details with dramatic lighting.
-  `;
+    Create 3 cinematic video scenes (10 seconds each) for a 30-second commercial:
+    Scene 1 — THE HOOK: Wide establishing shot. Reveal the product and environment dramatically.
+    Scene 2 — THE ACTION: Medium tracking shot. Show the product in motion or being used.
+    Scene 3 — THE CLIMAX: Extreme close-up / macro. Focus on textures, materials, and premium details.
+    `;
 
     const isScriptMode = options.mode === 'script' && !!options.script;
 
     if (isScriptMode) {
         taskDescription = `
-    ACT AS A SORA 2 MASTER SCRIPT-TO-VISUAL ADAPTER.
+    You are adapting a script into visual scenes for Sora 2.
     
-    RAW SCRIPT:
+    SCRIPT:
     """
     ${options.script}
     """
     
-    TASK: BREAK DOWN THE ENTIRE SCRIPT INTO A COMPLETE STORYBOARD.
-    1. READ every section — Hook, Development, Climax, Closing.
-    2. GENERATE a Sora 2 prompt for EVERY visual scene described or implied.
-    3. Generate AS MANY SCENES AS THE SCRIPT NEEDS (not fixed to 3). If the script has 5 distinct moments, generate 5 prompts. If it has 8, generate 8.
-    4. For EACH scene, use the EXACT SORA 2 COMPACT SKELETON format.
-    5. Each scene = 10 seconds of video.
-    `;
+    Break the script into as many visual scenes as needed (not fixed to 3).
+    Each scene = 10 seconds of video. Write a natural, cinematic prose prompt for each.
+        `;
     } else if (previousPrompts && previousPrompts.length > 0) {
         taskDescription = `
-    Task: CONTINUE the commercial video sequence for OpenAI's Sora 2.
-    Here are the previous scenes already generated:
+    CONTINUE the commercial sequence. Previous scenes:
     ${previousPrompts.map((p, i) => `Scene ${i + 1}: ${p}`).join('\n')}
 
-    Generate the NEXT 3 scenes to seamlessly follow the story.
-    Structure the 3 NEW prompts as follows:
-    1. [Alternative Angle / Reaction]: Show a different perspective or how the environment/actor reacts to the product.
-    2. [Dynamic B-Roll]: Fast-paced or highly stylized transition shot highlighting a secondary feature.
-    3. [Final Outro / Call to Action]: A majestic final shot slowly zooming out, leaving space for a logo or text.
-    `;
+    Generate the NEXT 3 scenes:
+    Scene A — Alternative angle or reaction shot.
+    Scene B — Dynamic B-roll or stylized transition.
+    Scene C — Final majestic outro shot.
+        `;
     }
+
+    const promptStyle = `
+YOU ARE A WORLD-CLASS VIDEO DIRECTOR writing prompts for OpenAI Sora 2.
+
+CRITICAL FORMAT RULES — READ CAREFULLY:
+- Write each prompt as a SINGLE FLOWING PARAGRAPH of natural, cinematic prose.
+- DO NOT use brackets [], tags, labels, numbered sections, or metadata.
+- DO NOT include technical headers like "[OUTPUT]:", "[CAMERA]:", "[LIGHTING]:".
+- DO NOT write "Aspect Ratio:", "Resolution:", "Duration:" or any specification labels.
+- The prompt must read like a vivid scene description a filmmaker would narrate.
+- EVERY prompt must be in ENGLISH only.
+
+EXAMPLE OF CORRECT OUTPUT:
+"A pair of black textured sandals rests on wet sand at the edge of the ocean during golden hour. The camera starts from a low angle, almost touching the sand, slowly tracking forward. Warm sunlight catches the rubber texture, casting long shadows. Gentle waves roll in behind, just touching the heel of the sandal. Shallow depth of field with a 35mm lens. The scene feels cinematic and premium, like a high-end commercial. Natural ambient sound of ocean waves."
+
+EXAMPLE OF WRONG OUTPUT (DO NOT DO THIS):
+"[1] OUTPUT: 16:9 | 4K | [2] ENVIRONMENT: Beach | [3] SUBJECT: Sandals..."
+
+${options.mode === 'lifestyle' ? `
+LIFESTYLE RULES:
+- A ${options.gender?.toLowerCase() || 'person'} (${options.skinTone || 'medium'} skin, ${options.hairColor || 'dark'} hair) must be PHYSICALLY USING the product.
+- The product and person must share the same focus plane — no distant background actors.
+- Describe the interaction naturally: "she slides her feet into the sandals" NOT "[INTERACTION]: wearing product".
+${options.characters ? `- Use Sora 2 character tag: ${options.characters}` : ''}
+` : options.mode === 'scenery' ? `
+SCENERY RULES:
+- Focus on the environment and atmosphere.
+- Camera technique: ${(options as any).cameraAngle || 'cinematic orbit'}
+- Scene action: ${(options as any).sceneAction || 'ambient establishing shot'}
+- Audio atmosphere: ${(options as any).audioDesign || 'natural ambient sounds'}
+- Motion speed: ${(options as any).animationSpeed || 'normal'}
+` : `
+PRODUCT-ONLY RULES:
+- The product must be the sole subject, fully visible for the entire 10 seconds.
+- NO human actors. Focus on texture, materials, form, and details.
+`}
+
+MANDATORY QUALITY:
+- Photorealistic, cinematic, modern color grading.
+- Specify camera movement, lens, depth of field naturally within the prose.
+- Include ambient audio description at the end of each prompt.
+- No text overlays, no subtitles, no watermarks, no logos.
+- No physics violations. Real gravity, real materials, real light.
+- Keep descriptions to 3-6 sentences maximum.
+`;
 
     const promptContext = `
     Product Description: ${productDescription}
     
     Video Style Options:
     - Aspect Ratio: ${options.aspectRatio}
-    - Mode: ${options.mode === 'lifestyle' ? 'Lifestyle (Someone using the product)' : options.mode === 'script' ? 'Script Adaptation' : options.mode === 'scenery' ? 'Scenery/Location Video' : 'Product Only'}
-    ${options.mode === 'lifestyle' ? `
-    - Actor Gender: ${options.gender}
-    - Actor Skin Tone: ${options.skinTone}
-    - Actor Hair Color: ${options.hairColor}
-    ` : ''}
-    ${options.mode === 'scenery' ? `
-    - Camera Technique: ${(options as any).cameraAngle || 'Cinematic orbit'}
-    - Scene Action: ${(options as any).sceneAction || 'Ambient establishing shot'}
-    - Audio Design: ${(options as any).audioDesign || 'Natural ambient sounds'}
-    - Animation Speed: ${(options as any).animationSpeed || 'Normal'}
-    ` : ''}
     - Time of Day/Lighting: ${options.timeOfDay}
     - Environment/Setting: ${options.environment}
     - Cinematography Style: ${options.style}
-    ${options.supportingDescription ? `- Additional Context/User Request: ${options.supportingDescription}` : ''}
+    ${options.supportingDescription ? `- Additional Context: ${options.supportingDescription}` : ''}
     
     ${taskDescription}
 
-    CRITICAL INSTRUCTION: For EACH generated scene, fill in every [INSERT] field in the COMPACT SKELETON with specific, deterministic details. Output the complete filled skeleton for each scene.
-
-    SKELETON TEMPLATE:
-    ${sora2MasterSkeleton}
-
-    CRITICAL RULE: All prompts MUST be in ENGLISH. Do not output in Portuguese.
-    SORA 2 SAFETY: When describing people, use brief professional casting terms (e.g., "a young woman", "a man in his 30s"). Avoid overly detailed physical descriptions.
+    ${promptStyle}
   `;
+
 
     const response = await generateWithFallback(ai, BRAIN_MODELS, (model) => ({
         model,
