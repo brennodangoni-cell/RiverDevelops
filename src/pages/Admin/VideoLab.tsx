@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-    Sparkles, Copy, Check, ChevronLeft, Loader2, Upload,
+    Copy, Check, ChevronLeft, Loader2, Upload,
     X, ArrowRight, Download, Video, DollarSign, LogOut,
     Smartphone, Monitor, Camera, Palette,
-    Layers, Wand2, PlayCircle, Settings2
+    Layers, Wand2, PlayCircle, Settings2, Dice5, FileDown, ArrowLeft, PenTool
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -217,7 +217,20 @@ export default function VideoLab() {
     };
 
     const handleAnalyze = async () => {
-        if (imageFiles.length === 0) return;
+        // No-image mode: skip to step 2 with manual description
+        if (imageFiles.length === 0) {
+            const manualAnalysis: ProductAnalysis = {
+                description: editableDescription || 'Product without reference images',
+                productType: 'Produto',
+                suggestedSceneriesProductOnly: ['Fundo branco minimalista com iluminação de estúdio', 'Superfície de mármore escuro com iluminação dramática', 'Mesa de madeira rústica com luz natural', 'Cenário tech futurista com neon'],
+                suggestedSceneriesLifestyle: ['Cena urbana moderna com pessoa interagindo', 'Ambiente ao ar livre com luz natural dourada', 'Interior sofisticado com decoração premium', 'Cena casual do dia a dia']
+            };
+            setAnalysis(manualAnalysis);
+            setEditableDescription(editableDescription);
+            setOptions(prev => ({ ...prev, environment: manualAnalysis.suggestedSceneriesLifestyle[0] }));
+            setStep(2);
+            return;
+        }
         setIsAnalyzing(true);
         setProgress(5);
         setProgressText('Comprimindo imagens para análise...');
@@ -363,7 +376,43 @@ export default function VideoLab() {
 
     const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text);
-        toast.success('Prompt copiado para a área de transferência!');
+        toast.success('Prompt copiado!');
+    };
+
+    const copyMockupImage = async (mockupUrl: string) => {
+        try {
+            const res = await fetch(mockupUrl);
+            const blob = await res.blob();
+            await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+            toast.success('Mockup copiado!');
+        } catch { toast.error('Navegador não suporta copiar imagens.'); }
+    };
+
+    const downloadAllPrompts = () => {
+        let txt = `River Sora Lab — Project Export\n${'='.repeat(40)}\n\n`;
+        results.forEach((r, i) => {
+            txt += `--- Scene ${i + 1} ---\n${r.prompt}\n\n`;
+        });
+        const blob = new Blob([txt], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'sora_prompts.txt';
+        a.click();
+        URL.revokeObjectURL(a.href);
+        // Also download mockups
+        results.forEach((r, i) => {
+            if (r.mockupUrl) {
+                const link = document.createElement('a');
+                link.href = r.mockupUrl;
+                link.download = `mockup_scene_${i + 1}.png`;
+                link.click();
+            }
+        });
+        toast.success('Prompts e mockups baixados!');
+    };
+
+    const goBackToConfigure = () => {
+        setStep(2);
     };
 
     return (
@@ -386,7 +435,7 @@ export default function VideoLab() {
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold tracking-tight text-white">River Sora Lab</h1>
-                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v12.9</span></p>
+                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v13.0</span></p>
                         </div>
                     </div>
                 </div>
@@ -472,15 +521,30 @@ export default function VideoLab() {
                                                 </motion.div>
                                             ))}
                                         </div>
-                                        <button
-                                            onClick={handleAnalyze}
-                                            disabled={isAnalyzing || imageFiles.length === 0}
-                                            className="w-full py-5 bg-white hover:bg-zinc-200 disabled:bg-white/5 disabled:text-zinc-500 text-black font-bold uppercase tracking-[0.2em] text-xs rounded-2xl transition-all duration-300 shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:shadow-[0_0_40px_rgba(255,255,255,0.2)] flex items-center justify-center gap-3"
-                                        >
-                                            {isAnalyzing ? <><Loader2 className="w-5 h-5 animate-spin" /> Extracting Visual DNA...</> : <>Analyze Product <ArrowRight className="w-4 h-4" /></>}
-                                        </button>
                                     </motion.div>
                                 )}
+
+                                {/* Manual description for no-image mode */}
+                                <div className={`${previewUrls.length > 0 ? '' : 'mt-8 pt-8 border-t border-white/5'} w-full space-y-4`}>
+                                    {previewUrls.length === 0 && (
+                                        <div className="space-y-2">
+                                            <label className="text-[9px] font-semibold text-zinc-500 uppercase tracking-[0.2em]">Ou descreva seu produto manualmente</label>
+                                            <textarea
+                                                value={editableDescription}
+                                                onChange={(e) => setEditableDescription(e.target.value)}
+                                                placeholder="Ex: Chinelo Havaianas preto com logo branco, par, material borracha..."
+                                                className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-xs text-zinc-300 font-mono leading-relaxed outline-none focus:border-cyan-500/50 min-h-[100px] resize-y transition-colors"
+                                            />
+                                        </div>
+                                    )}
+                                    <button
+                                        onClick={handleAnalyze}
+                                        disabled={isAnalyzing || (imageFiles.length === 0 && !editableDescription.trim())}
+                                        className="w-full py-5 bg-white hover:bg-zinc-200 disabled:bg-white/5 disabled:text-zinc-500 text-black font-bold uppercase tracking-[0.2em] text-xs rounded-2xl transition-all duration-300 shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:shadow-[0_0_40px_rgba(255,255,255,0.2)] flex items-center justify-center gap-3"
+                                    >
+                                        {isAnalyzing ? <><Loader2 className="w-5 h-5 animate-spin" /> Extracting Visual DNA...</> : imageFiles.length > 0 ? <>Analyze Product <ArrowRight className="w-4 h-4" /></> : <><PenTool className="w-4 h-4" /> Continue with Description <ArrowRight className="w-4 h-4" /></>}
+                                    </button>
+                                </div>
                             </div>
                         </motion.div>
                     )}
@@ -648,7 +712,15 @@ export default function VideoLab() {
                                     <h2 className="text-2xl font-medium tracking-tight text-white">Production Results</h2>
                                     <p className="text-sm text-zinc-500 font-light mt-1">Sora 2 Deterministic Blueprints & 1K Mockups</p>
                                 </div>
-                                <button onClick={() => { setStep(1); setImageFiles([]); setPreviewUrls([]); setCompressedImages([]); setResults([]); setAnalysis(null); }} className="text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-400 hover:text-white px-5 py-2.5 bg-white/5 hover:bg-white/10 rounded-full transition-all">New Project</button>
+                                <div className="flex items-center gap-3">
+                                    <button onClick={goBackToConfigure} className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-cyan-400 hover:text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 px-4 py-2.5 rounded-full transition-all" title="Voltar para configuração sem perder mockups">
+                                        <ArrowLeft className="w-3.5 h-3.5" /> Editar
+                                    </button>
+                                    <button onClick={downloadAllPrompts} className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 px-4 py-2.5 rounded-full transition-all" title="Baixar .txt com prompts + mockups">
+                                        <FileDown className="w-3.5 h-3.5" /> Export All
+                                    </button>
+                                    <button onClick={() => { setStep(1); setImageFiles([]); setPreviewUrls([]); setCompressedImages([]); setResults([]); setAnalysis(null); }} className="text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-400 hover:text-white px-4 py-2.5 bg-white/5 hover:bg-white/10 rounded-full transition-all">New Project</button>
+                                </div>
                             </div>
 
                             {/* Progress Indicator */}
@@ -677,9 +749,14 @@ export default function VideoLab() {
                                                 <>
                                                     <img src={res.mockupUrl} className="w-full h-full object-cover" alt="Result" />
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                                                    <a href={res.mockupUrl} download className="absolute top-6 right-6 w-12 h-12 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-cyan-500 hover:scale-110 shadow-xl border border-white/20">
-                                                        <Download className="w-5 h-5" />
-                                                    </a>
+                                                    <div className="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                                        <button onClick={() => copyMockupImage(res.mockupUrl!)} className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-cyan-500 hover:scale-110 shadow-xl border border-white/20 transition-all" title="Copiar mockup">
+                                                            <Copy className="w-4 h-4" />
+                                                        </button>
+                                                        <a href={res.mockupUrl} download className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-cyan-500 hover:scale-110 shadow-xl border border-white/20 transition-all" title="Baixar mockup">
+                                                            <Download className="w-4 h-4" />
+                                                        </a>
+                                                    </div>
                                                     <div className="absolute bottom-6 left-6 flex gap-2">
                                                         <span className="bg-black/60 backdrop-blur-md text-[9px] font-semibold text-cyan-400 px-3 py-1.5 rounded-full border border-cyan-500/30 uppercase tracking-wider">AI Master Take</span>
                                                         <span className="bg-black/60 backdrop-blur-md text-[9px] font-semibold text-zinc-300 px-3 py-1.5 rounded-full border border-white/10 uppercase tracking-wider">1K RAW</span>
@@ -734,11 +811,8 @@ export default function VideoLab() {
                                                     </div>
                                                 </div>
                                                 <div className="ml-auto">
-                                                    <button
-                                                        onClick={() => handleRegenerateTake(i)}
-                                                        className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-cyan-400 hover:text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 px-5 py-2.5 rounded-full transition-all"
-                                                    >
-                                                        <Sparkles className="w-3.5 h-3.5" /> Regenerate Take
+                                                    <button onClick={() => handleRegenerateTake(i)} className="w-9 h-9 flex items-center justify-center bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 hover:text-cyan-300 rounded-full transition-all" title="Regenerar este take">
+                                                        <Dice5 className="w-4 h-4" />
                                                     </button>
                                                 </div>
                                             </div>
