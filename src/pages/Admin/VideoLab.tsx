@@ -544,12 +544,12 @@ export default function VideoLab() {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1">
-                        <button onClick={() => { setShowFavorites(!showFavorites); setShowMockupLib(false); }} className={`p-2 rounded-full transition-all ${showFavorites ? 'bg-yellow-500/20 text-yellow-400' : 'hover:bg-white/5 text-zinc-500 hover:text-zinc-300'}`} title="Favoritos">
-                            <Star className="w-4 h-4" />
+                    <div className="flex items-center gap-2">
+                        <button onClick={() => { setShowFavorites(!showFavorites); setShowMockupLib(false); }} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-semibold uppercase tracking-wider transition-all ${showFavorites ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'bg-white/5 border border-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200'}`}>
+                            <Star className="w-3.5 h-3.5" /> Favoritos
                         </button>
-                        <button onClick={() => { setShowMockupLib(!showMockupLib); setShowFavorites(false); }} className={`p-2 rounded-full transition-all ${showMockupLib ? 'bg-purple-500/20 text-purple-400' : 'hover:bg-white/5 text-zinc-500 hover:text-zinc-300'}`} title="Biblioteca de Mockups">
-                            <BookImage className="w-4 h-4" />
+                        <button onClick={() => { setShowMockupLib(!showMockupLib); setShowFavorites(false); }} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-semibold uppercase tracking-wider transition-all ${showMockupLib ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'bg-white/5 border border-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200'}`}>
+                            <BookImage className="w-3.5 h-3.5" /> Galeria
                         </button>
                     </div>
                     <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white/[0.03] border border-white/5 rounded-full">
@@ -1008,15 +1008,15 @@ export default function VideoLab() {
                                             {res.mockupUrl ? (
                                                 <>
                                                     <img src={res.mockupUrl} className="w-full h-full object-cover" alt="Result" />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                                                    <div className="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 z-10">
-                                                        <button onClick={(e) => { e.stopPropagation(); copyMockupImage(res.mockupUrl!); }} className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-cyan-500 hover:scale-110 shadow-xl border border-white/20 transition-all" title="Copiar mockup">
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
+                                                    <div className="absolute top-4 right-4 flex gap-2 z-10">
+                                                        <button onClick={(e) => { e.stopPropagation(); copyMockupImage(res.mockupUrl!); }} className="w-9 h-9 bg-black/70 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-cyan-500 hover:scale-110 shadow-lg border border-white/10 transition-all" title="Copiar mockup">
                                                             <Copy className="w-4 h-4" />
                                                         </button>
-                                                        <button onClick={(e) => { e.stopPropagation(); saveMockupToLibrary(res.mockupUrl!, `Cena ${i + 1}`); }} className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-purple-500 hover:scale-110 shadow-xl border border-white/20 transition-all" title="Salvar na biblioteca">
+                                                        <button onClick={(e) => { e.stopPropagation(); saveMockupToLibrary(res.mockupUrl!, `Cena ${i + 1}`); }} className="w-9 h-9 bg-black/70 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-purple-500 hover:scale-110 shadow-lg border border-white/10 transition-all" title="Salvar na galeria">
                                                             <BookImage className="w-4 h-4" />
                                                         </button>
-                                                        <a href={res.mockupUrl} download onClick={(e) => e.stopPropagation()} className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-cyan-500 hover:scale-110 shadow-xl border border-white/20 transition-all" title="Baixar mockup">
+                                                        <a href={res.mockupUrl} download onClick={(e) => e.stopPropagation()} className="w-9 h-9 bg-black/70 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-cyan-500 hover:scale-110 shadow-lg border border-white/10 transition-all" title="Baixar mockup">
                                                             <Download className="w-4 h-4" />
                                                         </a>
                                                     </div>
