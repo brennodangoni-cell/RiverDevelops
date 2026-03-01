@@ -144,22 +144,30 @@ export async function generateMockup(productDescription: string, scenePrompt: st
     const ai = new GoogleGenAI({ apiKey });
 
     // ZERO-INVENTION MAPPING: Map the scene context to the EXACT product in photos
+    // MASTER DIRECTOR MULTI-SHOT LOGIC: Generate a technical storyboard grid, not just one photo.
     const imageRequestPrompt = `
-    TASK: Generate a high-fidelity static FRAME from a high-end commercial.
+    TASK: Generate a high-end "TECHNICAL STORYBOARD GRID" for a luxury commercial frame.
     
-    REFERENCE PRODUCT: 
-    Photos attached. Use EXACT details. DO NOT add new logos or features. 
+    REFERENCE PRODUCT PHOTOS ATTACHED: 
+    Use EXACT details. DO NOT deviate from logos, textures, colors, or materials.
     DNA Profile: ${productDescription}
     
-    SCENE TO RENDER (STRICT ENVIRONMENT):
-    ${scenePrompt}
+    OUTPUT LAYOUT (Produce a single image containing a grid):
+    - LARGE MAIN SHOT: A cinematic, high-budget master take of the product in the scene: "${scenePrompt}".
+    - TECHNICAL INSETS: 3 small distinct panels below or to the side showing:
+        1. PRODUCT CLOSE-UP: Macro detail of the texture/branding.
+        2. ALTERNATIVE ANGLE: Side view or top-down view of the product in the SAME lighting.
+        3. MATERIAL SWATCH: A technical look at the physics-accurate surface.
     
-    CINEMATOGRAPHY RULES:
+    TECHNICAL OVERLAYS:
+    - Include minimalist text labels in the grid like "MASTER TAKE", "DETAIL A", "REF. ANGLE".
+    - Design must look like a professional studio contact sheet (Technical Slate).
+    
+    CINEMATOGRAPHY:
+    - Global Lighting must be perfectly consistent across all grid panels.
+    - Photorealistic rendering (8k, RAW file, high dynamic range).
+    - Match everything from the reference photos to the pixel.
     - Zero invention of product details.
-    - Photorealistic rendering.
-    - Match everything from the reference photos carefully.
-    - ENVIRONMENT: Use EXACTLY the scenery described in the SCENE TO RENDER. Do not add background elements not described.
-    - Output must be a direct visual representation of the provided SCENE PROMPT.
     `;
 
     const imageParts = (imagesBase64 || []).map(base64 => {
