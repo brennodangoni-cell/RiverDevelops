@@ -3,7 +3,8 @@ import {
     Copy, Check, ChevronLeft, Loader2, Upload,
     X, ArrowRight, Download, Video, DollarSign, LogOut,
     Smartphone, Monitor, Camera, Palette,
-    Layers, Wand2, PlayCircle, Settings2, Dice5, FileDown, ArrowLeft, PenTool
+    Layers, Wand2, PlayCircle, Settings2, Dice5, FileDown, ArrowLeft, PenTool,
+    Star, BookImage, Trash2
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,6 +15,22 @@ import { analyzeProduct, generatePrompts, generateMockup, AIError, ProductAnalys
 interface Result {
     prompt: string;
     mockupUrl: string | null;
+}
+
+interface FavoriteProject {
+    id: string;
+    name: string;
+    description: string;
+    productType: string;
+    results: Result[];
+    savedAt: string;
+}
+
+interface SavedMockup {
+    id: string;
+    url: string;
+    label: string;
+    savedAt: string;
 }
 
 const genders = [
@@ -99,10 +116,24 @@ export default function VideoLab() {
     const [progressText, setProgressText] = useState('');
     const [results, setResults] = useState<Result[]>([]);
     const [balanceVal, setBalanceVal] = useState('R$ 0,00');
+    const [showFavorites, setShowFavorites] = useState(false);
+    const [showMockupLib, setShowMockupLib] = useState(false);
+    const [favorites, setFavorites] = useState<FavoriteProject[]>([]);
+    const [savedMockups, setSavedMockups] = useState<SavedMockup[]>([]);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
     const currentUser = JSON.parse(localStorage.getItem('rivertasks_user') || '{}');
+
+    // Load favorites & mockup library from localStorage
+    useEffect(() => {
+        try {
+            const favs = JSON.parse(localStorage.getItem('sora_favorites') || '[]');
+            setFavorites(favs);
+            const mocks = JSON.parse(localStorage.getItem('sora_mockup_library') || '[]');
+            setSavedMockups(mocks);
+        } catch { }
+    }, []);
 
     // Sync API Key from localStorage for persistence if needed by ai.ts
     useEffect(() => {
@@ -432,6 +463,53 @@ export default function VideoLab() {
         );
     };
 
+    // === FAVORITES ===
+    const saveToFavorites = () => {
+        if (results.length === 0 || !analysis) return;
+        const proj: FavoriteProject = {
+            id: Date.now().toString(),
+            name: analysis.productType || 'Projeto',
+            description: editableDescription.slice(0, 100),
+            productType: analysis.productType,
+            results: results.map(r => ({ prompt: r.prompt, mockupUrl: r.mockupUrl })),
+            savedAt: new Date().toLocaleString('pt-BR')
+        };
+        const updated = [proj, ...favorites].slice(0, 20); // max 20
+        setFavorites(updated);
+        try { localStorage.setItem('sora_favorites', JSON.stringify(updated)); } catch { }
+        toast.success('⭐ Projeto salvo nos favoritos!');
+    };
+
+    const deleteFavorite = (id: string) => {
+        const updated = favorites.filter(f => f.id !== id);
+        setFavorites(updated);
+        try { localStorage.setItem('sora_favorites', JSON.stringify(updated)); } catch { }
+        toast('Favorito removido.', { icon: '🗑️' });
+    };
+
+    const loadFavorite = (fav: FavoriteProject) => {
+        setResults(fav.results);
+        setEditableDescription(fav.description);
+        setStep(3);
+        setShowFavorites(false);
+        toast.success('Projeto carregado!');
+    };
+
+    // === MOCKUP LIBRARY ===
+    const saveMockupToLibrary = (url: string, label: string) => {
+        const mock: SavedMockup = { id: Date.now().toString(), url, label, savedAt: new Date().toLocaleString('pt-BR') };
+        const updated = [mock, ...savedMockups].slice(0, 30); // max 30
+        setSavedMockups(updated);
+        try { localStorage.setItem('sora_mockup_library', JSON.stringify(updated)); } catch { }
+        toast.success('💾 Mockup salvo na biblioteca!');
+    };
+
+    const deleteSavedMockup = (id: string) => {
+        const updated = savedMockups.filter(m => m.id !== id);
+        setSavedMockups(updated);
+        try { localStorage.setItem('sora_mockup_library', JSON.stringify(updated)); } catch { }
+    };
+
     return (
         <div className="min-h-screen bg-[#030303] text-zinc-300 font-sans selection:bg-cyan-500/30 relative overflow-hidden">
             {/* Atmospheric Background */}
@@ -452,12 +530,20 @@ export default function VideoLab() {
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold tracking-tight text-white">River Sora Lab</h1>
-                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v13.1</span></p>
+                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v13.2</span></p>
                         </div>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1">
+                        <button onClick={() => { setShowFavorites(!showFavorites); setShowMockupLib(false); }} className={`p-2 rounded-full transition-all ${showFavorites ? 'bg-yellow-500/20 text-yellow-400' : 'hover:bg-white/5 text-zinc-500 hover:text-zinc-300'}`} title="Favoritos">
+                            <Star className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => { setShowMockupLib(!showMockupLib); setShowFavorites(false); }} className={`p-2 rounded-full transition-all ${showMockupLib ? 'bg-purple-500/20 text-purple-400' : 'hover:bg-white/5 text-zinc-500 hover:text-zinc-300'}`} title="Biblioteca de Mockups">
+                            <BookImage className="w-4 h-4" />
+                        </button>
+                    </div>
                     <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white/[0.03] border border-white/5 rounded-full">
                         <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
                         <span className="text-xs font-medium text-zinc-300">{balanceVal}</span>
@@ -475,6 +561,67 @@ export default function VideoLab() {
                     </div>
                 </div>
             </header>
+
+            {/* === FAVORITES PANEL === */}
+            <AnimatePresence>
+                {showFavorites && (
+                    <motion.div initial={{ opacity: 0, x: 300 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 300 }} className="fixed top-16 right-0 bottom-0 w-96 z-40 bg-black/90 backdrop-blur-2xl border-l border-white/5 overflow-y-auto">
+                        <div className="p-6 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-semibold text-white flex items-center gap-2"><Star className="w-4 h-4 text-yellow-400" /> Favoritos</h3>
+                                <button onClick={() => setShowFavorites(false)} className="p-1 hover:bg-white/10 rounded-full"><X className="w-4 h-4 text-zinc-400" /></button>
+                            </div>
+                            {favorites.length === 0 ? (
+                                <p className="text-xs text-zinc-600 text-center py-12">Nenhum projeto salvo ainda.</p>
+                            ) : favorites.map(fav => (
+                                <div key={fav.id} className="p-4 bg-white/[0.03] border border-white/5 rounded-2xl space-y-2 hover:border-white/10 transition-colors">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-semibold text-white">{fav.name}</span>
+                                        <button onClick={() => deleteFavorite(fav.id)} className="p-1 hover:bg-red-500/20 rounded-full text-zinc-600 hover:text-red-400 transition-all"><Trash2 className="w-3 h-3" /></button>
+                                    </div>
+                                    <p className="text-[10px] text-zinc-500 line-clamp-2">{fav.description}</p>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[9px] text-zinc-600">{fav.results.length} cenas · {fav.savedAt}</span>
+                                        <button onClick={() => loadFavorite(fav)} className="text-[10px] font-semibold text-cyan-400 hover:text-cyan-300 transition-colors">Carregar</button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* === MOCKUP LIBRARY PANEL === */}
+            <AnimatePresence>
+                {showMockupLib && (
+                    <motion.div initial={{ opacity: 0, x: 300 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 300 }} className="fixed top-16 right-0 bottom-0 w-96 z-40 bg-black/90 backdrop-blur-2xl border-l border-white/5 overflow-y-auto">
+                        <div className="p-6 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-semibold text-white flex items-center gap-2"><BookImage className="w-4 h-4 text-purple-400" /> Biblioteca de Mockups</h3>
+                                <button onClick={() => setShowMockupLib(false)} className="p-1 hover:bg-white/10 rounded-full"><X className="w-4 h-4 text-zinc-400" /></button>
+                            </div>
+                            {savedMockups.length === 0 ? (
+                                <p className="text-xs text-zinc-600 text-center py-12">Nenhum mockup salvo ainda.</p>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-3">
+                                    {savedMockups.map(mock => (
+                                        <div key={mock.id} className="relative group rounded-xl overflow-hidden border border-white/5 hover:border-white/15 transition-all">
+                                            <img src={mock.url} className="w-full aspect-square object-cover" alt={mock.label} />
+                                            <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                                <a href={mock.url} download className="p-2 bg-white/10 rounded-full hover:bg-cyan-500 transition-all"><Download className="w-3.5 h-3.5 text-white" /></a>
+                                                <button onClick={() => deleteSavedMockup(mock.id)} className="p-2 bg-white/10 rounded-full hover:bg-red-500 transition-all"><Trash2 className="w-3.5 h-3.5 text-white" /></button>
+                                            </div>
+                                            <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80">
+                                                <p className="text-[9px] text-zinc-300 truncate">{mock.label}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <main className="max-w-6xl mx-auto px-6 pt-28 pb-20 relative z-10">
                 {/* Minimalist Steps Indicator */}
@@ -751,10 +898,13 @@ export default function VideoLab() {
                                     <button onClick={goBackToConfigure} className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-cyan-400 hover:text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 px-4 py-2.5 rounded-full transition-all" title="Voltar para configuração sem perder mockups">
                                         <ArrowLeft className="w-3.5 h-3.5" /> Editar
                                     </button>
-                                    <button onClick={downloadAllPrompts} className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 px-4 py-2.5 rounded-full transition-all" title="Baixar .txt com prompts + mockups">
-                                        <FileDown className="w-3.5 h-3.5" /> Export All
+                                    <button onClick={saveToFavorites} className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-yellow-400 hover:text-yellow-300 bg-yellow-500/10 hover:bg-yellow-500/20 px-4 py-2.5 rounded-full transition-all" title="Salvar nos favoritos">
+                                        <Star className="w-3.5 h-3.5" /> Salvar
                                     </button>
-                                    <button onClick={() => { setStep(1); setImageFiles([]); setPreviewUrls([]); setCompressedImages([]); setResults([]); setAnalysis(null); }} className="text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-400 hover:text-white px-4 py-2.5 bg-white/5 hover:bg-white/10 rounded-full transition-all">New Project</button>
+                                    <button onClick={downloadAllPrompts} className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 px-4 py-2.5 rounded-full transition-all" title="Baixar .txt com prompts + mockups">
+                                        <FileDown className="w-3.5 h-3.5" /> Export
+                                    </button>
+                                    <button onClick={() => { setStep(1); setImageFiles([]); setPreviewUrls([]); setCompressedImages([]); setResults([]); setAnalysis(null); }} className="text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-400 hover:text-white px-4 py-2.5 bg-white/5 hover:bg-white/10 rounded-full transition-all">New</button>
                                 </div>
                             </div>
 
@@ -787,6 +937,9 @@ export default function VideoLab() {
                                                     <div className="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
                                                         <button onClick={() => copyMockupImage(res.mockupUrl!)} className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-cyan-500 hover:scale-110 shadow-xl border border-white/20 transition-all" title="Copiar mockup">
                                                             <Copy className="w-4 h-4" />
+                                                        </button>
+                                                        <button onClick={() => saveMockupToLibrary(res.mockupUrl!, `Cena ${i + 1}`)} className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-purple-500 hover:scale-110 shadow-xl border border-white/20 transition-all" title="Salvar na biblioteca">
+                                                            <BookImage className="w-4 h-4" />
                                                         </button>
                                                         <a href={res.mockupUrl} download className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-cyan-500 hover:scale-110 shadow-xl border border-white/20 transition-all" title="Baixar mockup">
                                                             <Download className="w-4 h-4" />
