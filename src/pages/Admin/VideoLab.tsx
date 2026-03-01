@@ -190,7 +190,7 @@ export default function VideoLab() {
             setResults([...newResults]);
             for (let i = 0; i < prompts.length; i++) {
                 setProgressText(`Gerando mockup ${i + 1}...`);
-                const mockupUrl = await generateMockup(analysis.description, options, i, images);
+                const mockupUrl = await generateMockup(analysis.description, prompts[i], images);
                 newResults[i].mockupUrl = mockupUrl;
                 setResults([...newResults]);
                 setProgress(20 + ((i + 1) / prompts.length) * 80);
@@ -220,7 +220,7 @@ export default function VideoLab() {
             setResults(prev => [...prev, ...newResults]);
             for (let i = 0; i < newPrompts.length; i++) {
                 const globalIndex = startIndex + i;
-                const mockupUrl = await generateMockup(analysis.description, options, globalIndex, images);
+                const mockupUrl = await generateMockup(analysis.description, newPrompts[i], images);
                 setResults(prev => {
                     const updated = [...prev];
                     updated[globalIndex].mockupUrl = mockupUrl;

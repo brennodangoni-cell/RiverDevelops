@@ -50,11 +50,16 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
                         text: `You are a Senior Cinematographer and AI Video Specialist for Sora 2.
                     Analyze these product images to extract a FIXED VISUAL DNA for a high-end commercial.
                     
+                    STRICT RULES:
+                    - ZERO INVENTION: Do not add logos, textures, colors, or features NOT VISIBLE in the images.
+                    - MICRO-DNA: Capture the specific wear, unique labeling, or exact manufacturing finish.
+                    - If a detail is blurry, describe the macro-shape but do not guess the text.
+                    
                     In 'description', provide a "Sora 2 Technical Blueprint" in English:
                     1. PRODUCT MESH: Define the exact 3D geometry (e.g., "Sleek matte black cylindrical bottle with a chrome-finished beveled cap").
                     2. SURFACE PHYSICS: Describe how it reacts to light (e.g., "Highly anisotropic brushed metal reflections, slight subsurface scattering on plastics").
                     3. BRANDING COORDINATES: Exact placement of logos (e.g., "Minimalist white sans-serif logo vertically aligned in the center-left quadrant").
-                    4. COLOR PROFILE: Use hex-like accuracy (e.g., "Deep Obsidian #0A0A0A base with Metallic Bronze #CD7F32 accents").
+                    4. IDENTIFIABLE MARKS: Mention specific imperfections or unique labels visible in the photos.
                     
                     REGRA: 'productType' e cenários em Português. 'description' deve ser um PROMPT MASTER em Inglês para manter a consistência entre o Mockup e o Vídeo final.`
                     }
@@ -129,29 +134,27 @@ export async function generatePrompts(productDescription: string, options: any, 
     }
 }
 
-export async function generateMockup(productDescription: string, options: any, promptIndex: number, imagesBase64?: string[]): Promise<string | null> {
+export async function generateMockup(productDescription: string, scenePrompt: string, imagesBase64?: string[]): Promise<string | null> {
     const apiKey = getApiKey();
     const ai = new GoogleGenAI({ apiKey });
 
-    const sequenceTypes = [
-        "Wide Establishing Shot, showing the environment and introducing the product.",
-        "Medium Action Shot, showing the product in use or dynamic display.",
-        "Extreme Close-up Macro Shot, focusing on textures, materials, and branding.",
-        "Alternative Angle or Reaction Shot, showing a different perspective.",
-        "Dynamic B-Roll Shot, highly stylized.",
-        "Final Outro Shot, majestic and leaving space for a logo.",
-        "Extra Scene 1",
-        "Extra Scene 2",
-        "Extra Scene 3"
-    ];
-
-    const imagePrompt = `REFERENCE PHOTOS ATTACHED. Produce a mockup IDENTICAL to these photos. 
-    Product: ${productDescription}. 
-    Scene Focus: ${sequenceTypes[promptIndex] || "Dynamic Shot"}.
-    Setting: ${options.environment}, ${options.timeOfDay}. 
-    Style: ${options.style}. 
-    ${options.mode === 'lifestyle' ? `Featuring a ${options.skinTone} skinned ${options.gender} with ${options.hairColor} hair interacting with the product.` : 'The product is the sole focus.'}
-    8k photorealistic, raw photography, sharp focus, highly detailed, shot on 35mm lens.`;
+    // ZERO-INVENTION MAPPING: Map the scene context to the EXACT product in photos
+    const imageRequestPrompt = `
+    TASK: Generate a high-fidelity static FRAME from a high-end commercial.
+    
+    REFERENCE PRODUCT: 
+    Photos attached. Use EXACT details. DO NOT add new logos or features. 
+    DNA Profile: ${productDescription}
+    
+    SCENE TO RENDER:
+    ${scenePrompt}
+    
+    CINEMATOGRAPHY RULES:
+    - Zero invention of product details.
+    - Photorealistic rendering.
+    - Match everything from the reference photos carefully.
+    - Output must be a direct visual representation of the provided SCENE PROMPT.
+    `;
 
     const imageParts = (imagesBase64 || []).map(base64 => {
         const data = base64.replace(/^data:image\/[a-zA-Z+]+;base64,/, '');
@@ -165,7 +168,7 @@ export async function generateMockup(productDescription: string, options: any, p
                 role: 'user',
                 parts: [
                     ...imageParts,
-                    { text: imagePrompt }
+                    { text: imageRequestPrompt }
                 ]
             }]
         });
