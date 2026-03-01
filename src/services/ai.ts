@@ -327,12 +327,12 @@ export async function generatePrompts(
 
     let taskDescription = `
     Create cinematic video scenes (10 seconds each) for a commercial sequence.
-    ${sceneDraft ? `
-    ACT AS AN ELITE AI VIDEO DIRECTOR & SORA 2 PROMPT ENGINEER.
-    
     [GLOBAL STRATEGY - DO NOT IGNORE]
     The product description below contains a "MARKETING CONTEXT" section. 
-    MANDATORY: Every technical choice you make MUST amplify the marketing benefits and target audience described there.
+    MANDATORY: Every scene and choice you make MUST serve the target audience and benefits described there.
+
+    ${sceneDraft ? `
+    ACT AS AN ELITE AI VIDEO DIRECTOR & SORA 2 PROMPT ENGINEER.
     
     [USER SCENE DRAFT]
     "${sceneDraft}"
@@ -348,12 +348,12 @@ export async function generatePrompts(
     
     - MANDATORY: If the user mentions relief or pain, describe the VISUAL representation of that (e.g., tension leaving the face, the product absorbing the weight).
     - Format: Natural, flowing prose. No technical labels. Length: ~150-200 words.
-    - Generate ONLY THIS ONE MASTER SCENE.
+    - Generate ONLY THIS ONE MASTER SCENE. IGNORE any other requested number of scenes.
     ` : (detectedColors && detectedColors.length > 1 ? `
     DETECTION: We found ${detectedColors.length} unique color variants in the product photos: ${detectedColors.join(', ')}.
-    GOAL: Generate EXACTLY ${detectedColors.length} scenes, ONE FOR EACH COLOR VARIANT. 
-    Organize the sequence to showcase the variety:
-    ${detectedColors.map((color, i) => `- Scene ${i + 1}: Highlighting the ${color} version in a cohesive environment.`).join('\n')}
+    GOAL: Generate a representative sequence showcasing the variety (MAX 4 SCENES to be effective). 
+    Organize the sequence:
+    ${detectedColors.slice(0, 4).map((color, i) => `- Scene ${i + 1}: Highlighting the ${color} version in a cohesive environment.`).join('\n')}
     ` : `
     GOAL: Create 3 cinematic video scenes (10 seconds each) for a 30-second commercial:
     Scene 1 — THE HOOK: Wide establishing shot. Reveal the product and environment dramatically.
@@ -529,6 +529,9 @@ export async function generateMockup(
 
     const imagePrompt = `TASK: Generate a PROFESSIONAL PRODUCT CONCEPT SHEET (Collage).
 GOAL: Create a single 16:9 image containing a HERO SHOT and MULTIPLE detail views.
+
+[MARKETING & STRATEGY ALIGNMENT]
+${productDescription.includes('MARKETING CONTEXT:') ? `MANDATORY: Follow the target audience and benefits described in the context below. If it mentions a specific demographic (e.g. pregnant women), the model MUST reflect that exactly.` : ''}
 
 CRITICAL — PRODUCT FIDELITY (CLONE MODE):
 - PHOTOGRAPHIC TEMPLATE: Use the ${productImages?.length || 0} attached photos. They are the 100% SOURCE OF TRUTH.
