@@ -85,80 +85,28 @@ export async function generatePrompts(productDescription: string, options: any, 
     const ai = new GoogleGenAI({ apiKey });
 
     const sora2MasterSkeleton = `
-SORA 2 – MAXIMUM CONTROL PROMPT ENGINEERING MASTER SKELETON
-Ultra-Structured Deterministic Video Generation Blueprint Version:
-Extreme Control Specification
+SORA 2 – COMPACT DETERMINISTIC PROMPT SKELETON v2
+Strict interpretation only. No creative reinterpretation. No fabrication.
 
-=====================================================================
-GLOBAL GENERATION DIRECTIVE
-=====================================================================
-This specification must be interpreted strictly and literally. Do not infer missing elements. Do not creatively reinterpret constraints. If information is not explicitly stated, do not fabricate it. Prioritize physical realism and spatial consistency over artistic creativity.
+[1] OUTPUT: Aspect Ratio: [INSERT] | Resolution: 4K | 60fps | Duration: 10s | HDR: yes | No auto-reframing, zoom, or crop.
 
-===================================================================== 1. OUTPUT CONFIGURATION (HIGHEST PRIORITY)
-=====================================================================
-VIDEO_OUTPUT: - Aspect Ratio: [INSERT] - Strict Aspect Enforcement: yes - Resolution: 4K - Frame Rate: 60fps - Duration (seconds): 10 - Bitrate target: Maximum - Compression style: Lossless - HDR: yes - Color space: Rec.2020 - Safe margin enforcement: yes - No automatic reframing: yes - No auto zoom: yes - No auto crop: yes
+[2] ENVIRONMENT: Type: [INSERT] | Location: [INSERT] | Surface/terrain: [INSERT] | Background layers: [INSERT] | Atmosphere: [INSERT] | Weather: [INSERT] | Dominant colors: [INSERT]
 
-===================================================================== 2. SCENE PHYSICAL FOUNDATION
-=====================================================================
-ENVIRONMENT_CORE: - Environment type: [INSERT] - Geographic location: [INSERT] - Climate zone: [INSERT] - Terrain type: [INSERT] - Surface materials: [INSERT] - Structural elements: [INSERT] - Background depth layers: [INSERT] - Foreground elements: [INSERT] - Atmospheric density: [INSERT] - Air particles (dust/fog/smoke): [INSERT] - Wind speed: [INSERT] - Humidity level: [INSERT] - Temperature context: [INSERT] - Water presence: [INSERT] - Reflection surfaces: [INSERT]
-COLOR_ENVIRONMENT: - Dominant color family: [INSERT] - Secondary colors: [INSERT] - Natural vs artificial balance: [INSERT] - Saturation baseline: [INSERT]
+[3] SUBJECT: Entity: Product | Product identity: [INSERT EXACT PRODUCT DESCRIPTION] | Identity lock: absolute, no mutations | Pose/orientation: [INSERT] | Must remain fully visible for entire duration | Zero occlusion
+${options.mode === 'lifestyle' ? '[ACTOR]: A [INSERT gender] in their [INSERT age range]s, wearing [INSERT clothing]. Keep description brief and professional. No detailed physical trait descriptions.' : '[NO HUMAN ACTORS]'}
 
-===================================================================== 3. SUBJECT ARCHITECTURE
-=====================================================================
-PRIMARY_SUBJECT: - Entity type: Product - Quantity: 1 - Species: N/A - Gender: [INSERT IF LIFESTYLE, ELSE N/A] - Age range: [INSERT IF LIFESTYLE, ELSE N/A] - Body type: [INSERT IF LIFESTYLE, ELSE N/A] - Height: [INSERT IF LIFESTYLE, ELSE N/A] - Skin tone: [INSERT IF LIFESTYLE, ELSE N/A] - Clothing description: [INSERT IF LIFESTYLE, ELSE N/A] - Clothing material physics: [INSERT IF LIFESTYLE, ELSE N/A] - Accessories: [INSERT IF LIFESTYLE, ELSE N/A] - Facial hair: [INSERT IF LIFESTYLE, ELSE N/A] - Hairstyle: [INSERT IF LIFESTYLE, ELSE N/A] - Emotional state: [INSERT IF LIFESTYLE, ELSE N/A] - Pose: [INSERT] - Orientation relative to camera: [INSERT] - Must remain visible entire duration: yes - Occlusion tolerance level: Zero
-CRITICAL IDENTITY LOCK: - Non-negotiable visual traits: [INSERT EXACT PRODUCT DESCRIPTION] - Identity continuity enforcement: Absolute
+[4] ACTION: Initial state: [INSERT] | Motion: [INSERT] | End state: [INSERT] | Real-time speed | Earth gravity | No teleportation, morphing, or time jumps | Continuous motion
 
-===================================================================== 4. OBJECT & PROP SYSTEM
-=====================================================================
-ACTIVE_OBJECTS: - Object name: The Product - Material: [INSERT] - Weight realism: High - Surface texture: [INSERT] - Reflectivity: [INSERT] - Damage state: Pristine - Interaction rules: [INSERT]
-STATIC_OBJECTS: - Placement: [INSERT] - Anchoring physics: [INSERT] - Stability enforcement: Absolute
+[5] CAMERA: Position: [INSERT relative to subject] | Lens: [INSERT mm equivalent] | Aperture: [INSERT] | Focus: locked on product | Movement: [INSERT type + speed] | Gimbal-stabilized | No handheld shake | Cinematic motion blur
 
-===================================================================== 5. ACTION & TEMPORAL LOGIC
-=====================================================================
-ACTION_FLOW: - Initial state: [INSERT] - Trigger event: [INSERT] - Primary motion: [INSERT] - Secondary motion: [INSERT] - End state: [INSERT] - Motion speed scale: Real-time - Acceleration realism: High - Friction realism: High - Gravity consistency: Earth-normal - No teleportation: yes - No morphing: yes - No time jumps: yes - Continuous motion enforcement: yes
+[6] LIGHTING: Source: [INSERT natural/artificial] | Direction: [INSERT] | Color temperature: [INSERT K] | Shadow softness: [INSERT] | No clipped highlights | No crushed blacks
 
-===================================================================== 6. CAMERA SYSTEM ENGINEERING
-=====================================================================
-CAMERA_POSITIONING: - Relative position to subject: [INSERT] - Height: [INSERT] - Distance: [INSERT] - Horizontal angle: [INSERT] - Vertical tilt: [INSERT] - Tracking anchor point: [INSERT]
-OPTICS: - Lens equivalent: [INSERT] - Aperture simulation: [INSERT] - Depth of field intensity: [INSERT] - Focus target: The Product - Rack focus allowed: no
-MOVEMENT_PROFILE: - Movement type: [INSERT] - Speed: [INSERT] - Stabilization: Gimbal-smooth - Handheld shake intensity: Zero - Motion blur level: Cinematic - No sudden perspective warping: yes - No digital zoom artifacts: yes
+[7] STYLE: Photorealistic | Modern color grading | [INSERT contrast/saturation] | No CGI look | No cartoon | No AI artifacts | No film grain unless specified
 
-===================================================================== 7. LIGHTING PHYSICS MODEL
-=====================================================================
-LIGHT_SOURCE: - Natural or artificial: [INSERT] - Direction: [INSERT] - Elevation angle: [INSERT] - Intensity: [INSERT] - Color temperature: [INSERT] - Shadow softness: [INSERT] - Bounce light level: [INSERT] - Volumetric presence: [INSERT] - Reflection accuracy: High - Exposure protection: yes - No highlight clipping: yes - No crushed blacks: yes
+[8] AUDIO: Ambient sounds: [INSERT] | Music: [INSERT genre], non-diegetic, background volume
+${options.mode === 'lifestyle' ? 'Dialogue: [INSERT brief description if needed]' : 'No dialogue'}
 
-===================================================================== 8. AUDIO ENGINEERING
-=====================================================================
-DIALOGUE: - Present: [INSERT YES/NO BASED ON OPTIONS] - Language: [INSERT LANGUAGE] - Number of speakers: [INSERT] - Tone: [INSERT] - Volume: [INSERT] - Emotional intensity: [INSERT] - Lip-sync strictness: High - Accent specification: [INSERT] - No subtitles unless specified: yes
-AMBIENCE: - Environmental sounds: [INSERT] - Distance realism: High - Echo/reverb profile: [INSERT]
-SOUND_EFFECTS: - Object interaction sounds: [INSERT] - Movement sounds: [INSERT] - Environmental physics consistency: High
-MUSIC: - Present: yes - Genre: [INSERT] - Tempo: [INSERT] - Diegetic/non-diegetic: Non-diegetic - Volume relative to dialogue: Background
-SILENCE ENFORCEMENT: no
-
-===================================================================== 9. STYLE CONTROL SYSTEM
-=====================================================================
-VISUAL_REALISM_LEVEL: - [INSERT STYLE OPTION]
-COLOR_GRADING: - Contrast level: [INSERT] - Saturation level: [INSERT] - LUT inspiration: [INSERT] - Era reference: Modern
-TEXTURE_PROCESSING: - Film grain: [INSERT] - Noise control: High - Digital sharpness: High - No CGI aesthetic: yes - No cartoon stylization: yes - No artificial smooth skin: yes
-
-===================================================================== 10. TEMPORAL CONSISTENCY LOCK
-=====================================================================
-CONTINUITY_RULES: - No duplicated subjects: yes - No limb duplication: yes - No object mutation: yes - Lighting consistency across frames: yes - Weather consistency: yes - Motion continuity: yes - Frame stability: yes - No flickering: yes
-
-===================================================================== 11. NEGATIVE HARD CONSTRAINTS
-=====================================================================
-FORBIDDEN_ELEMENTS: - No text overlays (unless explicitly required) - No subtitles (unless explicitly required) - No logos (other than product) - No watermarks - No distorted anatomy - No warped geometry - No random inserted objects - No stylistic shifts mid-video - No physics violations - No AI artifacts
-
-===================================================================== 12. FINAL EXECUTION DIRECTIVE
-=====================================================================
-- Obey structural hierarchy strictly.
-- Do not add elements not specified.
-- Maintain spatial coherence.
-- Maintain physical plausibility.
-- Preserve identity continuity.
-- Respect strict framing.
-- Prioritize realism over interpretation.
-END OF MASTER SPECIFICATION
+HARD RULES: No text overlays | No subtitles | No watermarks | No logos (except product) | No duplicated limbs | No object mutation | Consistent lighting across all frames | No flickering | No physics violations
   `;
 
     let taskDescription = `
@@ -185,7 +133,7 @@ END OF MASTER SPECIFICATION
     TASK: BREAK DOWN THE ENTIRE SCRIPT INTO A COMPLETE STORYBOARD.
     1. READ every section (Hook, Development, Closing).
     2. GENERATE a high-fidelity Sora 2 prompt for EVERY visual scene described or implied.
-    3. For EACH scene, use the EXACT SORA 2 MASTER SKELETON format.
+    3. For EACH scene, use the EXACT SORA 2 COMPACT SKELETON format.
     `;
     } else if (previousPrompts && previousPrompts.length > 0) {
         taskDescription = `
@@ -219,14 +167,13 @@ END OF MASTER SPECIFICATION
     
     ${taskDescription}
 
-    CRITICAL INSTRUCTION: For EACH generated scene, you MUST output the prompt using EXACTLY the following "SORA 2 MASTER SKELETON" format. Fill in every single [INSERT] field with highly specific, deterministic, and physically plausible details based on the product description and chosen options. Do not omit any section. The output for each scene must be the full skeleton text.
+    CRITICAL INSTRUCTION: For EACH generated scene, fill in every [INSERT] field in the COMPACT SKELETON with specific, deterministic details. Output the complete filled skeleton for each scene.
 
-    SKELETON TEMPLATE TO FILL OUT FOR EACH SCENE:
+    SKELETON TEMPLATE:
     ${sora2MasterSkeleton}
 
-    CRITICAL RULE: The final generated prompts MUST be entirely in ENGLISH, as Sora 2 understands English best. Do not output the prompts in Portuguese.
-
-    SORA 2 SAFETY COMPLIANCE: When describing people/actors in the scene, use simple, professional casting language (e.g., "a young woman", "a man in his 30s"). Do NOT include overly detailed physical descriptions of skin, body features, or appearance that could be flagged as suggestive content by Sora 2's safety filters. Keep human descriptions brief and professional.
+    CRITICAL RULE: All prompts MUST be in ENGLISH. Do not output in Portuguese.
+    SORA 2 SAFETY: When describing people, use brief professional casting terms (e.g., "a young woman", "a man in his 30s"). Avoid overly detailed physical descriptions.
   `;
 
     const response = await ai.models.generateContent({
