@@ -70,8 +70,9 @@ const sequenceTitles = [
 
 export default function VideoLab() {
     const [step, setStep] = useState<1 | 2 | 3>(1);
-    const [images, setImages] = useState<string[]>([]);
-    const [compressedImages, setCompressedImages] = useState<string[]>([]);
+    const [imageFiles, setImageFiles] = useState<File[]>([]);
+    const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+    const [compressedImages, setCompressedImages] = useState<string[]>([]); // base64 for API
     const [analysis, setAnalysis] = useState<ProductAnalysis | null>(null);
     const [editableDescription, setEditableDescription] = useState('');
     const [options, setOptions] = useState({
@@ -137,45 +138,56 @@ export default function VideoLab() {
         navigate('/admin/login');
     };
 
-    const compressOnUpload = (base64: string): Promise<string> => {
+    const compressFile = (file: File): Promise<string> => {
         return new Promise((resolve) => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                let { width, height } = img;
-                const maxSize = 1024;
-                if (width > maxSize || height > maxSize) {
-                    const ratio = Math.min(maxSize / width, maxSize / height);
-                    width = Math.round(width * ratio);
-                    height = Math.round(height * ratio);
-                }
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d')!;
-                ctx.drawImage(img, 0, 0, width, height);
-                resolve(canvas.toDataURL('image/jpeg', 0.85));
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const dataUrl = e.target?.result as string;
+                const img = new Image();
+                img.onload = () => {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        let { width, height } = img;
+                        const maxSize = 1024;
+                        if (width > maxSize || height > maxSize) {
+                            const ratio = Math.min(maxSize / width, maxSize / height);
+                            width = Math.round(width * ratio);
+                            height = Math.round(height * ratio);
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d')!;
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.85));
+                    } catch (_) {
+                        resolve(dataUrl); // fallback to original
+                    }
+                };
+                img.onerror = () => resolve(dataUrl);
+                img.src = dataUrl;
             };
-            img.onerror = () => resolve(base64);
-            img.src = base64;
+            reader.onerror = () => resolve('');
+            reader.readAsDataURL(file);
         });
     };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (!files) return;
-        Array.from(files).forEach(file => {
-            const reader = new FileReader();
-            reader.onload = async (event) => {
-                if (event.target?.result) {
-                    const compressed = await compressOnUpload(event.target.result as string);
-                    setImages(prev => [...prev, compressed]);
-                }
-            };
-            reader.readAsDataURL(file);
-        });
+        const newFiles = Array.from(files);
+        setImageFiles(prev => [...prev, ...newFiles]);
+        // Create lightweight preview URLs (instant, no memory issues)
+        const newUrls = newFiles.map(f => URL.createObjectURL(f));
+        setPreviewUrls(prev => [...prev, ...newUrls]);
     };
 
-    const removeImage = (index: number) => setImages(prev => prev.filter((_, i) => i !== index));
+    const removeImage = (index: number) => {
+        // Revoke the object URL to free memory
+        URL.revokeObjectURL(previewUrls[index]);
+        setImageFiles(prev => prev.filter((_, i) => i !== index));
+        setPreviewUrls(prev => prev.filter((_, i) => i !== index));
+        setCompressedImages(prev => prev.filter((_, i) => i !== index));
+    };
 
     // Simulated progress helper (Fix #5)
     const simulateProgress = (startVal: number, endVal: number, durationMs: number) => {
@@ -205,15 +217,19 @@ export default function VideoLab() {
     };
 
     const handleAnalyze = async () => {
-        if (images.length === 0) return;
+        if (imageFiles.length === 0) return;
         setIsAnalyzing(true);
         setProgress(5);
-        setProgressText('Analisando DNA Visual do Produto...');
-        const progressTimer = simulateProgress(5, 85, 30000);
+        setProgressText('Comprimindo imagens para análise...');
+        const progressTimer = simulateProgress(5, 85, 40000);
         try {
-            // Images are already compressed on upload
-            setCompressedImages(images);
-            const result = await analyzeProduct(images);
+            // Convert files to compressed base64 NOW (not on upload)
+            setProgressText('Preparando imagens...');
+            const base64Images = await Promise.all(imageFiles.map(f => compressFile(f)));
+            const validImages = base64Images.filter(b => b.length > 0);
+            setCompressedImages(validImages);
+            setProgressText('Analisando DNA Visual do Produto...');
+            const result = await analyzeProduct(validImages);
             clearInterval(progressTimer);
             setAnalysis(result);
             setEditableDescription(result.description);
@@ -368,7 +384,7 @@ export default function VideoLab() {
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold tracking-tight text-white">River Sora Lab</h1>
-                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v12.0</span></p>
+                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v12.2</span></p>
                         </div>
                     </div>
                 </div>
@@ -434,10 +450,10 @@ export default function VideoLab() {
                                     </div>
                                 </div>
 
-                                {images.length > 0 && (
+                                {previewUrls.length > 0 && (
                                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-8 pt-8 border-t border-white/5 w-full">
                                         <div className="flex justify-center gap-2 w-full mb-8">
-                                            {images.map((img, idx) => (
+                                            {previewUrls.map((url, idx) => (
                                                 <motion.div
                                                     initial={{ scale: 0.8, opacity: 0 }}
                                                     animate={{ scale: 1, opacity: 1 }}
@@ -445,7 +461,7 @@ export default function VideoLab() {
                                                     key={idx}
                                                     className="relative flex-1 max-w-[6rem] aspect-square rounded-xl overflow-hidden border border-white/10 group shadow-lg"
                                                 >
-                                                    <img src={img} className="w-full h-full object-cover" alt="Uploaded" />
+                                                    <img src={url} className="w-full h-full object-cover" alt="Uploaded" />
                                                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm">
                                                         <button onClick={(e) => { e.stopPropagation(); removeImage(idx); }} className="p-1.5 sm:p-2 bg-red-500/80 hover:bg-red-500 rounded-full text-white transition-colors">
                                                             <X className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -456,7 +472,7 @@ export default function VideoLab() {
                                         </div>
                                         <button
                                             onClick={handleAnalyze}
-                                            disabled={isAnalyzing}
+                                            disabled={isAnalyzing || imageFiles.length === 0}
                                             className="w-full py-5 bg-white hover:bg-zinc-200 disabled:bg-white/5 disabled:text-zinc-500 text-black font-bold uppercase tracking-[0.2em] text-xs rounded-2xl transition-all duration-300 shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:shadow-[0_0_40px_rgba(255,255,255,0.2)] flex items-center justify-center gap-3"
                                         >
                                             {isAnalyzing ? <><Loader2 className="w-5 h-5 animate-spin" /> Extracting Visual DNA...</> : <>Analyze Product <ArrowRight className="w-4 h-4" /></>}
@@ -630,7 +646,7 @@ export default function VideoLab() {
                                     <h2 className="text-2xl font-medium tracking-tight text-white">Production Results</h2>
                                     <p className="text-sm text-zinc-500 font-light mt-1">Sora 2 Deterministic Blueprints & 1K Mockups</p>
                                 </div>
-                                <button onClick={() => { setStep(1); setImages([]); setResults([]); }} className="text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-400 hover:text-white px-5 py-2.5 bg-white/5 hover:bg-white/10 rounded-full transition-all">New Project</button>
+                                <button onClick={() => { setStep(1); setImageFiles([]); setPreviewUrls([]); setCompressedImages([]); setResults([]); setAnalysis(null); }} className="text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-400 hover:text-white px-5 py-2.5 bg-white/5 hover:bg-white/10 rounded-full transition-all">New Project</button>
                             </div>
 
                             {/* Progress Indicator */}
