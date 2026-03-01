@@ -7,9 +7,9 @@ export interface ProductAnalysis {
     suggestedSceneriesLifestyle: string[];
 }
 
-// THE STRATEGY: Use the professional grade model for maximum intelligence and visual fidelity.
-const BRAIN_MODEL = "gemini-1.5-pro";
-const VISION_MODEL = "gemini-1.5-pro";
+// THE STRATEGY: Use the high-end Professional Pro model (latest 2.0 Pro) for maximum intelligence.
+const BRAIN_MODEL = "gemini-2.0-pro-exp-02-05";
+const VISION_MODEL = "gemini-2.0-pro-exp-02-05";
 
 function getApiKey(): string {
     const localKey = localStorage.getItem('gemini_api_key');
