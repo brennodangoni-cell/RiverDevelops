@@ -7,27 +7,18 @@ export interface ProductAnalysis {
     suggestedSceneriesLifestyle: string[];
 }
 
+// THE STRATEGY: Use the cutting-edge available Flash model for 2026.
+// Based on our curl check and error logs, 'gemini-2.5-flash' is the required modern model.
+const STABLE_MODEL = "gemini-2.5-flash";
+
 function getApiKey(): string {
-    // Priority 1: localStorage (if you ever add a UI to change keys manually)
     const localKey = localStorage.getItem('gemini_api_key');
     if (localKey && localKey.trim().startsWith('AIzaSy')) return localKey.trim();
 
-    // Priority 2: Environment Variables (from .env or Vercel dashboard)
     const envKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
     if (envKey && envKey.trim().startsWith('AIzaSy')) return envKey.trim();
 
-    // If no key is found, will return empty which triggers an error in analyzeProduct
     return "";
-}
-
-// Helper to list models to console if something fails
-async function logAvailableModels(ai: any) {
-    try {
-        const models = await ai.models.list();
-        console.log("AVAILABLE_MODELS_LIST:", models);
-    } catch (e) {
-        console.error("Could not list models:", e);
-    }
 }
 
 export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAnalysis> {
@@ -50,7 +41,7 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
 
     try {
         const response = await ai.models.generateContent({
-            model: "gemini-1.5-flash", // Reverting to exact name but with fallback attempt
+            model: STABLE_MODEL,
             contents: [{
                 role: 'user',
                 parts: [
@@ -88,11 +79,7 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
         const text = response.candidates?.[0]?.content?.parts?.[0]?.text;
         return JSON.parse(text || "{}");
     } catch (e: any) {
-        console.error("ANALYSIS_FULL_API_ERROR_OBJECT:", e);
-        if (e.message?.includes("404")) {
-            console.warn("Model not found. Attempting to list available models...");
-            await logAvailableModels(ai);
-        }
+        console.error("ANALYSIS_ERROR:", e);
         throw e;
     }
 }
@@ -110,7 +97,7 @@ export async function generatePrompts(productDescription: string, options: any, 
 
     try {
         const response = await ai.models.generateContent({
-            model: "gemini-1.5-flash",
+            model: STABLE_MODEL,
             contents: [{
                 role: 'user',
                 parts: [{ text: promptContext }]
@@ -127,7 +114,7 @@ export async function generatePrompts(productDescription: string, options: any, 
         const text = response.candidates?.[0]?.content?.parts?.[0]?.text;
         return JSON.parse(text || "[]");
     } catch (e) {
-        console.error("Failed to generate prompts", e);
+        console.error("PROMPT_ERROR:", e);
         return [];
     }
 }
@@ -147,7 +134,7 @@ export async function generateMockup(productDescription: string, options: any, p
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
+            model: STABLE_MODEL,
             contents: [{
                 role: 'user',
                 parts: [
@@ -163,7 +150,7 @@ export async function generateMockup(productDescription: string, options: any, p
             }
         }
     } catch (e) {
-        console.error("Failed to generate mockup", e);
+        console.error("MOCKUP_ERROR:", e);
     }
     return null;
 }
