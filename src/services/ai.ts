@@ -91,6 +91,9 @@ export async function generatePrompts(productDescription: string, options: any, 
     const apiKey = getApiKey();
     const ai = new GoogleGenAI({ apiKey });
 
+    const textEnabled = !!options.includeText;
+    const voiceEnabled = !!options.includeVoice;
+
     const promptContext = `
     ACT AS A SORA 2 WORLD SIMULATOR ARCHITECT.
     Product Manifest: ${productDescription}
@@ -101,12 +104,13 @@ export async function generatePrompts(productDescription: string, options: any, 
     - PRODUCT INTEGRITY: The product manifest is NON-NEGOTIABLE. It must be treated as a fixed 3D asset.
     - CINEMATOGRAPHY: Specify camera sensors (e.g., Arri Alexa look) and lens optics (e.g., Master Prime glass).
     
-    SPECIAL DIRECTIVES:
-    - LANGUAGE: ${options.language || 'Portuguese'}
-    - OVERLAYS: ${options.includeText || options.includeVoice ? 'Active technical pointers in ' + options.language : 'Strictly visual simulation only'}
+    STRICT TEXT/VOICE ENFORCEMENT:
+    - ON-SCREEN TEXT STATUS: ${textEnabled ? `ENABLED (Include minimalist high-end typography pointers in ${options.language || 'Portuguese'})` : 'STRICTLY DISABLED. FORBIDDEN. Do not mention ANY text, layers, or floating words.'}
+    - VOICE-OVER STATUS: ${voiceEnabled ? `ENABLED (Write compelling scripts in ${options.language || 'Portuguese'})` : 'STRICTLY DISABLED. No narration allowed.'}
     
-    OUTPUT: A JSON array of 3 highly technical "Simulation Instructions" for Sora 2. Focus on why the video won't "hallucinate" (e.g., specific particle collision or light path tracing).
+    ${!textEnabled ? 'CRITICAL: The resulting prompts MUST NOT contain mentions of "text", "overlay", "on-screen", or "typography".' : ''}
     
+    OUTPUT: A JSON array of 3 highly technical "Simulation Instructions" for Sora 2. 
     ${previousPrompts && previousPrompts.length > 0 ? `PREVIOUS CONTINUITY: ${previousPrompts.join(' | ')}. Expand the story from these scenes.` : ''}
     `;
 
