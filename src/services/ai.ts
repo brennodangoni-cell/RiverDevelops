@@ -185,9 +185,7 @@ ${marketingContext}
 MANDATE: ALL Suggested Sceneries (Lifestyle & Product-Only) MUST directly serve the marketing goals, target audience, and benefits described above. No generic suggestions allowed.
 ` : ''}
 
-You are also a WORLD-CLASS product photographer and visual analyst. Analyze these product images with EXTREME precision for a SORA 2 digital twin.
-
-RETURN a JSON with the following fields:
+Analyze these product images with EXTREME precision for a SORA 2 digital twin. RETURN a JSON with: 1. 'description' (ENGLISH, detailed): Exact physical traits, textures, colors + HEX, branding. 2. 'productType' (PT-BR). 3. 'suggestedSceneriesProductOnly' (PT-BR): 4 scenarios (2 commercial-realistic, 2 ABSTRACT/SURREAL/KINETIC). 4. 'suggestedSceneriesLifestyle' (PT-BR): 4 scenarios (2 realistic-lifestyle, 2 DREAMLIKE/IMPOSSIBLE/SURREAL).
 
 1. "description" (ENGLISH, ultra-detailed):
     - Exact physical traits: shape, silhouette, weight distribution
@@ -421,12 +419,17 @@ DIRECTIVES:
 - NO CONCEPTUAL TERMS: Never use words like "comfortable" or "premium". Use visual proofs: "The material deforms 2mm under pressure" (Visual-First).
 - SURREALISM: If the user requests impossible scenes, execute them LITERALLY (Dream Engine).
 - RIGIDITY: The product must never distort/melt unless explicitly asked.
+- SURREALISM OVERLOAD: If the user provides a fantastical request (e.g. clouds, fire, space, underwater), DO NOT MAKE IT REALISTIC. Make it MAGICAL and LITERAL. If they say 'clouds', they are walking on dense, fluffy, volumetric cumulus clouds.
 - FORMAT: Single flowing paragraph of cinematic English.
     `;
 
     const promptContext = `
 [STRICT DIRECTOR MANDATE]
 LEAVE NO CHOICE BEHIND. Every parameter below must be the SOUL of the scene.
+
+[USER INTENT - HIGHEST PRIORITY]
+${options.supportingDescription ? `CRITICAL USER OVERRIDE: ${options.supportingDescription}` : 'Generate a premium scene.'}
+If the user request is surreal or impossible, EXECUTE LITERALLY. No metaphors.
 
 TARGET CONFIGURATION:
 - Aspect Ratio: ${options.aspectRatio}
@@ -448,7 +451,6 @@ ${hexInfo}
 
 SCENE TYPE: ${sceneDraft ? 'POLISH THIS SPECIFIC DRAFT:' : 'CREATE NEW SCENE:'}
 ${sceneDraft || 'Based on the above settings, generate a 10-second high-impact cinematic sequence.'}
-${options.supportingDescription ? `USER EXTRA REQUEST: ${options.supportingDescription}` : ''}
 
 [SCENE TASK & STRATEGY]
 ${taskDescription}
@@ -527,7 +529,7 @@ ENVIRONMENT: ${options.environment}
 LIGHTING: ${options.timeOfDay}
 STYLE: ${options.style}
 ${options.mode === 'lifestyle' ? `- TALENT: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
-${promptText ? `BLUEPRINT: "${promptText}"` : ''}
+${promptText || productDescription ? `BLUEPRINT: "${promptText || productDescription}"` : ''}
 
 [LAYOUT]
 - MAIN HERO SHOT (LEFT, 60%): ${focusInstructions[promptIndex] || "Hero product focus."}

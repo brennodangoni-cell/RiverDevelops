@@ -28,7 +28,7 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
     contents: {
       parts: [
         ...parts,
-        { text: "Analyze these product images with EXTREME precision for a SORA 2 digital twin. RETURN a JSON with: 1. 'description' (ENGLISH, detailed): Exact physical traits, MICRO-PHYSICS (material behavior), textures/finishes, colors + HEX codes, QUANTITY, and branding placement. 2. 'productType' (PT-BR). 3. 'suggestedSceneriesProductOnly' (PT-BR): 4 commercial scenarios focused on movement. 4. 'suggestedSceneriesLifestyle' (PT-BR): 4 scenarios with physical interaction." }
+        { text: "Analyze these product images with EXTREME precision for a SORA 2 digital twin. RETURN a JSON with: 1. 'description' (ENGLISH, detailed): Exact physical traits, colors + HEX, branding. 2. 'productType' (PT-BR). 3. 'suggestedSceneriesProductOnly' (PT-BR): 4 scenarios (2 realistic, 2 ABSTRACT/SURREAL). 4. 'suggestedSceneriesLifestyle' (PT-BR): 4 scenarios (2 realistic, 2 DREAMLIKE/SURREAL)." }
       ]
     },
     config: {
@@ -71,7 +71,7 @@ SORA 2 MASTER SKELETON (HIERARCHICAL PRIORITY):
 
 DIRECTIVES:
 - NO CONCEPTUAL TERMS: Never use words like "comfortable" or "premium". Use visual proofs: "The material deforms 2mm under pressure" (Visual-First).
-- SURREALISM: If the user requests impossible scenes, execute them LITERALLY (Dream Engine).
+- SURREALISM OVERLOAD: If the user provides a fantastical request (e.g. clouds, fire, space, underwater), DO NOT MAKE IT REALISTIC. Make it MAGICAL and LITERAL.
 - RIGIDITY: The product must never distort/melt unless explicitly asked.
 - FORMAT: Single flowing paragraph of cinematic English.
   `;
@@ -79,6 +79,10 @@ DIRECTIVES:
   const promptContext = `
 [STRICT DIRECTOR MANDATE]
 LEAVE NO CHOICE BEHIND. Every parameter below must be the SOUL of the scene.
+
+[USER INTENT - HIGHEST PRIORITY]
+${options.supportingDescription ? `CRITICAL USER OVERRIDE: ${options.supportingDescription}` : 'Generate a premium scene.'}
+If the user request is surreal or impossible, EXECUTE LITERALLY. No metaphors.
 
 TARGET CONFIGURATION:
 - Aspect Ratio: ${options.aspectRatio}
