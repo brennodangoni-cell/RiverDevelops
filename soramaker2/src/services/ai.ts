@@ -77,28 +77,35 @@ DIRECTIVES:
   `;
 
   const promptContext = `
-    Product Description: ${productDescription}
-    
-    Video Style Options:
-    - Aspect Ratio: ${options.aspectRatio}
-    - Mode: ${options.mode === 'lifestyle' ? 'Lifestyle (Someone using the product)' : 'Product Only'}
-    ${options.mode === 'lifestyle' ? `
-    - Actor Gender: ${options.gender}
-    - Actor Skin Tone: ${options.skinTone}
-    - Actor Hair Color: ${options.hairColor}
-    ` : ''}
-    - Time of Day/Lighting: ${options.timeOfDay}
-    - Environment/Setting: ${options.environment}
-    - Cinematography Style: ${options.style}
-    ${options.supportingDescription ? `- Additional Context/User Request: ${options.supportingDescription}` : ''}
-    
-    Task: Generate 3 HIGH-FIDELITY SORA 2 PROMPTS based on the Director Blueprint above.
-    
-    Scene 1: [The Hook / Establishing Shot]
-    Scene 2: [The Action / Feature]
-    Scene 3: [The Climax / Macro]
+[STRICT DIRECTOR MANDATE]
+LEAVE NO CHOICE BEHIND. Every parameter below must be the SOUL of the scene.
 
-    CRITICAL RULE: The final prompts MUST be entirely in ENGLISH. Output an array of 3 strings.
+TARGET CONFIGURATION:
+- Aspect Ratio: ${options.aspectRatio}
+- Mode: ${options.mode === 'lifestyle' ? 'LIFESTYLE (Actor Interaction Required)' : 'PRODUCT ONLY (Studio/Abstract)'}
+- Lighting/Time: ${options.timeOfDay} (STRICT ADHERENCE)
+- Environment: ${options.environment} (STRICT ADHERENCE)
+- Cinematography Style: ${options.style} (STRICT ADHERENCE)
+
+${options.mode === 'lifestyle' ? `
+ACTOR SPECIFICATION (NON-NEGOTIABLE):
+- Gender: ${options.gender}
+- Skin Tone: ${options.skinTone} 
+- Hair: ${options.hairColor}
+` : ''}
+
+PRODUCT DATA:
+${productDescription}
+
+[SCENE GOALS]
+Scene 1: Reveal the product in a majestic environment.
+Scene 2: Show the core benefit and product DNA in action.
+Scene 3: Extreme macro. Focus on textures and perfectly legible branding.
+
+[DIRECTOR BLUEPRINT]
+${promptStyle}
+
+CRITICAL: The output MUST be an array of 3 SINGLE paragraphs in ENGLISH.
   `;
 
   const response = await ai.models.generateContent({
@@ -127,11 +134,31 @@ export async function generateMockup(productDescription: string, options: any, p
   const apiKey = import.meta.env?.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
   const ai = new GoogleGenAI({ apiKey });
 
-  const imagePrompt = `TASK: Generate a PROFESSIONAL COMMERCIAL STILL (1K RAW).
-GOAL: Create a hyper-realistic representation of the final Sora 2 video scene.
-DIRECTOR'S BLUEPRINT: "${productDescription}"
-Environment: ${options.environment}, Lighting: ${options.timeOfDay}, Style: ${options.style}.
-CLONE MODE: Maintain 100% fidelity to the product's physical traits and branding.`;
+  const focusInstructions = [
+    "Establishing shot. Environment focus.",
+    "Action shot. Usage focus.",
+    "Macro shot. Detail focus."
+  ];
+
+  const imagePrompt = `TASK: Generate a PROFESSIONAL COMMERCIAL CONCEPT SHEET (COLLAGE).
+GOAL: Create a single 16:9 image containing a HERO SHOT and 3 DETAIL VIEWS.
+
+DIRECTOR'S BLUEPRINT (BASE):
+"${productDescription}"
+
+[STRICT CONFIGURATION ADHERENCE]
+- ENVIRONMENT: ${options.environment}
+- LIGHTING: ${options.timeOfDay}
+- STYLE: ${options.style}
+${options.mode === 'lifestyle' ? `- TALENT: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
+
+COLLAGE LAYOUT:
+- MAIN HERO SHOT (LEFT, 60%): ${focusInstructions[promptIndex] || "Hero product focus."}
+- DETAIL ANGLES (RIGHT STACK, 40%): 3 microscopic views focusing on materials, branding, and physics.
+
+CRITICAL - VISUAL FIDELITY:
+- CLONE MODE: Absolute adherence to reference photos.
+- LOGOS: Sharp and identical placement.`;
 
   try {
     const response = await ai.models.generateContent({
