@@ -1,4 +1,4 @@
-# River Sora Lab - AI Models Architecture & Strategy (v14.1)
+# River Sora Lab - AI Models Architecture & Strategy (v14.0)
 
 Este documento serve como um guia definitivo sobre a arquitetura de Inteligência Artificial utilizada neste projeto. Se você for exportar este código ou passar para outro desenvolvedor/IA no futuro, **leia isto primeiro**.
 
@@ -17,17 +17,11 @@ Para garantir a melhor qualidade possível de roteiros (Prompts para o Sora 2) e
 *   **Função:** Gerar as imagens de referência (mockups) baseadas na análise do produto e no roteiro da cena.
 *   **Por que este modelo?** O modelo "3.1 Flash Image" é a versão mais recente e otimizada para imagens. Ele entrega uma qualidade fotorrealista absurda em resolução 1K, mas custa uma fração do preço do modelo "Pro Image" (Imagen 3). É ele que garante que os US$ 300 de crédito durem por milhares de gerações.
 
-## 2. Estrutura do Prompt (Sora 2 Visual Narrative & Physics Director)
+## 2. Estrutura do Prompt (Sora 2 Master Skeleton)
 
-O sistema foi atualizado para o **SORA 2 – VISUAL NARRATIVE & PHYSICS DIRECTOR BLUEPRINT (v2.0)**. 
+O sistema não gera mais prompts em texto corrido simples. Ele foi atualizado para utilizar o **SORA 2 – MAXIMUM CONTROL PROMPT ENGINEERING MASTER SKELETON**.
 
-### Princípios da Nova Arquitetura:
-1.  **Hierarquia de Prioridade:** O modelo agora prioriza Movement > Subject > Lighting > Environment.
-2.  **Visual vs. Conceitual:** O motor traduz conceitos abstratos (ex: "confortável") em descrições físicas (ex: "soft compression of the sole").
-3.  **Micro-Física (Micro-Physics):** Agora incluímos detalhes de interação material, como a reação de superfícies ao peso e toque, aumentando drasticamente o realismo percebido.
-4.  **Reforço Cromático:** Cores são sempre acompanhadas de seus códigos HEX para garantir fidelidade visual absoluta.
-
-Isso garante que o vídeo final no Sora 2 não seja apenas um "mockup", mas uma direção de arte cinematográfica de alto nível com comportamento físico realista.
+Toda vez que o usuário clica em "Gerar Comercial", o `gemini-3.1-pro-preview` é forçado a preencher um formulário determinístico com 12 seções (Output, Environment, Subject, Camera, Lighting, etc.) para cada uma das 3 cenas. Isso garante que o vídeo final gerado no Sora 2 tenha consistência física, temporal e visual absolutas.
 
 ## 3. Variáveis de Ambiente Necessárias
 Para rodar este projeto em qualquer servidor (Vercel, Netlify, AWS), você precisará configurar a seguinte variável de ambiente:
