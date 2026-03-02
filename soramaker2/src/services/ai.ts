@@ -14,7 +14,7 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
     const mimeTypeMatch = base64.match(/^data:(image\/[a-zA-Z+]+);base64,/);
     const mimeType = mimeTypeMatch ? mimeTypeMatch[1] : 'image/jpeg';
     const data = base64.replace(/^data:image\/[a-zA-Z+]+;base64,/, '');
-    
+
     return {
       inlineData: {
         data,
@@ -28,7 +28,7 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
     contents: {
       parts: [
         ...parts,
-        { text: "Analise estas imagens de produto em detalhes extremos. Retorne um JSON estruturado. IMPORTANTE: O 'productType' e os cenários DEVEM estar em Português do Brasil (PT-BR). Forneça duas listas de cenários: 1) 'suggestedSceneriesProductOnly': 3 a 4 cenários de estúdio, minimalistas, 3D ou fundos infinitos focados 100% no produto. 2) 'suggestedSceneriesLifestyle': 3 a 4 cenários cinematográficos e reais onde o produto estaria inserido ou sendo usado. REGRA CRÍTICA: Se você usar qualquer termo técnico de cinema, fotografia ou arte (ex: bokeh, lente anamórfica, macro, profundidade de campo, etc) nos cenários, você DEVE explicar brevemente o que significa entre parênteses para que um usuário leigo entenda. A 'description' interna pode ser em inglês para manter a precisão técnica para os próximos passos." }
+        { text: "Analise estas imagens de produto em detalhes físicos extremos para construção de gêmeos digitais. Retorne um JSON estruturado. IMPORTANTE: O 'productType' e os cenários DEVEM estar em Português do Brasil (PT-BR). FOCO VISUAL: Identifique texturas exatas (matte, gloss, granulado), materiais (polímero, couro, tecido linen), e cores com nomes descritivos e seus códigos HEX. Extraia traços de 'micro-física' (como o material se comporta: se comprime, se é rígido, se reflete luz). Forneça duas listas de cenários: 1) 'suggestedSceneriesProductOnly': 3 a 4 cenários de estúdio, minimalistas, 3D ou fundos infinitos focados 100% no produto. 2) 'suggestedSceneriesLifestyle': 3 a 4 cenários cinematográficos e reais onde o produto estaria inserido ou sendo usado. A 'description' interna deve ser em inglês técnico detalhando a física e visual do produto." }
       ]
     },
     config: {
@@ -36,8 +36,8 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
       responseSchema: {
         type: Type.OBJECT,
         properties: {
-          description: { type: Type.STRING, description: "Highly precise description of the product's shape, color, texture, materials, branding, text, and unique visual features." },
-          productType: { type: Type.STRING, description: "A short category name (e.g., 'Sneakers', 'Skincare Bottle', 'Electronics')." },
+          description: { type: Type.STRING, description: "Highly precise technical and visual description of the product's shape, color (with HEX), texture, materials physics (micro-physics), and branding." },
+          productType: { type: Type.STRING, description: "A short category name (e.g., 'Sneakers', 'Skincare Bottle', 'Electronics') in PT-BR." },
           suggestedSceneriesProductOnly: {
             type: Type.ARRAY,
             items: { type: Type.STRING },
@@ -65,132 +65,99 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
 export async function generatePrompts(productDescription: string, options: any, previousPrompts?: string[]): Promise<string[]> {
   const apiKey = import.meta.env?.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
   const ai = new GoogleGenAI({ apiKey });
-  
+
   const sora2MasterSkeleton = `
-SORA 2 – MAXIMUM CONTROL PROMPT ENGINEERING MASTER SKELETON
-Ultra-Structured Deterministic Video Generation Blueprint Version:
-Extreme Control Specification
+SORA 2 – VISUAL NARRATIVE & PHYSICS DIRECTOR BLUEPRINT
+Deterministic Video Generation Specification [v2.0 - Hyper-Realism Priority]
 
 =====================================================================
-GLOBAL GENERATION DIRECTIVE
+1. KINETIC FOUNDATION (PRIMARY PRIORITY: MOVEMENT)
 =====================================================================
-This specification must be interpreted strictly and literally. Do not infer missing elements. Do not creatively reinterpret constraints. If information is not explicitly stated, do not fabricate it. Prioritize physical realism and spatial consistency over artistic creativity.
+CAMERA_MOTION: [Describe the complex camera path: orbit, dolly, crane, tracking, or handheld. Define speed & stabilization.]
+PRIMARY_ACTION: [What is the main movement in the scene? Focus on the fluidity and speed of the subject or environment.]
+MICRO_PHYSICS: [MATERIAL INTERACTION: Describe subtle surface reactions—compression of footbed, fabric swaying, liquid surface tension, or micro-vibrations reacting to motion.]
 
-===================================================================== 1. OUTPUT CONFIGURATION (HIGHEST PRIORITY)
 =====================================================================
-VIDEO_OUTPUT: - Aspect Ratio: [INSERT] - Strict Aspect Enforcement: yes - Resolution: 4K - Frame Rate: 60fps - Duration (seconds): 10 - Bitrate target: Maximum - Compression style: Lossless - HDR: yes - Color space: Rec.2020 - Safe margin enforcement: yes - No automatic reframing: yes - No auto zoom: yes - No auto crop: yes
+2. SUBJECT VISUAL ANATOMY (SUBJECT CONTINUITY)
+=====================================================================
+VISUAL_IDENTITY: [IDENTICAL MATCH: ${productDescription}. Describe shape, silhouette, and branding.]
+MATERIAL_SURFACE: [Describe specific textures: matte, brushed metal, pebbled leather, translucent glass. Mention weight perception.]
+COLOR_SYSTEM: [MUST PAIR VERBAL + HEX: e.g., "Deep Emerald Green #047857". Ensure high contrast or specific palette matching.]
 
-===================================================================== 2. SCENE PHYSICAL FOUNDATION
 =====================================================================
-ENVIRONMENT_CORE: - Environment type: [INSERT] - Geographic location: [INSERT] - Climate zone: [INSERT] - Terrain type: [INSERT] - Surface materials: [INSERT] - Structural elements: [INSERT] - Background depth layers: [INSERT] - Foreground elements: [INSERT] - Atmospheric density: [INSERT] - Air particles (dust/fog/smoke): [INSERT] - Wind speed: [INSERT] - Humidity level: [INSERT] - Temperature context: [INSERT] - Water presence: [INSERT] - Reflection surfaces: [INSERT]
-COLOR_ENVIRONMENT: - Dominant color family: [INSERT] - Secondary colors: [INSERT] - Natural vs artificial balance: [INSERT] - Saturation baseline: [INSERT]
+3. LIGHTING & VOLUMETRIC DESIGN
+=====================================================================
+LIGHT_ARCHITECT: [Source, Direction, Elevation. Focus on Volumetric Light, God-rays, or Neon Glow. Describe how light hits the textures.]
+REFLECTIONS_GLARE: [Ray-tracing accuracy: how light bounces off the subject's materials.]
 
-===================================================================== 3. SUBJECT ARCHITECTURE
 =====================================================================
-PRIMARY_SUBJECT: - Entity type: Product - Quantity: 1 - Species: N/A - Gender: [INSERT IF LIFESTYLE, ELSE N/A] - Age range: [INSERT IF LIFESTYLE, ELSE N/A] - Body type: [INSERT IF LIFESTYLE, ELSE N/A] - Height: [INSERT IF LIFESTYLE, ELSE N/A] - Skin tone: [INSERT IF LIFESTYLE, ELSE N/A] - Clothing description: [INSERT IF LIFESTYLE, ELSE N/A] - Clothing material physics: [INSERT IF LIFESTYLE, ELSE N/A] - Accessories: [INSERT IF LIFESTYLE, ELSE N/A] - Facial hair: [INSERT IF LIFESTYLE, ELSE N/A] - Hairstyle: [INSERT IF LIFESTYLE, ELSE N/A] - Emotional state: [INSERT IF LIFESTYLE, ELSE N/A] - Pose: [INSERT] - Orientation relative to camera: [INSERT] - Must remain visible entire duration: yes - Occlusion tolerance level: Zero
-CRITICAL IDENTITY LOCK: - Non-negotiable visual traits: [INSERT EXACT PRODUCT DESCRIPTION] - Identity continuity enforcement: Absolute
+4. ATMOSPHERIC ENVIRONMENT
+=====================================================================
+SCENE_SETTING: [Environment type, depth layers, air particles (dust/mist/bokeh), and peripheral elements.]
+SPATIAL_CONSISTENCY: [Anchor the product physically in the space. No floating unless specified.]
 
-===================================================================== 4. OBJECT & PROP SYSTEM
 =====================================================================
-ACTIVE_OBJECTS: - Object name: The Product - Material: [INSERT] - Weight realism: High - Surface texture: [INSERT] - Reflectivity: [INSERT] - Damage state: Pristine - Interaction rules: [INSERT]
-STATIC_OBJECTS: - Placement: [INSERT] - Anchoring physics: [INSERT] - Stability enforcement: Absolute
+5. OPTICAL SPECIFICATIONS
+=====================================================================
+LENS_SYSTEM: [Specific Lens (e.g., 35mm Anamorphic, 100mm Macro). Aperture (f/1.8). Depth of field intensity.]
+IMAGE_PROPERTIES: [Rec.2020 Color, Film Grain, Noise Control, High Sharpness. NO CGI artifacts.]
 
-===================================================================== 5. ACTION & TEMPORAL LOGIC
 =====================================================================
-ACTION_FLOW: - Initial state: [INSERT] - Trigger event: [INSERT] - Primary motion: [INSERT] - Secondary motion: [INSERT] - End state: [INSERT] - Motion speed scale: Real-time - Acceleration realism: High - Friction realism: High - Gravity consistency: Earth-normal - No teleportation: yes - No morphing: yes - No time jumps: yes - Continuous motion enforcement: yes
-
-===================================================================== 6. CAMERA SYSTEM ENGINEERING
+6. TEMPORAL & NEGATIVE CONSTRAINTS
 =====================================================================
-CAMERA_POSITIONING: - Relative position to subject: [INSERT] - Height: [INSERT] - Distance: [INSERT] - Horizontal angle: [INSERT] - Vertical tilt: [INSERT] - Tracking anchor point: [INSERT]
-OPTICS: - Lens equivalent: [INSERT] - Aperture simulation: [INSERT] - Depth of field intensity: [INSERT] - Focus target: The Product - Rack focus allowed: no
-MOVEMENT_PROFILE: - Movement type: [INSERT] - Speed: [INSERT] - Stabilization: Gimbal-smooth - Handheld shake intensity: Zero - Motion blur level: Cinematic - No sudden perspective warping: yes - No digital zoom artifacts: yes
-
-===================================================================== 7. LIGHTING PHYSICS MODEL
-=====================================================================
-LIGHT_SOURCE: - Natural or artificial: [INSERT] - Direction: [INSERT] - Elevation angle: [INSERT] - Intensity: [INSERT] - Color temperature: [INSERT] - Shadow softness: [INSERT] - Bounce light level: [INSERT] - Volumetric presence: [INSERT] - Reflection accuracy: High - Exposure protection: yes - No highlight clipping: yes - No crushed blacks: yes
-
-===================================================================== 8. AUDIO ENGINEERING
-=====================================================================
-DIALOGUE: - Present: [INSERT YES/NO BASED ON OPTIONS] - Language: [INSERT LANGUAGE] - Number of speakers: [INSERT] - Tone: [INSERT] - Volume: [INSERT] - Emotional intensity: [INSERT] - Lip-sync strictness: High - Accent specification: [INSERT] - No subtitles unless specified: yes
-AMBIENCE: - Environmental sounds: [INSERT] - Distance realism: High - Echo/reverb profile: [INSERT]
-SOUND_EFFECTS: - Object interaction sounds: [INSERT] - Movement sounds: [INSERT] - Environmental physics consistency: High
-MUSIC: - Present: yes - Genre: [INSERT] - Tempo: [INSERT] - Diegetic/non-diegetic: Non-diegetic - Volume relative to dialogue: Background
-SILENCE ENFORCEMENT: no
-
-===================================================================== 9. STYLE CONTROL SYSTEM
-=====================================================================
-VISUAL_REALISM_LEVEL: - [INSERT STYLE OPTION]
-COLOR_GRADING: - Contrast level: [INSERT] - Saturation level: [INSERT] - LUT inspiration: [INSERT] - Era reference: Modern
-TEXTURE_PROCESSING: - Film grain: [INSERT] - Noise control: High - Digital sharpness: High - No CGI aesthetic: yes - No cartoon stylization: yes - No artificial smooth skin: yes
-
-===================================================================== 10. TEMPORAL CONSISTENCY LOCK
-=====================================================================
-CONTINUITY_RULES: - No duplicated subjects: yes - No limb duplication: yes - No object mutation: yes - Lighting consistency across frames: yes - Weather consistency: yes - Motion continuity: yes - Frame stability: yes - No flickering: yes
-
-===================================================================== 11. NEGATIVE HARD CONSTRAINTS
-=====================================================================
-FORBIDDEN_ELEMENTS: - No text overlays (unless explicitly required) - No subtitles (unless explicitly required) - No logos (other than product) - No watermarks - No distorted anatomy - No warped geometry - No random inserted objects - No stylistic shifts mid-video - No physics violations - No AI artifacts
-
-===================================================================== 12. FINAL EXECUTION DIRECTIVE
-=====================================================================
-- Obey structural hierarchy strictly.
-- Do not add elements not specified.
-- Maintain spatial coherence.
-- Maintain physical plausibility.
-- Preserve identity continuity.
-- Respect strict framing.
-- Prioritize realism over interpretation.
-END OF MASTER SPECIFICATION
-  `;
+CONTINUITY_LOCK: [Absolute product persistence. No morphing, no teleportation, no distorted geometry. Earth-normal gravity.]
+FORBIDDEN: [No text overlays, no watermarks, no CGI aesthetic, no unrealistic transformations.]
+`;
 
   let taskDescription = `
     Task: Create a cohesive 3-part commercial video sequence for OpenAI's Sora 2. 
-    The goal is to generate 3 different prompts (10 seconds each) that can be stitched together into a seamless 30-second commercial without feeling repetitive.
+    The goal is to generate 3 different prompts (10 seconds each) that can be stitched together into a seamless 30-second commercial.
     
     Structure the 3 prompts as follows:
-    1. [The Hook / Establishing Shot]: Wide or medium-wide shot. Introduce the environment, the atmosphere, and reveal the product in a cinematic way.
-    2. [The Action / Feature]: Medium or tracking shot. Show the product in action, being used (if lifestyle), or dynamic movement around the product (if product only).
-    3. [The Climax / Macro]: Extreme close-up or macro shot. Focus on the texture, materials, branding, and fine details with dramatic lighting.
+    1. [The Hook / Establishing Shot]: Wide or medium-wide shot. Introduce the atmosphere and reveal the product.
+    2. [The Action / Feature]: Medium or tracking shot. Show the product's motion or the user's interaction (lifestyle).
+    3. [The Climax / Detail]: Extreme close-up or macro shot. Focus on texture, micro-physics, and branding.
   `;
 
   if (previousPrompts && previousPrompts.length > 0) {
     taskDescription = `
     Task: CONTINUE the commercial video sequence for OpenAI's Sora 2.
     Here are the previous scenes already generated:
-    ${previousPrompts.map((p, i) => `Scene ${i+1}: ${p}`).join('\n')}
+    ${previousPrompts.map((p, i) => `Scene ${i + 1}: ${p}`).join('\n')}
 
-    Generate the NEXT 3 scenes to seamlessly follow the story.
-    Structure the 3 NEW prompts as follows:
-    1. [Alternative Angle / Reaction]: Show a different perspective or how the environment/actor reacts to the product.
-    2. [Dynamic B-Roll]: Fast-paced or highly stylized transition shot highlighting a secondary feature.
-    3. [Final Outro / Call to Action]: A majestic final shot slowly zooming out, leaving space for a logo or text.
+    Generate the NEXT 3 scenes following the previously established narrative to maintain continuity.
+    
+    Structure:
+    1. [Alternative Angle]: Different perspective or environmental reaction.
+    2. [Dynamic Transition]: Fast-paced stylized shot.
+    3. [Majestic Outro]: Final shot with space for branding.
     `;
   }
 
   const promptContext = `
-    Product Description: ${productDescription}
+    Product Analysis: ${productDescription}
     
-    Video Style Options:
+    User Selection:
     - Aspect Ratio: ${options.aspectRatio}
-    - Mode: ${options.mode === 'lifestyle' ? 'Lifestyle (Someone using the product)' : 'Product Only'}
-    ${options.mode === 'lifestyle' ? `
-    - Actor Gender: ${options.gender}
-    - Actor Skin Tone: ${options.skinTone}
-    - Actor Hair Color: ${options.hairColor}
-    ` : ''}
-    - Time of Day/Lighting: ${options.timeOfDay}
-    - Environment/Setting: ${options.environment}
-    - Cinematography Style: ${options.style}
-    ${options.supportingDescription ? `- Additional Context/User Request: ${options.supportingDescription}` : ''}
+    - Mode: ${options.mode === 'lifestyle' ? 'Lifestyle' : 'Product Only'}
+    - Lighting: ${options.timeOfDay}
+    - Environment: ${options.environment}
+    - Style: ${options.style}
+    ${options.supportingDescription ? `- Additional Context: ${options.supportingDescription}` : ''}
     
     ${taskDescription}
 
-    CRITICAL INSTRUCTION: For EACH of the 3 generated scenes, you MUST output the prompt using EXACTLY the following "SORA 2 MASTER SKELETON" format. Fill in every single [INSERT] field with highly specific, deterministic, and physically plausible details based on the product description and chosen options. Do not omit any section. The output for each scene must be the full skeleton text.
+    CRITICAL ENGINEERING RULES FOR SORA 2:
+    1. VISUAL OVER CONCEPTUAL: Never use conceptual words like "comfortable" or "safe". Translate them: "comfortable" -> "soft compression of the sole", "safe" -> "deep ridge texture for maximum grip".
+    2. MOTION FIRST: Start with the camera and subject movement description.
+    3. REINFORCE COLORS: Always pair color names with HEX codes (e.g., "Matte Black #000000").
+    4. MICRO-PHYSICS: Describe how materials react to weight, touch, or movement (wrinkling, stretching, compressing).
+    5. HIERARCHY: Fill out the SORA 2 VISUAL NARRATIVE & PHYSICS DIRECTOR BLUEPRINT for each scene.
 
-    SKELETON TEMPLATE TO FILL OUT FOR EACH SCENE:
+    SKELETON TEMPLATE:
     ${sora2MasterSkeleton}
 
-    CRITICAL RULE: The final generated prompts MUST be entirely in ENGLISH, as Sora 2 understands English best. Do not output the prompts in Portuguese.
+    FINAL OUTPUT: Return a JSON array of 3 strings (the filled skeletons) in English.
   `;
 
   const response = await ai.models.generateContent({
@@ -202,7 +169,7 @@ END OF MASTER SPECIFICATION
         type: Type.ARRAY,
         items: {
           type: Type.STRING,
-          description: "A detailed Sora 2 video generation prompt."
+          description: "A detailed Sora 2 visual narrative director's blueprint."
         }
       }
     }
@@ -216,52 +183,46 @@ END OF MASTER SPECIFICATION
   }
 }
 
-export async function generateMockup(productDescription: string, options: any, promptIndex: number): Promise<string | null> {
-    const apiKey = import.meta.env?.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
-    const ai = new GoogleGenAI({ apiKey });
-    const sequenceTypes = [
-      "Wide Establishing Shot, showing the environment and introducing the product.",
-      "Medium Action Shot, showing the product in use or dynamic display.",
-      "Extreme Close-up Macro Shot, focusing on textures, materials, and branding.",
-      "Alternative Angle or Reaction Shot, showing a different perspective.",
-      "Dynamic B-Roll Shot, highly stylized.",
-      "Final Outro Shot, majestic and leaving space for a logo.",
-      "Extra Scene 1",
-      "Extra Scene 2",
-      "Extra Scene 3"
-    ];
-    
-    const imagePrompt = `A professional product photography concept sheet showing MULTIPLE ANGLES of the exact same product in a single image.
-    Layout: A split-screen or grid collage showing front view, side view, and detail macro shots.
-    Product: ${productDescription}. CRITICAL: Maintain strict consistency with this product description. The shape, color, and branding MUST be identical across all angles.
-    Scene Focus: ${sequenceTypes[promptIndex] || "Dynamic Shot"}
+export async function generateMockup(productDescription: string, options: any, promptIndex: number, fullDirectorBlueprint?: string): Promise<string | null> {
+  const apiKey = import.meta.env?.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+  const ai = new GoogleGenAI({ apiKey });
+
+  // Extract the specific vision for this mockup
+  const directorVision = fullDirectorBlueprint ? `
+    Visual Direction from Studio:
+    ${fullDirectorBlueprint}
+    ` : '';
+
+  const imagePrompt = `A professional product photography concept sheet for a premium commercial.
+    Layout: A cinematic 1K commercial still. Focus on high-end production value.
+    Product: ${productDescription}. 
+    ${directorVision}
+    CRITICAL: Maintain absolute physical and color consistency. The material textures (micro-physics) must be visible.
     Setting: ${options.environment}, ${options.timeOfDay}.
-    ${options.mode === 'lifestyle' ? `Featuring a ${options.skinTone} skinned ${options.gender} with ${options.hairColor} hair interacting with the product.` : 'The product is the sole focus.'}
-    ${options.supportingDescription ? `Additional Context: ${options.supportingDescription}.` : ''}
-    Style: ${options.style}. Ultra-realistic, raw photography, 8k resolution, sharp focus, highly detailed, shot on 35mm lens, photorealistic commercial photography. NO AI artifacts, highly realistic textures.`;
+    Style: ${options.style}. Ultra-realistic, raw photography, 8k resolution, sharp focus, shot on professional lenses, photorealistic commercial photography. NO AI artifacts, strictly realistic material physics.`;
 
-    try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-3.1-flash-image-preview',
-            contents: {
-                parts: [{ text: imagePrompt }]
-            },
-            config: {
-                // @ts-ignore
-                imageConfig: {
-                    aspectRatio: "1:1",
-                    imageSize: "1K"
-                }
-            }
-        });
-
-        for (const part of response.candidates?.[0]?.content?.parts || []) {
-            if (part.inlineData) {
-                return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-            }
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.1-flash-image-preview',
+      contents: {
+        parts: [{ text: imagePrompt }]
+      },
+      config: {
+        // @ts-ignore
+        imageConfig: {
+          aspectRatio: options.aspectRatio === '9:16' ? "9:16" : "16:9",
+          imageSize: "1K"
         }
-    } catch (e) {
-        console.error("Failed to generate mockup", e);
+      }
+    });
+
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+      if (part.inlineData) {
+        return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+      }
     }
-    return null;
+  } catch (e) {
+    console.error("Failed to generate mockup", e);
+  }
+  return null;
 }
