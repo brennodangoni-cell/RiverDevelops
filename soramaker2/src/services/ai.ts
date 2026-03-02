@@ -28,7 +28,7 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
     contents: {
       parts: [
         ...parts,
-        { text: "Analyze these product images with EXTREME precision for a SORA 2 digital twin. RETURN a JSON with: 1. 'description' (ENGLISH, detailed): Exact physical traits, colors + HEX, branding. 2. 'productType' (PT-BR). 3. 'suggestedSceneriesProductOnly' (PT-BR): 4 scenarios (2 realistic, 2 ABSTRACT/SURREAL). 4. 'suggestedSceneriesLifestyle' (PT-BR): 4 scenarios (2 realistic, 2 DREAMLIKE/SURREAL)." }
+        { text: "Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. 'description' (ENGLISH, detailed). 2. 'productType' (PT-BR). 3. 'suggestedSceneriesProductOnly' (PT-BR): 4 scenarios (2 realistic, 2 HIGH-FASHION/AVANT-GARDE). 4. 'suggestedSceneriesLifestyle' (PT-BR): 4 scenarios (2 realistic, 2 CINEMATIC/LUXURY DREAMLIKE). MANDATE: Avoid childish/ludic metaphors (no marshmallows, candy, or fairytales). Use premium aesthetic references (luxury fashion, liquid metal, volumetric lighting)." }
       ]
     },
     config: {
@@ -71,7 +71,9 @@ SORA 2 MASTER SKELETON (HIERARCHICAL PRIORITY):
 
 DIRECTIVES:
 - NO CONCEPTUAL TERMS: Never use words like "comfortable" or "premium". Use visual proofs: "The material deforms 2mm under pressure" (Visual-First).
-- PHYSICS ANNIHILATION (SURREALISM): If the user requests walking on clouds, fire, or space, EXECUTE LITERALLY. Forbid adding "platforms", "glass floors", or "roads". The feet MUST interact DIRECTLY with the impossible medium (e.g. sinking slightly into the volumetric vapor of a cloud).
+- PHYSICS ANNIHILATION (SURREALISM): If the user requests walking on clouds, fire, or space, EXECUTE LITERALLY. Forbid adding "platforms", "glass floors", or "roads". The feet MUST interact DIRECTLY with the impossible medium.
+- HIGH-END AESTHETIC: All surrealism must be PRESTIGIOUS and PREMIUM. Think Haute Couture, Luxury Perfume Ads (Dior, Chanel), or Apple-style minimalism. 
+- FORBIDDEN: NEVER use 'childish' or 'ludic' elements like candy, marshmallows, or toys.
 - NO RATIONALIZATION: Stop trying to make it "plausible". Zero logic, maximum visual impact.
 - RIGIDITY: The product must never distort/melt unless explicitly asked.
 - FORMAT: Single flowing paragraph of cinematic English.

@@ -185,7 +185,7 @@ ${marketingContext}
 MANDATE: ALL Suggested Sceneries (Lifestyle & Product-Only) MUST directly serve the marketing goals, target audience, and benefits described above. No generic suggestions allowed.
 ` : ''}
 
-Analyze these product images with EXTREME precision for a SORA 2 digital twin. RETURN a JSON with: 1. 'description' (ENGLISH, detailed): Exact physical traits, textures, colors + HEX, branding. 2. 'productType' (PT-BR). 3. 'suggestedSceneriesProductOnly' (PT-BR): 4 scenarios (2 commercial-realistic, 2 ABSTRACT/SURREAL/KINETIC). 4. 'suggestedSceneriesLifestyle' (PT-BR): 4 scenarios (2 realistic-lifestyle, 2 DREAMLIKE/IMPOSSIBLE/SURREAL).
+Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. 'description' (ENGLISH, detailed). 2. 'productType' (PT-BR). 3. 'suggestedSceneriesProductOnly' (PT-BR): 4 scenarios (2 realistic, 2 HIGH-FASHION/AVANT-GARDE SURREALISM). 4. 'suggestedSceneriesLifestyle' (PT-BR): 4 scenarios (2 realistic, 2 CINEMATIC DREAMLIKE/LUXURY SURREALISM). MANDATE: Avoid childish, toy-like, or 'ludic' metaphors. No marshmallows, no candy, no fairytales. Use HIGH-END aesthetic references (e.g. perfume commercials, luxury fashion, liquid metal, volumetric light).
 
 1. "description" (ENGLISH, ultra-detailed):
     - Exact physical traits: shape, silhouette, weight distribution
@@ -417,8 +417,10 @@ SORA 2 MASTER SKELETON (HIERARCHICAL PRIORITY):
 
 DIRECTIVES:
 - NO CONCEPTUAL TERMS: Never use words like "comfortable" or "premium". Use visual proofs: "The material deforms 2mm under pressure" (Visual-First).
-- PHYSICS ANNIHILATION (SURREALISM): If the user requests walking on clouds, fire, or space, EXECUTE LITERALLY. Forbid adding "platforms", "glass floors", or "roads". The feet MUST interact DIRECTLY with the impossible medium (e.g. sinking slightly into the volumetric vapor of a cloud).
-- NO RATIONALIZATION: Stop trying to make it "plausible". If it's a dream, let it be a dream. Zero logic, maximum visual impact.
+- PHYSICS ANNIHILATION (SURREALISM): If the user requests walking on clouds, fire, or space, EXECUTE LITERALLY. Forbid adding "platforms", "glass floors", or "roads". The feet MUST interact DIRECTLY with the impossible medium.
+- HIGH-END AESTHETIC: All surrealism must be PRESTIGIOUS and PREMIUM. Think Haute Couture, Luxury Perfume Ads (Dior, Chanel), or Apple-style minimalism. 
+- FORBIDDEN: NEVER use 'childish' or 'ludic' elements like candy, marshmallows, toys, or fairytales unless explicitly asked. Surrealism should feel sophisticated and avant-garde, not silly.
+- NO RATIONALIZATION: Stop trying to make it "plausible". Zero logic, maximum visual impact.
 - RIGIDITY: The product must never distort/melt unless explicitly asked.
 - FORMAT: Single flowing paragraph of cinematic English.
     `;
