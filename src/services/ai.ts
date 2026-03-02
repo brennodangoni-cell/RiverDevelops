@@ -185,40 +185,29 @@ ${marketingContext}
 MANDATE: ALL Suggested Sceneries (Lifestyle & Product-Only) MUST directly serve the marketing goals, target audience, and benefits described above. No generic suggestions allowed.
 ` : ''}
 
-You are also a WORLD-CLASS product photographer and visual analyst. Analyze these product images with EXTREME precision.
+You are also a WORLD-CLASS product photographer and visual analyst. Analyze these product images with EXTREME precision for a SORA 2 digital twin.
 
 RETURN a JSON with the following fields:
 
 1. "description" (ENGLISH, ultra-detailed):
-   - Exact shape, silhouette, and form factor
-   - Exact colors (use hex codes when possible)
-   - Materials and textures (matte, glossy, rubber, leather, fabric, etc.)
-   - All visible text, logos, brand names, and their exact placement
-   - QUANTITY: How many items make up this product? (e.g., flip-flops/sandals/shoes = PAIR of 2, earrings = PAIR of 2, a single bottle = 1, a kit = specify count). ALWAYS mention the correct quantity.
-   - How the product is typically displayed/sold (e.g., "always shown as a pair", "comes in a box", "single unit")
-   - Size relative to common objects if discernible
-   - Any unique visual details that differentiate this exact product from similar ones
+    - Exact physical traits: shape, silhouette, weight distribution
+    - MICRO-PHYSICS: How the materials react to touch and pressure (e.g., "memory foam compression", "rigid plastic", "liquid viscosity")
+    - Textures & Finishes: (matte, glossy, brushed, rubberized, porous)
+    - Colors: Verbal description + precise HEX codes (e.g., "Emerald Green #50C878")
+    - QUANTITY: Exactly how many items (pair/set/single)?
+    - Branding: Exact placement and legibility of all logos/text.
 
 2. "productType" (PORTUGUESE): Short category name
 
-3. "suggestedSceneriesProductOnly" (PORTUGUESE): 4 REAL COMMERCIAL VIDEO SCENARIOS for product-only shots. Each must describe:
-   - The ENVIRONMENT (where)
-   - The ACTION/MOVEMENT (what happens in the scene)
-   - The EMOTION/MOOD (what feeling it evokes)
-   - Example: "Plataforma giratória em estúdio escuro com iluminação rim light — câmera orbita lentamente revelando cada detalhe do produto. Mood: premium e misterioso."
-   DO NOT just list locations. Describe FULL SCENES that would work as TV commercials or social media ads.
+3. "suggestedSceneriesProductOnly" (PORTUGUESE): 4 REAL COMMERCIAL VIDEO SCENARIOS for product-only shots. Focus on cinematic movement and lighting.
 
-4. "suggestedSceneriesLifestyle" (PORTUGUESE): 4 REAL COMMERCIAL VIDEO SCENARIOS with people using the product. Each must describe:
-   - WHO is using/wearing the product and HOW
-   - WHERE the action takes place
-   - WHAT HAPPENS in the scene (storytelling micro-narrative)
-   - Example: "Jovem caminhando na orla ao amanhecer, câmera foca nos pés calçando o chinelo enquanto pisa na areia molhada — mood aspiracional e livre."
+4. "suggestedSceneriesLifestyle" (PORTUGUESE): 4 REAL COMMERCIAL VIDEO SCENARIOS with people. Focus on physical interaction with the product.
 
-5. "colors" (ENGLISH): List of all unique colors/variations of the product seen in the provided images (e.g. ["Solid Black", "Ocean Blue", "Pure White"]). If only one color is present, return a single item.
+5. "colors" (ENGLISH): List of all unique colors/variations detected with HEX.
 
-6. "sellingPoints" (PORTUGUESE): List the TOP 3 Visual/Technical Selling Points that should be highlighted in a commercial (e.g., "Sola anatômica ultra-macia", "Logo em alto relevo", "Textura antiderrapante").
+6. "sellingPoints" (PORTUGUESE): TOP 3 technical/visual advantages.
 
-7. "dominantHexColors": List the 3 most important HEX CODES (e.g. ["#000000", "#FFFFFF"]) detected in the product images to ensure color perfect consistency across all scenes.` }
+7. "dominantHexColors": List the 3 most important HEX CODES detected.` }
             ]
         },
         config: {
@@ -417,29 +406,21 @@ export async function generatePrompts(
     }
 
     const promptStyle = `
-YOU ARE A WORLD-CLASS VIDEO DIRECTOR writing blueprints for OpenAI Sora 2.
+ACT AS AN ELITE AI VIDEO DIRECTOR & SORA 2 NARRATIVE ARCHITECT.
 
-CRITICAL DIRECTIVES FOR PHYSICAL INTEGRITY:
-1. **SURREALISM & CREATIVE FREEDOM**: Sora 2 is a "Dream Engine". If the user asks for impossible scenes (e.g. "walking on clouds", "stepping out of a portal"), DO NOT RATIONALIZE THEM. Do not use phrases like "sand that looks like clouds". Use LITERAL descriptions: "The foot steps directly onto a thick, fluffy white cumulus cloud that compresses like soft cotton under the weighted sandal."
-2. **STRUCTURAL RIGIDITY (PRODUCT ONLY)**: The **product itself** is a SOLID, NON-DEFORMABLE entity. It must stay perfectly shaped. The **world around it** can defy physics. Use "rigid body physics" only for the product model.
-3. **DYNAMIC MOTION (MANDATORY)**: No static shots. Every scene must have high-impact camera movement.
-4. **NO LABELS/TAGS**: Write each prompt as a SINGLE FLOWING PARAGRAPH of cinematic prose.
-5. **TECHNICAL PRECISION**: Use filmmaking terms: 35mm anamorphic, f/1.8, cinematic volumetric lighting.
-6. **ENGLISH ONLY**: High-level cinematic English.
+SORA 2 MASTER SKELETON (HIERARCHICAL PRIORITY):
+1. KINETIC FOUNDATION (Movement): Define the camera kit and action immediately. (e.g., 35mm Anamorphic, Fluid Orbit shot).
+2. SUBJECT VISUAL ANATOMY: Describe the product as a rigid, physically stable entity. Focus on textures and micro-details.
+3. MICRO-PHYSICS: Describe how materials interact (e.g., "soft compression of the sole under the model's weight").
+4. VOLUMETRIC LIGHTING: Use technical light descriptions (Rim light, God rays, Bokeh).
+5. COLORS: Reinforce colors with HEX CODES (e.g., "Midnight Black #1A1A1A").
+6. ATMOSPHERE & FX: Environmental particles, mist, or surreal elements.
 
-EXAMPLE OF SURREAL DYNAMIC OUTPUT:
-"A mind-bending 10-second surrealist tracking shot. A person wearing a charcoal-black sandal steps off a marble floating platform directly into the sky, their foot sinking softly into a literal, fluffy white cloud that glows with internal golden light. The sandal itself remains perfectly rigid and solid, maintaining its sharp geometric integrity as it displaces the ethereal cloud vapor. The camera dollies forward through the mist, capturing the silver 'RIDER' logo with a 35mm lens as the sun breaks through the horizon in a cinematic dreamscape. Volumetric light rays pierce the clouds, creating a divine atmosphere of weightless comfort. Fluid 10-second motion progression."
-
-${options.mode === 'lifestyle' ? `
-LIFESTYLE MASTER RULES:
-- MODEL: A ${options.gender} model interacts with the product PHYSICALLY.
-- CONSTRAINT: The product's shape must remain STABLE and RIGID when interacting with the model's ${options.skinTone} skin. No sinking or clipping.
-- ANCHOR: The product is the center of the visual universe.
-` : `
-STUDIO SCENERY RULES:
-- Focus on texture, gravity, and SOLID FORM.
-- High-end commercial aesthetics: perfect symmetry, controlled studio lighting, and microscopic detail.
-`}
+DIRECTIVES:
+- NO CONCEPTUAL TERMS: Never use words like "comfortable" or "premium". Use visual proofs: "The material deforms 2mm under pressure" (Visual-First).
+- SURREALISM: If the user requests impossible scenes, execute them LITERALLY (Dream Engine).
+- RIGIDITY: The product must never distort/melt unless explicitly asked.
+- FORMAT: Single flowing paragraph of cinematic English.
     `;
 
     const promptContext = `
@@ -497,17 +478,7 @@ export async function generateMockup(
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
 
     const ai = new GoogleGenAI({ apiKey });
-    const sequenceTypes = [
-        "Wide Establishing Shot, environment focus.",
-        "Medium Action Shot, product in use focus.",
-        "Extreme Close-up Macro Shot, texture focus.",
-        "Side Profile Shot, shape focus.",
-        "Top View Shot, interior/upper focus.",
-        "Low Angle Hero Shot, status focus.",
-        "Extra Scene 1",
-        "Extra Scene 2",
-        "Extra Scene 3"
-    ];
+
 
     const focusInstructions = [
         "Focus on the environment and how the product fits in. Show the whole object with logo/branding clearly visible.",
@@ -521,49 +492,22 @@ export async function generateMockup(
         "Product focus. Logo prominently displayed."
     ];
 
-    const imagePrompt = `TASK: Generate a PROFESSIONAL PRODUCT CONCEPT SHEET (Collage).
-GOAL: Create a single 16:9 image containing a HERO SHOT and MULTIPLE detail views.
+    const imagePrompt = `TASK: Generate a PROFESSIONAL COMMERCIAL STILL (1K RAW).
+GOAL: Create a hyper-realistic representation of the final Sora 2 video scene.
 
-[MARKETING & STRATEGY ALIGNMENT]
-${productDescription.includes('MARKETING CONTEXT:') ? `MANDATORY: Follow the target audience and benefits described in the context below. If it mentions a specific demographic (e.g. pregnant women), the model MUST reflect that exactly.` : ''}
+DIRECTOR'S BLUEPRINT (MANDATORY):
+"${promptText || productDescription}"
 
-CRITICAL — PRODUCT FIDELITY (CLONE MODE):
-- PHOTOGRAPHIC TEMPLATE: Use the ${productImages?.length || 0} attached photos. They are the 100% SOURCE OF TRUTH.
-- PIXEL-PERFECT CLONE: Every pixel of the product (shape, silhouette, branding, logos, materials, texture) MUST be an exact replica of the photos.
-- ZERO HALLUCINATION: Do not change colors, do not add fake logos, do not simplify the design. 
-- CONSISTENCY: Every view in this collage MUST show the same identical product.
+CRITICAL - VISUAL FIDELITY:
+- CLONE MODE: Use attached photos as the only source of truth for the product.
+- MICRO-PHYSICS: Reflect the material interactions described in the blueprint (compression, reflections).
+- COLOR CONSISTENCY: Follow HEX codes strictly.
+- BRANDING: Logos must be perfectly readable and identically placed.
 
-⚠️ LOGO & BRANDING FIDELITY — HIGHEST PRIORITY:
-- The product's LOGO/BRAND NAME must be CLEARLY VISIBLE and PERFECTLY READABLE in EVERY view.
-- Copy the EXACT logo from the reference photos: same font, same size, same position, same color, same orientation.
-- The logo must NEVER be blurry, distorted, partially hidden, or replaced with gibberish text.
-- If the reference shows text like "RIDER", "Nike", "adidas" etc., reproduce it LETTER BY LETTER.
-- In the HERO SHOT, the logo must be PROMINENTLY displayed — angle the product so the logo faces the camera.
-- In at least ONE detail view, include a CLOSE-UP of the logo/branding area.
-- DO NOT invent fake brand names or logos. Only reproduce what exists in the reference photos.
-
-QUANTITY RULE (CRITICAL):
-- The product is a ${productDescription.includes('pair') || productDescription.includes('shoes') || productDescription.includes('flip-flop') || productDescription.includes('sandal') ? 'PAIR (2 Items)' : 'SINGLE UNIT (1 Item)'}. 
-- HERO SHOT (Left) MUST show the product exactly as sold (e.g., BOTH items of a pair).
-- If it's a pair, do not show only one shoe/sandal.
-
-COLLAGE LAYOUT:
-- MAIN HERO SHOT (LEFT, 60%): The product in the requested environment. Logo clearly visible.
-- ANGLE VIEWS (RIGHT STACK, 40%): 3 technical detail views — one MUST be a close-up of the logo/branding.
-
-SHOT SPECIFIC FOCUS: ${promptText ? `TRANSFORM THIS SCRIPT INTO A HIGH-END REPRODUCTION: "${promptText}". If the text describes pain, show it in the model's face/posture. If it describes relief, show it. The product MUST be 100% rigid, faithful, and the logo must be sharp and legible in every view of this custom scene.` : (focusInstructions[promptIndex] || "Hero product focus")}
-
-LIFESTYLE EXECUTION (ANCHOR MODE):
-- TALENT: ${options.mode === 'lifestyle' ? `A ${options.gender} model (${options.hairColor} hair) is PHYSICALLY ${productDescription.includes('shoe') || productDescription.includes('flip-flop') || productDescription.includes('sandal') ? 'WEARING' : 'USING'} the product. 
-- ANCHOR RULE: The product is fixed. Draw the person *fitting* the product.
-- RIGIDITY: The product does not bend or distort based on the person's pose.
-- LOGO VISIBLE: Even in lifestyle shots, the product's branding/logo must be readable.` : 'Product only, no people. Hero composition. Logo prominently displayed.'}
-
-SCENE DATA:
-IDENTIFIER: ${productDescription}
-HERO SCENE: ${sequenceTypes[promptIndex] || "Action hero shot"}
-ENVIRONMENT: ${options.environment}, ${options.timeOfDay} lighting.
-STYLE: ${options.style}. High-end commercial photography, studio-quality, 8k textures.`;
+COMPOSITION:
+${focusInstructions[promptIndex] || "Hero composition."}
+Environment: ${options.environment}, Lighting: ${options.timeOfDay}.
+Style: ${options.style}, 8k textures, cinematic grade.`;
 
     // Build content parts: reference images (if available) + text prompt
     const contentParts: any[] = [];
