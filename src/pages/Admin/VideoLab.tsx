@@ -127,6 +127,7 @@ export default function VideoLab() {
     const [savedMockups, setSavedMockups] = useState<SavedMockup[]>([]);
     const [renderAllOnInit, setRenderAllOnInit] = useState(false);
     const [sceneryData, setSceneryData] = useState<SceneryAnalysis | null>(null);
+    const [loadingIndices, setLoadingIndices] = useState<number[]>([]);
     const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -328,26 +329,28 @@ export default function VideoLab() {
             clearInterval(progressTimer);
             setProgress(20);
             const newResults: Result[] = prompts.map(p => ({ prompt: p, mockupUrl: null }));
-            setResults([...newResults]);
+            setResults(newResults);
 
-            // Generate mockups in SEQUENTIAL-PARALLEL (Fix #3) with original images (Fix #1)
-            // ECONOMY MODE: If not renderAllOnInit, only render the FIRST one (index 0)
             const targets = renderAllOnInit ? prompts : prompts.slice(0, 1);
             setProgressText(`Renderizando ${targets.length} Mockup(s) com Fidelidade Pro...`);
 
-            const mockupPromises = targets.map(async (_, i) => {
-                // Delay each call by 1.5s to avoid rate limiting the Pro model
-                await new Promise(r => setTimeout(r, i * 1500));
-                return generateMockup(finalDescription, options, i, compressedImages, prompts[i])
+            // Render sequentially to show progress and avoid state corruption
+            for (let i = 0; i < targets.length; i++) {
+                const mockupUrl = await generateMockup(finalDescription, options, i, compressedImages, prompts[i])
                     .catch(e => { console.warn(`Mockup ${i + 1} failed:`, e); return null; });
-            });
-            const mockupResultsArr = await Promise.allSettled(mockupPromises);
-            mockupResultsArr.forEach((result, i) => {
-                if (result.status === 'fulfilled') {
-                    newResults[i].mockupUrl = result.value;
-                }
-            });
-            setResults([...newResults]);
+
+                setResults(prev => {
+                    const updated = [...prev];
+                    if (updated[i]) {
+                        updated[i] = { ...updated[i], mockupUrl };
+                    }
+                    return updated;
+                });
+
+                // Small delay to allow UI to breathe
+                if (i < targets.length - 1) await new Promise(r => setTimeout(r, 1000));
+            }
+
             setProgress(100);
             // Save results to session (Fix #9)
             try { sessionStorage.setItem('sora_results', JSON.stringify(newResults)); } catch (_) { }
@@ -380,22 +383,24 @@ export default function VideoLab() {
             const newResults: Result[] = newPrompts.map(p => ({ prompt: p, mockupUrl: null }));
             setResults(prev => [...prev, ...newResults]);
 
-            // Parallel mockups (Fix #3)
-            setProgressText(`Renderizando ${newPrompts.length} Mockups extras em paralelo...`);
-            const mockupPromises = newPrompts.map((_, i) =>
-                generateMockup(finalDescription, options, startIndex + i, compressedImages)
-                    .catch(e => { console.warn(`Mockup extra ${i + 1} failed:`, e); return null; })
-            );
-            const mockupResults = await Promise.allSettled(mockupPromises);
-            setResults(prev => {
-                const updated = [...prev];
-                mockupResults.forEach((result, i) => {
-                    if (result.status === 'fulfilled') {
-                        updated[startIndex + i].mockupUrl = result.value;
+            setProgressText(`Renderizando ${newPrompts.length} Mockups extras...`);
+
+            for (let i = 0; i < newPrompts.length; i++) {
+                const mockupUrl = await generateMockup(finalDescription, options, startIndex + i, compressedImages, newPrompts[i])
+                    .catch(e => { console.warn(`Mockup extra ${i + 1} failed:`, e); return null; });
+
+                setResults(prev => {
+                    const updated = [...prev];
+                    const targetIndex = startIndex + i;
+                    if (updated[targetIndex]) {
+                        updated[targetIndex] = { ...updated[targetIndex], mockupUrl };
                     }
+                    return updated;
                 });
-                return updated;
-            });
+
+                if (i < newPrompts.length - 1) await new Promise(r => setTimeout(r, 1000));
+            }
+
             setProgress(100);
         } catch (error: any) {
             showError(error);
@@ -406,11 +411,16 @@ export default function VideoLab() {
     };
 
     const handleRegenerateTake = async (index: number) => {
-        if (!analysis) return;
+        if (!analysis || loadingIndices.includes(index)) return;
+        setLoadingIndices(prev => [...prev, index]);
         const baseDescription = editableDescription || analysis.description;
-        const finalDescription = marketingContext.trim()
+        const hexInfo = analysis.dominantHexColors?.length ? `\nADOPT THESE EXACT HEX COLORS: ${analysis.dominantHexColors.join(', ')}` : '';
+        const hooksInfo = analysis.sellingPoints?.length ? `\nPONTOS DE VENDA A DESTACAR: ${analysis.sellingPoints.slice(0, 2).join(', ')}` : '';
+
+        const finalDescription = (marketingContext.trim()
             ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
-            : baseDescription;
+            : baseDescription) + hexInfo + hooksInfo;
+
         toast.promise(
             (async () => {
                 const newOptions = { ...options, supportingDescription: `Regenerate scene ${index + 1} with a completely different creative angle.` };
@@ -419,13 +429,13 @@ export default function VideoLab() {
                     results.slice(0, index).map(r => r.prompt)
                 );
                 const newPrompt = newPrompts[0];
-                const mockupUrl = await generateMockup(finalDescription, newOptions, index, compressedImages);
+                const mockupUrl = await generateMockup(finalDescription, newOptions, index, compressedImages, newPrompt);
                 setResults(prev => {
                     const updated = [...prev];
                     updated[index] = { prompt: newPrompt, mockupUrl };
                     return updated;
                 });
-            })(),
+            })().finally(() => setLoadingIndices(prev => prev.filter(i => i !== index))),
             {
                 loading: 'Regenerando take com nova perspectiva...',
                 success: 'Take atualizado com sucesso!',
@@ -435,27 +445,25 @@ export default function VideoLab() {
     };
 
     const handleMagicEnhance = async (index: number) => {
-        if (!analysis) return;
+        if (!analysis || loadingIndices.includes(index)) return;
         const currentDraft = results[index].prompt;
         if (!currentDraft.trim()) {
             toast.error('Escreva uma ideia curta primeiro para a Mágica funcionar!');
             return;
         }
 
+        setLoadingIndices(prev => [...prev, index]);
         const baseDescription = editableDescription || analysis.description;
-        const finalDescription = marketingContext.trim()
+        const hexInfo = analysis.dominantHexColors?.length ? `\nADOPT THESE EXACT HEX COLORS: ${analysis.dominantHexColors.join(', ')}` : '';
+        const hooksInfo = analysis.sellingPoints?.length ? `\nPONTOS DE VENDA A DESTACAR: ${analysis.sellingPoints.slice(0, 2).join(', ')}` : '';
+
+        const finalDescription = (marketingContext.trim()
             ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
-            : baseDescription;
+            : baseDescription) + hexInfo + hooksInfo;
 
         toast.promise(
             (async () => {
-                const newPrompts = await generatePrompts(
-                    finalDescription,
-                    options,
-                    results.slice(0, index).map(r => r.prompt),
-                    analysis.colors,
-                    currentDraft
-                );
+                const newPrompts = await generatePrompts(finalDescription, options, undefined, undefined, currentDraft);
                 const newPrompt = newPrompts[0];
                 const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, newPrompt);
                 setResults(prev => {
@@ -463,7 +471,7 @@ export default function VideoLab() {
                     updated[index] = { prompt: newPrompt, mockupUrl };
                     return updated;
                 });
-            })(),
+            })().finally(() => setLoadingIndices(prev => prev.filter(i => i !== index))),
             {
                 loading: 'Mágica de Cena: Criando Blueprint & Mockup...',
                 success: 'Cena aprimorada e renderizada!',
@@ -473,11 +481,15 @@ export default function VideoLab() {
     };
 
     const handleRegenerateMockup = async (index: number) => {
-        if (!analysis) return;
+        if (!analysis || loadingIndices.includes(index)) return;
+        setLoadingIndices(prev => [...prev, index]);
         const baseDescription = editableDescription || analysis.description;
-        const finalDescription = marketingContext.trim()
+        const hexInfo = analysis.dominantHexColors?.length ? `\nADOPT THESE EXACT HEX COLORS: ${analysis.dominantHexColors.join(', ')}` : '';
+        const hooksInfo = analysis.sellingPoints?.length ? `\nPONTOS DE VENDA A DESTACAR: ${analysis.sellingPoints.slice(0, 2).join(', ')}` : '';
+
+        const finalDescription = (marketingContext.trim()
             ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
-            : baseDescription;
+            : baseDescription) + hexInfo + hooksInfo;
 
         toast.promise(
             (async () => {
@@ -487,10 +499,10 @@ export default function VideoLab() {
                     updated[index] = { ...updated[index], mockupUrl };
                     return updated;
                 });
-            })(),
+            })().finally(() => setLoadingIndices(prev => prev.filter(i => i !== index))),
             {
-                loading: 'Renderizando novo mockup para este blueprint...',
-                success: 'Mockup atualizado!',
+                loading: 'Renderizando mockup com prompt atual...',
+                success: 'Mockup renderizado com sucesso!',
                 error: (e) => e instanceof AIError ? e.message : 'Erro ao renderizar mockup.',
             }
         );
@@ -531,12 +543,17 @@ export default function VideoLab() {
         toast.promise(
             (async () => {
                 for (const index of missingIndices) {
-                    const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, results[index].prompt);
-                    setResults(prev => {
-                        const updated = [...prev];
-                        updated[index] = { ...updated[index], mockupUrl };
-                        return updated;
-                    });
+                    setLoadingIndices(prev => [...prev, index]);
+                    try {
+                        const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, results[index].prompt);
+                        setResults(prev => {
+                            const updated = [...prev];
+                            updated[index] = { ...updated[index], mockupUrl };
+                            return updated;
+                        });
+                    } finally {
+                        setLoadingIndices(prev => prev.filter(i => i !== index));
+                    }
                     // Small delay between calls
                     await new Promise(r => setTimeout(r, 1000));
                 }
@@ -673,7 +690,7 @@ export default function VideoLab() {
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold tracking-tight text-white">River Sora Lab</h1>
-                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v13.3</span></p>
+                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v14.0</span></p>
                         </div>
                     </div>
                 </div>
@@ -1204,7 +1221,15 @@ export default function VideoLab() {
                                     <div key={i} className="bg-white/[0.02] border border-white/[0.05] backdrop-blur-3xl rounded-3xl overflow-hidden flex flex-col lg:flex-row shadow-2xl">
                                         {/* Image Section */}
                                         <div className="w-full lg:w-[480px] aspect-square lg:aspect-auto bg-black/50 border-b lg:border-r lg:border-b-0 border-white/5 relative group cursor-pointer" onClick={() => res.mockupUrl && setLightboxUrl(res.mockupUrl)}>
-                                            {res.mockupUrl ? (
+                                            {loadingIndices.includes(i) ? (
+                                                <div className="flex flex-col items-center justify-center h-full gap-5 text-cyan-500/50 p-12 text-center bg-cyan-950/10">
+                                                    <Loader2 className="w-10 h-10 animate-spin text-cyan-400" />
+                                                    <div className="space-y-1">
+                                                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-400">Rendering Scene...</span>
+                                                        <p className="text-[9px] text-zinc-600 uppercase tracking-tight font-medium">Fidelity Pro Alignment in progress</p>
+                                                    </div>
+                                                </div>
+                                            ) : res.mockupUrl ? (
                                                 <>
                                                     <img src={res.mockupUrl} className="w-full h-full object-cover" alt="Result" />
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
@@ -1231,7 +1256,8 @@ export default function VideoLab() {
                                                     </div>
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); handleRegenerateMockup(i); }}
-                                                        className="px-6 py-2.5 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(8,145,178,0.1)] hover:shadow-[0_0_30px_rgba(8,145,178,0.2)]"
+                                                        disabled={loadingIndices.includes(i)}
+                                                        className="px-6 py-2.5 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(8,145,178,0.1)] hover:shadow-[0_0_30px_rgba(8,145,178,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
                                                         Renderizar Mockup
                                                     </button>
@@ -1279,17 +1305,28 @@ export default function VideoLab() {
                                                 <div className="ml-auto flex items-center gap-3">
                                                     <button
                                                         onClick={() => handleMagicEnhance(i)}
-                                                        className="h-9 px-4 flex items-center justify-center bg-cyan-500 hover:bg-cyan-400 text-black rounded-full transition-all gap-2 shadow-lg shadow-cyan-900/10"
+                                                        disabled={loadingIndices.includes(i)}
+                                                        className="h-9 px-4 flex items-center justify-center bg-cyan-500 hover:bg-cyan-400 text-black rounded-full transition-all gap-2 shadow-lg shadow-cyan-900/10 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
                                                         title="Mágica: Transformar rascunho em Blueprint Pro + Mockup"
                                                     >
-                                                        <Wand2 className="w-3.5 h-3.5" />
+                                                        <Wand2 className={`w-3.5 h-3.5 ${loadingIndices.includes(i) ? 'animate-pulse' : ''}`} />
                                                         <span className="text-[10px] font-bold uppercase tracking-wider">Mágica</span>
                                                     </button>
-                                                    <button onClick={() => handleRegenerateMockup(i)} className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white rounded-full transition-all" title="Apenas Mockup (usa o texto atual)">
-                                                        <Camera className="w-4 h-4" />
+                                                    <button
+                                                        onClick={() => handleRegenerateMockup(i)}
+                                                        disabled={loadingIndices.includes(i)}
+                                                        className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white rounded-full transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                                        title="Apenas Mockup (usa o texto atual)"
+                                                    >
+                                                        {loadingIndices.includes(i) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
                                                     </button>
-                                                    <button onClick={() => handleRegenerateTake(i)} className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white rounded-full transition-all" title="Aleatório (Novo Prompt + Mockup)">
-                                                        <Dice5 className="w-4 h-4" />
+                                                    <button
+                                                        onClick={() => handleRegenerateTake(i)}
+                                                        disabled={loadingIndices.includes(i)}
+                                                        className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white rounded-full transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                                        title="Aleatório (Novo Prompt + Mockup)"
+                                                    >
+                                                        {loadingIndices.includes(i) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Dice5 className="w-4 h-4" />}
                                                     </button>
                                                 </div>
                                             </div>

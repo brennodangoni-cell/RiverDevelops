@@ -1,4 +1,4 @@
-# River Sora Lab - AI Models Architecture & Strategy
+# River Sora Lab - AI Models Architecture & Strategy (v14.0)
 
 Este documento serve como um guia definitivo sobre a arquitetura de Inteligência Artificial utilizada neste projeto. Se você for exportar este código ou passar para outro desenvolvedor/IA no futuro, **leia isto primeiro**.
 
