@@ -411,22 +411,26 @@ export async function generatePrompts(
     const promptStyle = `
 ACT AS AN ELITE AI VIDEO DIRECTOR & SORA 2 NARRATIVE ARCHITECT.
 
+[CRITICAL IMAGE-TO-VIDEO MANDATE]
+The generated prompt MUST act as a direct extension of a static starting frame (the Mockup). 
+1. STARTING ANCHOR: The prompt must accurately describe the lighting, subject, and environment of the starting scene as established by the product details.
+2. SUBSEQUENT ACTION: After establishing the starting frame, the prompt MUST immediately describe EXTREME KINETIC ACTION erupting from that exact state.
+
 SORA 2 MASTER SKELETON (HIERARCHICAL PRIORITY):
-1. KINETIC FOUNDATION (Movement): Define the camera kit and action immediately. YOU MUST FORCE DYNAMIC MOTION (e.g., Aggressive FPV tracking, Fast whip-pan, Subject sprinting, Physical impact). DO NOT use slow/static zooms.
-2. SUBJECT VISUAL ANATOMY: Describe the product as a rigid, physically stable entity. Focus on textures and micro-details.
-3. MICRO-PHYSICS: Describe how materials interact (e.g., "soft compression of the sole under the model's weight", "water splashing upon impact").
-4. VOLUMETRIC LIGHTING: Use technical light descriptions (Rim light, God rays, Bokeh).
+1. KINETIC BURST (Movement): Define the camera kit and action erupting from the starting point. YOU MUST FORCE DYNAMIC MOTION (e.g., Aggressive FPV tracking, Fast whip-pan, Subject sprinting, Physical impact). DO NOT use slow/static zooms. The video MUST NOT be a static photo with zoom.
+2. SUBJECT VISUAL ANATOMY: Describe the product as a rigid, physically stable entity throughout the movement. Focus on textures and micro-details.
+3. MICRO-PHYSICS: Describe how materials interact during the kinetic action (e.g., "soft compression of the sole as it hits the ground", "water splashing upon high-speed impact").
+4. VOLUMETRIC LIGHTING: Use technical light descriptions (Rim light, God rays, Bokeh) interacting with the movement.
 5. COLORS: Reinforce colors with HEX CODES (e.g., "Midnight Black #1A1A1A").
-6. ATMOSPHERE & FX: Environmental particles, mist, or surreal elements.
+6. ATMOSPHERE & FX: Environmental particles, mist, or surreal elements disturbed by the movement.
 
 DIRECTIVES:
-- KINETIC ACTION MANDATORY: Sora 2 often generates static "photos with zoom". YOU MUST BREAK THIS. Every scene MUST have significant physical movement (e.g., the product falling, someone violently grabbing it, a car passing by, extreme wind making things fly). The video must feel ALIVE.
+- KINETIC ACTION MANDATORY: Sora 2 often generates static "photos with zoom". YOU MUST BREAK THIS. Every scene MUST have significant physical movement happening TO or WITH the product (e.g., the product falling, someone violently grabbing it, a car passing by, extreme wind making things fly). The video must feel ALIVE.
 - NO CONCEPTUAL TERMS: Never use words like "comfortable" or "premium". Use visual proofs: "The material deforms 2mm under pressure" (Visual-First).
 - PHYSICS ANNIHILATION (SURREALISM): If the user requests walking on clouds, fire, or space, EXECUTE LITERALLY. Forbid adding "platforms", "glass floors", or "roads". The feet MUST interact DIRECTLY with the impossible medium.
 - HIGH-END AESTHETIC: All surrealism must be PRESTIGIOUS and PREMIUM. Think Haute Couture, Luxury Perfume Ads (Dior, Chanel), or Apple-style minimalism. 
 - FORBIDDEN: NEVER use 'childish' or 'ludic' elements like candy, marshmallows, toys, or fairytales unless explicitly asked. Surrealism should feel sophisticated and avant-garde, not silly.
 - NO RATIONALIZATION: Stop trying to make it "plausible". Zero logic, maximum visual impact.
-- RIGIDITY: The product must never distort/melt unless explicitly asked.
 - FORMAT: Single flowing paragraph of cinematic English.
     `;
 
