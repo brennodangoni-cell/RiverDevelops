@@ -1437,13 +1437,13 @@ export default function VideoLab() {
                                                 />
                                                 <div className="flex items-center justify-between mt-2 pt-3 border-t border-white/5">
                                                     <div className="flex gap-1 bg-white/5 p-1 rounded-full border border-white/5">
-                                                        {['both', 'mockup', 'prompt'].map((mode) => (
+                                                        {[{ id: 'both', label: 'Ambos' }, { id: 'prompt', label: 'Texto (Prompt)' }, { id: 'mockup', label: 'Imagem (Mockup)' }].map((mode) => (
                                                             <button
-                                                                key={mode}
-                                                                onClick={() => updateRefineMode(i, mode as any)}
-                                                                className={`px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-wider transition-all ${(!res.refineMode && mode === 'both') || res.refineMode === mode ? 'bg-amber-500 text-black shadow-md' : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'}`}
+                                                                key={mode.id}
+                                                                onClick={() => updateRefineMode(i, mode.id as any)}
+                                                                className={`px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-wider transition-all ${(!res.refineMode && mode.id === 'both') || res.refineMode === mode.id ? 'bg-amber-500 text-black shadow-md' : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'}`}
                                                             >
-                                                                {mode === 'both' ? 'Ambos' : mode === 'mockup' ? 'Mockup' : 'Prompt'}
+                                                                {mode.label}
                                                             </button>
                                                         ))}
                                                     </div>
@@ -1453,7 +1453,7 @@ export default function VideoLab() {
                                                         className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black text-[10px] font-bold uppercase tracking-widest rounded-full transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-amber-900/20"
                                                     >
                                                         {loadingIndices.includes(i) ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
-                                                        Refinar
+                                                        Refinar {(!res.refineMode || res.refineMode === 'both') ? 'Cena' : res.refineMode === 'prompt' ? 'Prompt' : 'Mockup'}
                                                     </button>
                                                 </div>
                                             </div>
