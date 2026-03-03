@@ -185,7 +185,11 @@ ${marketingContext}
 MANDATE: ALL Suggested Sceneries (Lifestyle & Product-Only) MUST directly serve the marketing goals, target audience, and benefits described above. No generic suggestions allowed.
 ` : ''}
 
-Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. 'description' (ENGLISH, detailed). 2. 'productType' (PT-BR). 3. 'suggestedSceneriesProductOnly' (PT-BR): 4 scenarios (2 realistic, 2 HIGH-FASHION/AVANT-GARDE SURREALISM). 4. 'suggestedSceneriesLifestyle' (PT-BR): 4 scenarios (2 realistic, 2 CINEMATIC DREAMLIKE/LUXURY SURREALISM). MANDATE: Avoid childish, toy-like, or 'ludic' metaphors. No marshmallows, no candy, no fairytales. Use HIGH-END aesthetic references (e.g. perfume commercials, luxury fashion, liquid metal, volumetric light).
+ENVIRONMENT RANDOMIZATION SEED: ${Date.now() + Math.random()}
+CRITICAL AESTHETIC MANDATE: DO NOT use generic luxury tropes over and over. FORBIDDEN WORDS: "Galeria de Arte", "Iate", "Museu", "Pedestal de Mármore". 
+Analyze these product images for a SORA 2 digital twin. You must invent COMPLETELY NEW, UNEXPECTED, AND HIGH-IMPACT environments that perfectly match THIS SPECIFIC PRODUCT'S DNA. If it's a shoe, maybe it's interacting with liquid neon on a cyberpunk rooftop or crushing volcanic rocks. If it's a beverage, maybe it's submerged in an anti-gravity frozen glacier. BE CREATIVE. NO BORING SCENARIOS.
+
+RETURN a JSON with: 1. 'description' (ENGLISH, detailed). 2. 'productType' (PT-BR). 3. 'suggestedSceneriesProductOnly' (PT-BR): 4 scenarios (2 realistic, 2 HIGH-FASHION/AVANT-GARDE SURREALISM). 4. 'suggestedSceneriesLifestyle' (PT-BR): 4 scenarios (2 realistic, 2 CINEMATIC DREAMLIKE/LUXURY SURREALISM). MANDATE: Avoid childish, toy-like, or 'ludic' metaphors. Use HIGH-END aesthetic references (e.g. perfume commercials, luxury fashion, liquid metal, volumetric light).
 
 1. "description" (ENGLISH, ultra-detailed):
     - Exact physical traits: shape, silhouette, weight distribution
@@ -197,9 +201,9 @@ Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. '
 
 2. "productType" (PORTUGUESE): Short category name
 
-3. "suggestedSceneriesProductOnly" (PORTUGUESE): 4 REAL COMMERCIAL VIDEO SCENARIOS for product-only shots. Focus on cinematic movement and lighting.
+3. "suggestedSceneriesProductOnly" (PORTUGUESE): 4 REAL COMMERCIAL VIDEO SCENARIOS for product-only shots. Focus on cinematic movement and lighting. NEVER use "Galeria de arte".
 
-4. "suggestedSceneriesLifestyle" (PORTUGUESE): 4 REAL COMMERCIAL VIDEO SCENARIOS with people. Focus on physical interaction with the product.
+4. "suggestedSceneriesLifestyle" (PORTUGUESE): 4 REAL COMMERCIAL VIDEO SCENARIOS with people. Focus on physical interaction with the product. NEVER use "Galeria de arte".
 
 5. "colors" (ENGLISH): List of all unique colors/variations detected with HEX.
 
