@@ -394,7 +394,6 @@ export async function generatePrompts(
     - Map every action and emotional beat to a professional Sora 2 blueprint.
     - FORCE visual continuity across all scenes (same lighting, same color grade, same product DNA).
     - Describe the specific benefits mentioned through visual narrative.
-    - OBRIGATÓRIO: MUST OUTPUT AN ARRAY OF 4 TO 12 PROMPTS (SCENES), covering the entire script flow from start to finish sequentially.
         `;
     } else if (previousPrompts && previousPrompts.length > 0) {
         taskDescription = `

@@ -334,7 +334,7 @@ export default function VideoLab() {
             const newResults: Result[] = prompts.map(p => ({ prompt: p, mockupUrl: null }));
             setResults(newResults);
 
-            const targets = (renderAllOnInit || options.mode === 'script') ? prompts : prompts.slice(0, 1);
+            const targets = renderAllOnInit ? prompts : prompts.slice(0, 1);
             setProgressText(`Renderizando ${targets.length} Mockup(s) com Fidelidade Pro...`);
 
             // Render sequentially to show progress and avoid state corruption
