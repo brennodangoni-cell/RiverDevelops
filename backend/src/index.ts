@@ -213,13 +213,6 @@ app.delete('/api/admin/clients/:id', authenticate, (req: Request, res: Response)
     res.json({ success: true });
 });
 
-// Admin: Get Client Content
-app.get('/api/admin/clients/:clientId/content', authenticate, (req: Request, res: Response) => {
-    const { clientId } = req.params;
-    const content = db.prepare('SELECT * FROM client_content WHERE client_id = ? ORDER BY created_at DESC').all(clientId);
-    res.json(content);
-});
-
 // Admin: Upload / Create Content for Client
 app.post('/api/admin/clients/:clientId/content', authenticate, upload.single('mediaFile'), (req: Request, res: Response) => {
     const { clientId } = req.params;
