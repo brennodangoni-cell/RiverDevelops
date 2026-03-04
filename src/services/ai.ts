@@ -334,6 +334,12 @@ export async function generatePrompts(
             .filter(Boolean)
             .slice(0, 5);
 
+    const stripHexDirectives = (text: string) =>
+        text
+            .replace(/ADOPT THESE EXACT HEX COLORS:[^\n]*\n?/gi, '')
+            .replace(/#[0-9a-fA-F]{3,8}/g, '')
+            .trim();
+
     const outputCount = sceneDraft ? 1 : 3;
     const paletteAnchors = normalizePaletteAnchors(detectedColors);
     const continuityAnchor = previousPrompts?.length
@@ -341,18 +347,26 @@ export async function generatePrompts(
         : '';
     const userIntent = sceneDraft || options.supportingDescription || '';
     const isScriptMode = options.mode === 'script' && !!options.script;
+    const cleanProductDescription = stripHexDirectives(productDescription);
+    const styleHints = [
+        "product turntable commercial shot",
+        "studio product lighting",
+        "photorealistic product commercial"
+    ];
 
     const promptContext = `You are a senior Sora 2 product-commercial prompt director.
 Generate ${outputCount} professional blueprint prompt(s) for Sora 2.
 
 MANDATORY RULES
 - English output only.
-- Each blueprint must be 90-140 words.
+- Each blueprint must be 85-125 words.
 - One shot per blueprint: one main subject action + one camera move.
 - Keep product identity locked: shape, logo, proportions, texture, stitching, materials.
 - Do NOT use HEX codes. Use natural color language only.
 - Use concrete visual words, not generic marketing adjectives.
 - If surreal is requested, keep product physics intact and apply surrealism to environment/action.
+- Separate object motion from camera motion in explicit language.
+- Add commercial style cues naturally when relevant: ${styleHints.join(', ')}.
 - Output must be JSON array of ${outputCount} string(s). No markdown.
 
 PROJECT SETTINGS
@@ -366,7 +380,7 @@ PROJECT SETTINGS
 ${options.mode === 'lifestyle' ? `- Talent: ${options.gender}, ${options.skinTone} skin, ${options.hairColor} hair` : ''}
 
 PRODUCT IDENTITY (SOURCE OF TRUTH)
-${productDescription}
+${cleanProductDescription}
 ${paletteAnchors.length ? `Palette anchors (natural language): ${paletteAnchors.join(', ')}` : ''}
 ${continuityAnchor ? `Continuity anchor from previous blueprint: ${continuityAnchor}` : ''}
 
@@ -376,10 +390,15 @@ ${isScriptMode ? `Adapt this script into concise, cinematic blueprint shots:\n${
 RESPONSE STYLE
 For each blueprint paragraph use this internal order:
 1) Product lock sentence,
-2) Scene + camera sentence,
-3) Timed action beats sentence,
+2) Object motion sentence,
+3) Camera motion sentence,
 4) Lighting/material behavior sentence,
-5) Constraint sentence (no deformation/no invented details/no illegible branding).`;
+5) Constraint sentence (no deformation/no invented details/no illegible branding).
+
+QUALITY BAR
+- Keep language compact and direct.
+- Avoid poetic filler and repeated adjectives.
+- Use physically plausible timing beats for 8-10s clips.`;
 
 
     const response = await generateWithFallback(ai, BRAIN_MODELS, (model) => ({
