@@ -421,29 +421,30 @@ The prompt you generate will be paired with a product image, but Sora 2 CANNOT R
 
 [MANDATORY PROMPT LAYERS — ORDERED BY VISUAL WEIGHT]
 
-[MANDATORY PROMPT LAYERS — THE ARCHITECT'S COMMANDS]
+[MANDATORY PROMPT LAYERS — ORDERED BY VISUAL WEIGHT]
 
-LAYER 1 — THE VISUAL CONTRACT (GEOMETRY LOCKDOWN):
-Start EXACTLY with: "ACT AS A ROBOTIC CAMERA OPERATOR FILMING A PHYSICAL PROTOTYPE. THE ATTACHED IMAGE IS THE ONLY GEOMETRIC TRUTH. DO NOT DEVIATE FROM THE PRODUCT'S SILHOUETTE."
-Describe the subject's physical components using "Material Metaphors" (e.g., "bone-dry unbleached linen texture", "industrial-grade cold-rolled steel sheen"). Use ONLY technical names for colors (e.g., "Basalt Grey", "Terracotta Red"). NO HEX CODES.
+LAYER 1 — REFERENCE IMAGE SUPREMACY (CRITICAL MANDATE):
+Start with: "FORCE 100% GEOMETRIC FIDELITY TO THE ATTACHED REFERENCE IMAGE. DO NOT MUTATE THE SUBJECT. THE TEXT BELOW IS A GUIDELINE FOR MATERIAL PHYSICS AND LIGHTING ONLY."
+Describe the subject using COMPONENT NAMES (Component A, B, etc.). Describe material density: "High-density micro-fiber knit", "Anisotropic brushed metal", "Porous high-grip rubber". Use DESCRIPTIVE COLORS (e.g. "Raw Bone White", "Industrial Sand Beige") — NEVER use HEX codes.
 
-LAYER 2 — 3D PHYSICALITY & LOGO DEPTH:
-Describe logos and brand marks as 3D physical attachments. Use: "Raised 3D emblem with 1mm physical depth", "Contact shadows at the seam of the sole", "Variable surface roughness across the knit grain". This forces the AI to treat the product as a solid object, not a flat texture.
+LAYER 2 — MATERIAL DEPTH & PHYSICS:
+Describe the product's surfaces as physical objects. Mention "low-relief logo embossing", "contact shadows between the sole and the ground", "sub-millimeter fabric grain", and "material rigidity". This prevents the "cheap plastic/AI look".
 
-LAYER 3 — THE KINETIC ACTION & CAMERA PHYSICS:
-Only visual actions. Use technical camera rig commands: "High-speed bolt-arm tracking", "Low-gravity floating movement", "Macro-probe lens push-in". Detail the EXACT physics of interaction: "Sand particles displacing in slow motion", "Water beads rolling off the hydrophobic surface".
+LAYER 3 — ADVANCED LIGHTING & RENDER ENGINE JARGON:
+Use professional terms: "softbox key light", "rim light wrap-around", "global illumination", "subsurface scattering (for skin/fabric)", "fresnel effect on curves".
 
-LAYER 4 — LIGHTING & RENDER ENGINE PRIMITIVES:
-Technical lighting only: "High-contrast key light at 45 degrees", "Softbox diffusion with zero color cast", "Global illumination with ray-traced shadows", "Volumetric dust motes".
+LAYER 4 — THE KINETIC ACTION & CAMERA RIG:
+Specify lens (e.g., 35mm anamorphic), movement (e.g., high-speed tracking, handheld shake, steady orbit), and the exact physical interaction. Use only visual action words.
 
-[FORBIDDEN LANGUAGE — THE PURGE]
-- NEVER use adjectives: "Breathtaking", "serene", "beautiful", "graceful", "modern", "premium", "luxury", "minimalist", "comfortable".
-- NEVER use marketing fluff: "Negating the need for", "presents a profile", "offering superior".
-- USE ONLY: Nouns, verbs, and technical descriptors of material physics.
+LAYER 5 — CHARACTER & ENVIRONMENT (STRICT VISUALS):
+Describe the actor and environment with zero marketing adjectives. "Woman with long blonde hair, tanned skin, wearing off-white linen attire" — NO mentions of "comfort", "beauty", or "style".
 
-[ABSOLUTE PARAMETERS]
-- PROMPT LENGTH: Minimum 300 words of PURE TECHNICAL PROSE.
-- FORMAT: A monolithic, clinical, technical report on a cinematic capture.
+[ABSOLUTE RULES]
+- NO MARKETING JARGON: Forbid words like "superior", "modern", "minimalist", "comfort", "beautiful", "premium", "luxury". Use only technical visual descriptions.
+- ZERO HEX CODES: Replace HEX codes with descriptive color names.
+- NO HALLUCINATION: If a detail isn't in the image, don't invent it.
+- MINIMUM PROMPT LENGTH: Each prompt MUST be at least 250-400 words.
+- FORMAT: A single monolithic, epic cinematic paragraph. Visual logic only.
     `;
     const promptContext = `
 [STRICT DIRECTOR MANDATE]
@@ -468,17 +469,17 @@ ACTOR SPECIFICATION (MUST BE DESCRIBED IN DETAIL IN THE PROMPT):
 IMPORTANT: You MUST describe this actor/model in the output prompt with extreme detail — their appearance, clothing, expression, body language, and how they physically handle/interact with the product.
 ` : ''}
 
-[PRODUCT IDENTITY & COMPONENT ATLAS — PURE VISUAL TRUTH]
-Use these components to describe the physical interaction. STRICTLY TECHNICAL.
+[PRODUCT IDENTITY & COMPONENT ATLAS — INTEGRATE COMPONENTS INTO PHYSICS]
+The product consists of these technical components. Describe their material physics in the prompt using these labels:
 """
 ${productDescription}
 """
 
 [CRITICAL INSTRUCTION]
-1. DELETE ALL ADJECTIVES: No "modern", "cool", "premium", "comfortable", "beautiful", "serene".
-2. NO HEX CODES: Convert all colors to descriptive professional terms (e.g., "Midnight Navy", "Ash Grey").
-3. LOGO DEPTH: Describe all branding as physical 3D elements with depth.
-4. NO MARKING FLUFF: Focus 100% on light, material physics, and kinetic camera movement.
+1. REMOVE ALL MARKETING FLUFF. No "modern", "cool", "premium", "comfortable". Use only visual physics.
+2. CONVERT ALL HEX CODES to descriptive English color names.
+3. NEVER mention filenames, .png, .jpg, or metadata.
+4. FOCUS ON MATERIAL REALISM: textures, reflections, and shadowing.
 
 SCENE TYPE: ${sceneDraft ? 'POLISH THIS SPECIFIC DRAFT:' : 'CREATE NEW SCENE:'}
 ${sceneDraft || 'Based on the above settings, generate a 10-second high-impact cinematic sequence.'}
