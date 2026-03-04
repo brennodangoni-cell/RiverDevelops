@@ -106,19 +106,6 @@ const autoDetectLighting = (text: string, currentLighting: string) => {
     return currentLighting;
 };
 
-const parseStoredJson = <T,>(key: string, fallback: T): T => {
-    try {
-        const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
-    } catch {
-        return fallback;
-    }
-};
-
-const pickPrompt = (prompts: string[], fallback = '') => {
-    return (Array.isArray(prompts) ? prompts.find(p => typeof p === 'string' && p.trim().length > 0) : '') || fallback;
-};
-
 export default function VideoLab() {
     const [step, setStep] = useState<1 | 2 | 3>(1);
     const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -167,14 +154,14 @@ export default function VideoLab() {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
-    const currentUser = parseStoredJson<Record<string, any>>('rivertasks_user', {});
+    const currentUser = JSON.parse(localStorage.getItem('rivertasks_user') || '{}');
 
     // Load favorites & mockup library from localStorage
     useEffect(() => {
         try {
-            const favs = parseStoredJson<FavoriteProject[]>('sora_favorites', []);
+            const favs = JSON.parse(localStorage.getItem('sora_favorites') || '[]');
             setFavorites(favs);
-            const mocks = parseStoredJson<SavedMockup[]>('sora_mockup_library', []);
+            const mocks = JSON.parse(localStorage.getItem('sora_mockup_library') || '[]');
             setSavedMockups(mocks);
         } catch { }
     }, []);
@@ -366,11 +353,10 @@ export default function VideoLab() {
                 ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
                 : baseDescription) + hexInfo + hooksInfo;
 
-            setProgressText('Engenharia de Prompts (Sora 2 Product Engine v17.4)...');
+            setProgressText('Engenharia de Prompts (Sora 2 Product Engine v17.3)...');
             const progressTimer = simulateProgress(3, 18, 45000);
             const prompts = await generatePrompts(finalDescription, options, undefined, analysis.colors);
             clearInterval(progressTimer);
-            if (!prompts.length) throw new AIError('Nenhum prompt foi gerado. Tente ajustar o contexto e gerar novamente.', 'UNKNOWN', true);
             setProgress(20);
             const newResults: Result[] = prompts.map(p => ({ prompt: p, mockupUrl: null }));
             setResults(newResults);
@@ -422,7 +408,6 @@ export default function VideoLab() {
             const previousPrompts = results.map(r => r.prompt);
             const newPrompts = await generatePrompts(finalDescription, options, previousPrompts, analysis.colors);
             clearInterval(progressTimer);
-            if (!newPrompts.length) throw new AIError('Não foi possível continuar a sequência agora. Tente novamente.', 'UNKNOWN', true);
             setProgress(30);
             const startIndex = results.length;
             const newResults: Result[] = newPrompts.map(p => ({ prompt: p, mockupUrl: null }));
@@ -473,8 +458,7 @@ export default function VideoLab() {
                     finalDescription, newOptions,
                     results.slice(0, index).map(r => r.prompt)
                 );
-                const newPrompt = pickPrompt(newPrompts, results[index]?.prompt || '');
-                if (!newPrompt) throw new AIError('Falha ao gerar novo prompt para esta cena.', 'UNKNOWN', true);
+                const newPrompt = newPrompts[0];
                 const mockupUrl = await generateMockup(finalDescription, newOptions, compressedImages, newPrompt);
                 setResults(prev => {
                     const updated = [...prev];
@@ -510,8 +494,7 @@ export default function VideoLab() {
         toast.promise(
             (async () => {
                 const newPrompts = await generatePrompts(finalDescription, options, undefined, undefined, currentDraft);
-                const newPrompt = pickPrompt(newPrompts, currentDraft);
-                if (!newPrompt) throw new AIError('Falha ao melhorar o prompt desta cena.', 'UNKNOWN', true);
+                const newPrompt = newPrompts[0];
                 const mockupUrl = await generateMockup(finalDescription, options, compressedImages, newPrompt);
                 setResults(prev => {
                     const updated = [...prev];
@@ -615,7 +598,7 @@ export default function VideoLab() {
 
                 if (refineMode === 'both' || refineMode === 'prompt') {
                     const newPrompts = await generatePrompts(finalDescription, options, undefined, analysis.colors, draftWithFeedback);
-                    newPrompt = pickPrompt(newPrompts, currentDraft);
+                    newPrompt = newPrompts[0];
                 }
 
                 if (refineMode === 'both' || refineMode === 'mockup') {
@@ -696,69 +679,30 @@ export default function VideoLab() {
         );
     };
 
-    const copyToClipboard = async (text: string) => {
-        try {
-            await navigator.clipboard.writeText(text);
-            toast.success('Prompt copiado!');
-        } catch {
-            toast.error('Não foi possível copiar o texto.');
-        }
-    };
-
-    const toPngBlob = async (url: string): Promise<Blob> => {
-        const res = await fetch(url, { cache: 'no-store' });
-        if (!res.ok) throw new Error('Falha ao baixar imagem para cópia.');
-        const sourceBlob = await res.blob();
-        const objectUrl = URL.createObjectURL(sourceBlob);
-        try {
-            const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-                const el = new Image();
-                el.onload = () => resolve(el);
-                el.onerror = () => reject(new Error('Falha ao carregar imagem para clipboard.'));
-                el.src = objectUrl;
-            });
-            const canvas = document.createElement('canvas');
-            canvas.width = img.naturalWidth || img.width || 1;
-            canvas.height = img.naturalHeight || img.height || 1;
-            const ctx = canvas.getContext('2d');
-            if (!ctx) throw new Error('Canvas indisponível para copiar imagem.');
-            ctx.drawImage(img, 0, 0);
-            const pngBlob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png', 1));
-            if (!pngBlob) throw new Error('Falha ao converter imagem para PNG.');
-            return pngBlob;
-        } finally {
-            URL.revokeObjectURL(objectUrl);
-        }
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text);
+        toast.success('Prompt copiado!');
     };
 
     const copyMockupImage = async (mockupUrl: string) => {
         try {
-            if (!window.isSecureContext) {
-                throw new Error('Clipboard de imagem exige HTTPS/localhost.');
-            }
             if (!navigator?.clipboard || typeof navigator.clipboard.write !== 'function' || typeof (window as any).ClipboardItem === 'undefined') {
-                throw new Error('ClipboardItem indisponível neste navegador.');
+                await navigator.clipboard?.writeText?.(mockupUrl);
+                toast.success('Seu navegador não copia bitmap direto. Link da imagem copiado!');
+                return;
             }
-
-            const pngBlob = await toPngBlob(mockupUrl);
+            const res = await fetch(mockupUrl);
+            const blob = await res.blob();
+            const clipboardBlob = blob.type ? blob : new Blob([blob], { type: 'image/png' });
             const ClipboardItemCtor = (window as any).ClipboardItem;
-            await navigator.clipboard.write([
-                new ClipboardItemCtor({
-                    'image/png': pngBlob
-                })
-            ]);
-            toast.success('Mockup copiado como imagem!');
+            await navigator.clipboard.write([new ClipboardItemCtor({ [clipboardBlob.type]: clipboardBlob })]);
+            toast.success('Mockup copiado!');
         } catch {
             try {
                 await navigator.clipboard.writeText(mockupUrl);
-                toast.success('Cópia de imagem não suportada aqui. Link do mockup copiado.');
-                return;
+                toast.success('Não foi possível copiar bitmap. Link da imagem copiado.');
             } catch {
-                const link = document.createElement('a');
-                link.href = mockupUrl;
-                link.download = `mockup-${Date.now()}.png`;
-                link.click();
-                toast.error('Seu navegador bloqueou clipboard. Fiz o download automático.');
+                toast.error('Não foi possível copiar agora. Use o botão de download.');
             }
         }
     };
@@ -876,7 +820,7 @@ export default function VideoLab() {
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold tracking-tight text-white">River Sora Lab</h1>
-                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v17.4</span></p>
+                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v17.3</span></p>
                         </div>
                     </div>
                 </div>
@@ -1380,7 +1324,7 @@ export default function VideoLab() {
                                     <h1 className="text-2xl font-light text-white tracking-tight flex items-center gap-3">
                                         Storyboard <span className="text-cyan-500 text-sm font-bold uppercase tracking-[0.3em]">Cinematic</span>
                                     </h1>
-                                    <p className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">DNA do Produto + Contexto de Marketing + Sora 2 Product Engine v17.4</p>
+                                    <p className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">DNA do Produto + Contexto de Marketing + Sora 2 Product Engine v17.3</p>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     {results.some(r => r.mockupUrl === null) && (
