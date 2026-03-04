@@ -20,9 +20,26 @@ export interface SceneryAnalysis {
     suggestedAudio: string[];
 }
 
-const BRAIN_MODELS = ["gemini-2.0-flash", "gemini-2.0-pro", "gemini-3.1-pro-preview"];
-const ANALYSIS_MODELS = ["gemini-2.0-flash", "gemini-2.0-pro"];
-const IMAGE_MODELS = ["gemini-3.1-flash-image-preview", "gemini-3-pro-image-preview"];
+// Prefer modern/stable families first. Keep legacy IDs only as final fallback.
+const BRAIN_MODELS = [
+    "gemini-3.1-pro-preview",
+    "gemini-2.5-pro",
+    "gemini-2.5-flash",
+    "gemini-2.0-pro",
+    "gemini-2.0-flash"
+];
+const ANALYSIS_MODELS = [
+    "gemini-3.1-pro-preview",
+    "gemini-2.5-pro",
+    "gemini-2.5-flash",
+    "gemini-2.0-pro",
+    "gemini-2.0-flash"
+];
+const IMAGE_MODELS = [
+    "gemini-3.1-flash-image-preview",
+    "gemini-3-pro-image-preview",
+    "gemini-2.5-flash-image"
+];
 
 export class AIError extends Error {
     type: 'SAFETY_FILTER' | 'RATE_LIMIT' | 'MODEL_NOT_FOUND' | 'API_KEY_MISSING' | 'TIMEOUT' | 'UNKNOWN';
