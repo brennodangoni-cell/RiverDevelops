@@ -183,8 +183,8 @@ export default function AdminClients() {
                                     <p className="text-xs text-white/40 tracking-wider font-light mt-1">Gerencie os acessos e entregas</p>
                                 </div>
                             </div>
-                            <button onClick={() => setIsCreateModalOpen(true)} className="bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold tracking-[0.15em] uppercase text-[10px] px-6 py-3 rounded-full flex items-center gap-2 transition-all duration-300 z-10 group/btn shadow-lg backdrop-blur-md">
-                                <Plus className="w-3 h-3 transition-transform group-hover/btn:rotate-90" /> Novo Cliente
+                            <button onClick={() => setIsCreateModalOpen(true)} className="bg-white hover:bg-white/90 text-black font-bold tracking-[0.15em] uppercase text-xs px-8 py-4 rounded-full flex items-center gap-3 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] z-10 group/btn">
+                                <Plus className="w-4 h-4 transition-transform group-hover/btn:rotate-90" /> Novo Cliente
                             </button>
                         </div>
 
@@ -299,13 +299,13 @@ export default function AdminClients() {
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsCreateModalOpen(false)} />
                     <div className="relative bg-[#080808]/90 backdrop-blur-2xl ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-md shadow-2xl p-10 flex flex-col items-center">
-                        <button type="button" onClick={() => setIsCreateModalOpen(false)} className="absolute top-5 right-5 text-white/30 hover:text-white bg-white/5 hover:bg-white/10 p-3 rounded-full transition-colors"><X className="w-5 h-5" /></button>
+                        <button type="button" onClick={() => setIsCreateModalOpen(false)} className="absolute top-5 right-5 text-white/30 hover:text-white bg-white/5 p-3 rounded-full"><X className="w-5 h-5" /></button>
                         <h2 className="text-xl font-display font-medium text-white mb-2 tracking-wide uppercase">Novo Cliente</h2>
                         <p className="text-xs text-white/40 mb-8 tracking-wider text-center">Crie o acesso para a Área Membros.</p>
                         <form onSubmit={handleCreateClient} className="w-full flex flex-col gap-4">
-                            <input required type="text" value={newClient.username} onChange={e => setNewClient({ ...newClient, username: e.target.value })} className="w-full bg-black/40 border border-white/5 rounded-[1.5rem] px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/[0.03] focus:shadow-[0_0_15px_rgba(6,182,212,0.1)] transition-all font-light placeholder:text-zinc-600" placeholder="Nome de Usuário (Login)" />
-                            <input required type="password" value={newClient.password} onChange={e => setNewClient({ ...newClient, password: e.target.value })} className="w-full bg-black/40 border border-white/5 rounded-[1.5rem] px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/[0.03] focus:shadow-[0_0_15px_rgba(6,182,212,0.1)] transition-all font-light placeholder:text-zinc-600" placeholder="Senha" />
-                            <button type="submit" className="w-full mt-4 bg-white hover:bg-white/90 text-black font-semibold tracking-[0.15em] uppercase text-[10px] py-4 rounded-full transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-[0.98]">Criar Acesso</button>
+                            <input required type="text" value={newClient.username} onChange={e => setNewClient({ ...newClient, username: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-[1.5rem] px-6 py-4 text-white text-center text-sm outline-none focus:border-purple-400/50 focus:bg-white/10 transition-all font-medium placeholder:text-white/20" placeholder="Nome de Usuário (Login)" />
+                            <input required type="password" value={newClient.password} onChange={e => setNewClient({ ...newClient, password: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-[1.5rem] px-6 py-4 text-white text-center text-sm outline-none focus:border-purple-400/50 focus:bg-white/10 transition-all font-medium placeholder:text-white/20" placeholder="Senha" />
+                            <button type="submit" className="w-full mt-4 bg-purple-500 hover:bg-purple-600 text-white font-bold uppercase tracking-widest text-xs py-4 rounded-full transition-all shadow-[0_0_20px_rgba(168,85,247,0.3)]">Criar Acesso</button>
                         </form>
                     </div>
                 </div>
@@ -316,12 +316,12 @@ export default function AdminClients() {
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsEditModalOpen(false)} />
                     <div className="relative bg-[#080808]/90 backdrop-blur-2xl ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-md shadow-2xl p-10 flex flex-col items-center">
-                        <button type="button" onClick={() => setIsEditModalOpen(false)} className="absolute top-5 right-5 text-white/30 hover:text-white bg-white/5 hover:bg-white/10 p-3 rounded-full transition-colors"><X className="w-5 h-5" /></button>
+                        <button type="button" onClick={() => setIsEditModalOpen(false)} className="absolute top-5 right-5 text-white/30 hover:text-white bg-white/5 p-3 rounded-full"><X className="w-5 h-5" /></button>
                         <h2 className="text-xl font-display font-medium text-white mb-2 tracking-wide uppercase">Alterar Senha</h2>
                         <p className="text-xs text-white/40 mb-8 tracking-wider text-center">Nova senha para {editingClient.username}</p>
                         <form onSubmit={handleUpdatePassword} className="w-full flex flex-col gap-4">
-                            <input required type="text" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-[1.5rem] px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/[0.03] focus:shadow-[0_0_15px_rgba(6,182,212,0.1)] transition-all font-light placeholder:text-zinc-600" placeholder="Nova Senha" />
-                            <button type="submit" className="w-full mt-4 bg-white hover:bg-white/90 text-black font-semibold tracking-[0.15em] uppercase text-[10px] py-4 rounded-full transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-[0.98]">Confirmar Alteração</button>
+                            <input required type="text" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-[1.5rem] px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 transition-all font-medium placeholder:text-white/20" placeholder="Nova Senha" />
+                            <button type="submit" className="w-full mt-4 bg-cyan-500 hover:bg-cyan-600 text-white font-bold uppercase tracking-widest text-xs py-4 rounded-full transition-all shadow-[0_0_20px_rgba(34,211,238,0.3)]">Confirmar Alteração</button>
                         </form>
                     </div>
                 </div>
