@@ -14,6 +14,7 @@ export interface ProductAnalysis {
         position?: string;
         orientation?: string;
     };
+    rawThinking?: string; // Chain of thought captured
 }
 
 export interface ProductDNA {
@@ -164,7 +165,8 @@ function normalizeProductAnalysis(value: any): ProductAnalysis {
         suggestedSceneriesLifestyle: normalizeStringList(value?.suggestedSceneriesLifestyle, fallbackLifestyle).slice(0, 4),
         colors: normalizeStringList(value?.colors).slice(0, 12),
         sellingPoints: normalizeStringList(value?.sellingPoints).slice(0, 6),
-        dominantHexColors: normalizeStringList(value?.dominantHexColors).slice(0, 6)
+        dominantHexColors: normalizeStringList(value?.dominantHexColors).slice(0, 6),
+        rawThinking: String(value?.thinking || "")
     };
 
     if (value?.productDNA && typeof value.productDNA === "object") {
@@ -302,7 +304,7 @@ async function generateWithFallback(
 // =======================================================================
 // 1. ANALYZE PRODUCT
 // =======================================================================
-export async function analyzeProduct(imagesBase64: string[], marketingContext?: string): Promise<ProductAnalysis> {
+export async function analyzeProduct(imagesBase64: string[], marketingContext?: string, engine: 'ultra' | 'speed' = 'ultra'): Promise<ProductAnalysis> {
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
 
@@ -314,7 +316,9 @@ export async function analyzeProduct(imagesBase64: string[], marketingContext?: 
         return { inlineData: { data, mimeType } };
     });
 
-    const response = await generateWithFallback(ai, ANALYSIS_MODELS, (model) => ({
+    const models = engine === 'speed' ? ["gemini-2.5-flash"] : ANALYSIS_MODELS;
+
+    const response = await generateWithFallback(ai, models, (model) => ({
         model,
         contents: {
             parts: [
@@ -377,6 +381,7 @@ Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. '
             responseSchema: {
                 type: Type.OBJECT,
                 properties: {
+                    thinking: { type: Type.STRING, description: "Your internal reasoning. Analyze the physics, materials, lighting interaction, and precise logo placement BEFORE generating the rest of the fields. Be highly analytical." },
                     description: { type: Type.STRING, description: "Ultra-precise English description including shape, colors (hex), materials, textures, branding, text, logos, QUANTITY (pair/single/set), display convention, and all unique visual features." },
                     productType: { type: Type.STRING, description: "A short category name in Portuguese (e.g., 'Tênis', 'Garrafa de Skincare', 'Eletrônico')." },
                     suggestedSceneriesProductOnly: {
@@ -433,7 +438,7 @@ Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. '
                         }
                     }
                 },
-                required: ["description", "productType", "suggestedSceneriesProductOnly", "suggestedSceneriesLifestyle", "colors", "sellingPoints", "dominantHexColors"]
+                required: ["thinking", "description", "productType", "suggestedSceneriesProductOnly", "suggestedSceneriesLifestyle", "colors", "sellingPoints", "dominantHexColors"]
             }
         }
     }));
@@ -444,7 +449,7 @@ Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. '
 // =======================================================================
 // 1B. ANALYZE SCENERY (Scene Mode)
 // =======================================================================
-export async function analyzeScenery(imagesBase64: string[], marketingContext?: string): Promise<SceneryAnalysis> {
+export async function analyzeScenery(imagesBase64: string[], marketingContext?: string, engine: 'ultra' | 'speed' = 'ultra'): Promise<SceneryAnalysis> {
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
     const ai = new GoogleGenAI({ apiKey });
@@ -454,7 +459,9 @@ export async function analyzeScenery(imagesBase64: string[], marketingContext?: 
         return { inlineData: { data, mimeType } };
     });
 
-    const response = await generateWithFallback(ai, ANALYSIS_MODELS, (model) => ({
+    const models = engine === 'speed' ? ["gemini-2.5-flash"] : ANALYSIS_MODELS;
+
+    const response = await generateWithFallback(ai, models, (model) => ({
         model,
         contents: {
             parts: [
@@ -509,7 +516,8 @@ export async function generatePrompts(
     options: any,
     previousPrompts?: string[],
     detectedColors?: string[],
-    sceneDraft?: string // Specific scene draft to polish
+    sceneDraft?: string, // Specific scene draft to polish
+    engine: 'ultra' | 'speed' = 'ultra'
 ): Promise<string[]> {
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
@@ -596,7 +604,9 @@ QUALITY BAR
   while preserving the same environment, palette anchors, and lighting logic.`;
 
 
-    const response = await generateWithFallback(ai, BRAIN_MODELS, (model) => ({
+    const models = engine === 'speed' ? ["gemini-2.5-flash", "gemini-2.5-pro"] : BRAIN_MODELS;
+
+    const response = await generateWithFallback(ai, models, (model) => ({
         model,
         contents: {
             parts: [{ text: promptContext }]
@@ -641,7 +651,8 @@ export async function generateMockup(
     options: any,
     promptIndex: number,
     productImages: string[],
-    promptText?: string // Optional: use the actual prompt text for the mockup
+    promptText?: string, // Optional: use the actual prompt text for the mockup
+    engine: 'ultra' | 'speed' = 'ultra'
 ): Promise<string | null> {
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
@@ -701,7 +712,8 @@ CRITICAL: Perfect symmetry, cinematic grade. The product MUST be identical to th
     contentParts.push({ text: imagePrompt });
 
     try {
-        const response = await generateWithFallback(ai, IMAGE_MODELS, (model) => ({
+        const models = engine === 'speed' ? ["gemini-3.1-flash-image-preview"] : IMAGE_MODELS;
+        const response = await generateWithFallback(ai, models, (model) => ({
             model,
             contents: { parts: contentParts },
             config: {

@@ -4,7 +4,7 @@ import {
     X, ArrowRight, Download, Video, DollarSign, LogOut,
     Smartphone, Monitor, Camera, Palette,
     Layers, Wand2, PlayCircle, Settings2, Dice5, FileDown, ArrowLeft, PenTool,
-    Star, BookImage, Trash2
+    Star, BookImage, Trash2, Fingerprint
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -130,6 +130,11 @@ export default function VideoLab() {
     const [sceneryData, setSceneryData] = useState<SceneryAnalysis | null>(null);
     const [loadingIndices, setLoadingIndices] = useState<number[]>([]);
     const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
+    // V18 NEW STATES
+    const [aiEngine, setAiEngine] = useState<'ultra' | 'speed'>('ultra');
+    const [showDNAInspector, setShowDNAInspector] = useState(false);
+    const [editableDNA, setEditableDNA] = useState<any>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
@@ -270,8 +275,8 @@ export default function VideoLab() {
             ? `\nPONTOS DE VENDA A DESTACAR: ${analysisData.sellingPoints.slice(0, 2).join(', ')}`
             : '';
 
-        const dna = (analysisData as any).productDNA;
-        const branding = (analysisData as any).branding;
+        const dna = editableDNA || (analysisData as any).productDNA;
+        const branding = editableDNA ? { text: editableDNA.brandingText } : (analysisData as any).branding;
         const dnaInfo = dna ? `\n\nSTRUCTURED_PRODUCT_DNA:
 category=${dna.category || ''}
 quantity=${dna.quantity || ''}
@@ -316,12 +321,26 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
             const validImages = base64Images.filter(b => b.length > 0);
             setCompressedImages(validImages);
             setProgressText('Analisando DNA Visual do Produto...');
-            const result = await analyzeProduct(validImages, marketingContext);
+            const result = await analyzeProduct(validImages, marketingContext, aiEngine);
             // Also run scenery analysis in background for Scene Mode
             analyzeScenery(validImages, marketingContext).then(sd => setSceneryData(sd)).catch(() => { });
             clearInterval(progressTimer);
             setAnalysis(result);
             setEditableDescription(result.description);
+            
+            // V18 DNA INSPECTOR
+            setEditableDNA({
+                category: result.productDNA?.category || '',
+                quantity: result.productDNA?.quantity || '',
+                upperMaterial: result.productDNA?.upperMaterial || '',
+                soleMaterial: result.productDNA?.soleMaterial || '',
+                soleShape: result.productDNA?.soleShape || '',
+                logoPosition: result.productDNA?.logoPosition || '',
+                logoType: result.productDNA?.logoType || '',
+                brandingText: result.branding?.text || '',
+                rawThinking: result.rawThinking || ''
+            });
+
             setOptions(prev => ({ ...prev, environment: result.suggestedSceneriesLifestyle[0] || '' }));
             setProgress(100);
             // Save analysis to session (lightweight, no images)
@@ -349,7 +368,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
 
             setProgressText('Engenharia de Prompts (Sora 2 Cinematic Engine v17.9)...');
             const progressTimer = simulateProgress(3, 18, 45000);
-            const prompts = await generatePrompts(finalDescription, options, undefined, analysis.colors);
+            const prompts = await generatePrompts(finalDescription, options, undefined, analysis.colors, undefined, aiEngine);
             clearInterval(progressTimer);
             setProgress(20);
             const newResults: Result[] = prompts.map(p => ({ prompt: p, mockupUrl: null }));
@@ -360,7 +379,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
 
             // Render sequentially to show progress and avoid state corruption
             for (let i = 0; i < targets.length; i++) {
-                const mockupUrl = await generateMockup(finalDescription, options, i, compressedImages, prompts[i])
+                const mockupUrl = await generateMockup(finalDescription, options, i, compressedImages, prompts[i], aiEngine)
                     .catch(e => { console.warn(`Mockup ${i + 1} failed:`, e); return null; });
 
                 setResults(prev => {
@@ -397,7 +416,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
             setProgressText('Expandindo Sequência Narrativa...');
             const progressTimer = simulateProgress(5, 28, 40000);
             const previousPrompts = results.map(r => r.prompt);
-            const newPrompts = await generatePrompts(finalDescription, options, previousPrompts, analysis.colors);
+            const newPrompts = await generatePrompts(finalDescription, options, previousPrompts, analysis.colors, undefined, aiEngine);
             clearInterval(progressTimer);
             setProgress(30);
             const startIndex = results.length;
@@ -407,7 +426,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
             setProgressText(`Renderizando ${newPrompts.length} Mockups extras...`);
 
             for (let i = 0; i < newPrompts.length; i++) {
-                const mockupUrl = await generateMockup(finalDescription, options, startIndex + i, compressedImages, newPrompts[i])
+                const mockupUrl = await generateMockup(finalDescription, options, startIndex + i, compressedImages, newPrompts[i], aiEngine)
                     .catch(e => { console.warn(`Mockup extra ${i + 1} failed:`, e); return null; });
 
                 setResults(prev => {
@@ -444,7 +463,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                     results.slice(0, index).map(r => r.prompt)
                 );
                 const newPrompt = newPrompts[0];
-                const mockupUrl = await generateMockup(finalDescription, newOptions, index, compressedImages, newPrompt);
+                const mockupUrl = await generateMockup(finalDescription, newOptions, index, compressedImages, newPrompt, aiEngine);
                 setResults(prev => {
                     const updated = [...prev];
                     updated[index] = { prompt: newPrompt, mockupUrl };
@@ -472,9 +491,9 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
 
         toast.promise(
             (async () => {
-                const newPrompts = await generatePrompts(finalDescription, options, undefined, undefined, currentDraft);
+                const newPrompts = await generatePrompts(finalDescription, options, undefined, undefined, currentDraft, aiEngine);
                 const newPrompt = newPrompts[0];
-                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, newPrompt);
+                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, newPrompt, aiEngine);
                 setResults(prev => {
                     const updated = [...prev];
                     updated[index] = { prompt: newPrompt, mockupUrl };
@@ -496,7 +515,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
 
         toast.promise(
             (async () => {
-                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, results[index].prompt);
+                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, results[index].prompt, aiEngine);
                 setResults(prev => {
                     const updated = [...prev];
                     updated[index] = { ...updated[index], mockupUrl };
@@ -543,9 +562,9 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
 
         toast.promise(
             (async () => {
-                const newPrompts = await generatePrompts(finalDescription, options, undefined, analysis.colors, draftWithFeedback);
+                const newPrompts = await generatePrompts(finalDescription, options, undefined, analysis.colors, draftWithFeedback, aiEngine);
                 const newPrompt = newPrompts[0];
-                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, newPrompt);
+                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, newPrompt, aiEngine);
                 setResults(prev => {
                     const updated = [...prev];
                     updated[index] = { prompt: newPrompt, mockupUrl, feedback: '' };
@@ -583,7 +602,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                 for (const index of missingIndices) {
                     setLoadingIndices(prev => [...prev, index]);
                     try {
-                        const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, results[index].prompt);
+                        const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, results[index].prompt, aiEngine);
                         setResults(prev => {
                             const updated = [...prev];
                             updated[index] = { ...updated[index], mockupUrl };
@@ -652,7 +671,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
         }
         toast.promise(
             (async () => {
-                const result = await analyzeProduct(compressedImages);
+                const result = await analyzeProduct(compressedImages, '', aiEngine);
                 setAnalysis(result);
                 setEditableDescription(result.description);
                 setOptions(prev => ({ ...prev, environment: (prev.mode === 'lifestyle' ? result.suggestedSceneriesLifestyle[0] : result.suggestedSceneriesProductOnly[0]) || '' }));
@@ -728,12 +747,27 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold tracking-tight text-white">River Sora Lab</h1>
-                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v17.9</span></p>
+                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v18.0</span></p>
                         </div>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-4">
+                    {/* V18 AI ENGINE SELECTOR */}
+                    <div className="flex items-center bg-white/[0.03] border border-white/5 rounded-full p-1 mr-4">
+                        <button 
+                            onClick={() => setAiEngine('speed')}
+                            className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full transition-all ${aiEngine === 'speed' ? 'bg-zinc-800 text-white shadow-md' : 'text-zinc-500 hover:text-zinc-300'}`}
+                        >
+                            ⚡ Speed
+                        </button>
+                        <button 
+                            onClick={() => setAiEngine('ultra')}
+                            className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full transition-all ${aiEngine === 'ultra' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 shadow-[0_0_15px_rgba(8,145,178,0.2)]' : 'text-zinc-500 hover:text-zinc-300'}`}
+                        >
+                            💎 Ultra
+                        </button>
+                    </div>
                     <div className="flex items-center gap-2">
                         <button onClick={() => { setShowFavorites(!showFavorites); setShowMockupLib(false); }} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-semibold uppercase tracking-wider transition-all ${showFavorites ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'bg-white/5 border border-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200'}`}>
                             <Star className="w-3.5 h-3.5" /> Favoritos
@@ -934,9 +968,73 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                             <div className="lg:col-span-4 space-y-6">
                                 <div className="bg-white/[0.02] border border-white/[0.05] backdrop-blur-3xl rounded-3xl p-8 space-y-6 shadow-2xl">
                                     <div className="space-y-2">
-                                        <label className="text-[9px] font-semibold text-cyan-500 uppercase tracking-[0.2em]">Identified Subject</label>
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[9px] font-semibold text-cyan-500 uppercase tracking-[0.2em]">Identified Subject</label>
+                                            {editableDNA && (
+                                                <button 
+                                                    onClick={() => setShowDNAInspector(!showDNAInspector)}
+                                                    className={`px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all ${showDNAInspector ? 'bg-cyan-500 text-black shadow-[0_0_15px_rgba(8,145,178,0.5)]' : 'bg-white/5 text-cyan-400 hover:bg-white/10 border border-cyan-500/20'}`}
+                                                >
+                                                    <Fingerprint className="w-3 h-3 inline-block mr-1" /> DNA Inspector
+                                                </button>
+                                            )}
+                                        </div>
                                         <p className="text-xl font-medium text-white tracking-tight">{analysis.productType}</p>
                                     </div>
+                                    
+                                    {/* V18 DNA INSPECTOR UI */}
+                                    <AnimatePresence>
+                                        {showDNAInspector && editableDNA && (
+                                            <motion.div 
+                                                initial={{ opacity: 0, height: 0 }} 
+                                                animate={{ opacity: 1, height: 'auto' }} 
+                                                exit={{ opacity: 0, height: 0 }}
+                                                className="overflow-hidden"
+                                            >
+                                                <div className="bg-cyan-950/20 border border-cyan-500/30 rounded-2xl p-5 mt-4 space-y-4 shadow-[inset_0_0_20px_rgba(8,145,178,0.1)]">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <Fingerprint className="w-4 h-4 text-cyan-400" />
+                                                        <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-widest">Structured Visual DNA</h4>
+                                                    </div>
+                                                    
+                                                    {editableDNA.rawThinking && (
+                                                        <div className="mb-4 p-3 bg-black/40 rounded-xl border border-white/5">
+                                                            <p className="text-[9px] text-zinc-500 font-mono mb-1 uppercase tracking-widest">AI Chain of Thought:</p>
+                                                            <p className="text-[10px] text-zinc-400 italic line-clamp-3 hover:line-clamp-none transition-all">{editableDNA.rawThinking}</p>
+                                                        </div>
+                                                    )}
+
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div className="space-y-1">
+                                                            <label className="text-[8px] text-zinc-500 uppercase tracking-wider">Category</label>
+                                                            <input type="text" value={editableDNA.category || ''} onChange={e => setEditableDNA({...editableDNA, category: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none" />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[8px] text-zinc-500 uppercase tracking-wider">Upper Material</label>
+                                                            <input type="text" value={editableDNA.upperMaterial || ''} onChange={e => setEditableDNA({...editableDNA, upperMaterial: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none" />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[8px] text-zinc-500 uppercase tracking-wider">Sole Material</label>
+                                                            <input type="text" value={editableDNA.soleMaterial || ''} onChange={e => setEditableDNA({...editableDNA, soleMaterial: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none" />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[8px] text-zinc-500 uppercase tracking-wider">Sole Shape</label>
+                                                            <input type="text" value={editableDNA.soleShape || ''} onChange={e => setEditableDNA({...editableDNA, soleShape: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none" />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[8px] text-zinc-500 uppercase tracking-wider">Logo Placement</label>
+                                                            <input type="text" value={editableDNA.logoPosition || ''} onChange={e => setEditableDNA({...editableDNA, logoPosition: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none" />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[8px] text-zinc-500 uppercase tracking-wider">Branding Text</label>
+                                                            <input type="text" value={editableDNA.brandingText || ''} onChange={e => setEditableDNA({...editableDNA, brandingText: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none placeholder:text-zinc-700" placeholder="Extracted text on logo" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
                                     {/* Editable Product Description (Fix #7) */}
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-semibold text-zinc-500 uppercase tracking-[0.2em]">Descrição AI (editável)</label>
