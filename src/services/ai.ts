@@ -666,11 +666,12 @@ export async function generateMockup(
     const imagePrompt = `TASK: 1:1 PRODUCT REPLICATION & COMMERCIAL STORYBOARD COLLAGE (16:9).
 GOAL: Create an ultra-photorealistic storyboard board that perfectly matches the BLUEPRINT while cloning the uploaded product photos pixel-by-pixel.
 
-[CRITICAL - SOURCE OF TRUTH]
+[CRITICAL - SOURCE OF TRUTH & LOGO FIDELITY]
 THE ATTACHED PHOTOS ARE THE ABSOLUTE TRUTH FOR THE PRODUCT'S APPEARANCE.
-1. DO NOT change the logo, typography, or branding text. Replicate it exactly as seen in the photos.
+1. ABSOLUTE TYPOGRAPHY LOCK: You must replicate the exact letters, font, and spelling of any logo or text seen on the product in the photos. Do not misspell, scramble, or alter the characters. The text MUST be perfectly readable in both the hero shot and the macro panels.
 2. DO NOT change the materials, stitching, geometry, or colors.
 3. The environment, camera angle, and action MUST visually match the BLUEPRINT text below.
+WARNING: Even if the blueprint describes complex action, YOUR FIRST PRIORITY is to render the product and its logos flawlessly. Action/movement is secondary.
 
 BLUEPRINT TO VISUALIZE:
 "${promptText || productDescription}"
