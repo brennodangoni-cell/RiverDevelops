@@ -341,6 +341,7 @@ export async function generatePrompts(
             .trim();
 
     const outputCount = sceneDraft ? 1 : 3;
+    const referenceLockLine = "Use the uploaded image(s) as the exact product reference. Preserve geometry, logo placement, proportions, materials, and texture scale.";
     const paletteAnchors = normalizePaletteAnchors(detectedColors);
     const continuityAnchor = previousPrompts?.length
         ? previousPrompts[previousPrompts.length - 1].slice(0, 300)
@@ -360,6 +361,7 @@ Generate ${outputCount} professional blueprint prompt(s) for Sora 2.
 MANDATORY RULES
 - English output only.
 - Each blueprint must be 85-125 words.
+- Start every blueprint with this exact sentence: "${referenceLockLine}"
 - One shot per blueprint: one main subject action + one camera move.
 - Keep product identity locked: shape, logo, proportions, texture, stitching, materials.
 - Do NOT use HEX codes. Use natural color language only.
@@ -423,6 +425,13 @@ QUALITY BAR
         if (!Array.isArray(parsed)) return [];
         return parsed
             .map((p) => typeof p === 'string' ? p.trim() : '')
+            .map((p) => {
+                const normalized = p.replace(/\s+/g, ' ').trim();
+                if (!normalized) return '';
+                return normalized.toLowerCase().startsWith(referenceLockLine.toLowerCase())
+                    ? normalized
+                    : `${referenceLockLine} ${normalized}`;
+            })
             .filter((p) => p.length > 0)
             .slice(0, outputCount);
     } catch (e) {
