@@ -513,27 +513,26 @@ export async function generateMockup(
         "Product focus. Logo prominently displayed."
     ];
 
-    const imagePrompt = `TASK: TECHNICAL PRODUCT RECONSTRUCTION (COLLAGE).
-GOAL: Create a professional commercial concept sheet (16:9 Collage).
+    const imagePrompt = `TASK: Generate a PROFESSIONAL COMMERCIAL CONCEPT SHEET (COLLAGE).
+GOAL: Create a single 16:9 image containing a HERO SHOT and 3 DETAIL VIEWS.
 
-[CRITICAL - SOURCE OF TRUTH]
-THE ATTACHED PHOTOS ARE THE ONLY REFERENCE FOR PRODUCT SHAPE, COLORS, AND BRANDING. 
-- CLONE MODE: Absolute adherence to reference photos. 
-- ZERO HALLUCINATION: Do not add details, textures, or features not present in the photos.
-- IDENTITY LOCK: The product must be a pixel-perfect reconstruction of the references.
+DIRECTOR'S BLUEPRINT (BASE):
+"${promptText || productDescription}"
 
-[SCENE CONTEXT - FOR ENVIRONMENT ONLY]
-ENVIRONMENT: ${options.environment}
-LIGHTING: ${options.timeOfDay}
-STYLE: ${options.style}
+[STRICT CONFIGURATION ADHERENCE]
+- ENVIRONMENT: ${options.environment}
+- LIGHTING: ${options.timeOfDay}
+- STYLE: ${options.style}
 ${options.mode === 'lifestyle' ? `- TALENT: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
-${promptText ? `BLUEPRINT: "${promptText}"` : ''}
 
-[LAYOUT]
-- MAIN HERO SHOT (LEFT, 60%): ${focusInstructions[promptIndex] || "Hero product focus."}
-- DETAIL ANGLES (RIGHT STACK, 40%): 3 microscopic views focusing strictly on the materials and branding found in the photos.
+COLLAGE LAYOUT:
+- MAIN HERO SHOT (LEFT, 60%): ${focusInstructions[promptIndex] || "Hero product in environment."}
+- DETAIL ANGLES (RIGHT STACK, 40%): 3 microscopic views focusing on materials, branding, and physics.
 
-CRITICAL: Perfect symmetry, cinematic grade. The product MUST be identical to the photos.`;
+CRITICAL - VISUAL FIDELITY:
+- CLONE MODE: Absolute adherence to reference photos.
+- SYMMETRY: Perfect framing.
+- LOGOS: Sharp and identical placement.`;
 
     // Build content parts: reference images (if available) + text prompt
     const contentParts: any[] = [];

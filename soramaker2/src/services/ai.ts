@@ -140,26 +140,25 @@ export async function generateMockup(productDescription: string, options: any, p
     "Macro shot. Detail focus."
   ];
 
-  const imagePrompt = `TASK: TECHNICAL PRODUCT RECONSTRUCTION (COLLAGE).
-GOAL: Create a professional commercial concept sheet (16:9 Collage).
+  const imagePrompt = `TASK: Generate a PROFESSIONAL COMMERCIAL CONCEPT SHEET (COLLAGE).
+GOAL: Create a single 16:9 image containing a HERO SHOT and 3 DETAIL VIEWS.
 
-[CRITICAL - SOURCE OF TRUTH]
-THE ATTACHED PHOTOS ARE THE ONLY REFERENCE FOR PRODUCT SHAPE, COLORS, AND BRANDING. 
-- CLONE MODE: Absolute adherence to reference photos. 
-- ZERO HALLUCINATION: Do not add details or colors not present in the photos.
-- IDENTITY LOCK: The product must be an exact clone of the references.
+DIRECTOR'S BLUEPRINT (BASE):
+"${productDescription}"
 
-[SCENE CONTEXT - FOR ENVIRONMENT ONLY]
-ENVIRONMENT: ${options.environment}
-LIGHTING: ${options.timeOfDay}
-STYLE: ${options.style}
+[STRICT CONFIGURATION ADHERENCE]
+- ENVIRONMENT: ${options.environment}
+- LIGHTING: ${options.timeOfDay}
+- STYLE: ${options.style}
 ${options.mode === 'lifestyle' ? `- TALENT: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
 
-[LAYOUT]
+COLLAGE LAYOUT:
 - MAIN HERO SHOT (LEFT, 60%): ${focusInstructions[promptIndex] || "Hero product focus."}
-- DETAIL ANGLES (RIGHT STACK, 40%): 3 microscopic views focusing on materials and branding.
+- DETAIL ANGLES (RIGHT STACK, 40%): 3 microscopic views focusing on materials, branding, and physics.
 
-CRITICAL: Perfect symmetry. The product MUST be identical to the photos.`;
+CRITICAL - VISUAL FIDELITY:
+- CLONE MODE: Absolute adherence to reference photos.
+- LOGOS: Sharp and identical placement.`;
 
   try {
     const response = await ai.models.generateContent({
