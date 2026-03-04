@@ -16,8 +16,6 @@ interface Result {
     prompt: string;
     mockupUrl: string | null;
     feedback?: string;
-    feedbackHistory?: string[];
-    refineMode?: 'both' | 'prompt' | 'mockup';
 }
 
 interface FavoriteProject {
@@ -527,21 +525,10 @@ export default function VideoLab() {
         });
     };
 
-    const updateRefineMode = (index: number, mode: 'both' | 'prompt' | 'mockup') => {
-        setResults(prev => {
-            const updated = [...prev];
-            updated[index] = { ...updated[index], refineMode: mode };
-            return updated;
-        });
-    };
-
     const handleRegenerateWithFeedback = async (index: number) => {
         if (!analysis || loadingIndices.includes(index)) return;
         const currentDraft = results[index].prompt;
         const feedback = results[index].feedback;
-        const history = results[index].feedbackHistory || [];
-        const refineMode = results[index].refineMode || 'both';
-
         if (!feedback?.trim()) {
             toast.error('Escreva o que você não gostou para melhorar!');
             return;
@@ -556,41 +543,16 @@ export default function VideoLab() {
             ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
             : baseDescription) + hexInfo + hooksInfo;
 
-        const newHistory = [...history, feedback];
-
-        const feedbackContextText = history.length > 0
-            ? `PAST FEEDBACKS ALREADY APPLIED:\n${history.map((h, i) => `[Iteração ${i + 1}]: ${h}`).join('\n')}\n\nDIRECTOR'S NEW FEEDBACK (FIX THESE ISSUES IMMEDIATELY):\n${feedback}`
-            : `DIRECTOR'S FEEDBACK (FIX THESE ISSUES):\n${feedback}`;
-
-        const draftWithFeedback = `CURRENT PROMPT:\n${currentDraft}\n\n${feedbackContextText}`;
+        const draftWithFeedback = `CURRENT PROMPT:\n${currentDraft}\n\nDIRECTOR'S FEEDBACK (FIX THESE ISSUES):\n${feedback}`;
 
         toast.promise(
             (async () => {
-                let newPrompt = currentDraft;
-                let newMockupUrl = results[index].mockupUrl;
-
-                if (refineMode === 'both' || refineMode === 'prompt') {
-                    const newPrompts = await generatePrompts(finalDescription, options, undefined, analysis.colors, draftWithFeedback);
-                    newPrompt = newPrompts[0];
-                }
-
-                if (refineMode === 'both' || refineMode === 'mockup') {
-                    const finalMockupPrompt = (refineMode === 'mockup')
-                        ? `${newPrompt}\n\n[MOCKUP REFINEMENT FEEDBACK NOW APPLYING]: ${feedbackContextText}`
-                        : newPrompt;
-
-                    newMockupUrl = await generateMockup(finalDescription, options, index, compressedImages, finalMockupPrompt);
-                }
-
+                const newPrompts = await generatePrompts(finalDescription, options, undefined, analysis.colors, draftWithFeedback);
+                const newPrompt = newPrompts[0];
+                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, newPrompt);
                 setResults(prev => {
                     const updated = [...prev];
-                    updated[index] = {
-                        ...updated[index],
-                        prompt: newPrompt,
-                        mockupUrl: newMockupUrl,
-                        feedback: '',
-                        feedbackHistory: newHistory
-                    };
+                    updated[index] = { prompt: newPrompt, mockupUrl, feedback: '' };
                     return updated;
                 });
             })().finally(() => setLoadingIndices(prev => prev.filter(i => i !== index))),
@@ -1418,42 +1380,21 @@ export default function VideoLab() {
                                             </div>
 
                                             {/* Feedback Section */}
-                                            <div className="mt-4 bg-black/40 border border-white/5 rounded-2xl p-4 focus-within:border-amber-500/30 transition-colors flex flex-col gap-3">
-                                                {res.feedbackHistory && res.feedbackHistory.length > 0 && (
-                                                    <div className="flex flex-col gap-1.5 p-3 rounded-xl bg-white/5 border border-white/5">
-                                                        <span className="text-[9px] font-semibold uppercase tracking-[0.1em] text-zinc-500">Histórico de Refinamento:</span>
-                                                        {res.feedbackHistory.map((h, hIdx) => (
-                                                            <div key={hIdx} className="text-[10px] text-zinc-400 italic font-mono flex items-start gap-2">
-                                                                <span className="text-amber-500/50 mt-0.5">[{hIdx + 1}]</span> {h}
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                )}
+                                            <div className="mt-4 bg-black/40 border border-white/5 rounded-2xl p-4 focus-within:border-amber-500/30 transition-colors">
                                                 <textarea
                                                     value={res.feedback || ''}
                                                     onChange={(e) => updateFeedback(i, e.target.value)}
                                                     placeholder="O que você não gostou? Ex: 'A logo tem que ser menor', 'Muda a cor de fundo'..."
                                                     className="w-full bg-transparent text-xs text-zinc-300 leading-relaxed font-mono resize-none outline-none min-h-[60px] custom-scrollbar"
                                                 />
-                                                <div className="flex items-center justify-between mt-2 pt-3 border-t border-white/5">
-                                                    <div className="flex gap-1 bg-white/5 p-1 rounded-full border border-white/5">
-                                                        {['both', 'mockup', 'prompt'].map((mode) => (
-                                                            <button
-                                                                key={mode}
-                                                                onClick={() => updateRefineMode(i, mode as any)}
-                                                                className={`px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-wider transition-all ${(!res.refineMode && mode === 'both') || res.refineMode === mode ? 'bg-amber-500 text-black shadow-md' : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'}`}
-                                                            >
-                                                                {mode === 'both' ? 'Ambos' : mode === 'mockup' ? 'Mockup' : 'Prompt'}
-                                                            </button>
-                                                        ))}
-                                                    </div>
+                                                <div className="flex justify-end mt-2">
                                                     <button
                                                         onClick={() => handleRegenerateWithFeedback(i)}
                                                         disabled={loadingIndices.includes(i) || !res.feedback?.trim()}
                                                         className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black text-[10px] font-bold uppercase tracking-widest rounded-full transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-amber-900/20"
                                                     >
                                                         {loadingIndices.includes(i) ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
-                                                        Refinar
+                                                        Refinar com Feedback
                                                     </button>
                                                 </div>
                                             </div>
