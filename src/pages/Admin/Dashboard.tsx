@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Check, Clock, LogOut, Trash2, Loader2, X, CircleDashed, CheckCircle2, Edit2, DollarSign, Sparkles } from 'lucide-react';
+import { Plus, Check, Clock, LogOut, Trash2, Loader2, X, CircleDashed, CheckCircle2, Edit2, DollarSign, Sparkles, Users } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
@@ -235,6 +235,13 @@ export default function Dashboard() {
                                 >
                                     <Sparkles className="w-4 h-4" />
                                 </Link>
+                                <Link
+                                    to="/admin/clientes"
+                                    className="w-10 h-10 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center hover:bg-purple-500/20 hover:border-purple-500 transition-all duration-300 shrink-0 shadow-[0_0_15px_rgba(168,85,247,0.15)]"
+                                    title="Gestão de Clientes"
+                                >
+                                    <Users className="w-4 h-4" />
+                                </Link>
                                 <button
                                     onClick={() => setIsHistoryModalOpen(true)}
                                     className="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center hover:bg-cyan-500/20 hover:border-cyan-500 transition-all duration-300 shrink-0 shadow-[0_0_15px_rgba(34,211,238,0.15)]"
@@ -300,6 +307,13 @@ export default function Dashboard() {
                                 title="Laboratório IA"
                             >
                                 <Sparkles className="w-4 h-4" />
+                            </Link>
+                            <Link
+                                to="/admin/clientes"
+                                className="w-10 h-10 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center hover:bg-purple-500/20 hover:border-purple-500 transition-all duration-300 shrink-0 shadow-[0_0_15px_rgba(168,85,247,0.15)]"
+                                title="Gestão de Clientes"
+                            >
+                                <Users className="w-4 h-4" />
                             </Link>
                             <button
                                 onClick={() => setIsHistoryModalOpen(true)}
