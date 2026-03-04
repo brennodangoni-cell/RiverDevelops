@@ -7,7 +7,6 @@ type Client = {
     id: number;
     username: string;
     visible_password?: string;
-    avatar_url?: string;
     created_at: string;
 };
 
@@ -31,12 +30,10 @@ export default function AdminClients() {
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [newClient, setNewClient] = useState({ username: '', password: '' });
-    const [newClientAvatar, setNewClientAvatar] = useState<File | null>(null);
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingClient, setEditingClient] = useState<Client | null>(null);
     const [newPassword, setNewPassword] = useState('');
-    const [avatarUploading, setAvatarUploading] = useState(false);
 
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [uploadData, setUploadData] = useState({ title: '', category: '', product: '', week_date: '' });
@@ -83,40 +80,13 @@ export default function AdminClients() {
     const handleCreateClient = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const formData = new FormData();
-            formData.append('username', newClient.username);
-            formData.append('password', newClient.password);
-            if (newClientAvatar) {
-                formData.append('avatar', newClientAvatar);
-            }
-
-            await axios.post('/api/admin/clients', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            await axios.post('/api/admin/clients', newClient);
             toast.success('Cliente criado!');
             setIsCreateModalOpen(false);
             setNewClient({ username: '', password: '' });
-            setNewClientAvatar(null);
             fetchClients();
         } catch (error: any) {
             toast.error(error.response?.data?.error || 'Erro ao criar cliente.');
-        }
-    };
-
-    const handleUpdateAvatar = async (clientId: number, file: File) => {
-        setAvatarUploading(true);
-        try {
-            const formData = new FormData();
-            formData.append('avatar', file);
-            await axios.put(`/api/admin/clients/${clientId}/avatar`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            toast.success('Foto atualizada!');
-            fetchClients();
-        } catch (error) {
-            toast.error('Erro ao atualizar foto.');
-        } finally {
-            setAvatarUploading(false);
         }
     };
 
@@ -230,20 +200,9 @@ export default function AdminClients() {
                                         <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                                         <div className="flex flex-col h-full z-10 relative">
                                             <div className="flex items-start justify-between mb-6">
-                                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-white/10 to-transparent p-[1px] shadow-2xl relative group/avatar">
-                                                    <div className="w-full h-full bg-black/50 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/5 relative z-10 overflow-hidden">
-                                                        {client.avatar_url ? (
-                                                            <img src={(axios.defaults.baseURL || '') + client.avatar_url} alt={client.username} className="w-full h-full object-cover" />
-                                                        ) : (
-                                                            <span className="text-xl font-display font-light text-white uppercase">{client.username.charAt(0)}</span>
-                                                        )}
-                                                        <label className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer">
-                                                            <input type="file" className="hidden" accept="image/*" onChange={(e) => {
-                                                                const file = e.target.files?.[0];
-                                                                if (file) handleUpdateAvatar(client.id, file);
-                                                            }} disabled={avatarUploading} />
-                                                            {avatarUploading ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : <Plus className="w-4 h-4 text-white" />}
-                                                        </label>
+                                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-white/10 to-transparent p-[1px] shadow-2xl relative">
+                                                    <div className="w-full h-full bg-black/50 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/5 relative z-10">
+                                                        <span className="text-xl font-display font-light text-white uppercase">{client.username.charAt(0)}</span>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-2">
@@ -344,17 +303,6 @@ export default function AdminClients() {
                         <h2 className="text-xl font-display font-medium text-white mb-2 tracking-wide uppercase">Novo Cliente</h2>
                         <p className="text-xs text-white/40 mb-8 tracking-wider text-center">Crie o acesso para a Área Membros.</p>
                         <form onSubmit={handleCreateClient} className="w-full flex flex-col gap-4">
-                            <label className="w-20 h-20 rounded-2xl bg-black/40 border border-white/10 self-center mb-4 flex items-center justify-center cursor-pointer hover:border-cyan-400/50 transition-all overflow-hidden group/newavatar relative">
-                                <input type="file" className="hidden" accept="image/*" onChange={e => setNewClientAvatar(e.target.files?.[0] || null)} />
-                                {newClientAvatar ? (
-                                    <img src={URL.createObjectURL(newClientAvatar)} className="w-full h-full object-cover" />
-                                ) : (
-                                    <ImageIcon className="w-6 h-6 text-white/20 group-hover/newavatar:text-cyan-400 transition-colors" />
-                                )}
-                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/newavatar:opacity-100 transition-opacity">
-                                    <Plus className="w-4 h-4 text-white" />
-                                </div>
-                            </label>
                             <input required type="text" value={newClient.username} onChange={e => setNewClient({ ...newClient, username: e.target.value })} className="w-full bg-black/40 border border-white/5 rounded-[1.5rem] px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/[0.03] focus:shadow-[0_0_15px_rgba(6,182,212,0.1)] transition-all font-light placeholder:text-zinc-600" placeholder="Nome de Usuário (Login)" />
                             <input required type="password" value={newClient.password} onChange={e => setNewClient({ ...newClient, password: e.target.value })} className="w-full bg-black/40 border border-white/5 rounded-[1.5rem] px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/[0.03] focus:shadow-[0_0_15px_rgba(6,182,212,0.1)] transition-all font-light placeholder:text-zinc-600" placeholder="Senha" />
                             <button type="submit" className="w-full mt-4 bg-white hover:bg-white/90 text-black font-semibold tracking-[0.15em] uppercase text-[10px] py-4 rounded-full transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-[0.98]">Criar Acesso</button>
