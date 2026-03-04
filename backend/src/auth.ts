@@ -18,6 +18,6 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
     }
 }
 
-export function generateToken(user: { id: number; username: string; role?: string }) {
+export function generateToken(user: { id: number; username: string }) {
     return jwt.sign(user, JWT_SECRET, { expiresIn: '7d' });
 }
