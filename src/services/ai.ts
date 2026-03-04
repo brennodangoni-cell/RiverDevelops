@@ -366,7 +366,7 @@ export async function generatePrompts(
       0. MARKETING ALIGNMENT & EMOTION: Evoke the EMOTION described. If the user says "stepping on clouds", describe the ethereal lightness and the model's divine comfort.
       1. TECHNICAL SETTING: Specify lens (e.g., 35mm), movement (e.g., slow-motion tracking), and framing.
       2. PHYSICS & WEIGHT: The PRODUCT must be structurally rigid and feel solid. The WORLD can ignore gravity, time, and logic if requested.
-      3. PRODUCT FIDELITY: Meticulously describe materials (matte rubber, brushed aluminum), logo placement, and light reflection.
+      3. ABSOLUTE SHAPE & TEXTURE LOCK: Describe how the light and environment beautifully interact with the object's surfaces, but STRICTLY FORBIDDEN to describe the physical shape, colors, or materials of the object itself. Let the image reference do the work.
       4. ATMOSPHERIC GRADE & VFX: Ethereal lighting, volumetric mist, glow effects, or dream-state color grading.
     
     - FORMAT: Natural, ultra-technical prose. No technical labels. Length: ~150-250 words.
@@ -380,8 +380,8 @@ export async function generatePrompts(
     ` : `
     GOAL: Create 3 cinematic video scenes (10 seconds each) for a high-end commercial:
     Scene 1 — THE HOOK: Wide establishing shot. Reveal the product in a majestic environment.
-    Scene 2 — THE STORY: Medium tracking shot. Show the core benefit and product DNA in action.
-    Scene 3 — THE DETAILS: Extreme macro. Focus on the sharpest textures and perfectly legible branding.
+    Scene 2 — THE STORY: Medium tracking shot. Show the core benefit and dynamic interaction.
+    Scene 3 — THE DETAILS: Extreme macro. Focus on dynamic lighting hitting the surface perfectly. DO NOT name or describe the physical item or its brand.
     `)}
     `;
 
@@ -413,7 +413,7 @@ export async function generatePrompts(
     TASK: Generate 3 NEW scenes that perfectly match the previous aesthetic.
     Scene A — Reaction or alternative angle.
     Scene B — Dynamic stylized transition.
-    Scene C — Final majestic outro with a focus on brand identity.
+    Scene C — Final majestic outro with a focus on dramatic scale and atmosphere.
         `;
     }
 
@@ -427,13 +427,14 @@ YOU MUST NOT DESCRIBE THE PRODUCT'S APPEARANCE. DO NOT describe its colors, mate
 CRITICAL RULE: DO NOT WRITE THE WORD "LOGO", "BRAND", OR ANY ACTUAL LETTERS/TEXT IN YOUR PROMPT. If you write "an A logo" or "the brand name", the video AI will try to redraw it and will ruin the stylized logo from the mockup. Never mention specific letters, typography, or logos in your prompt!
 
 SORA 2 MOTION SKELETON (HIERARCHICAL PRIORITY):
-1. VISUAL ANCHOR: Begin your prompt EXACTLY with this phrase and do not change it: "The main subject remains completely identical to the reference image in every morphological detail, freezing its exact geometry, textures, and embedded graphics without any mutation, redraw, or hallucination."
+1. VISUAL ANCHOR & SHAPE LOCK: Begin your prompt EXACTLY with this phrase and do not change it: "The 3D shape, silhouette, geometry, and structural proportions of the main subject are 100% locked to the reference image. Zero morphing, zero distortion, zero physical alteration, freezing its exact textures and embedded graphics flawlessly."
 2. EXPLOSIVE KINETIC ACTION: THIS IS NOT A PHOTO. YOU MUST DIRECT MOVEMENT. Describe who is interacting with the product and exactly how. Is someone running? Smashes into water? Twisted mid-air? Eaten? Dropped? Make the action clear, dynamic, and purposeful. STATIC SCENES OR SIMPLE ZOOMS ARE STRICTLY FORBIDDEN.
 3. AGGRESSIVE CAMERA WORK: Define the exact camera movement tracking the action (e.g., "Aggressive tracking shot following the runner", "Rapid whip-pan", "Drone diving shot", "Macro lens orbiting rapidly"). DO NOT USE SLOW OR STATIC ZOOMS. 
 4. MICRO-PHYSICS REACTION: Describe how the environment violently reacts to the movement.
-5. VOLUMETRIC LIGHTING: Describe the lighting rays, shadows, and mood shifting during the movement.
+5. AVOID STRUCTURAL DESCRIPTIONS: If you try to describe the shape of the object in your own words, Sora 2 will try to interpret it and warp the product. Do not describe the product's structure!
 
 DIRECTIVES:
+- STRICT SHAPE FIDELITY: The product's physical shape is sacred. Do not suggest any action that implies the product bending, morphing, or changing its core structure unless it's a natural property of the item (like clothing).
 - NO STATIC STILL-LIFES: You MUST force an action to happen. The video must feel alive and dynamic.
 - NO VISUAL DESCRIPTIONS OF THE OBJECT: Never write "blue shoe", "leather bag", or "logo". Write "the object" or "the item". Rely 100% on the image reference for visual data.
 - NO TEXT/LETTERS: Do not mention any text, numbers, or letters that could cause the AI to generate typography.
