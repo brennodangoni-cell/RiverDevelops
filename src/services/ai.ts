@@ -581,6 +581,7 @@ Output must be JSON array of ${outputCount} string(s).`;
 // =======================================================================
 export async function generateBlueprintFromMockup(
     mockupBase64: string,
+    originalImages: string[],
     productDescription: string,
     _options: any,
     sceneConcept: string,
@@ -597,9 +598,10 @@ export async function generateBlueprintFromMockup(
     const referenceLockLine = "Use the uploaded image(s) as the exact product reference. Preserve geometry, logo placement, proportions, materials, and texture scale.";
 
     const promptContext = `You are a Senior Sora 2 Prompt Engineer. 
-I have attached an image (a concept mockup board). It is a collage containing a MAIN HERO SHOT (usually on the left) and smaller macro detail panels.
+I have attached multiple images. The FIRST images are the original product photos (your ground truth for logos, materials, and exact shape). The LAST image is a concept mockup board (a collage with a MAIN HERO SHOT and detail panels).
 
-YOUR TASK: Write the perfect, most accurate Sora 2 video generation prompt describing EXACTLY the MAIN HERO SHOT that you see. IGNORE the macro panels and the fact that it is a collage. You are describing a single, unified 3D environment based on the main shot, but adding instructions for 3D camera movement and physical action.
+YOUR TASK: Write the perfect, most accurate Sora 2 video generation prompt describing EXACTLY the MAIN HERO SHOT that you see in the mockup board (the LAST image). IGNORE the macro panels and the fact that it is a collage. You are describing a single, unified 3D environment based on the main shot, but adding instructions for 3D camera movement and physical action. 
+USE THE ORIGINAL PHOTOS (the first images) ONLY to ensure your description of the product itself is 100% physically accurate and faithful, specially regarding logos and materials.
 
 MANDATORY RULES:
 - English output only.
@@ -616,15 +618,21 @@ SCENE CONTEXT HINT:
 PRODUCT DNA HINT:
 "${productDescription}"
 
-Remember: If Sora reads your prompt, it should generate a single full-frame video whose first frame looks EXACTLY like the main hero shot in the attached image, but then bursts into cinematic motion.`;
+Remember: If Sora reads your prompt, it should generate a single full-frame video whose first frame looks EXACTLY like the main hero shot in the attached mockup image, but then bursts into cinematic motion.`;
 
     const models = engine === 'speed' ? ["gemini-2.5-flash"] : BRAIN_MODELS; // We use brain models capable of vision
+
+    const imageParts = originalImages.map(img => {
+        const base64Data = img.replace(/^data:image\/\w+;base64,/, "");
+        return { inlineData: { data: base64Data, mimeType: "image/jpeg" } };
+    });
 
     const response = await generateWithFallback(ai, models, (model) => ({
         model,
         contents: {
             parts: [
-                { inlineData: { data: cleanB64, mimeType: "image/jpeg" } },
+                ...imageParts, // Uploaded photos as support
+                { inlineData: { data: cleanB64, mimeType: "image/jpeg" } }, // The mockup is the main guide (LAST image)
                 { text: promptContext }
             ]
         }

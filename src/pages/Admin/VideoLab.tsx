@@ -389,7 +389,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                 // 2. Generate Blueprint from generated Mockup
                 if (mockupUrl) {
                     setProgressText(`Visão Computacional: Analisando frame ${i + 1} para Blueprint...`);
-                    finalPrompt = await generateBlueprintFromMockup(mockupUrl, finalDescription, options, concepts[i], aiEngine)
+                    finalPrompt = await generateBlueprintFromMockup(mockupUrl, compressedImages, finalDescription, options, concepts[i], aiEngine)
                         .catch(e => { console.warn(`Blueprint extraction failed:`, e); return concepts[i]; });
                 }
 
@@ -442,7 +442,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
 
                 let finalPrompt = newConcepts[i];
                 if (mockupUrl) {
-                    finalPrompt = await generateBlueprintFromMockup(mockupUrl, finalDescription, options, newConcepts[i], aiEngine)
+                    finalPrompt = await generateBlueprintFromMockup(mockupUrl, compressedImages, finalDescription, options, newConcepts[i], aiEngine)
                         .catch(() => newConcepts[i]);
                 }
 
@@ -486,7 +486,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                 // 3. New Blueprint
                 let finalPrompt = newConcept;
                 if (mockupUrl) {
-                    finalPrompt = await generateBlueprintFromMockup(mockupUrl, finalDescription, newOptions, newConcept, aiEngine);
+                    finalPrompt = await generateBlueprintFromMockup(mockupUrl, compressedImages, finalDescription, newOptions, newConcept, aiEngine);
                 }
 
                 setResults(prev => {
@@ -522,7 +522,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                 // 2. Generate Blueprint from Mockup
                 let finalPrompt = currentDraft;
                 if (mockupUrl) {
-                    finalPrompt = await generateBlueprintFromMockup(mockupUrl, finalDescription, options, currentDraft, aiEngine);
+                    finalPrompt = await generateBlueprintFromMockup(mockupUrl, compressedImages, finalDescription, options, currentDraft, aiEngine);
                 }
 
                 setResults(prev => {
@@ -554,7 +554,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                 // 2. Generate Blueprint from generated Mockup
                 let finalPrompt = currentPrompt;
                 if (mockupUrl) {
-                    finalPrompt = await generateBlueprintFromMockup(mockupUrl, finalDescription, options, currentPrompt, aiEngine)
+                    finalPrompt = await generateBlueprintFromMockup(mockupUrl, compressedImages, finalDescription, options, currentPrompt, aiEngine)
                         .catch(() => currentPrompt);
                 }
 
@@ -615,7 +615,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                 // 3. Blueprint
                 let finalPrompt = newConcept;
                 if (mockupUrl) {
-                    finalPrompt = await generateBlueprintFromMockup(mockupUrl, finalDescription, options, newConcept, aiEngine);
+                    finalPrompt = await generateBlueprintFromMockup(mockupUrl, compressedImages, finalDescription, options, newConcept, aiEngine);
                 }
 
                 setResults(prev => {
@@ -660,7 +660,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                         
                         let finalPrompt = currentPrompt;
                         if (mockupUrl) {
-                            finalPrompt = await generateBlueprintFromMockup(mockupUrl, finalDescription, options, currentPrompt, aiEngine).catch(() => currentPrompt);
+                            finalPrompt = await generateBlueprintFromMockup(mockupUrl, compressedImages, finalDescription, options, currentPrompt, aiEngine).catch(() => currentPrompt);
                         }
 
                         setResults(prev => {
@@ -801,7 +801,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold tracking-tight text-white">River Sora Lab</h1>
-                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v18.9</span></p>
+                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v18.10</span></p>
                         </div>
                     </div>
                 </div>
@@ -1367,7 +1367,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                     <h1 className="text-3xl font-light text-white tracking-tight flex items-center gap-3">
                                         Director's Timeline <span className="text-cyan-500 text-xs font-bold uppercase tracking-[0.4em] bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/30">Storyboard</span>
                                     </h1>
-                                    <p className="text-[10px] text-zinc-500 mt-3 uppercase tracking-widest">DNA do Produto + Contexto de Marketing + Sora 2 Blueprint Engine v18.9</p>
+                                    <p className="text-[10px] text-zinc-500 mt-3 uppercase tracking-widest">DNA do Produto + Contexto de Marketing + Sora 2 Blueprint Engine v18.10</p>
                                 </div>
                                 <div className="flex flex-wrap items-center gap-3">
                                     {results.some(r => r.mockupUrl === null) && (
