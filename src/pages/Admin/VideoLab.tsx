@@ -258,6 +258,38 @@ export default function VideoLab() {
         }
     };
 
+    const composeFinalDescription = (analysisData: ProductAnalysis, includeEnhancers = true) => {
+        const baseDescription = editableDescription || analysisData.description;
+        const marketingInfo = marketingContext.trim()
+            ? `\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
+            : '';
+        const hexInfo = includeEnhancers && analysisData.dominantHexColors?.length
+            ? `\nADOPT THESE EXACT HEX COLORS: ${analysisData.dominantHexColors.join(', ')}`
+            : '';
+        const hooksInfo = includeEnhancers && analysisData.sellingPoints?.length
+            ? `\nPONTOS DE VENDA A DESTACAR: ${analysisData.sellingPoints.slice(0, 2).join(', ')}`
+            : '';
+
+        const dna = (analysisData as any).productDNA;
+        const branding = (analysisData as any).branding;
+        const dnaInfo = dna ? `\n\nSTRUCTURED_PRODUCT_DNA:
+category=${dna.category || ''}
+quantity=${dna.quantity || ''}
+upper_material=${dna.upperMaterial || ''}
+sole_material=${dna.soleMaterial || ''}
+sole_shape=${dna.soleShape || ''}
+logo_position=${dna.logoPosition || ''}
+logo_type=${dna.logoType || ''}
+texture_scale=${dna.textureScale || ''}
+rigidity_upper=${dna.rigidity?.upper || ''}
+rigidity_sole=${dna.rigidity?.sole || ''}` : '';
+        const brandingInfo = branding && branding.text
+            ? `\nBRANDING_LOCK: Brand text "${branding.text}" must stay readable, undistorted, and in the expected position/orientation (${branding.position || 'unknown'} / ${branding.orientation || 'unknown'}).`
+            : '';
+
+        return `${baseDescription}${marketingInfo}${hexInfo}${hooksInfo}${dnaInfo}${brandingInfo}`;
+    };
+
     const handleAnalyze = async () => {
         // No-image mode: skip to step 2 with manual description
         if (imageFiles.length === 0) {
@@ -313,18 +345,9 @@ export default function VideoLab() {
         setResults([]);
         setProgress(3);
         try {
-            // Use editable description (Fix #7)
-            const baseDescription = editableDescription || analysis.description;
-            // Inject Hex Colors for fidelity
-            const hexInfo = analysis.dominantHexColors?.length ? `\nADOPT THESE EXACT HEX COLORS: ${analysis.dominantHexColors.join(', ')}` : '';
-            // Inject Selling Points to influence storyboard
-            const hooksInfo = analysis.sellingPoints?.length ? `\nPONTOS DE VENDA A DESTACAR: ${analysis.sellingPoints.slice(0, 2).join(', ')}` : '';
+            const finalDescription = composeFinalDescription(analysis, true);
 
-            const finalDescription = (marketingContext.trim()
-                ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
-                : baseDescription) + hexInfo + hooksInfo;
-
-            setProgressText('Engenharia de Prompts (Sora 2 Cinematic Engine v17.8)...');
+            setProgressText('Engenharia de Prompts (Sora 2 Cinematic Engine v17.9)...');
             const progressTimer = simulateProgress(3, 18, 45000);
             const prompts = await generatePrompts(finalDescription, options, undefined, analysis.colors);
             clearInterval(progressTimer);
@@ -367,10 +390,7 @@ export default function VideoLab() {
 
     const handleContinueFlow = async () => {
         if (!analysis) return;
-        const baseDescription = editableDescription || analysis.description;
-        const finalDescription = marketingContext.trim()
-            ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
-            : baseDescription;
+        const finalDescription = composeFinalDescription(analysis, true);
         setIsContinuing(true);
         setProgress(5);
         try {
@@ -414,13 +434,7 @@ export default function VideoLab() {
     const handleRegenerateTake = async (index: number) => {
         if (!analysis || loadingIndices.includes(index)) return;
         setLoadingIndices(prev => [...prev, index]);
-        const baseDescription = editableDescription || analysis.description;
-        const hexInfo = analysis.dominantHexColors?.length ? `\nADOPT THESE EXACT HEX COLORS: ${analysis.dominantHexColors.join(', ')}` : '';
-        const hooksInfo = analysis.sellingPoints?.length ? `\nPONTOS DE VENDA A DESTACAR: ${analysis.sellingPoints.slice(0, 2).join(', ')}` : '';
-
-        const finalDescription = (marketingContext.trim()
-            ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
-            : baseDescription) + hexInfo + hooksInfo;
+        const finalDescription = composeFinalDescription(analysis, true);
 
         toast.promise(
             (async () => {
@@ -454,13 +468,7 @@ export default function VideoLab() {
         }
 
         setLoadingIndices(prev => [...prev, index]);
-        const baseDescription = editableDescription || analysis.description;
-        const hexInfo = analysis.dominantHexColors?.length ? `\nADOPT THESE EXACT HEX COLORS: ${analysis.dominantHexColors.join(', ')}` : '';
-        const hooksInfo = analysis.sellingPoints?.length ? `\nPONTOS DE VENDA A DESTACAR: ${analysis.sellingPoints.slice(0, 2).join(', ')}` : '';
-
-        const finalDescription = (marketingContext.trim()
-            ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
-            : baseDescription) + hexInfo + hooksInfo;
+        const finalDescription = composeFinalDescription(analysis, true);
 
         toast.promise(
             (async () => {
@@ -484,13 +492,7 @@ export default function VideoLab() {
     const handleRegenerateMockup = async (index: number) => {
         if (!analysis || loadingIndices.includes(index)) return;
         setLoadingIndices(prev => [...prev, index]);
-        const baseDescription = editableDescription || analysis.description;
-        const hexInfo = analysis.dominantHexColors?.length ? `\nADOPT THESE EXACT HEX COLORS: ${analysis.dominantHexColors.join(', ')}` : '';
-        const hooksInfo = analysis.sellingPoints?.length ? `\nPONTOS DE VENDA A DESTACAR: ${analysis.sellingPoints.slice(0, 2).join(', ')}` : '';
-
-        const finalDescription = (marketingContext.trim()
-            ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
-            : baseDescription) + hexInfo + hooksInfo;
+        const finalDescription = composeFinalDescription(analysis, true);
 
         toast.promise(
             (async () => {
@@ -535,13 +537,7 @@ export default function VideoLab() {
         }
 
         setLoadingIndices(prev => [...prev, index]);
-        const baseDescription = editableDescription || analysis.description;
-        const hexInfo = analysis.dominantHexColors?.length ? `\nADOPT THESE EXACT HEX COLORS: ${analysis.dominantHexColors.join(', ')}` : '';
-        const hooksInfo = analysis.sellingPoints?.length ? `\nPONTOS DE VENDA A DESTACAR: ${analysis.sellingPoints.slice(0, 2).join(', ')}` : '';
-
-        const finalDescription = (marketingContext.trim()
-            ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
-            : baseDescription) + hexInfo + hooksInfo;
+        const finalDescription = composeFinalDescription(analysis, true);
 
         const draftWithFeedback = `CURRENT PROMPT:\n${currentDraft}\n\nDIRECTOR'S FEEDBACK (FIX THESE ISSUES):\n${feedback}`;
 
@@ -574,13 +570,7 @@ export default function VideoLab() {
 
     const handleRenderAllVisible = async () => {
         if (!analysis) return;
-        const baseDescription = editableDescription || analysis.description;
-        const hexInfo = analysis.dominantHexColors?.length ? `\nADOPT THESE EXACT HEX COLORS: ${analysis.dominantHexColors.join(', ')}` : '';
-        const hooksInfo = analysis.sellingPoints?.length ? `\nPONTOS DE VENDA A DESTACAR: ${analysis.sellingPoints.slice(0, 2).join(', ')}` : '';
-
-        const finalDescription = (marketingContext.trim()
-            ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
-            : baseDescription) + hexInfo + hooksInfo;
+        const finalDescription = composeFinalDescription(analysis, true);
 
         const missingIndices = results.map((r, i) => r.mockupUrl === null ? i : -1).filter(i => i !== -1);
         if (missingIndices.length === 0) {
@@ -738,7 +728,7 @@ export default function VideoLab() {
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold tracking-tight text-white">River Sora Lab</h1>
-                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v17.8</span></p>
+                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v17.9</span></p>
                         </div>
                     </div>
                 </div>
@@ -1222,7 +1212,7 @@ export default function VideoLab() {
                                     <h1 className="text-2xl font-light text-white tracking-tight flex items-center gap-3">
                                         Storyboard <span className="text-cyan-500 text-sm font-bold uppercase tracking-[0.3em]">Cinematic</span>
                                     </h1>
-                                    <p className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">DNA do Produto + Contexto de Marketing + Sora 2 Blueprint Engine v17.8</p>
+                                    <p className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">DNA do Produto + Contexto de Marketing + Sora 2 Blueprint Engine v17.9</p>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     {results.some(r => r.mockupUrl === null) && (

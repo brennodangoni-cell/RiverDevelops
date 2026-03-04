@@ -8,6 +8,27 @@ export interface ProductAnalysis {
     colors?: string[]; // Unique colors seen in images
     sellingPoints?: string[]; // Top 3 marketing hooks/advantages
     dominantHexColors?: string[]; // Precise hex codes extracted from photos
+    productDNA?: ProductDNA;
+    branding?: {
+        text?: string;
+        position?: string;
+        orientation?: string;
+    };
+}
+
+export interface ProductDNA {
+    category: string;
+    quantity: string;
+    upperMaterial: string;
+    soleMaterial: string;
+    soleShape: string;
+    logoPosition: string;
+    logoType: string;
+    textureScale: string;
+    rigidity: {
+        upper: string;
+        sole: string;
+    };
 }
 
 export interface SceneryAnalysis {
@@ -22,7 +43,7 @@ export interface SceneryAnalysis {
 // =======================================================================
 // MODEL CONFIGURATION WITH FALLBACK CHAIN (Fix #4)
 // =======================================================================
-const BRAIN_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.1-pro-preview"];
+const BRAIN_MODELS = ["gemini-2.5-pro", "gemini-2.5-flash"];
 const ANALYSIS_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro"];
 const IMAGE_MODELS = ["gemini-3.1-flash-image-preview", "gemini-3-pro-image-preview"];
 
@@ -88,6 +109,116 @@ function parseBase64(base64: string): { data: string; mimeType: string } {
     return { data: base64, mimeType: 'image/jpeg' };
 }
 
+function safeParseJson(text: string, fallback: any) {
+    try {
+        return JSON.parse(text || "");
+    } catch {
+        try {
+            const cleaned = (text || "")
+                .replace(/```json/gi, "")
+                .replace(/```/g, "")
+                .trim();
+            const start = Math.min(
+                ...["{", "["]
+                    .map((c) => cleaned.indexOf(c))
+                    .filter((i) => i >= 0)
+            );
+            const endCurly = cleaned.lastIndexOf("}");
+            const endSquare = cleaned.lastIndexOf("]");
+            const end = Math.max(endCurly, endSquare);
+            if (start >= 0 && end > start) {
+                return JSON.parse(cleaned.slice(start, end + 1));
+            }
+        } catch {
+            // fall through
+        }
+    }
+    return fallback;
+}
+
+function normalizeStringList(value: any, fallback: string[] = []): string[] {
+    if (!Array.isArray(value)) return fallback;
+    const cleaned = value
+        .map((v) => String(v || "").trim())
+        .filter(Boolean);
+    return cleaned.length ? cleaned : fallback;
+}
+
+function normalizeProductAnalysis(value: any): ProductAnalysis {
+    const fallbackProductOnly = [
+        "Estúdio premium com fundo infinito e luz suave lateral",
+        "Superfície técnica minimalista com sombras controladas",
+        "Set clean comercial com destaque absoluto para materiais",
+        "Composição editorial de produto com contraste elegante"
+    ];
+    const fallbackLifestyle = [
+        "Ambiente urbano sofisticado com uso natural do produto",
+        "Interior contemporâneo com luz de janela cinematográfica",
+        "Cena externa ao entardecer com interação realista",
+        "Lifestyle premium com foco no benefício em ação"
+    ];
+    const normalized: ProductAnalysis = {
+        description: String(value?.description || ""),
+        productType: String(value?.productType || "Produto"),
+        suggestedSceneriesProductOnly: normalizeStringList(value?.suggestedSceneriesProductOnly, fallbackProductOnly).slice(0, 4),
+        suggestedSceneriesLifestyle: normalizeStringList(value?.suggestedSceneriesLifestyle, fallbackLifestyle).slice(0, 4),
+        colors: normalizeStringList(value?.colors).slice(0, 12),
+        sellingPoints: normalizeStringList(value?.sellingPoints).slice(0, 6),
+        dominantHexColors: normalizeStringList(value?.dominantHexColors).slice(0, 6)
+    };
+
+    if (value?.productDNA && typeof value.productDNA === "object") {
+        normalized.productDNA = {
+            category: String(value.productDNA.category || ""),
+            quantity: String(value.productDNA.quantity || ""),
+            upperMaterial: String(value.productDNA.upperMaterial || ""),
+            soleMaterial: String(value.productDNA.soleMaterial || ""),
+            soleShape: String(value.productDNA.soleShape || ""),
+            logoPosition: String(value.productDNA.logoPosition || ""),
+            logoType: String(value.productDNA.logoType || ""),
+            textureScale: String(value.productDNA.textureScale || ""),
+            rigidity: {
+                upper: String(value.productDNA.rigidity?.upper || ""),
+                sole: String(value.productDNA.rigidity?.sole || "")
+            }
+        };
+    }
+
+    if (value?.branding && typeof value.branding === "object") {
+        normalized.branding = {
+            text: String(value.branding.text || ""),
+            position: String(value.branding.position || ""),
+            orientation: String(value.branding.orientation || "")
+        };
+    }
+
+    return normalized;
+}
+
+async function ensureModelCompatibleImage(base64: string): Promise<string> {
+    const { mimeType } = parseBase64(base64);
+    if (mimeType !== "image/webp") return base64;
+
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+            try {
+                const canvas = document.createElement("canvas");
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext("2d");
+                if (!ctx) return resolve(base64);
+                ctx.drawImage(img, 0, 0);
+                resolve(canvas.toDataURL("image/jpeg", 0.94));
+            } catch {
+                resolve(base64);
+            }
+        };
+        img.onerror = () => resolve(base64);
+        img.src = base64;
+    });
+}
+
 // =======================================================================
 // IMAGE COMPRESSION (Fix #6)
 // =======================================================================
@@ -95,6 +226,12 @@ function compressImage(base64: string, maxSize = 1024): Promise<string> {
     return new Promise((resolve) => {
         const img = new Image();
         img.onload = () => {
+            // Keep originals when already lightweight to preserve logo/texture micro-detail.
+            const estimatedBytes = Math.floor((base64.length * 3) / 4);
+            if (estimatedBytes < 1_000_000 && img.width <= 1600 && img.height <= 1600) {
+                resolve(base64);
+                return;
+            }
             const canvas = document.createElement('canvas');
             let { width, height } = img;
 
@@ -145,6 +282,12 @@ async function generateWithFallback(
                 if (classified.type === 'SAFETY_FILTER') throw classified;
                 if (!classified.retryable) throw classified;
 
+                if (classified.type === 'RATE_LIMIT') {
+                    // Wait a little and move to the next model to reduce repeated throttling.
+                    await new Promise(r => setTimeout(r, 3500));
+                    break;
+                }
+
                 // Wait before retry (exponential backoff)
                 if (attempt < maxRetries) {
                     await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
@@ -165,7 +308,8 @@ export async function analyzeProduct(imagesBase64: string[], marketingContext?: 
 
     const ai = new GoogleGenAI({ apiKey });
 
-    const parts = imagesBase64.map(b64 => {
+    const preparedImages = await Promise.all(imagesBase64.map(ensureModelCompatibleImage));
+    const parts = preparedImages.map(b64 => {
         const { data, mimeType } = parseBase64(b64);
         return { inlineData: { data, mimeType } };
     });
@@ -205,7 +349,27 @@ Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. '
 
 6. "sellingPoints" (PORTUGUESE): TOP 3 technical/visual advantages.
 
-7. "dominantHexColors": List the 3 most important HEX CODES detected.` }
+7. "dominantHexColors": List the 3 most important HEX CODES detected.
+
+8. "productDNA" (ENGLISH object):
+{
+  "category": string,
+  "quantity": string,
+  "upperMaterial": string,
+  "soleMaterial": string,
+  "soleShape": string,
+  "logoPosition": string,
+  "logoType": string,
+  "textureScale": string,
+  "rigidity": { "upper": string, "sole": string }
+}
+
+9. "branding" (ENGLISH object):
+{
+  "text": string,
+  "position": string,
+  "orientation": string
+}` }
             ]
         },
         config: {
@@ -239,6 +403,34 @@ Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. '
                         type: Type.ARRAY,
                         items: { type: Type.STRING },
                         description: "List of precise hex codes extracted (e.g. ['#FFFFFF'])."
+                    },
+                    productDNA: {
+                        type: Type.OBJECT,
+                        properties: {
+                            category: { type: Type.STRING },
+                            quantity: { type: Type.STRING },
+                            upperMaterial: { type: Type.STRING },
+                            soleMaterial: { type: Type.STRING },
+                            soleShape: { type: Type.STRING },
+                            logoPosition: { type: Type.STRING },
+                            logoType: { type: Type.STRING },
+                            textureScale: { type: Type.STRING },
+                            rigidity: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    upper: { type: Type.STRING },
+                                    sole: { type: Type.STRING }
+                                }
+                            }
+                        }
+                    },
+                    branding: {
+                        type: Type.OBJECT,
+                        properties: {
+                            text: { type: Type.STRING },
+                            position: { type: Type.STRING },
+                            orientation: { type: Type.STRING }
+                        }
                     }
                 },
                 required: ["description", "productType", "suggestedSceneriesProductOnly", "suggestedSceneriesLifestyle", "colors", "sellingPoints", "dominantHexColors"]
@@ -246,12 +438,7 @@ Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. '
         }
     }));
 
-    try {
-        return JSON.parse(response.text || "{}");
-    } catch (e) {
-        console.error("Failed to parse analysis", e);
-        return { description: "", productType: "Produto", suggestedSceneriesProductOnly: [], suggestedSceneriesLifestyle: [] };
-    }
+    return normalizeProductAnalysis(safeParseJson(response.text || "", {}));
 }
 
 // =======================================================================
@@ -261,7 +448,8 @@ export async function analyzeScenery(imagesBase64: string[], marketingContext?: 
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
     const ai = new GoogleGenAI({ apiKey });
-    const parts = imagesBase64.map(b64 => {
+    const preparedImages = await Promise.all(imagesBase64.map(ensureModelCompatibleImage));
+    const parts = preparedImages.map(b64 => {
         const { data, mimeType } = parseBase64(b64);
         return { inlineData: { data, mimeType } };
     });
@@ -309,7 +497,7 @@ RETURN a JSON:
         }
     }));
 
-    try { return JSON.parse(response.text || "{}"); }
+    try { return safeParseJson(response.text || "", { description: "", locationType: "Local", mood: "", suggestedActions: [], suggestedCameraAngles: [], suggestedAudio: [] }); }
     catch { return { description: "", locationType: "Local", mood: "", suggestedActions: [], suggestedCameraAngles: [], suggestedAudio: [] }; }
 }
 
@@ -400,7 +588,12 @@ For each blueprint paragraph use this internal order:
 QUALITY BAR
 - Keep language compact and direct.
 - Avoid poetic filler and repeated adjectives.
-- Use physically plausible timing beats for 8-10s clips.`;
+- Use physically plausible timing beats for 8-10s clips.
+- If generating 3 shots, enforce narrative continuity:
+  Shot 1 = REVEAL (hero introduction),
+  Shot 2 = DETAIL (macro textures and branding),
+  Shot 3 = BENEFIT/INTERACTION (product use or functional payoff),
+  while preserving the same environment, palette anchors, and lighting logic.`;
 
 
     const response = await generateWithFallback(ai, BRAIN_MODELS, (model) => ({
@@ -498,7 +691,8 @@ CRITICAL: Perfect symmetry, cinematic grade. The product MUST be identical to th
         const selected = productImages.length <= 3
             ? productImages
             : [productImages[0], productImages[Math.floor(productImages.length / 2)], productImages[productImages.length - 1]];
-        for (const img of selected) {
+        const prepared = await Promise.all(selected.map(ensureModelCompatibleImage));
+        for (const img of prepared) {
             const { data, mimeType } = parseBase64(img);
             contentParts.push({ inlineData: { data, mimeType } });
         }
