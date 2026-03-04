@@ -176,48 +176,37 @@ export async function analyzeProduct(imagesBase64: string[], marketingContext?: 
             parts: [
                 ...parts,
                 {
-                    text: `SYSTEM MANDATE: You are an ELITE ADVERTISING DIRECTOR and CMO.
+                    text: `SYSTEM MANDATE: You are an ELITE ADVERTISING DIRECTOR, CMO, and MASTER CINEMATOGRAPHER.
 ${marketingContext ? `
 [CRITICAL MARKETING CONTEXT - SUPER-PRIORITY]
 """
 ${marketingContext}
 """
-MANDATE: ALL Suggested Sceneries (Lifestyle & Product-Only) MUST directly serve the marketing goals, target audience, and benefits described above. No generic suggestions allowed.
+MANDATE: ALL Suggested Sceneries MUST directly serve the marketing goals, target audience, and benefits described above.
 ` : ''}
 
 ENVIRONMENT RANDOMIZATION SEED: ${Date.now() + Math.random()}
-CRITICAL AESTHETIC MANDATE: DO NOT use generic luxury tropes over and over. FORBIDDEN WORDS: "Galeria de Arte", "Iate", "Museu", "Pedestal de Mármore". 
+CREATIVITY LEVEL DIRECTIVE: You are operating at the "${creativityLevel}" creativity tier.
+${creativityLevel === 'Conservador' ? 'CONSERVATIVE DIRECTIVE: Create 100% grounded, realistic, highly commercial scenarios. Professional lighting, premium studios, believable real-world interactions. Strict logical physics.' :
+                            creativityLevel === 'Extremo' ? 'EXTREME SURREALISM DIRECTIVE: Ignore reality. Create avant-garde, impossible, highly artistic, and hyper-premium commercial scenarios. Levitating materials, impossible fluid dynamics, alien landscapes with luxury lighting, shattered glass slow-mo. BUT THE PRODUCT ITSELF MUST NEVER MUTATE OR DEFORM.' :
+                                'BALANCED DIRECTIVE: Mix highly polished commercial realism with striking, memorable "magic realism" touches (e.g. dramatic lighting, slightly exaggerated physics, ultra-premium stylization) that maintain brand credibility.'}
 
-[CREATIVITY LEVEL ENFORCEMENT = "${creativityLevel}"]
-${creativityLevel === 'Conservador'
-                            ? 'MANDATO DE CRIATIVIDADE CONSERVADORA: Crie APENAS cenários lógicos, reais, cotidianos e altamente comerciais. Estúdios fotográficos limpos, mesas elegantes, praças iluminadas. O produto NUNCA deve fazer coisas fisicamente impossíveis. SEM MÁGICA, SEM FUMAÇAS SURREAIS. Apenas fotografia comercial premium.'
-                            : creativityLevel === 'Extremo'
-                                ? 'MANDATO DE SURREALISMO EXTREMO: Ignore completamente a física, o realismo e a lógica. Crie ambientes ALIENÍGENAS, AVANT-GARDE, IMPOSSÍVEIS e ALUCINADOS. Neve de fogo, chao feito de líquido metálico, desertos transparentes. Apenas sugestões 100% surreais voltadas pra alta moda/arte.'
-                                : 'MANDATO DE CRIATIVIDADE BALANCEADA: Misture cenários. Algumas sugestões reais e aplicáveis pro mundo físico com boa iluminação, e outras com uma "pitada" criativa (como superfícies flutuantes ou uma iluminação levemente fantasiosa), mantendo a credibilidade comercial.'}
+Analyze these product images for a SORA 2 MASTER BLUEPRINT.
 
-Analyze these product images for a SORA 2 digital twin. You must invent COMPLETELY NEW, UNEXPECTED environments that perfectly match THIS SPECIFIC PRODUCT'S DNA based strictly on the CREATIVITY LEVEL above.
+YOUR TWO JOBS:
+1. CREATE A HYPER-DETAILED, METICULOUS DESCRIPTION OF THE PRODUCT ITSELF. 
+Describe its precise geometry, architectural lines, textures (e.g. brushed metal, porous rubber, gloss plastic), exact text and logo placements, color codes, weight distribution, and scale. This description is the ONLY anchor the AI will have to preserve the product's identity. Leave absolutely no structural detail out. Be obsessive.
+2. INVENT COMPLETELY NEW, UNEXPECTED ENVIRONMENTS matching the CREATIVITY LEVEL. DO NOT use generic luxury tropes (No "Art Galleries", "Pedestals", or "Marble Tables"). Focus on kinetic action and lighting.
 
-RETURN a JSON with: 1. 'description' (ENGLISH, detailed). 2. 'productType' (PT-BR). 3. 'suggestedSceneriesProductOnly' (PT-BR): 4 scenarios strictly following the Creativity Level. 4. 'suggestedSceneriesLifestyle' (PT-BR): 4 scenarios strictly following the Creativity Level.
-
-1. "description" (ENGLISH, ultra-detailed):
-    - Exact physical traits: shape, silhouette, weight distribution
-    - MICRO-PHYSICS: How the materials react to touch and pressure (e.g., "memory foam compression", "rigid plastic", "liquid viscosity")
-    - Textures & Finishes: (matte, glossy, brushed, rubberized, porous)
-    - Colors: Verbal description + precise HEX codes (e.g., "Emerald Green #50C878")
-    - QUANTITY: Exactly how many items (pair/set/single)?
-    - Branding: Exact placement and legibility of all logos/text.
-
-2. "productType" (PORTUGUESE): Short category name
-
-3. "suggestedSceneriesProductOnly" (PORTUGUESE): 4 COMMERCIAL VIDEO SCENARIOS for product-only shots, following the "${creativityLevel}" mandate. Focus on cinematic movement and lighting. NEVER use "Galeria de arte".
-
-4. "suggestedSceneriesLifestyle" (PORTUGUESE): 4 COMMERCIAL VIDEO SCENARIOS with people/interaction, following the "${creativityLevel}" mandate. NEVER use "Galeria de arte".
-
-5. "colors" (ENGLISH): List of all unique colors/variations detected with HEX.
-
-6. "sellingPoints" (PORTUGUESE): TOP 3 technical/visual advantages.
-
-7. "dominantHexColors": List the 3 most important HEX CODES detected.` }
+RETURN a strict JSON with:
+1. "description" (ENGLISH, ultra-detailed): The obsessive physical blueprint built from the image.
+2. "productType" (PT-BR): Short category.
+3. "suggestedSceneriesProductOnly" (PT-BR): 4 COMMERCIAL VIDEO SCENARIOS (Studio/Abstract). Must detail lighting, camera movement, and kinetic action without describing the product again.
+4. "suggestedSceneriesLifestyle" (PT-BR): 4 COMMERCIAL VIDEO SCENARIOS (Interaction/World). Must detail who interacts, the environment, camera angle, and kinetic action.
+5. "colors" (ENGLISH): Detected variants.
+6. "sellingPoints" (PT-BR): Top 3 visual/technical hooks.
+7. "dominantHexColors": Top 3 hex codes.`
+                }
             ]
         },
         config: {
