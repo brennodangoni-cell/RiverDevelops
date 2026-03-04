@@ -10,7 +10,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import axios from 'axios';
-import { analyzeProduct, analyzeScenery, generatePrompts, generateMockup, AIError, ProductAnalysis, SceneryAnalysis } from '../../services/ai';
+import { analyzeProduct, analyzeScenery, generateSceneConcepts, generateBlueprintFromMockup, generateMockup, AIError, ProductAnalysis, SceneryAnalysis } from '../../services/ai';
 
 interface Result {
     prompt: string;
@@ -367,36 +367,44 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
         try {
             const finalDescription = composeFinalDescription(analysis, true);
 
-            setProgressText('Engenharia de Prompts (Sora 2 Cinematic Engine v17.9)...');
+            setProgressText('Concepção de Cenários...');
             const progressTimer = simulateProgress(3, 18, 45000);
-            const prompts = await generatePrompts(finalDescription, options, undefined, analysis.colors, undefined, aiEngine);
+            const concepts = await generateSceneConcepts(finalDescription, options, aiEngine);
             clearInterval(progressTimer);
             setProgress(20);
-            const newResults: Result[] = prompts.map(p => ({ prompt: p, mockupUrl: null }));
+            
+            const newResults: Result[] = concepts.map(_c => ({ prompt: 'Aguardando geração do Mockup...', mockupUrl: null }));
             setResults(newResults);
 
-            const targets = renderAllOnInit ? prompts : prompts.slice(0, 1);
-            setProgressText(`Renderizando ${targets.length} Mockup(s) com Fidelidade Pro...`);
+            const targets = renderAllOnInit ? concepts : concepts.slice(0, 1);
+            setProgressText(`Renderizando ${targets.length} Mockup(s) Vision-First...`);
 
             // Render sequentially to show progress and avoid state corruption
             for (let i = 0; i < targets.length; i++) {
-                const mockupUrl = await generateMockup(finalDescription, options, i, compressedImages, prompts[i], aiEngine)
+                // 1. Generate Mockup based on Scene Concept
+                const mockupUrl = await generateMockup(finalDescription, options, i, compressedImages, concepts[i], aiEngine)
                     .catch(e => { console.warn(`Mockup ${i + 1} failed:`, e); return null; });
+                
+                let finalPrompt = concepts[i];
+                // 2. Generate Blueprint from generated Mockup
+                if (mockupUrl) {
+                    setProgressText(`Visão Computacional: Analisando frame ${i + 1} para Blueprint...`);
+                    finalPrompt = await generateBlueprintFromMockup(mockupUrl, finalDescription, options, concepts[i], aiEngine)
+                        .catch(e => { console.warn(`Blueprint extraction failed:`, e); return concepts[i]; });
+                }
 
                 setResults(prev => {
                     const updated = [...prev];
                     if (updated[i]) {
-                        updated[i] = { ...updated[i], mockupUrl };
+                        updated[i] = { prompt: finalPrompt, mockupUrl };
                     }
                     return updated;
                 });
 
-                // Small delay to allow UI to breathe
                 if (i < targets.length - 1) await new Promise(r => setTimeout(r, 1000));
             }
 
             setProgress(100);
-            // Save results to session (Fix #9)
             try { sessionStorage.setItem('sora_results', JSON.stringify(newResults)); } catch (_) { }
         } catch (e: any) {
             console.error('FULL_API_ERROR_OBJECT:', e);
@@ -414,32 +422,40 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
         setIsContinuing(true);
         setProgress(5);
         try {
-            setProgressText('Expandindo Sequência Narrativa...');
+            setProgressText('Concebendo novas cenas...');
             const progressTimer = simulateProgress(5, 28, 40000);
-            const previousPrompts = results.map(r => r.prompt);
-            const newPrompts = await generatePrompts(finalDescription, options, previousPrompts, analysis.colors, undefined, aiEngine);
+            
+            // Get more concepts
+            const newConcepts = await generateSceneConcepts(finalDescription, options, aiEngine);
             clearInterval(progressTimer);
             setProgress(30);
+            
             const startIndex = results.length;
-            const newResults: Result[] = newPrompts.map(p => ({ prompt: p, mockupUrl: null }));
+            const newResults: Result[] = newConcepts.map(_c => ({ prompt: 'Aguardando Mockup...', mockupUrl: null }));
             setResults(prev => [...prev, ...newResults]);
 
-            setProgressText(`Renderizando ${newPrompts.length} Mockups extras...`);
+            setProgressText(`Gerando ${newConcepts.length} cenas Vision-First...`);
 
-            for (let i = 0; i < newPrompts.length; i++) {
-                const mockupUrl = await generateMockup(finalDescription, options, startIndex + i, compressedImages, newPrompts[i], aiEngine)
+            for (let i = 0; i < newConcepts.length; i++) {
+                const mockupUrl = await generateMockup(finalDescription, options, startIndex + i, compressedImages, newConcepts[i], aiEngine)
                     .catch(e => { console.warn(`Mockup extra ${i + 1} failed:`, e); return null; });
+
+                let finalPrompt = newConcepts[i];
+                if (mockupUrl) {
+                    finalPrompt = await generateBlueprintFromMockup(mockupUrl, finalDescription, options, newConcepts[i], aiEngine)
+                        .catch(() => newConcepts[i]);
+                }
 
                 setResults(prev => {
                     const updated = [...prev];
                     const targetIndex = startIndex + i;
                     if (updated[targetIndex]) {
-                        updated[targetIndex] = { ...updated[targetIndex], mockupUrl };
+                        updated[targetIndex] = { prompt: finalPrompt, mockupUrl };
                     }
                     return updated;
                 });
 
-                if (i < newPrompts.length - 1) await new Promise(r => setTimeout(r, 1000));
+                if (i < newConcepts.length - 1) await new Promise(r => setTimeout(r, 1000));
             }
 
             setProgress(100);
@@ -459,15 +475,23 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
         toast.promise(
             (async () => {
                 const newOptions = { ...options, supportingDescription: `Regenerate scene ${index + 1} with a completely different creative angle.` };
-                const newPrompts = await generatePrompts(
-                    finalDescription, newOptions,
-                    results.slice(0, index).map(r => r.prompt)
-                );
-                const newPrompt = newPrompts[0];
-                const mockupUrl = await generateMockup(finalDescription, newOptions, index, compressedImages, newPrompt, aiEngine);
+                
+                // 1. New Concept
+                const newConcepts = await generateSceneConcepts(finalDescription, newOptions, aiEngine);
+                const newConcept = newConcepts[0] || "Alternative product shot";
+                
+                // 2. New Mockup
+                const mockupUrl = await generateMockup(finalDescription, newOptions, index, compressedImages, newConcept, aiEngine);
+                
+                // 3. New Blueprint
+                let finalPrompt = newConcept;
+                if (mockupUrl) {
+                    finalPrompt = await generateBlueprintFromMockup(mockupUrl, finalDescription, newOptions, newConcept, aiEngine);
+                }
+
                 setResults(prev => {
                     const updated = [...prev];
-                    updated[index] = { prompt: newPrompt, mockupUrl };
+                    updated[index] = { prompt: finalPrompt, mockupUrl };
                     return updated;
                 });
             })().finally(() => setLoadingIndices(prev => prev.filter(i => i !== index))),
@@ -492,12 +516,18 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
 
         toast.promise(
             (async () => {
-                const newPrompts = await generatePrompts(finalDescription, options, undefined, undefined, currentDraft, aiEngine);
-                const newPrompt = newPrompts[0];
-                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, newPrompt, aiEngine);
+                // 1. Generate Mockup from Draft
+                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, currentDraft, aiEngine);
+                
+                // 2. Generate Blueprint from Mockup
+                let finalPrompt = currentDraft;
+                if (mockupUrl) {
+                    finalPrompt = await generateBlueprintFromMockup(mockupUrl, finalDescription, options, currentDraft, aiEngine);
+                }
+
                 setResults(prev => {
                     const updated = [...prev];
-                    updated[index] = { prompt: newPrompt, mockupUrl };
+                    updated[index] = { prompt: finalPrompt, mockupUrl };
                     return updated;
                 });
             })().finally(() => setLoadingIndices(prev => prev.filter(i => i !== index))),
@@ -516,6 +546,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
 
         toast.promise(
             (async () => {
+                // Use the current prompt to guide the mockup
                 const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, results[index].prompt, aiEngine);
                 setResults(prev => {
                     const updated = [...prev];
@@ -559,16 +590,27 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
         setLoadingIndices(prev => [...prev, index]);
         const finalDescription = composeFinalDescription(analysis, true);
 
-        const draftWithFeedback = `CURRENT PROMPT:\n${currentDraft}\n\nDIRECTOR'S FEEDBACK (FIX THESE ISSUES):\n${feedback}`;
+        const draftWithFeedback = `CURRENT CONCEPT:\n${currentDraft}\n\nDIRECTOR'S FEEDBACK (FIX THESE ISSUES):\n${feedback}`;
 
         toast.promise(
             (async () => {
-                const newPrompts = await generatePrompts(finalDescription, options, undefined, analysis.colors, draftWithFeedback, aiEngine);
-                const newPrompt = newPrompts[0];
-                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, newPrompt, aiEngine);
+                const newOptions = { ...options, supportingDescription: draftWithFeedback };
+                // 1. Concept
+                const newConcepts = await generateSceneConcepts(finalDescription, newOptions, aiEngine);
+                const newConcept = newConcepts[0] || draftWithFeedback;
+                
+                // 2. Mockup
+                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, newConcept, aiEngine);
+                
+                // 3. Blueprint
+                let finalPrompt = newConcept;
+                if (mockupUrl) {
+                    finalPrompt = await generateBlueprintFromMockup(mockupUrl, finalDescription, options, newConcept, aiEngine);
+                }
+
                 setResults(prev => {
                     const updated = [...prev];
-                    updated[index] = { prompt: newPrompt, mockupUrl, feedback: '' };
+                    updated[index] = { prompt: finalPrompt, mockupUrl, feedback: '' };
                     return updated;
                 });
             })().finally(() => setLoadingIndices(prev => prev.filter(i => i !== index))),
@@ -742,7 +784,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold tracking-tight text-white">River Sora Lab</h1>
-                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v18.5</span></p>
+                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v18.6</span></p>
                         </div>
                     </div>
                 </div>

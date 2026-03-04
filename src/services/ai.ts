@@ -511,12 +511,9 @@ RETURN a JSON:
 // =======================================================================
 // 2. GENERATE PROMPTS
 // =======================================================================
-export async function generatePrompts(
+export async function generateSceneConcepts(
     productDescription: string,
     options: any,
-    previousPrompts?: string[],
-    detectedColors?: string[],
-    sceneDraft?: string, // Specific scene draft to polish
     engine: 'ultra' | 'speed' = 'ultra'
 ): Promise<string[]> {
     const apiKey = getApiKey();
@@ -524,86 +521,28 @@ export async function generatePrompts(
 
     const ai = new GoogleGenAI({ apiKey });
 
-    const normalizePaletteAnchors = (items?: string[]) =>
-        (items || [])
-            .map((c) => c.replace(/#[0-9a-fA-F]{3,8}/g, '').trim())
-            .filter(Boolean)
-            .slice(0, 5);
-
-    const stripHexDirectives = (text: string) =>
-        text
-            .replace(/ADOPT THESE EXACT HEX COLORS:[^\n]*\n?/gi, '')
-            .replace(/#[0-9a-fA-F]{3,8}/g, '')
-            .trim();
-
-    const outputCount = sceneDraft ? 1 : 3;
-    const referenceLockLine = "Use the uploaded image(s) as the exact product reference. Preserve geometry, logo placement, proportions, materials, and texture scale.";
-    const paletteAnchors = normalizePaletteAnchors(detectedColors);
-    const continuityAnchor = previousPrompts?.length
-        ? previousPrompts[previousPrompts.length - 1].slice(0, 300)
-        : '';
-    const userIntent = sceneDraft || options.supportingDescription || '';
+    const outputCount = 3;
+    const userIntent = options.supportingDescription || '';
     const isScriptMode = options.mode === 'script' && !!options.script;
-    const cleanProductDescription = stripHexDirectives(productDescription);
-    const styleHints = [
-        "product turntable commercial shot",
-        "studio product lighting",
-        "photorealistic product commercial"
-    ];
 
-    const promptContext = `You are a senior Sora 2 product-commercial prompt director.
-Generate ${outputCount} professional blueprint prompt(s) for Sora 2.
-
-MANDATORY RULES
-- English output only.
-- Each blueprint must be 85-125 words.
-- Start every blueprint with this exact sentence: "${referenceLockLine}"
-- One shot per blueprint: one main subject action + one camera move.
-- ANTI-STATIC LOCK: NEVER output a prompt that describes a static photo with just a zoom or pan. The camera MUST move dynamically in 3D space, and the subject/environment MUST have motion, physical interaction, or life.
-- Keep product identity locked: shape, logo, proportions, texture, stitching, materials.
-- Do NOT use HEX codes. Use natural color language only.
-- Use concrete visual words, not generic marketing adjectives.
-- If surreal is requested, keep product physics intact and apply surrealism to environment/action.
-- Separate object motion from camera motion in explicit language.
-- Add commercial style cues naturally when relevant: ${styleHints.join(', ')}.
-- Output must be JSON array of ${outputCount} string(s). No markdown.
+    const promptContext = `You are a creative art director.
+Generate ${outputCount} short scene concepts (1-2 sentences each). 
+These are NOT video prompts, but concepts for a static image generation.
 
 PROJECT SETTINGS
 - Mode: ${options.mode === 'lifestyle' ? 'Lifestyle' : 'Product only'}
 - Environment: ${options.environment || 'Studio'}
-- Lighting: ${options.timeOfDay || 'Controlled cinematic light'}
-- Cinematography style: ${options.style || 'Commercial'}
-- Aspect ratio target: ${options.aspectRatio || '16:9'}
-- Camera preference: ${options.cameraAngle || 'natural hero framing'}
-- Action preference: ${options.sceneAction || 'clean product-first movement'}
+- Lighting: ${options.timeOfDay || 'Controlled'}
+- Style: ${options.style || 'Commercial'}
 ${options.mode === 'lifestyle' ? `- Talent: ${options.gender}, ${options.skinTone} skin, ${options.hairColor} hair` : ''}
 
-PRODUCT IDENTITY (SOURCE OF TRUTH)
-${cleanProductDescription}
-${paletteAnchors.length ? `Palette anchors (natural language): ${paletteAnchors.join(', ')}` : ''}
-${continuityAnchor ? `Continuity anchor from previous blueprint: ${continuityAnchor}` : ''}
+PRODUCT:
+${productDescription}
 
 SCENE BRIEF
-${isScriptMode ? `Adapt this script into concise, cinematic blueprint shots:\n${options.script}` : (userIntent ? userIntent : 'Build a premium product reveal sequence with clear progression: reveal, interaction, macro detail.')}
+${isScriptMode ? `Adapt this script into concise scene concepts:\n${options.script}` : (userIntent ? userIntent : 'Build a premium product reveal sequence with clear progression: reveal, interaction, detail.')}
 
-RESPONSE STYLE
-For each blueprint paragraph use this internal order:
-1) Product lock sentence,
-2) Object motion sentence,
-3) Camera motion sentence,
-4) Lighting/material behavior sentence,
-5) Constraint sentence (no deformation/no invented details/no illegible branding).
-
-QUALITY BAR
-- Keep language compact and direct.
-- Avoid poetic filler and repeated adjectives.
-- Use physically plausible timing beats for 8-10s clips.
-- If generating 3 shots, enforce narrative continuity:
-  Shot 1 = REVEAL (hero introduction),
-  Shot 2 = DETAIL (macro textures and branding),
-  Shot 3 = BENEFIT/INTERACTION (product use or functional payoff),
-  while preserving the same environment, palette anchors, and lighting logic.`;
-
+Output must be JSON array of ${outputCount} string(s).`;
 
     const models = engine === 'speed' ? ["gemini-2.5-flash", "gemini-2.5-pro"] : BRAIN_MODELS;
 
@@ -629,13 +568,6 @@ QUALITY BAR
         if (!Array.isArray(parsed)) return [];
         return parsed
             .map((p) => typeof p === 'string' ? p.trim() : '')
-            .map((p) => {
-                const normalized = p.replace(/\s+/g, ' ').trim();
-                if (!normalized) return '';
-                return normalized.toLowerCase().startsWith(referenceLockLine.toLowerCase())
-                    ? normalized
-                    : `${referenceLockLine} ${normalized}`;
-            })
             .filter((p) => p.length > 0)
             .slice(0, outputCount);
     } catch (e) {
@@ -645,8 +577,65 @@ QUALITY BAR
 }
 
 // =======================================================================
-// 3. GENERATE MOCKUP (Fix #1 — Now receives original product images!)
+// 4. GENERATE BLUEPRINT FROM MOCKUP (THE MASTER REVERSE PIPELINE)
 // =======================================================================
+export async function generateBlueprintFromMockup(
+    mockupBase64: string,
+    productDescription: string,
+    _options: any,
+    sceneConcept: string,
+    engine: 'ultra' | 'speed' = 'ultra'
+): Promise<string> {
+    const apiKey = getApiKey();
+    if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
+
+    const ai = new GoogleGenAI({ apiKey });
+    
+    // Ensure format is clean for vision
+    const cleanB64 = mockupBase64.replace(/^data:image\/\w+;base64,/, "");
+
+    const referenceLockLine = "Use the uploaded image(s) as the exact product reference. Preserve geometry, logo placement, proportions, materials, and texture scale.";
+
+    const promptContext = `You are a Senior Sora 2 Prompt Engineer. 
+I have attached an image (a concept mockup). 
+
+YOUR TASK: Write the perfect, most accurate Sora 2 video generation prompt describing EXACTLY the image you see, but adding instructions for 3D camera movement and physical action.
+
+MANDATORY RULES:
+- English output only.
+- Length: 85-125 words.
+- Start the prompt with exactly this sentence: "${referenceLockLine}"
+- DESCRIBE WHAT YOU SEE: Faithfully describe the product, the exact lighting in the image, the colors in the image, and the background environment in the image. Do not invent things that are not in the picture.
+- ANTI-STATIC LOCK: NEVER output a prompt that describes a static photo with just a zoom or pan. You MUST instruct the camera to move dynamically in 3D space (e.g., orbit, push in, tracking shot, macro reveal) and describe physical motion or life in the scene (e.g., wind blowing, light shifting, product rotating).
+- No markdown, just the raw prompt text.
+
+SCENE CONTEXT HINT:
+"${sceneConcept}"
+
+PRODUCT DNA HINT:
+"${productDescription}"
+
+Remember: If Sora reads your prompt, it should generate a video whose first frame looks EXACTLY like the attached image, but then bursts into cinematic motion.`;
+
+    const models = engine === 'speed' ? ["gemini-2.5-flash"] : BRAIN_MODELS; // We use brain models capable of vision
+
+    const response = await generateWithFallback(ai, models, (model) => ({
+        model,
+        contents: {
+            parts: [
+                { inlineData: { data: cleanB64, mimeType: "image/jpeg" } },
+                { text: promptContext }
+            ]
+        }
+    }));
+
+    let result = response.text?.trim() || "";
+    if (!result.toLowerCase().startsWith(referenceLockLine.toLowerCase())) {
+        result = `${referenceLockLine} ${result}`;
+    }
+    
+    return result;
+}
 export async function generateMockup(
     productDescription: string,
     options: any,
