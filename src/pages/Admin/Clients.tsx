@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, X, Users, Upload, Trash2, Loader2, ArrowLeft, Image as ImageIcon, Video, Folder, Calendar, FileText } from 'lucide-react';
+import { Plus, X, Users, Upload, Trash2, Loader2, ArrowLeft, Image as ImageIcon, Video, Folder, Calendar, FileText, KeyRound } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 type Client = {
     id: number;
     username: string;
+    visible_password?: string;
     created_at: string;
 };
 
@@ -29,6 +30,10 @@ export default function AdminClients() {
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [newClient, setNewClient] = useState({ username: '', password: '' });
+
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingClient, setEditingClient] = useState<Client | null>(null);
+    const [newPassword, setNewPassword] = useState('');
 
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [uploadData, setUploadData] = useState({ title: '', category: '', product: '', week_date: '' });
@@ -82,6 +87,21 @@ export default function AdminClients() {
             fetchClients();
         } catch (error: any) {
             toast.error(error.response?.data?.error || 'Erro ao criar cliente.');
+        }
+    };
+
+    const handleUpdatePassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingClient || !newPassword) return;
+        try {
+            await axios.put(`/api/admin/clients/${editingClient.id}/password`, { password: newPassword });
+            toast.success('Senha atualizada com sucesso!');
+            setIsEditModalOpen(false);
+            setEditingClient(null);
+            setNewPassword('');
+            fetchClients();
+        } catch (error) {
+            toast.error('Erro ao atualizar senha.');
         }
     };
 
@@ -180,11 +200,19 @@ export default function AdminClients() {
                                                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500/20 to-cyan-500/20 border border-white/10 flex items-center justify-center shadow-lg">
                                                     <span className="text-xl font-display font-bold text-white/80 uppercase">{client.username.charAt(0)}</span>
                                                 </div>
-                                                <button onClick={(e) => { e.stopPropagation(); handleDeleteClient(client.id); }} className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500/50 hover:text-red-500 hover:bg-red-500/20 transition-colors">
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    <button onClick={(e) => { e.stopPropagation(); setEditingClient(client); setNewPassword(''); setIsEditModalOpen(true); }} className="w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center text-cyan-500/50 hover:text-cyan-400 hover:bg-cyan-500/20 transition-colors">
+                                                        <KeyRound className="w-4 h-4" />
+                                                    </button>
+                                                    <button onClick={(e) => { e.stopPropagation(); handleDeleteClient(client.id); }} className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500/50 hover:text-red-500 hover:bg-red-500/20 transition-colors">
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             </div>
                                             <h3 className="text-lg font-bold text-white tracking-wider truncate">{client.username}</h3>
+                                            <p className="text-xs text-cyan-400 mt-2 font-mono tracking-wider truncate">
+                                                Senha: {client.visible_password || '*(Oculta)*'}
+                                            </p>
                                             <p className="text-[10px] text-white/40 mt-1 uppercase tracking-widest">
                                                 Inscrito: {new Date(client.created_at).toLocaleDateString('pt-BR')}
                                             </p>
@@ -263,7 +291,7 @@ export default function AdminClients() {
 
             {/* Create Client Modal */}
             {isCreateModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsCreateModalOpen(false)} />
                     <div className="relative bg-[#080808]/90 backdrop-blur-2xl ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-md shadow-2xl p-10 flex flex-col items-center">
                         <button type="button" onClick={() => setIsCreateModalOpen(false)} className="absolute top-5 right-5 text-white/30 hover:text-white bg-white/5 p-3 rounded-full"><X className="w-5 h-5" /></button>
@@ -273,6 +301,22 @@ export default function AdminClients() {
                             <input required type="text" value={newClient.username} onChange={e => setNewClient({ ...newClient, username: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-[1.5rem] px-6 py-4 text-white text-center text-sm outline-none focus:border-purple-400/50 focus:bg-white/10 transition-all font-medium placeholder:text-white/20" placeholder="Nome de Usuário (Login)" />
                             <input required type="password" value={newClient.password} onChange={e => setNewClient({ ...newClient, password: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-[1.5rem] px-6 py-4 text-white text-center text-sm outline-none focus:border-purple-400/50 focus:bg-white/10 transition-all font-medium placeholder:text-white/20" placeholder="Senha" />
                             <button type="submit" className="w-full mt-4 bg-purple-500 hover:bg-purple-600 text-white font-bold uppercase tracking-widest text-xs py-4 rounded-full transition-all shadow-[0_0_20px_rgba(168,85,247,0.3)]">Criar Acesso</button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Password Modal */}
+            {isEditModalOpen && editingClient && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsEditModalOpen(false)} />
+                    <div className="relative bg-[#080808]/90 backdrop-blur-2xl ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-md shadow-2xl p-10 flex flex-col items-center">
+                        <button type="button" onClick={() => setIsEditModalOpen(false)} className="absolute top-5 right-5 text-white/30 hover:text-white bg-white/5 p-3 rounded-full"><X className="w-5 h-5" /></button>
+                        <h2 className="text-xl font-display font-medium text-white mb-2 tracking-wide uppercase">Alterar Senha</h2>
+                        <p className="text-xs text-white/40 mb-8 tracking-wider text-center">Nova senha para {editingClient.username}</p>
+                        <form onSubmit={handleUpdatePassword} className="w-full flex flex-col gap-4">
+                            <input required type="text" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-[1.5rem] px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 transition-all font-medium placeholder:text-white/20" placeholder="Nova Senha" />
+                            <button type="submit" className="w-full mt-4 bg-cyan-500 hover:bg-cyan-600 text-white font-bold uppercase tracking-widest text-xs py-4 rounded-full transition-all shadow-[0_0_20px_rgba(34,211,238,0.3)]">Confirmar Alteração</button>
                         </form>
                     </div>
                 </div>
