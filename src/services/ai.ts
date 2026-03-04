@@ -20,20 +20,24 @@ export interface SceneryAnalysis {
     suggestedAudio: string[];
 }
 
-// Premium-first stack: prioritize the most capable/costly models available.
+// Prefer modern/stable families first. Keep legacy IDs only as final fallback.
 const BRAIN_MODELS = [
     "gemini-3.1-pro-preview",
-    "gemini-3-pro",
-    "gemini-2.5-pro"
+    "gemini-2.5-pro",
+    "gemini-2.5-flash",
+    "gemini-2.0-pro",
+    "gemini-2.0-flash"
 ];
 const ANALYSIS_MODELS = [
     "gemini-3.1-pro-preview",
-    "gemini-3-pro",
-    "gemini-2.5-pro"
+    "gemini-2.5-pro",
+    "gemini-2.5-flash",
+    "gemini-2.0-pro",
+    "gemini-2.0-flash"
 ];
 const IMAGE_MODELS = [
-    "gemini-3-pro-image-preview",
     "gemini-3.1-flash-image-preview",
+    "gemini-3-pro-image-preview",
     "gemini-2.5-flash-image"
 ];
 
@@ -227,7 +231,7 @@ RETURN JSON:
 }
 
 // =======================================================================
-// 2. GENERATE PROMPTS (Production Engine v17.1)
+// 2. GENERATE PROMPTS (Production Engine v17)
 // =======================================================================
 export async function generatePrompts(productDescription: string, options: any, previousPrompts?: string[], detectedColors?: string[], sceneDraft?: string): Promise<string[]> {
     const apiKey = getApiKey();
@@ -245,7 +249,7 @@ export async function generatePrompts(productDescription: string, options: any, 
     const characters = compactText(options.characters || "", 120);
     const speedIntent = compactText(options.animationSpeed || "Normal", 40);
 
-    const systemPrompt = `You are Product Engine v17.1 for Sora 2 commercials.
+    const systemPrompt = `You are Product Engine v17 for Sora 2 commercials.
 Goal: produce highly faithful motion prompts from product photos and identity data.
 
 NON-NEGOTIABLE PRODUCT LOCK
@@ -304,7 +308,7 @@ Structure inside each paragraph:
 }
 
 // =======================================================================
-// 3. GENERATE MOCKUP (v17.1)
+// 3. GENERATE MOCKUP (v17)
 // =======================================================================
 export async function generateMockup(productDescription: string, options: any, productImages: string[], promptText?: string): Promise<string | null> {
     const apiKey = getApiKey();
@@ -317,13 +321,13 @@ export async function generateMockup(productDescription: string, options: any, p
     const styleHint = compactText(options.style || "Commercial", 80);
     const scenePromptHint = promptText ? compactText(promptText, 260) : "";
 
-    const imagePrompt = `TASK: Generate one photorealistic TECHNICAL MOCKUP BOARD with absolute product fidelity.
+    const imagePrompt = `TASK: Generate one photorealistic master mockup frame with absolute product fidelity.
 SOURCE OF TRUTH: attached product photos.
 
 HARD LOCK
 - Keep exact product geometry, logo text, icon placement, stitching/seams, material texture scale, and color tones.
 - No logo redesign, no spelling changes, no extra labels, no missing details.
-- No brand invention, no shape drift, no wrong texture, no blurry material.
+- No collage, no split-screen, no text overlays, no UI elements, no watermark.
 - Product must look like the same real object from the references.
 
 SCENE
@@ -338,14 +342,7 @@ IDENTITY BRIEF
 ${identityCore}
 
 OUTPUT
-- 16:9 product specification layout (mockup board), not a random cinematic frame.
-- Left side (about 65%): hero product view, clean and centered.
-- Right side (about 35%): 3 stacked macro detail panels.
-- Detail panel 1: sole/edge construction and material grain.
-- Detail panel 2: logo/branding embossing or printing, fully legible.
-- Detail panel 3: interior/lining/stitching close-up.
-- Optional tiny neutral labels in English for each panel (technical style).
-- Commercial grade realism, high sharpness, faithful branding, micro-detail visibility.`;
+- Single hero frame, commercial grade realism, sharp texture micro-details, faithful branding.`;
 
     const contentParts: any[] = [];
     if (productImages?.length) {
