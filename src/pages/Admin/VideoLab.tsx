@@ -130,6 +130,7 @@ export default function VideoLab() {
     const [sceneryData, setSceneryData] = useState<SceneryAnalysis | null>(null);
     const [loadingIndices, setLoadingIndices] = useState<number[]>([]);
     const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+    const [isDragActive, setIsDragActive] = useState(false);
 
     // V18 NEW STATES
     const [aiEngine, setAiEngine] = useState<'ultra' | 'speed'>('ultra');
@@ -885,13 +886,18 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                 <input type="file" multiple accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
 
                                 <div
+                                    onDragEnter={() => setIsDragActive(true)}
+                                    onDragLeave={() => setIsDragActive(false)}
+                                    onDrop={() => setIsDragActive(false)}
                                     onClick={() => fileInputRef.current?.click()}
-                                    className="group cursor-pointer flex flex-col items-center gap-6 py-20 border-2 border-dashed border-white/10 hover:border-cyan-500/50 hover:bg-cyan-500/[0.02] rounded-2xl transition-all duration-500"
+                                    className={`relative overflow-hidden group cursor-pointer flex flex-col items-center gap-6 py-20 border border-white/10 rounded-2xl transition-all duration-500 ease-out shadow-2xl ${isDragActive ? 'border-cyan-500 bg-cyan-500/5 shadow-[inset_0_0_50px_rgba(8,145,178,0.2)]' : 'bg-black/40 hover:bg-black/60 hover:border-white/20'}`}
                                 >
-                                    <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-zinc-400 group-hover:text-cyan-400 group-hover:scale-110 transition-all duration-500 shadow-inner">
-                                        <Upload className="w-8 h-8" />
+                                    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none"></div>
+                                    <div className="relative w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-zinc-400 group-hover:text-cyan-400 group-hover:scale-110 transition-all duration-500 shadow-inner z-10">
+                                        <div className="absolute inset-0 bg-cyan-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                        <Upload className="w-8 h-8 relative z-10" />
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="relative space-y-2 z-10">
                                         <h3 className="text-xl font-medium text-white tracking-tight">Upload Product Assets</h3>
                                         <p className="text-sm text-zinc-500 font-light">Drag and drop or click to browse. Minimum 1 photo required.</p>
                                     </div>
@@ -1304,15 +1310,15 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
 
                     {/* STEP 3: RESULTS */}
                     {step === 3 && (
-                        <motion.div key="s3" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-                            <div className="flex items-center justify-between mb-8">
+                        <motion.div key="s3" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
+                            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-4">
                                 <div className="flex flex-col">
-                                    <h1 className="text-2xl font-light text-white tracking-tight flex items-center gap-3">
-                                        Storyboard <span className="text-cyan-500 text-sm font-bold uppercase tracking-[0.3em]">Cinematic</span>
+                                    <h1 className="text-3xl font-light text-white tracking-tight flex items-center gap-3">
+                                        Director's Timeline <span className="text-cyan-500 text-xs font-bold uppercase tracking-[0.4em] bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/30">Storyboard</span>
                                     </h1>
-                                    <p className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">DNA do Produto + Contexto de Marketing + Sora 2 Blueprint Engine v17.9</p>
+                                    <p className="text-[10px] text-zinc-500 mt-3 uppercase tracking-widest">DNA do Produto + Contexto de Marketing + Sora 2 Blueprint Engine v18.0</p>
                                 </div>
-                                <div className="flex items-center gap-3">
+                                <div className="flex flex-wrap items-center gap-3">
                                     {results.some(r => r.mockupUrl === null) && (
                                         <button
                                             onClick={handleRenderAllVisible}
@@ -1351,12 +1357,18 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                 </div>
                             )}
 
-                            {/* Storyboard List */}
-                            <div className="grid grid-cols-1 gap-8">
+                            {/* Storyboard List - Director's Timeline */}
+                            <div className="relative border-l border-white/10 pl-8 ml-4 space-y-12 pb-10">
                                 {results.map((res, i) => (
-                                    <div key={i} className="bg-white/[0.02] border border-white/[0.05] backdrop-blur-3xl rounded-3xl overflow-hidden flex flex-col lg:flex-row shadow-2xl">
+                                    <div key={i} className="relative bg-white/[0.02] border border-white/5 backdrop-blur-3xl rounded-2xl overflow-hidden flex flex-col lg:flex-row shadow-2xl group transition-all hover:border-white/10">
+                                        
+                                        {/* Timeline Node */}
+                                        <div className="absolute -left-[41px] top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-black border-2 border-cyan-500/50 flex items-center justify-center shadow-[0_0_15px_rgba(8,145,178,0.5)] z-10 group-hover:border-cyan-400 group-hover:scale-110 transition-all">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                                        </div>
+
                                         {/* Image Section */}
-                                        <div className="w-full lg:w-[480px] aspect-square lg:aspect-auto bg-black/50 border-b lg:border-r lg:border-b-0 border-white/5 relative group cursor-pointer" onClick={() => res.mockupUrl && setLightboxUrl(res.mockupUrl)}>
+                                        <div className="w-full lg:w-[420px] aspect-video lg:aspect-auto bg-black border-b lg:border-r lg:border-b-0 border-white/5 relative cursor-pointer overflow-hidden" onClick={() => res.mockupUrl && setLightboxUrl(res.mockupUrl)}>
                                             {loadingIndices.includes(i) ? (
                                                 <div className="flex flex-col items-center justify-center h-full gap-5 text-cyan-500/50 p-12 text-center bg-cyan-950/10">
                                                     <Loader2 className="w-10 h-10 animate-spin text-cyan-400" />
@@ -1403,26 +1415,31 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                         </div>
 
                                         {/* Prompt Section */}
-                                        <div className="flex-1 p-8 lg:p-10 flex flex-col">
-                                            <div className="mb-6 flex items-center justify-between">
+                                        <div className="flex-1 p-6 lg:p-8 flex flex-col bg-zinc-950/20">
+                                            <div className="mb-4 flex items-center justify-between border-b border-white/5 pb-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-2 h-2 rounded-full bg-cyan-500 shadow-[0_0_10px_rgba(8,145,178,0.8)]" />
-                                                    <span className="text-xs font-semibold text-white uppercase tracking-[0.15em]">
+                                                    <span className="px-2 py-1 bg-white/5 border border-white/10 rounded text-[9px] font-mono text-zinc-400">
+                                                        SEQ_{String(i + 1).padStart(2, '0')}
+                                                    </span>
+                                                    <span className="text-xs font-semibold text-white uppercase tracking-widest">
                                                         {options.mode === 'script' ? `CENA ${i + 1}` : sequenceTitles[i] || `TAKE ${i + 1}`}
                                                     </span>
                                                 </div>
-                                                <button onClick={() => copyToClipboard(res.prompt)} className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full transition-all">
-                                                    <Copy className="w-3.5 h-3.5" /> Copy Blueprint
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    <button onClick={() => copyToClipboard(res.prompt)} className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded transition-all border border-white/5 hover:border-white/20">
+                                                        <Copy className="w-3 h-3" /> Copy
+                                                    </button>
+                                                </div>
                                             </div>
 
-                                            <div className="flex-1">
-                                                <div className="bg-black/40 border border-white/5 rounded-2xl p-1 focus-within:border-cyan-500/30 transition-colors">
+                                            <div className="flex-1 mt-2">
+                                                <div className="relative group/textarea">
+                                                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-xl blur-xl opacity-0 group-focus-within/textarea:opacity-100 transition-opacity duration-500 pointer-events-none" />
                                                     <textarea
                                                         value={res.prompt}
                                                         onChange={(e) => updatePrompt(i, e.target.value)}
                                                         placeholder="Crie seu prompt ou use o gerado pela IA..."
-                                                        className="w-full bg-transparent p-5 text-xs text-zinc-300 leading-relaxed font-mono resize-none custom-scrollbar min-h-[140px] lg:min-h-[220px] outline-none"
+                                                        className="relative w-full bg-black/50 border border-white/5 rounded-xl p-5 text-[11px] text-zinc-300 leading-relaxed font-mono resize-none custom-scrollbar min-h-[140px] lg:min-h-[180px] outline-none focus:border-cyan-500/30 transition-colors shadow-inner"
                                                     />
                                                 </div>
                                             </div>
