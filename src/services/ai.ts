@@ -62,24 +62,6 @@ function parseBase64(base64: string): { data: string; mimeType: string } {
     return { data: base64, mimeType: 'image/jpeg' };
 }
 
-function compactText(text: string, maxChars = 1000): string {
-    return (text || "")
-        .replace(/\s+/g, " ")
-        .trim()
-        .slice(0, maxChars);
-}
-
-function extractIdentityCore(productDescription: string): string {
-    const cutoffRegex = /MARKETING CONTEXT:|PONTOS DE VENDA A DESTACAR:|ADOPT THESE EXACT HEX COLORS:/i;
-    const core = productDescription.split(cutoffRegex)[0] || productDescription;
-    return compactText(core, 900);
-}
-
-function safeAspectRatio(aspectRatio?: string): string {
-    const accepted = new Set(["16:9", "9:16", "1:1", "4:3", "3:4"]);
-    return accepted.has(aspectRatio || "") ? (aspectRatio as string) : "16:9";
-}
-
 async function generateWithFallback(ai: GoogleGenAI, models: string[], requestBuilder: (model: string) => any, maxRetries = 1): Promise<any> {
     let lastError: any;
     for (const model of models) {
@@ -119,7 +101,6 @@ export async function analyzeProduct(imagesBase64: string[], marketingContext?: 
                 {
                     text: `SYSTEM MANDATE: You are the WORLD'S TOP INDUSTRIAL DESIGNER.
 TASK: Break down this product into a DETERMINISTIC ANCHOR BLUEPRINT for Sora 2.
-${marketingContext?.trim() ? `MARKETING CONTEXT: ${compactText(marketingContext, 240)}` : ''}
 
 INSTRUCTIONS:
 1. GEOMETRIC SIGNATURE: Fundamental shape in 5-8 words.
@@ -181,7 +162,6 @@ export async function analyzeScenery(imagesBase64: string[], marketingContext?: 
                 ...parts,
                 {
                     text: `Analyze these SCENERY images for commercial video production.
-${marketingContext?.trim() ? `CONTEXT: ${compactText(marketingContext, 220)}` : ''}
 RETURN JSON:
 {
   "description": string,
@@ -214,68 +194,37 @@ RETURN JSON:
 }
 
 // =======================================================================
-// 2. GENERATE PROMPTS (Production Engine v17)
+// 2. GENERATE PROMPTS (Production Engine v16.2)
 // =======================================================================
 export async function generatePrompts(productDescription: string, options: any, previousPrompts?: string[], detectedColors?: string[], sceneDraft?: string): Promise<string[]> {
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
     const ai = new GoogleGenAI({ apiKey });
 
-    const identityCore = extractIdentityCore(productDescription);
-    const palette = detectedColors?.length ? detectedColors.slice(0, 8).join(", ") : "";
-    const continuityLock = previousPrompts?.length ? compactText(previousPrompts[previousPrompts.length - 1], 300) : "";
-    const outputCount = sceneDraft ? 1 : 3;
-    const draftLine = sceneDraft ? compactText(sceneDraft, 420) : "";
-    const movementIntent = compactText(options.sceneAction || options.supportingDescription || "", 180);
-    const cameraIntent = compactText(options.cameraAngle || "", 120);
-    const soundIntent = compactText(options.audioDesign || "", 120);
-    const characters = compactText(options.characters || "", 120);
-    const speedIntent = compactText(options.animationSpeed || "Normal", 40);
+    const visualAnchor = previousPrompts?.length ? `\nVISUAL CONTINUITY: Lock settings to previous: "${previousPrompts[previousPrompts.length - 1]}"` : '';
 
-    const systemPrompt = `You are Product Engine v17 for Sora 2 commercials.
-Goal: produce highly faithful motion prompts from product photos and identity data.
+    const systemPrompt = `ACT AS THE SORA 2 MASTER DIRECTOR (v16.2).
+MISSION: Generate a DETERMINISTIC commercial prompt.
 
-NON-NEGOTIABLE PRODUCT LOCK
-- Preserve exact geometry, silhouette, logo spelling, label layout, seams/stitches, texture scale, and material behavior.
-- Never morph, melt, stretch, rebrand, recolor, or invent extra parts.
-- Keep proportions constant across all shots.
-- Mention logo and shape lock in the opening sentence of every prompt.
+[STRICT GOLDEN RULES]
+1. THE ANCHOR: Start with clear geometry/material lockdown (first 12 words).
+2. NO OVERCROWDING: ONE main action, ONE clear camera move. No list-hell.
+3. PHYSICS: Describe specular highlights, subsurface scattering, and surface grain.
+4. STRUCTURE: Output separate sections: Prompt, Cinematography, Actions, Sound.
+5. LENGTH: Block < 300 words.
 
-VIDEO QUALITY RULES
-- One main subject action and one camera move per scene.
-- Keep language concrete and visual (no generic adjectives without proof).
-- Keep each prompt concise, cinematic, and physically plausible for materials.
-- Return ENGLISH only.
+[IDENTITY]
+${productDescription}
+${detectedColors?.length ? `PALETTE: ${detectedColors.join(', ')}` : ''}
+${visualAnchor}
 
-PROJECT SETTINGS
-- Mode: ${options.mode === "lifestyle" ? "Lifestyle" : "Product Only"}
-- Environment: ${compactText(options.environment || "Studio", 120)}
-- Lighting: ${compactText(options.timeOfDay || "Cinematic", 80)}
-- Style: ${compactText(options.style || "Commercial", 80)}
-- Aspect ratio: ${safeAspectRatio(options.aspectRatio)}
-- Motion speed: ${speedIntent}
-${options.mode === "lifestyle" ? `- Talent: ${options.gender || "Any"}, ${options.skinTone || "Any"} skin, ${options.hairColor || "Any"} hair` : ""}
-${cameraIntent ? `- Camera preference: ${cameraIntent}` : ""}
-${movementIntent ? `- Action preference: ${movementIntent}` : ""}
-${soundIntent ? `- Audio direction: ${soundIntent}` : ""}
-${characters ? `- Character tags: ${characters}` : ""}
-
-IDENTITY ANCHOR
-${identityCore}
-${palette ? `Palette lock: ${palette}` : ""}
-${continuityLock ? `Continuity from previous shot: ${continuityLock}` : ""}
-${draftLine ? `Refine this draft while preserving identity: ${draftLine}` : ""}
-
-OUTPUT FORMAT
-Return ONLY a JSON array with exactly ${outputCount} string item(s).
-Each item must be a single paragraph between 80 and 140 words.
-Structure inside each paragraph:
-1) product lock opener, 2) subject action, 3) camera move/lens, 4) lighting/material physics, 5) ambient sound cue.`;
+[TARGET]
+- Env: ${options.environment} | Light: ${options.timeOfDay} | Style: ${options.style}`;
 
     const response = await generateWithFallback(ai, BRAIN_MODELS, (model) => ({
         model,
         contents: {
-            parts: [{ text: systemPrompt }]
+            parts: [{ text: systemPrompt + (sceneDraft ? `\n\nPOLISH DRAFT: "${sceneDraft}"` : "\n\nTask: Generate commercial sequence.") }]
         },
         config: {
             responseMimeType: "application/json",
@@ -291,45 +240,20 @@ Structure inside each paragraph:
 }
 
 // =======================================================================
-// 3. GENERATE MOCKUP (v17)
+// 3. GENERATE MOCKUP (v16.2)
 // =======================================================================
 export async function generateMockup(productDescription: string, options: any, productImages: string[], promptText?: string): Promise<string | null> {
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
     const ai = new GoogleGenAI({ apiKey });
 
-    const identityCore = extractIdentityCore(productDescription);
-    const cameraHint = compactText(options.cameraAngle || "", 100);
-    const actionHint = compactText(options.sceneAction || "", 120);
-    const styleHint = compactText(options.style || "Commercial", 80);
-    const scenePromptHint = promptText ? compactText(promptText, 260) : "";
-
-    const imagePrompt = `TASK: Generate one photorealistic master mockup frame with absolute product fidelity.
-SOURCE OF TRUTH: attached product photos.
-
-HARD LOCK
-- Keep exact product geometry, logo text, icon placement, stitching/seams, material texture scale, and color tones.
-- No logo redesign, no spelling changes, no extra labels, no missing details.
-- No collage, no split-screen, no text overlays, no UI elements, no watermark.
-- Product must look like the same real object from the references.
-
-SCENE
-- Environment: ${compactText(options.environment || "Studio", 120)}
-- Lighting: ${compactText(options.timeOfDay || "Controlled studio light", 90)}
-- Style: ${styleHint}
-${cameraHint ? `- Camera: ${cameraHint}` : ""}
-${actionHint ? `- Action: ${actionHint}` : ""}
-${scenePromptHint ? `- Motion prompt reference: ${scenePromptHint}` : ""}
-
-IDENTITY BRIEF
-${identityCore}
-
-OUTPUT
-- Single hero frame, commercial grade realism, sharp texture micro-details, faithful branding.`;
+    const imagePrompt = `TASK: GENERATE MASTER VISUAL REFERENCE. 100% PRODUCT FIDELITY.
+LOCK: Clone product from photos exactly. No text. No UI. No collage. 
+SCENE: ${options.environment} | LIGHT: ${options.timeOfDay}. 1K Cinematic Master.`;
 
     const contentParts: any[] = [];
     if (productImages?.length) {
-        productImages.slice(0, 6).forEach(b64 => {
+        productImages.slice(0, 3).forEach(b64 => {
             const { data, mimeType } = parseBase64(b64);
             contentParts.push({ inlineData: { data, mimeType } });
         });
@@ -342,7 +266,7 @@ OUTPUT
             contents: { parts: contentParts },
             config: {
                 // @ts-ignore
-                imageConfig: { aspectRatio: safeAspectRatio(options.aspectRatio), imageSize: "1K" }
+                imageConfig: { aspectRatio: "16:9", imageSize: "1K" }
             }
         }));
         const part = response.candidates?.[0]?.content?.parts.find((p: any) => p.inlineData);
