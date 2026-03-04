@@ -323,145 +323,63 @@ export async function generatePrompts(
     detectedColors?: string[],
     sceneDraft?: string // Specific scene draft to polish
 ): Promise<string[]> {
-    // Define DNA injection
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
 
     const ai = new GoogleGenAI({ apiKey });
 
-    // Initialize DNA injection
-    const hexInfo = detectedColors?.length ? `\nADOPT THESE EXACT HEX COLORS FOR PRODUCT MATERIALS: ${detectedColors.join(', ')}` : '';
-    const visualAnchor = previousPrompts && previousPrompts.length > 0
-        ? `\nVISUAL ANCHOR (FOR CONTINUITY): Match the lighting, camera kit, and atmosphere of the previous blueprint: "${previousPrompts[previousPrompts.length - 1]}"`
+    const normalizePaletteAnchors = (items?: string[]) =>
+        (items || [])
+            .map((c) => c.replace(/#[0-9a-fA-F]{3,8}/g, '').trim())
+            .filter(Boolean)
+            .slice(0, 5);
+
+    const outputCount = sceneDraft ? 1 : 3;
+    const paletteAnchors = normalizePaletteAnchors(detectedColors);
+    const continuityAnchor = previousPrompts?.length
+        ? previousPrompts[previousPrompts.length - 1].slice(0, 300)
         : '';
-
-    let taskDescription = `
-    [PRODUCT IDENTITY & DNA]
-    ${productDescription}
-    ${hexInfo}
-    ${visualAnchor}
-
-    ${sceneDraft ? `
-    ACT AS AN ELITE AI VIDEO DIRECTOR & SORA 2 NARRATIVE ARCHITECT.
-    
-    [USER SCENE DRAFT]
-    "${sceneDraft}"
-    
-    TASK: TRANSFORM THIS DRAFT INTO A MASTER SORA 2 BLUEPRINT (999,999% IMPROVEMENT).
-    - GOAL: Extreme visual consistency for the product, but ABSOLUTE CREATIVE FREEDOM for the environment.
-    - SURREALISM MANDATE: If the user draft contains impossible or fantastical elements (e.g., walking on clouds, flying, portals), DO NOT RATIONALIZE. Do not turn clouds into "white sand". Provide the LITERAL surrealist interpretation that Sora 2 excels at.
-    - STRATEGY: Use the 5-LAYER CINEMATIC PROTOCOL:
-      0. MARKETING ALIGNMENT & EMOTION: Evoke the EMOTION described. If the user says "stepping on clouds", describe the ethereal lightness and the model's divine comfort.
-      1. TECHNICAL SETTING: Specify lens (e.g., 35mm), movement (e.g., slow-motion tracking), and framing.
-      2. PHYSICS & WEIGHT: The PRODUCT must be structurally rigid and feel solid. The WORLD can ignore gravity, time, and logic if requested.
-      3. PRODUCT FIDELITY: Meticulously describe materials (matte rubber, brushed aluminum), logo placement, and light reflection.
-      4. ATMOSPHERIC GRADE & VFX: Ethereal lighting, volumetric mist, glow effects, or dream-state color grading.
-    
-    - FORMAT: Natural, ultra-technical prose. No technical labels. Length: ~150-250 words.
-    - Generate ONLY THIS ONE MASTER SCENE.
-    ` : (detectedColors && detectedColors.length > 1 ? `
-    DETECTION: We found ${detectedColors.length} unique color variants.
-    GOAL: Generate a 3-scene sequence showcasing the VARIETY while maintaining a STRIKING stylistic consistency.
-    Scene 1 — Reveal: Highlighting one version with a dramatic orbit shot.
-    Scene 2 — Interaction: Another variant being used/worn in close-up.
-    Scene 3 — Details: Macro shots of multiple variants in a premium layout.
-    ` : `
-    GOAL: Create 3 cinematic video scenes (10 seconds each) for a high-end commercial:
-    Scene 1 — THE HOOK: Wide establishing shot. Reveal the product in a majestic environment.
-    Scene 2 — THE STORY: Medium tracking shot. Show the core benefit and product DNA in action.
-    Scene 3 — THE DETAILS: Extreme macro. Focus on the sharpest textures and perfectly legible branding.
-    `)}
-    `;
-
+    const userIntent = sceneDraft || options.supportingDescription || '';
     const isScriptMode = options.mode === 'script' && !!options.script;
 
-    if (sceneDraft) {
-        // Task description for "Magic" expansion is already set above
-    } else if (isScriptMode) {
-        taskDescription = `
-    ACT AS A STRICT SCRIPT-TO-VISUAL ADAPTER.
-    
-    RAW SCRIPT:
-    """
-    ${options.script}
-    """
-    
-    TASK: BREAK DOWN THE SCRIPT INTO A COMPLETE STORYBOARD.
-    - Map every action and emotional beat to a professional Sora 2 blueprint.
-    - FORCE visual continuity across all scenes (same lighting, same color grade, same product DNA).
-    - Describe the specific benefits mentioned through visual narrative.
-        `;
-    } else if (previousPrompts && previousPrompts.length > 0) {
-        taskDescription = `
-    SCENE EXPANSION PROTOCOL: 
-    Continue the commercial. CURRENT SEQUENCE:
-    ${previousPrompts.map((p, i) => `Scene ${i + 1}: ${p}`).join('\n')}
+    const promptContext = `You are a senior Sora 2 product-commercial prompt director.
+Generate ${outputCount} professional blueprint prompt(s) for Sora 2.
 
-    TASK: Generate 3 NEW scenes that perfectly match the previous aesthetic.
-    Scene A — Reaction or alternative angle.
-    Scene B — Dynamic stylized transition.
-    Scene C — Final majestic outro with a focus on brand identity.
-        `;
-    }
+MANDATORY RULES
+- English output only.
+- Each blueprint must be 90-140 words.
+- One shot per blueprint: one main subject action + one camera move.
+- Keep product identity locked: shape, logo, proportions, texture, stitching, materials.
+- Do NOT use HEX codes. Use natural color language only.
+- Use concrete visual words, not generic marketing adjectives.
+- If surreal is requested, keep product physics intact and apply surrealism to environment/action.
+- Output must be JSON array of ${outputCount} string(s). No markdown.
 
-    const promptStyle = `
-ACT AS AN ELITE AI VIDEO DIRECTOR & SORA 2 NARRATIVE ARCHITECT.
+PROJECT SETTINGS
+- Mode: ${options.mode === 'lifestyle' ? 'Lifestyle' : 'Product only'}
+- Environment: ${options.environment || 'Studio'}
+- Lighting: ${options.timeOfDay || 'Controlled cinematic light'}
+- Cinematography style: ${options.style || 'Commercial'}
+- Aspect ratio target: ${options.aspectRatio || '16:9'}
+- Camera preference: ${options.cameraAngle || 'natural hero framing'}
+- Action preference: ${options.sceneAction || 'clean product-first movement'}
+${options.mode === 'lifestyle' ? `- Talent: ${options.gender}, ${options.skinTone} skin, ${options.hairColor} hair` : ''}
 
-SORA 2 MASTER SKELETON (HIERARCHICAL PRIORITY):
-1. KINETIC FOUNDATION (Movement): Define the camera kit and action immediately. (e.g., 35mm Anamorphic, Fluid Orbit shot).
-2. SUBJECT VISUAL ANATOMY: Describe the product as a rigid, physically stable entity. Focus on textures and micro-details.
-3. MICRO-PHYSICS: Describe how materials interact (e.g., "soft compression of the sole under the model's weight").
-4. VOLUMETRIC LIGHTING: Use technical light descriptions (Rim light, God rays, Bokeh).
-5. COLORS: Reinforce colors with HEX CODES (e.g., "Midnight Black #1A1A1A").
-6. ATMOSPHERE & FX: Environmental particles, mist, or surreal elements.
-
-DIRECTIVES:
-- NO CONCEPTUAL TERMS: Never use words like "comfortable" or "premium". Use visual proofs: "The material deforms 2mm under pressure" (Visual-First).
-- PHYSICS ANNIHILATION (SURREALISM): If the user requests walking on clouds, fire, or space, EXECUTE LITERALLY. Forbid adding "platforms", "glass floors", or "roads". The feet MUST interact DIRECTLY with the impossible medium.
-- HIGH-END AESTHETIC: All surrealism must be PRESTIGIOUS and PREMIUM. Think Haute Couture, Luxury Perfume Ads (Dior, Chanel), or Apple-style minimalism. 
-- FORBIDDEN: NEVER use 'childish' or 'ludic' elements like candy, marshmallows, toys, or fairytales unless explicitly asked. Surrealism should feel sophisticated and avant-garde, not silly.
-- NO RATIONALIZATION: Stop trying to make it "plausible". Zero logic, maximum visual impact.
-- RIGIDITY: The product must never distort/melt unless explicitly asked.
-- FORMAT: Single flowing paragraph of cinematic English.
-    `;
-
-    const promptContext = `
-[STRICT DIRECTOR MANDATE]
-LEAVE NO CHOICE BEHIND. Every parameter below must be the SOUL of the scene.
-
-[USER INTENT - HIGHEST PRIORITY]
-${options.supportingDescription ? `CRITICAL USER OVERRIDE: ${options.supportingDescription}` : 'Generate a premium scene.'}
-If the user request is surreal or impossible, EXECUTE LITERALLY. No metaphors.
-
-TARGET CONFIGURATION:
-- Aspect Ratio: ${options.aspectRatio}
-- Mode: ${options.mode === 'lifestyle' ? 'LIFESTYLE (Actor Interaction Required)' : 'PRODUCT ONLY (Studio/Abstract)'}
-- Lighting/Time: ${options.timeOfDay} (STRICT ADHERENCE)
-- Environment: ${options.environment} (STRICT ADHERENCE)
-- Cinematography Style: ${options.style} (STRICT ADHERENCE)
-
-${options.mode === 'lifestyle' ? `
-ACTOR SPECIFICATION (NON-NEGOTIABLE):
-- Gender: ${options.gender}
-- Skin Tone: ${options.skinTone} 
-- Hair: ${options.hairColor}
-` : ''}
-
-PRODUCT DATA:
+PRODUCT IDENTITY (SOURCE OF TRUTH)
 ${productDescription}
-${hexInfo}
+${paletteAnchors.length ? `Palette anchors (natural language): ${paletteAnchors.join(', ')}` : ''}
+${continuityAnchor ? `Continuity anchor from previous blueprint: ${continuityAnchor}` : ''}
 
-SCENE TYPE: ${sceneDraft ? 'POLISH THIS SPECIFIC DRAFT:' : 'CREATE NEW SCENE:'}
-${sceneDraft || 'Based on the above settings, generate a 10-second high-impact cinematic sequence.'}
+SCENE BRIEF
+${isScriptMode ? `Adapt this script into concise, cinematic blueprint shots:\n${options.script}` : (userIntent ? userIntent : 'Build a premium product reveal sequence with clear progression: reveal, interaction, macro detail.')}
 
-[SCENE TASK & STRATEGY]
-${taskDescription}
-
-[DIRECTOR BLUEPRINT]
-${promptStyle}
-
-CRITICAL: The output MUST be a SINGLE paragraph in ENGLISH, adhering to the SORA 2 MASTER SKELETON. No labels, no bullet points.
-    `;
+RESPONSE STYLE
+For each blueprint paragraph use this internal order:
+1) Product lock sentence,
+2) Scene + camera sentence,
+3) Timed action beats sentence,
+4) Lighting/material behavior sentence,
+5) Constraint sentence (no deformation/no invented details/no illegible branding).`;
 
 
     const response = await generateWithFallback(ai, BRAIN_MODELS, (model) => ({
@@ -482,7 +400,12 @@ CRITICAL: The output MUST be a SINGLE paragraph in ENGLISH, adhering to the SORA
     }));
 
     try {
-        return JSON.parse(response.text || "[]");
+        const parsed = JSON.parse(response.text || "[]");
+        if (!Array.isArray(parsed)) return [];
+        return parsed
+            .map((p) => typeof p === 'string' ? p.trim() : '')
+            .filter((p) => p.length > 0)
+            .slice(0, outputCount);
     } catch (e) {
         console.error("Failed to parse prompts", e);
         return [];
