@@ -597,16 +597,17 @@ export async function generateBlueprintFromMockup(
     const referenceLockLine = "Use the uploaded image(s) as the exact product reference. Preserve geometry, logo placement, proportions, materials, and texture scale.";
 
     const promptContext = `You are a Senior Sora 2 Prompt Engineer. 
-I have attached an image (a concept mockup). 
+I have attached an image (a concept mockup board). It is a collage containing a MAIN HERO SHOT (usually on the left) and smaller macro detail panels.
 
-YOUR TASK: Write the perfect, most accurate Sora 2 video generation prompt describing EXACTLY the image you see, but adding instructions for 3D camera movement and physical action.
+YOUR TASK: Write the perfect, most accurate Sora 2 video generation prompt describing EXACTLY the MAIN HERO SHOT that you see. IGNORE the macro panels and the fact that it is a collage. You are describing a single, unified 3D environment based on the main shot, but adding instructions for 3D camera movement and physical action.
 
 MANDATORY RULES:
 - English output only.
 - Length: 85-125 words.
 - Start the prompt with exactly this sentence: "${referenceLockLine}"
-- DESCRIBE WHAT YOU SEE: Faithfully describe the product, the exact lighting in the image, the colors in the image, and the background environment in the image. Do not invent things that are not in the picture.
-- ANTI-STATIC LOCK: NEVER output a prompt that describes a static photo with just a zoom or pan. You MUST instruct the camera to move dynamically in 3D space (e.g., orbit, push in, tracking shot, macro reveal) and describe physical motion or life in the scene (e.g., wind blowing, light shifting, product rotating).
+- DESCRIBE WHAT YOU SEE: Faithfully describe the product, the exact lighting in the main hero shot, the colors, and the background environment. Do not invent things.
+- ANTI-STATIC LOCK: NEVER output a prompt that describes a static photo with just a zoom or pan. You MUST instruct the camera to move dynamically in 3D space (e.g., orbit, push in, tracking shot, macro reveal) and describe physical motion or life in the scene.
+- DO NOT mention "collage", "panels", "split screen", or "macro shots on the side". Act as if the main hero shot is the entire physical world.
 - No markdown, just the raw prompt text.
 
 SCENE CONTEXT HINT:
@@ -615,7 +616,7 @@ SCENE CONTEXT HINT:
 PRODUCT DNA HINT:
 "${productDescription}"
 
-Remember: If Sora reads your prompt, it should generate a video whose first frame looks EXACTLY like the attached image, but then bursts into cinematic motion.`;
+Remember: If Sora reads your prompt, it should generate a single full-frame video whose first frame looks EXACTLY like the main hero shot in the attached image, but then bursts into cinematic motion.`;
 
     const models = engine === 'speed' ? ["gemini-2.5-flash"] : BRAIN_MODELS; // We use brain models capable of vision
 
@@ -662,8 +663,8 @@ export async function generateMockup(
         "Product focus. Logo prominently displayed."
     ];
 
-    const imagePrompt = `TASK: 1:1 PRODUCT REPLICATION & COMMERCIAL STORYBOARD FRAME.
-GOAL: Create an ultra-photorealistic, SINGLE-FRAME cinematic shot that perfectly matches the BLUEPRINT while cloning the uploaded product photos pixel-by-pixel.
+    const imagePrompt = `TASK: 1:1 PRODUCT REPLICATION & COMMERCIAL STORYBOARD COLLAGE (16:9).
+GOAL: Create an ultra-photorealistic storyboard board that perfectly matches the BLUEPRINT while cloning the uploaded product photos pixel-by-pixel.
 
 [CRITICAL - SOURCE OF TRUTH]
 THE ATTACHED PHOTOS ARE THE ABSOLUTE TRUTH FOR THE PRODUCT'S APPEARANCE.
@@ -680,10 +681,9 @@ ENVIRONMENT & AESTHETICS:
 - Style: ${options.style}
 ${options.mode === 'lifestyle' ? `- Talent: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
 
-[LAYOUT]
-- SINGLE FULL-FRAME SHOT ONLY.
-- NO collages, NO split screens, NO text/captions on the image, NO macro detail panels.
-- Just the raw, 100% photorealistic cinematic frame exactly as described in the BLUEPRINT. Focus: ${focusInstructions[promptIndex] || "Hero product focus."}
+[LAYOUT - MUST BE A COLLAGE]
+- MAIN HERO SHOT (LEFT, 70%): The main cinematic shot exactly as described in the BLUEPRINT. Focus: ${focusInstructions[promptIndex] || "Hero product focus."}
+- DETAIL MACROS (RIGHT STACK, 30%): 2 or 3 extreme close-up panels showing the precise materials, textures, and the logo/branding text from the reference photos to prove material fidelity.
 
 Make it look like a high-end, cinematic agency pitch board. Perfect product clone. ZERO HALLUCINATION.`;
 
