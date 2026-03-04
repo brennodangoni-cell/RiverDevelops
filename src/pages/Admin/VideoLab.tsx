@@ -730,20 +730,14 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
 
     return (
         <div className="min-h-screen bg-[#030303] text-zinc-300 font-sans selection:bg-cyan-500/30 relative overflow-hidden">
-            {/* Atmospheric Background */}
-            <div className="fixed inset-0 z-0 pointer-events-none">
-                <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[radial-gradient(circle_at_center,_rgba(8,145,178,0.08)_0%,_transparent_70%)] blur-[100px]" />
-                <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-[radial-gradient(circle_at_center,_rgba(139,92,246,0.05)_0%,_transparent_70%)] blur-[100px]" />
-            </div>
-
             {/* Glassmorphic Header */}
-            <header className="fixed top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-2xl border-b border-white/5 px-6 h-16 flex items-center justify-between">
+            <header className="fixed top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-sm border-b border-white/5 px-6 h-16 flex items-center justify-between">
                 <div className="flex items-center gap-6">
                     <Link to="/admin" className="p-2 hover:bg-white/5 rounded-full transition-colors">
                         <ChevronLeft className="w-5 h-5 text-zinc-400" />
                     </Link>
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-600 to-cyan-400 flex items-center justify-center shadow-[0_0_15px_rgba(8,145,178,0.3)]">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-600 to-cyan-400 flex items-center justify-center shadow-md">
                             <PlayCircle className="w-4 h-4 text-white" />
                         </div>
                         <div>
@@ -764,7 +758,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                         </button>
                         <button 
                             onClick={() => setAiEngine('ultra')}
-                            className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full transition-all ${aiEngine === 'ultra' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 shadow-[0_0_15px_rgba(8,145,178,0.2)]' : 'text-zinc-500 hover:text-zinc-300'}`}
+                            className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full transition-all ${aiEngine === 'ultra' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 shadow-md' : 'text-zinc-500 hover:text-zinc-300'}`}
                         >
                             💎 Ultra
                         </button>
@@ -798,7 +792,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
             {/* === FAVORITES PANEL === */}
             <AnimatePresence>
                 {showFavorites && (
-                    <motion.div initial={{ opacity: 0, x: 300 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 300 }} className="fixed top-16 right-0 bottom-0 w-96 z-40 bg-black/90 backdrop-blur-2xl border-l border-white/5 overflow-y-auto">
+                    <motion.div initial={{ opacity: 0, x: 300 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 300 }} className="fixed top-16 right-0 bottom-0 w-96 z-40 bg-black/90 backdrop-blur-sm border-l border-white/5 overflow-y-auto">
                         <div className="p-6 space-y-4">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-sm font-semibold text-white flex items-center gap-2"><Star className="w-4 h-4 text-yellow-400" /> Favoritos</h3>
@@ -827,7 +821,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
             {/* === MOCKUP LIBRARY PANEL === */}
             <AnimatePresence>
                 {showMockupLib && (
-                    <motion.div initial={{ opacity: 0, x: 300 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 300 }} className="fixed top-16 right-0 bottom-0 w-96 z-40 bg-black/90 backdrop-blur-2xl border-l border-white/5 overflow-y-auto">
+                    <motion.div initial={{ opacity: 0, x: 300 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 300 }} className="fixed top-16 right-0 bottom-0 w-96 z-40 bg-black/90 backdrop-blur-sm border-l border-white/5 overflow-y-auto">
                         <div className="p-6 space-y-4">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-sm font-semibold text-white flex items-center gap-2"><BookImage className="w-4 h-4 text-purple-400" /> Biblioteca de Mockups</h3>
@@ -866,7 +860,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                     ].map((stepObj, idx) => (
                         <React.Fragment key={stepObj.s}>
                             <div className={`flex flex-col items-center gap-2 ${step >= stepObj.s ? 'opacity-100' : 'opacity-40'}`}>
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${step === stepObj.s ? 'bg-cyan-500 text-black shadow-[0_0_20px_rgba(8,145,178,0.4)] scale-110' : step > stepObj.s ? 'bg-white/10 text-white' : 'bg-white/5 text-zinc-500'}`}>
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${step === stepObj.s ? 'bg-cyan-500 text-black shadow-md scale-110' : step > stepObj.s ? 'bg-white/10 text-white' : 'bg-white/5 text-zinc-500'}`}>
                                     <stepObj.icon className="w-4 h-4" />
                                 </div>
                                 <span className="text-[9px] font-semibold uppercase tracking-[0.15em]">{stepObj.label}</span>
@@ -882,7 +876,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                     {/* STEP 1: IMPORT */}
                     {step === 1 && (
                         <motion.div key="s1" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="flex flex-col items-center">
-                            <div className="w-full max-w-2xl bg-white/[0.02] border border-white/[0.05] backdrop-blur-3xl rounded-3xl p-12 text-center shadow-2xl">
+                            <div className="w-full max-w-2xl bg-zinc-900/40 border border-white/[0.05] backdrop-blur-sm rounded-3xl p-12 text-center shadow-xl">
                                 <input type="file" multiple accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
 
                                 <div
@@ -890,11 +884,9 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                     onDragLeave={() => setIsDragActive(false)}
                                     onDrop={() => setIsDragActive(false)}
                                     onClick={() => fileInputRef.current?.click()}
-                                    className={`relative overflow-hidden group cursor-pointer flex flex-col items-center gap-6 py-20 border border-white/10 rounded-2xl transition-all duration-500 ease-out shadow-2xl ${isDragActive ? 'border-cyan-500 bg-cyan-500/5 shadow-[inset_0_0_50px_rgba(8,145,178,0.2)]' : 'bg-black/40 hover:bg-black/60 hover:border-white/20'}`}
+                                    className={`relative overflow-hidden group cursor-pointer flex flex-col items-center gap-6 py-20 border border-white/10 rounded-2xl transition-all duration-300 ease-out ${isDragActive ? 'border-cyan-500 bg-cyan-500/5' : 'bg-black/40 hover:bg-black/60 hover:border-white/20'}`}
                                 >
-                                    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none"></div>
-                                    <div className="relative w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-zinc-400 group-hover:text-cyan-400 group-hover:scale-110 transition-all duration-500 shadow-inner z-10">
-                                        <div className="absolute inset-0 bg-cyan-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                    <div className="relative w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-zinc-400 group-hover:text-cyan-400 group-hover:scale-110 transition-all duration-300 z-10">
                                         <Upload className="w-8 h-8 relative z-10" />
                                     </div>
                                     <div className="relative space-y-2 z-10">
@@ -957,7 +949,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                     <button
                                         onClick={handleAnalyze}
                                         disabled={isAnalyzing || (imageFiles.length === 0 && !editableDescription.trim())}
-                                        className="w-full py-5 bg-white hover:bg-zinc-200 disabled:bg-white/5 disabled:text-zinc-500 text-black font-bold uppercase tracking-[0.2em] text-xs rounded-2xl transition-all duration-300 shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:shadow-[0_0_40px_rgba(255,255,255,0.2)] flex items-center justify-center gap-3"
+                                        className="w-full py-5 bg-white hover:bg-zinc-200 disabled:bg-white/5 disabled:text-zinc-500 text-black font-bold uppercase tracking-[0.2em] text-xs rounded-2xl transition-all duration-300 shadow-md hover:shadow-md flex items-center justify-center gap-3"
                                     >
                                         {isAnalyzing ? <><Loader2 className="w-5 h-5 animate-spin" /> Extracting Visual DNA...</> : imageFiles.length > 0 ? <>Analyze Product <ArrowRight className="w-4 h-4" /></> : <><PenTool className="w-4 h-4" /> Continue with Description <ArrowRight className="w-4 h-4" /></>}
                                     </button>
@@ -972,14 +964,14 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
 
                             {/* Left Column: Summary & Mode */}
                             <div className="lg:col-span-4 space-y-6">
-                                <div className="bg-white/[0.02] border border-white/[0.05] backdrop-blur-3xl rounded-3xl p-8 space-y-6 shadow-2xl">
+                                <div className="bg-zinc-900/40 border border-white/[0.05] backdrop-blur-sm rounded-3xl p-8 space-y-6 shadow-xl">
                                     <div className="space-y-2">
                                         <div className="flex items-center justify-between">
                                             <label className="text-[9px] font-semibold text-cyan-500 uppercase tracking-[0.2em]">Identified Subject</label>
                                             {editableDNA && (
                                                 <button 
                                                     onClick={() => setShowDNAInspector(!showDNAInspector)}
-                                                    className={`px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all ${showDNAInspector ? 'bg-cyan-500 text-black shadow-[0_0_15px_rgba(8,145,178,0.5)]' : 'bg-white/5 text-cyan-400 hover:bg-white/10 border border-cyan-500/20'}`}
+                                                    className={`px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all ${showDNAInspector ? 'bg-cyan-500 text-black shadow-md' : 'bg-white/5 text-cyan-400 hover:bg-white/10 border border-cyan-500/20'}`}
                                                 >
                                                     <Fingerprint className="w-3 h-3 inline-block mr-1" /> DNA Inspector
                                                 </button>
@@ -997,7 +989,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                                 exit={{ opacity: 0, height: 0 }}
                                                 className="overflow-hidden"
                                             >
-                                                <div className="bg-cyan-950/20 border border-cyan-500/30 rounded-2xl p-5 mt-4 space-y-4 shadow-[inset_0_0_20px_rgba(8,145,178,0.1)]">
+                                                <div className="bg-cyan-950/20 border border-cyan-500/30 rounded-2xl p-5 mt-4 space-y-4 shadow-md">
                                                     <div className="flex items-center gap-2 mb-2">
                                                         <Fingerprint className="w-4 h-4 text-cyan-400" />
                                                         <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-widest">Structured Visual DNA</h4>
@@ -1056,13 +1048,13 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                         <label className="text-[9px] font-semibold text-zinc-500 uppercase tracking-[0.2em]">Sequence Mode</label>
                                         <div className="flex flex-col gap-3">
                                             <div className="grid grid-cols-2 gap-3">
-                                                <button onClick={() => setOptions({ ...options, mode: 'product_only', environment: analysis.suggestedSceneriesProductOnly[0] })} className={`py-4 text-[10px] font-semibold uppercase tracking-[0.1em] rounded-xl border transition-all duration-300 ${options.mode === 'product_only' ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400 shadow-[0_0_15px_rgba(8,145,178,0.15)]' : 'bg-white/[0.02] border-white/5 text-zinc-500 hover:bg-white/5'}`}>Studio</button>
-                                                <button onClick={() => setOptions({ ...options, mode: 'lifestyle', environment: analysis.suggestedSceneriesLifestyle[0] })} className={`py-4 text-[10px] font-semibold uppercase tracking-[0.1em] rounded-xl border transition-all duration-300 ${options.mode === 'lifestyle' ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400 shadow-[0_0_15px_rgba(8,145,178,0.15)]' : 'bg-white/[0.02] border-white/5 text-zinc-500 hover:bg-white/5'}`}>Lifestyle</button>
+                                                <button onClick={() => setOptions({ ...options, mode: 'product_only', environment: analysis.suggestedSceneriesProductOnly[0] })} className={`py-4 text-[10px] font-semibold uppercase tracking-[0.1em] rounded-xl border transition-all duration-300 ${options.mode === 'product_only' ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400 shadow-md' : 'bg-zinc-900/40 border-white/5 text-zinc-500 hover:bg-white/5'}`}>Studio</button>
+                                                <button onClick={() => setOptions({ ...options, mode: 'lifestyle', environment: analysis.suggestedSceneriesLifestyle[0] })} className={`py-4 text-[10px] font-semibold uppercase tracking-[0.1em] rounded-xl border transition-all duration-300 ${options.mode === 'lifestyle' ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400 shadow-md' : 'bg-zinc-900/40 border-white/5 text-zinc-500 hover:bg-white/5'}`}>Lifestyle</button>
                                             </div>
-                                            <button onClick={() => setOptions({ ...options, mode: 'script' })} className={`flex-1 py-4 text-[10px] font-semibold uppercase tracking-[0.1em] rounded-xl border transition-all duration-300 flex items-center justify-center gap-2 ${options.mode === 'script' ? 'bg-purple-500/10 border-purple-500/30 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.15)]' : 'bg-white/[0.02] border-white/5 text-zinc-500 hover:bg-white/5'}`}>
+                                            <button onClick={() => setOptions({ ...options, mode: 'script' })} className={`flex-1 py-4 text-[10px] font-semibold uppercase tracking-[0.1em] rounded-xl border transition-all duration-300 flex items-center justify-center gap-2 ${options.mode === 'script' ? 'bg-purple-500/10 border-purple-500/30 text-purple-400 shadow-md' : 'bg-zinc-900/40 border-white/5 text-zinc-500 hover:bg-white/5'}`}>
                                                 <Layers className="w-3.5 h-3.5" /> Script
                                             </button>
-                                            <button onClick={() => setOptions({ ...options, mode: 'scenery' })} className={`flex-1 py-4 text-[10px] font-semibold uppercase tracking-[0.1em] rounded-xl border transition-all duration-300 flex items-center justify-center gap-2 ${options.mode === 'scenery' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)]' : 'bg-white/[0.02] border-white/5 text-zinc-500 hover:bg-white/5'}`}>
+                                            <button onClick={() => setOptions({ ...options, mode: 'scenery' })} className={`flex-1 py-4 text-[10px] font-semibold uppercase tracking-[0.1em] rounded-xl border transition-all duration-300 flex items-center justify-center gap-2 ${options.mode === 'scenery' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-md' : 'bg-zinc-900/40 border-white/5 text-zinc-500 hover:bg-white/5'}`}>
                                                 <Camera className="w-3.5 h-3.5" /> Cenários
                                             </button>
                                         </div>
@@ -1072,7 +1064,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
 
                             {/* Right Column: Detailed Configuration */}
                             <div className="lg:col-span-8 space-y-6">
-                                <div className="bg-white/[0.02] border border-white/[0.05] backdrop-blur-3xl rounded-3xl p-8 shadow-2xl">
+                                <div className="bg-zinc-900/40 border border-white/[0.05] backdrop-blur-sm rounded-3xl p-8 shadow-xl">
                                     <div className="flex items-center gap-3 mb-8">
                                         <Settings2 className="w-5 h-5 text-zinc-400" />
                                         <h3 className="text-sm font-medium tracking-tight text-white">
@@ -1102,7 +1094,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                                     <button
                                                         key={idx}
                                                         onClick={() => setOptions({ ...options, environment: s })}
-                                                        className={`p-5 rounded-2xl border text-left transition-all duration-300 ${options.environment === s ? 'bg-cyan-500/5 border-cyan-500/30 text-white shadow-[0_0_20px_rgba(8,145,178,0.1)]' : 'bg-white/[0.02] border-white/5 text-zinc-400 hover:border-white/10 hover:bg-white/[0.04]'}`}
+                                                        className={`p-5 rounded-2xl border text-left transition-all duration-300 ${options.environment === s ? 'bg-cyan-500/5 border-cyan-500/30 text-white shadow-md' : 'bg-zinc-900/40 border-white/5 text-zinc-400 hover:border-white/10 hover:bg-white/[0.04]'}`}
                                                     >
                                                         <div className="flex items-start gap-4">
                                                             <div className={`mt-0.5 w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center transition-colors ${options.environment === s ? 'bg-cyan-500 border-cyan-400' : 'border-zinc-600'}`}>
@@ -1125,7 +1117,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                                 <label className="text-[9px] font-semibold text-zinc-500 uppercase tracking-[0.2em]">Técnica de Câmera</label>
                                                 <div className="grid grid-cols-2 gap-3">
                                                     {['Drone pullback', 'Tracking dolly shot', 'Slow cinematic orbit', 'Handheld POV', 'Time-lapse', 'Low-angle hero shot'].map(angle => (
-                                                        <button key={angle} onClick={() => setOptions({ ...options, cameraAngle: angle })} className={`p-3 rounded-xl border text-left text-[10px] transition-all ${options.cameraAngle === angle ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-white/[0.02] border-white/5 text-zinc-500 hover:bg-white/5'}`}>{angle}</button>
+                                                        <button key={angle} onClick={() => setOptions({ ...options, cameraAngle: angle })} className={`p-3 rounded-xl border text-left text-[10px] transition-all ${options.cameraAngle === angle ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-zinc-900/40 border-white/5 text-zinc-500 hover:bg-white/5'}`}>{angle}</button>
                                                     ))}
                                                 </div>
                                             </div>
@@ -1142,7 +1134,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                                 {sceneryData && sceneryData.suggestedActions.length > 0 && (
                                                     <div className="flex flex-wrap gap-2 mt-2">
                                                         {sceneryData.suggestedActions.map((a, idx) => (
-                                                            <button key={idx} onClick={() => setOptions({ ...options, sceneAction: a })} className={`px-3 py-1.5 rounded-full text-[9px] border transition-all ${options.sceneAction === a ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-white/[0.02] border-white/5 text-zinc-500 hover:bg-white/5'}`}>{a}</button>
+                                                            <button key={idx} onClick={() => setOptions({ ...options, sceneAction: a })} className={`px-3 py-1.5 rounded-full text-[9px] border transition-all ${options.sceneAction === a ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-zinc-900/40 border-white/5 text-zinc-500 hover:bg-white/5'}`}>{a}</button>
                                                         ))}
                                                     </div>
                                                 )}
@@ -1160,7 +1152,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                                 {sceneryData && sceneryData.suggestedAudio.length > 0 && (
                                                     <div className="flex flex-wrap gap-2 mt-2">
                                                         {sceneryData.suggestedAudio.map((a, idx) => (
-                                                            <button key={idx} onClick={() => setOptions({ ...options, audioDesign: a })} className={`px-3 py-1.5 rounded-full text-[9px] border transition-all ${options.audioDesign === a ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-white/[0.02] border-white/5 text-zinc-500 hover:bg-white/5'}`}>{a}</button>
+                                                            <button key={idx} onClick={() => setOptions({ ...options, audioDesign: a })} className={`px-3 py-1.5 rounded-full text-[9px] border transition-all ${options.audioDesign === a ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-zinc-900/40 border-white/5 text-zinc-500 hover:bg-white/5'}`}>{a}</button>
                                                         ))}
                                                     </div>
                                                 )}
@@ -1171,7 +1163,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                                 <label className="text-[9px] font-semibold text-zinc-500 uppercase tracking-[0.2em]">Velocidade da Animação</label>
                                                 <div className="flex gap-3">
                                                     {['Slow Motion', 'Normal', 'Fast', 'Time-lapse'].map(speed => (
-                                                        <button key={speed} onClick={() => setOptions({ ...options, animationSpeed: speed })} className={`flex-1 py-3 rounded-xl border text-[10px] font-semibold uppercase tracking-wider transition-all ${options.animationSpeed === speed ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-white/[0.02] border-white/5 text-zinc-500 hover:bg-white/5'}`}>{speed}</button>
+                                                        <button key={speed} onClick={() => setOptions({ ...options, animationSpeed: speed })} className={`flex-1 py-3 rounded-xl border text-[10px] font-semibold uppercase tracking-wider transition-all ${options.animationSpeed === speed ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-zinc-900/40 border-white/5 text-zinc-500 hover:bg-white/5'}`}>{speed}</button>
                                                     ))}
                                                 </div>
                                             </div>
@@ -1204,7 +1196,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                                     <span className="text-[10px] text-zinc-400">Gender</span>
                                                     <div className="flex flex-wrap gap-2">
                                                         {genders.map(g => (
-                                                            <button key={g.id} onClick={() => setOptions({ ...options, gender: g.id })} className={`py-2 px-4 rounded-full border text-[10px] font-medium transition-all ${options.gender === g.id ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400' : 'bg-white/[0.02] border-white/5 text-zinc-500 hover:bg-white/5'}`}>
+                                                            <button key={g.id} onClick={() => setOptions({ ...options, gender: g.id })} className={`py-2 px-4 rounded-full border text-[10px] font-medium transition-all ${options.gender === g.id ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400' : 'bg-zinc-900/40 border-white/5 text-zinc-500 hover:bg-white/5'}`}>
                                                                 {g.label}
                                                             </button>
                                                         ))}
@@ -1214,7 +1206,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                                     <span className="text-[10px] text-zinc-400">Skin Tone</span>
                                                     <div className="flex gap-3">
                                                         {skinTones.map(s => (
-                                                            <button key={s.id} onClick={() => setOptions({ ...options, skinTone: s.id })} className={`w-8 h-8 rounded-full border-2 transition-all ${options.skinTone === s.id ? 'border-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.2)]' : 'border-transparent opacity-60 hover:opacity-100'}`} style={{ background: s.color }} title={s.label} />
+                                                            <button key={s.id} onClick={() => setOptions({ ...options, skinTone: s.id })} className={`w-8 h-8 rounded-full border-2 transition-all ${options.skinTone === s.id ? 'border-white scale-110 shadow-md' : 'border-transparent opacity-60 hover:opacity-100'}`} style={{ background: s.color }} title={s.label} />
                                                         ))}
                                                     </div>
                                                 </div>
@@ -1222,7 +1214,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                                     <span className="text-[10px] text-zinc-400">Hair Color</span>
                                                     <div className="flex flex-wrap gap-3">
                                                         {hairColors.map(h => (
-                                                            <button key={h.id} onClick={() => setOptions({ ...options, hairColor: h.id })} className={`w-8 h-8 rounded-full border-2 transition-all ${options.hairColor === h.id ? 'border-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.2)]' : 'border-transparent opacity-60 hover:opacity-100'}`} style={{ background: h.color }} title={h.label} />
+                                                            <button key={h.id} onClick={() => setOptions({ ...options, hairColor: h.id })} className={`w-8 h-8 rounded-full border-2 transition-all ${options.hairColor === h.id ? 'border-white scale-110 shadow-md' : 'border-transparent opacity-60 hover:opacity-100'}`} style={{ background: h.color }} title={h.label} />
                                                         ))}
                                                     </div>
                                                 </div>
@@ -1244,11 +1236,11 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                         <div className="space-y-4">
                                             <label className="text-[9px] font-semibold text-zinc-500 uppercase tracking-[0.2em]">Aspect Ratio</label>
                                             <div className="flex gap-3">
-                                                <button onClick={() => setOptions({ ...options, aspectRatio: '16:9' })} className={`flex-1 py-4 flex flex-col items-center gap-2 rounded-xl border transition-all duration-300 ${options.aspectRatio === '16:9' ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400' : 'bg-white/[0.02] border-white/5 text-zinc-500 hover:bg-white/5'}`}>
+                                                <button onClick={() => setOptions({ ...options, aspectRatio: '16:9' })} className={`flex-1 py-4 flex flex-col items-center gap-2 rounded-xl border transition-all duration-300 ${options.aspectRatio === '16:9' ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400' : 'bg-zinc-900/40 border-white/5 text-zinc-500 hover:bg-white/5'}`}>
                                                     <Monitor className="w-5 h-5" />
                                                     <span className="text-[10px] font-semibold uppercase tracking-wider">16:9 Full</span>
                                                 </button>
-                                                <button onClick={() => setOptions({ ...options, aspectRatio: '9:16' })} className={`flex-1 py-4 flex flex-col items-center gap-2 rounded-xl border transition-all duration-300 ${options.aspectRatio === '9:16' ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400' : 'bg-white/[0.02] border-white/5 text-zinc-500 hover:bg-white/5'}`}>
+                                                <button onClick={() => setOptions({ ...options, aspectRatio: '9:16' })} className={`flex-1 py-4 flex flex-col items-center gap-2 rounded-xl border transition-all duration-300 ${options.aspectRatio === '9:16' ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400' : 'bg-zinc-900/40 border-white/5 text-zinc-500 hover:bg-white/5'}`}>
                                                     <Smartphone className="w-5 h-5" />
                                                     <span className="text-[10px] font-semibold uppercase tracking-wider">9:16 Mobile</span>
                                                 </button>
@@ -1284,7 +1276,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
 
                                         <div
                                             onClick={() => setRenderAllOnInit(!renderAllOnInit)}
-                                            className={`p-5 rounded-2xl border cursor-pointer transition-all ${!renderAllOnInit ? 'bg-emerald-500/5 border-emerald-500/30' : 'bg-white/[0.02] border-white/5 opacity-60'}`}
+                                            className={`p-5 rounded-2xl border cursor-pointer transition-all ${!renderAllOnInit ? 'bg-emerald-500/5 border-emerald-500/30' : 'bg-zinc-900/40 border-white/5 opacity-60'}`}
                                         >
                                             <div className="flex items-start gap-4">
                                                 <div className={`mt-0.5 w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center transition-colors ${!renderAllOnInit ? 'bg-emerald-500 border-emerald-400' : 'border-zinc-600'}`}>
@@ -1299,7 +1291,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                     </div>
 
                                     <div className="mt-12">
-                                        <button onClick={handleGenerate} className="w-full bg-white hover:bg-zinc-200 text-black font-bold uppercase tracking-[0.2em] text-xs py-5 rounded-full transition-all duration-300 shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:shadow-[0_0_40px_rgba(255,255,255,0.2)] flex items-center justify-center gap-3">
+                                        <button onClick={handleGenerate} className="w-full bg-white hover:bg-zinc-200 text-black font-bold uppercase tracking-[0.2em] text-xs py-5 rounded-full transition-all duration-300 shadow-md hover:shadow-md flex items-center justify-center gap-3">
                                             Generate Master Sequence <ArrowRight className="w-4 h-4" />
                                         </button>
                                     </div>
@@ -1322,7 +1314,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                     {results.some(r => r.mockupUrl === null) && (
                                         <button
                                             onClick={handleRenderAllVisible}
-                                            className="h-10 px-6 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 rounded-full flex items-center gap-2 transition-all border border-cyan-500/30 shadow-[0_0_15px_rgba(8,145,178,0.2)]"
+                                            className="h-10 px-6 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 rounded-full flex items-center gap-2 transition-all border border-cyan-500/30 shadow-md"
                                         >
                                             <Camera className="w-4 h-4" />
                                             <span className="text-[10px] font-bold uppercase tracking-widest">Renderizar Todos</span>
@@ -1343,7 +1335,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
 
                             {/* Progress Indicator */}
                             {(isGenerating || isContinuing) && (
-                                <div className="bg-white/[0.02] border border-cyan-500/20 backdrop-blur-xl rounded-3xl p-8 mb-10 shadow-[0_0_30px_rgba(8,145,178,0.05)]">
+                                <div className="bg-zinc-900/40 border border-cyan-500/20 backdrop-blur-xl rounded-3xl p-8 mb-10 shadow-md">
                                     <div className="flex items-center justify-between mb-5">
                                         <div className="flex items-center gap-4">
                                             <Loader2 className="w-5 h-5 animate-spin text-cyan-400" />
@@ -1360,10 +1352,10 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                             {/* Storyboard List - Director's Timeline */}
                             <div className="relative border-l border-white/10 pl-8 ml-4 space-y-12 pb-10">
                                 {results.map((res, i) => (
-                                    <div key={i} className="relative bg-white/[0.02] border border-white/5 backdrop-blur-3xl rounded-2xl overflow-hidden flex flex-col lg:flex-row shadow-2xl group transition-all hover:border-white/10">
+                                    <div key={i} className="relative bg-zinc-900/40 border border-white/5 backdrop-blur-sm rounded-2xl overflow-hidden flex flex-col lg:flex-row shadow-xl group transition-all hover:border-white/10">
                                         
                                         {/* Timeline Node */}
-                                        <div className="absolute -left-[41px] top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-black border-2 border-cyan-500/50 flex items-center justify-center shadow-[0_0_15px_rgba(8,145,178,0.5)] z-10 group-hover:border-cyan-400 group-hover:scale-110 transition-all">
+                                        <div className="absolute -left-[41px] top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-black border-2 border-cyan-500/50 flex items-center justify-center shadow-md z-10 group-hover:border-cyan-400 group-hover:scale-110 transition-all">
                                             <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
                                         </div>
 
@@ -1382,19 +1374,19 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                                     <img src={res.mockupUrl} className="w-full h-full object-cover" alt="Result" />
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
                                                     <div className="absolute top-4 right-4 flex gap-2 z-10">
-                                                        <button onClick={(e) => { e.stopPropagation(); copyMockupImage(res.mockupUrl!); }} className="w-9 h-9 bg-black/70 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-cyan-500 hover:scale-110 shadow-lg border border-white/10 transition-all" title="Copiar mockup">
+                                                        <button onClick={(e) => { e.stopPropagation(); copyMockupImage(res.mockupUrl!); }} className="w-9 h-9 bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-cyan-500 hover:scale-110 shadow-lg border border-white/10 transition-all" title="Copiar mockup">
                                                             <Copy className="w-4 h-4" />
                                                         </button>
-                                                        <button onClick={(e) => { e.stopPropagation(); saveMockupToLibrary(res.mockupUrl!, `Cena ${i + 1}`); }} className="w-9 h-9 bg-black/70 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-purple-500 hover:scale-110 shadow-lg border border-white/10 transition-all" title="Salvar na galeria">
+                                                        <button onClick={(e) => { e.stopPropagation(); saveMockupToLibrary(res.mockupUrl!, `Cena ${i + 1}`); }} className="w-9 h-9 bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-purple-500 hover:scale-110 shadow-lg border border-white/10 transition-all" title="Salvar na galeria">
                                                             <BookImage className="w-4 h-4" />
                                                         </button>
-                                                        <a href={res.mockupUrl} download onClick={(e) => e.stopPropagation()} className="w-9 h-9 bg-black/70 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-cyan-500 hover:scale-110 shadow-lg border border-white/10 transition-all" title="Baixar mockup">
+                                                        <a href={res.mockupUrl} download onClick={(e) => e.stopPropagation()} className="w-9 h-9 bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-cyan-500 hover:scale-110 shadow-lg border border-white/10 transition-all" title="Baixar mockup">
                                                             <Download className="w-4 h-4" />
                                                         </a>
                                                     </div>
                                                     <div className="absolute bottom-6 left-6 flex gap-2 pointer-events-none">
-                                                        <span className="bg-black/60 backdrop-blur-md text-[9px] font-semibold text-cyan-400 px-3 py-1.5 rounded-full border border-cyan-500/30 uppercase tracking-wider">AI Master Take</span>
-                                                        <span className="bg-black/60 backdrop-blur-md text-[9px] font-semibold text-zinc-300 px-3 py-1.5 rounded-full border border-white/10 uppercase tracking-wider">1K RAW</span>
+                                                        <span className="bg-black/60 backdrop-blur-sm text-[9px] font-semibold text-cyan-400 px-3 py-1.5 rounded-full border border-cyan-500/30 uppercase tracking-wider">AI Master Take</span>
+                                                        <span className="bg-black/60 backdrop-blur-sm text-[9px] font-semibold text-zinc-300 px-3 py-1.5 rounded-full border border-white/10 uppercase tracking-wider">1K RAW</span>
                                                     </div>
                                                 </>
                                             ) : (
@@ -1405,7 +1397,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); handleRegenerateMockup(i); }}
                                                         disabled={loadingIndices.includes(i)}
-                                                        className="px-6 py-2.5 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(8,145,178,0.1)] hover:shadow-[0_0_30px_rgba(8,145,178,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        className="px-6 py-2.5 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all shadow-md hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
                                                         Renderizar Mockup
                                                     </button>
@@ -1551,15 +1543,15 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                             className="relative max-w-[90vw] max-h-[90vh]"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <img src={lightboxUrl} className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl border border-white/10 object-contain" alt="Mockup Full" />
+                            <img src={lightboxUrl} className="max-w-full max-h-[85vh] rounded-2xl shadow-xl border border-white/10 object-contain" alt="Mockup Full" />
                             <div className="absolute top-4 right-4 flex gap-2">
-                                <button onClick={() => copyMockupImage(lightboxUrl)} className="w-10 h-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-cyan-500 transition-all border border-white/20" title="Copiar">
+                                <button onClick={() => copyMockupImage(lightboxUrl)} className="w-10 h-10 bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-cyan-500 transition-all border border-white/20" title="Copiar">
                                     <Copy className="w-4 h-4" />
                                 </button>
-                                <a href={lightboxUrl} download className="w-10 h-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-cyan-500 transition-all border border-white/20" title="Baixar">
+                                <a href={lightboxUrl} download className="w-10 h-10 bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-cyan-500 transition-all border border-white/20" title="Baixar">
                                     <Download className="w-4 h-4" />
                                 </a>
-                                <button onClick={() => setLightboxUrl(null)} className="w-10 h-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-red-500 transition-all border border-white/20" title="Fechar">
+                                <button onClick={() => setLightboxUrl(null)} className="w-10 h-10 bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-red-500 transition-all border border-white/20" title="Fechar">
                                     <X className="w-4 h-4" />
                                 </button>
                             </div>
