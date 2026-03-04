@@ -673,8 +673,8 @@ export async function generateMockup(
         "Product focus. Logo prominently displayed."
     ];
 
-    const imagePrompt = `TASK: 1:1 PRODUCT REPLICATION & COMMERCIAL STORYBOARD (16:9).
-GOAL: Create an ultra-photorealistic storyboard frame that perfectly matches the BLUEPRINT while cloning the uploaded product photos pixel-by-pixel.
+    const imagePrompt = `TASK: 1:1 PRODUCT REPLICATION & COMMERCIAL STORYBOARD FRAME.
+GOAL: Create an ultra-photorealistic, SINGLE-FRAME cinematic shot that perfectly matches the BLUEPRINT while cloning the uploaded product photos pixel-by-pixel.
 
 [CRITICAL - SOURCE OF TRUTH]
 THE ATTACHED PHOTOS ARE THE ABSOLUTE TRUTH FOR THE PRODUCT'S APPEARANCE.
@@ -692,8 +692,9 @@ ENVIRONMENT & AESTHETICS:
 ${options.mode === 'lifestyle' ? `- Talent: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
 
 [LAYOUT]
-- MAIN HERO SHOT (LEFT, 70%): The main shot exactly as described in the BLUEPRINT. Focus: ${focusInstructions[promptIndex] || "Hero product focus."}
-- DETAIL MACROS (RIGHT STACK, 30%): 2 extreme close-up panels showing the precise materials, textures, and logo text from the reference photos to prove material fidelity.
+- SINGLE FULL-FRAME SHOT ONLY.
+- NO collages, NO split screens, NO text/captions on the image, NO macro detail panels.
+- Just the raw, 100% photorealistic cinematic frame exactly as described in the BLUEPRINT. Focus: ${focusInstructions[promptIndex] || "Hero product focus."}
 
 Make it look like a high-end, cinematic agency pitch board. Perfect product clone. ZERO HALLUCINATION.`;
 
