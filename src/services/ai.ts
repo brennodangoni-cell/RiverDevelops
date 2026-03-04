@@ -201,6 +201,7 @@ This description will be INJECTED VERBATIM into every Sora 2 video prompt. YOU M
    - COMPONENT B (PRIMARY SILHOUETTE): The main geometry and overall shape.
    - COMPONENT C (MATERIALS & TEXTURES): Specific PBR material details for all surfaces.
    - COMPONENT D (ACCENTS & DETAILS): Secondary colors, trim, and small features.
+   - CRITICAL: NEVER mention file names, image extensions (png, jpg), or metadata artifacts from the images. Focus ONLY on physical design.
 
 2. INVENT COMPLETELY NEW, UNEXPECTED ENVIRONMENTS matching the CREATIVITY LEVEL.
 
@@ -420,25 +421,26 @@ The prompt you generate will be paired with a product image, but Sora 2 CANNOT R
 
 [MANDATORY PROMPT LAYERS — ORDERED BY VISUAL WEIGHT]
 
-LAYER 1 — CORE SUBJECT & MATERIAL REALISM (START HERE):
-Describe the product and the character/actor immediately. Include exact materials (PBR materials), textures, and physics. Use terms like "high-fidelity leather", "brushed aerospace-grade aluminum", "translucent skin with visible pores". Mention colors and logos here.
+LAYER 1 — COMPONENT SYNC & MATERIAL REALISM (START HERE):
+Describe the product using the COMPONENT NAMES from the Atlas below (e.g., "Component A", "Component B"). Describe them inside the narrative: "The camera zooms into Component A, revealing the intricate brushed-gold logo...". Include exact PBR materials, textures, and physics. Use terms like "high-fidelity leather", "brushed aerospace-grade aluminum", "translucent skin with visible pores". 
 
 LAYER 2 — ADVANCED LIGHTING & RENDER ENGINE JARGON:
-Force Sora 2 into its high-end tier. Describe the lighting setup using professional cinematography terms: "softbox key light", "dramatic rim lighting", "global illumination", "subsurface scattering", "ray-traced reflections", "fresnel effect on curved surfaces", and "cinematic film grain".
+Force Sora 2 into its high-end tier. Use professional cinematography terms: "softbox key light", "dramatic rim lighting", "global illumination", "subsurface scattering", "ray-traced reflections", "fresnel effect", and "cinematic film grain".
 
 LAYER 3 — THE KINETIC ACTION & CAMERA RIG:
-Specify the exact lens (e.g., 35mm anamorphic), movement (e.g., high-speed tracking, handheld shake, steady orbit), and the explosive action. Detail exactly how the subject moves through space.
+Specify the exact lens (e.g., 35mm anamorphic), movement (e.g., high-speed tracking, steady orbit), and the explosive action. Detail exactly how the subject moves.
 
 LAYER 4 — ENVIRONMENTAL REACTION & PHYSICS:
 How do water, dust, wind, or light interact with the scene? Describe splashing, volumetric haze, and dynamic shadows.
 
 LAYER 5 — ATMOSPHERE & COLOR GRADE:
-The emotional mood, color palette, and rhythmic energy of the shot. Use specific color grading styles like "Bleach Bypass", "Teal and Orange", or "High-Fashion Editorial".
+The emotional mood, color palette, and rhythmic energy. Use specific color grading styles.
 
 [ABSOLUTE RULES]
 - NO STATIC SCENES. Every frame must have purposeful, dynamic movement.
-- NO CHEAP AI LOOK: Avoid generic descriptions. Use technical, professional terms for everything.
-- MINIMUM PROMPT LENGTH: Each prompt MUST be at least 200-300 words.
+- NO CHEAP AI LOOK: Avoid generic descriptions and NEVER mention file extensions (e.g., no .png, .jpg). Use technical, professional terms only.
+- COMPONENT ATLAS MANDATE: You MUST refer to the specific components (Component A, B, C...) labeled in the mockup while describing the camera focus and action.
+- MINIMUM PROMPT LENGTH: Each prompt MUST be at least 250-350 words.
 - FORMAT: A single monolithic, epic cinematic paragraph. Start with the most visually important details first.
     `;
     const promptContext = `
@@ -464,11 +466,14 @@ ACTOR SPECIFICATION (MUST BE DESCRIBED IN DETAIL IN THE PROMPT):
 IMPORTANT: You MUST describe this actor/model in the output prompt with extreme detail — their appearance, clothing, expression, body language, and how they physically handle/interact with the product.
 ` : ''}
 
-[PRODUCT IDENTITY — INCLUDE THIS IN THE PROMPT]
-The following is the product description. You MUST weave these details INTO the cinematic prompt itself so Sora 2 knows exactly what the product looks like. Re-describe the product's shape, colors, materials, textures, logos, and branding naturally within the scene narrative:
+[PRODUCT IDENTITY & COMPONENT ATLAS — MUST USE THESE NAMES IN PROMPT]
+The product is divided into technical components. You MUST use these names (Component A, Component B, etc.) to direct the camera and describe details:
 """
 ${productDescription}
 """
+
+[CRITICAL INSTRUCTION]
+NEVER mention filenames or extensions (like .png, .jpg, img_). Focus ONLY on the physical attributes and the component labels.
 
 SCENE TYPE: ${sceneDraft ? 'POLISH THIS SPECIFIC DRAFT:' : 'CREATE NEW SCENE:'}
 ${sceneDraft || 'Based on the above settings, generate a 10-second high-impact cinematic sequence.'}
@@ -551,6 +556,7 @@ THE ATTACHED PHOTOS ARE THE ONLY REFERENCE.
 [TECHNICAL ANNOTATIONS MANDATE - NEW]
 - YOU MUST INCLUDE PROFESSIONAL TEXT LABELS AND CALLOUTS (lines pointing to parts) on the image.
 - LABEL THE PARTS: Use terms like "Component A: Main Body", "Component B: Logo Area", "Component C: Surface Texture".
+- CRITICAL: DO NOT write filenames, image extensions (like .png, .jpg), or file paths. Use only professional technical names.
 - The image should look like a highly technical "Designer's Blueprint" with microscopic detail.
 
 [LOGO MANDATE]
