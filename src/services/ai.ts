@@ -195,22 +195,25 @@ Analyze these product images for a SORA 2 MASTER BLUEPRINT.
 
 YOUR TWO JOBS:
 
-1. CREATE A FORENSIC-LEVEL, OBSESSIVELY DETAILED "PRODUCT ATLAS".
-This description will be INJECTED VERBATIM into every Sora 2 video prompt. YOU MUST ORGANIZE IT BY COMPONENTS (Label them: Component A, Component B, etc.):
-   - COMPONENT A (LOGO & BRANDING): Exact details of the icon, text, and font.
-   - COMPONENT B (PRIMARY SILHOUETTE): The main geometry and overall shape.
-   - COMPONENT C (MATERIALS & TEXTURES): Specific PBR material details for all surfaces.
-   - COMPONENT D (ACCENTS & DETAILS): Secondary colors, trim, and small features.
+1. CREATE A FORENSIC-LEVEL, OBSESSIVELY DETAILED DESCRIPTION OF THE PRODUCT.
+This description will be INJECTED VERBATIM into every Sora 2 video prompt. It is the ONLY thing preventing the AI from hallucinating the product's shape. YOU MUST COVER:
+   - GEOMETRY & SILHOUETTE: Exact overall shape (cylindrical, rectangular, organic curves, etc.). Proportions (height vs width vs depth ratio). Edge profiles (sharp, beveled, rounded). Any asymmetries or distinctive contours.
+   - MATERIALS & TEXTURES: Every visible material (matte plastic, brushed aluminum, knit fabric, patent leather, frosted glass, etc.). The surface finish (glossy, satin, textured grip, ribbed, smooth). How light reflects off each surface (specular highlights, diffuse scatter, etc.).
+   - COLORS (WITH HEX CODES): Every distinct color zone on the product. Primary body color, accent colors, sole/base colors, trim colors. Provide HEX codes for each.
+   - BRANDING, LOGOS & TYPOGRAPHY: Exact text visible on the product. Logo description (is it an icon? a wordmark? a symbol?). Precise placement of each logo/text (center front, left heel, top cap, etc.). Font style if visible (bold sans-serif, italic script, etc.). Size relative to the product.
+   - COMPONENTS & PARTS: Break the product into its physical components (e.g., for a shoe: outsole, midsole, upper, tongue, laces, heel counter, toe box). For a bottle: cap, neck, body, label, base. Describe each part individually.
+   - QUANTITY & ARRANGEMENT: Is it a single item, a pair, a set? How is it oriented in the photo (front-facing, 3/4 angle, side profile)?
+   - SCALE & WEIGHT: Approximate real-world size. Does it look heavy/solid or light/delicate?
 
-2. INVENT COMPLETELY NEW, UNEXPECTED ENVIRONMENTS matching the CREATIVITY LEVEL.
+2. INVENT COMPLETELY NEW, UNEXPECTED ENVIRONMENTS matching the CREATIVITY LEVEL. DO NOT use generic luxury tropes (No "Art Galleries", "Pedestals", or "Marble Tables"). Focus on kinetic action and dramatic lighting.
 
 RETURN a strict JSON with:
-1. "description" (ENGLISH, MINIMUM 300 WORDS): The forensic physical blueprint organized by COMPONENT CALLOUTS.
+1. "description" (ENGLISH, MINIMUM 300 WORDS): The forensic physical blueprint. This will be copy-pasted into Sora 2 prompts, so make it PERFECT and EXHAUSTIVE.
 2. "productType" (PT-BR): Short category.
-3. "suggestedSceneriesProductOnly" (PT-BR): 4 COMMERCIAL VIDEO SCENARIOS.
-4. "suggestedSceneriesLifestyle" (PT-BR): 4 COMMERCIAL VIDEO SCENARIOS.
+3. "suggestedSceneriesProductOnly" (PT-BR): 4 COMMERCIAL VIDEO SCENARIOS (Studio/Abstract). Must detail lighting, camera movement, and kinetic action.
+4. "suggestedSceneriesLifestyle" (PT-BR): 4 COMMERCIAL VIDEO SCENARIOS (Interaction/World). Must detail who interacts, the environment, camera angle, and kinetic action.
 5. "colors" (ENGLISH): Detected variants.
-6. "sellingPoints" (PT-BR): Top 3 hooks.
+6. "sellingPoints" (PT-BR): Top 3 visual/technical hooks.
 7. "dominantHexColors": Top 3 hex codes.`
                 }
             ]
@@ -540,24 +543,22 @@ export async function generateMockup(
         "Product focus. Logo prominently displayed."
     ];
 
-    const imagePrompt = `TASK: TECHNICAL INDUSTRIAL DESIGN REFERENCE SHEET (COLLAGE).
-            GOAL: Create a professional commercial concept sheet (16:9 Collage) for a film director.
+    const imagePrompt = `TASK: TECHNICAL PRODUCT RECONSTRUCTION (COLLAGE).
+            GOAL: Create a professional commercial concept sheet (16:9 Collage).
 
 [CRITICAL - SOURCE OF TRUTH]
-THE ATTACHED PHOTOS ARE THE ONLY REFERENCE. 
+THE ATTACHED PHOTOS ARE THE ONLY REFERENCE FOR PRODUCT SHAPE, COLORS, AND BRANDING. 
 - CLONE MODE: Absolute adherence to reference photos. 
-- IDENTITY LOCK: The product must be a pixel-perfect reconstruction.
+- ZERO HALLUCINATION: Do not add details, textures, or features not present in the photos.
+- IDENTITY LOCK: The product must be a pixel-perfect reconstruction of the references.
 
-[TECHNICAL ANNOTATIONS MANDATE - NEW]
-- YOU MUST INCLUDE PROFESSIONAL TEXT LABELS AND CALLOUTS (lines pointing to parts) on the image.
-- LABEL THE PARTS: Use terms like "Component A: Main Body", "Component B: Logo Area", "Component C: Surface Texture".
-- The image should look like a highly technical "Designer's Blueprint" with microscopic detail.
-
-[LOGO MANDATE]
+[LOGO MANDATE - NON-NEGOTIABLE]
+If the product has ANY visible logo, branding, text, icon, or wordmark in the reference photos:
 - The logo MUST be clearly visible, sharp, and perfectly legible in the MAIN HERO SHOT.
-- At least ONE of the detail angles MUST be a dedicated, labeled close-up of the logo.
+- At least ONE of the detail angles MUST be a dedicated close-up of the logo/branding area.
+- The logo must match the EXACT design from the reference photos — same font, same icon, same proportions. DO NOT invent or simplify the logo.
 
-[SCENE CONTEXT]
+[SCENE CONTEXT - FOR ENVIRONMENT ONLY]
     ENVIRONMENT: ${options.environment}
     LIGHTING: ${options.timeOfDay}
     STYLE: ${options.style}
@@ -565,10 +566,10 @@ ${options.mode === 'lifestyle' ? `- TALENT: ${options.gender}, ${options.skinTon
 ${promptText || productDescription ? `BLUEPRINT: "${promptText || productDescription}"` : ''}
 
     [LAYOUT]
-        - MAIN HERO SHOT (LEFT, 60%): ${focusInstructions[promptIndex] || "Hero product focus."} INCLUDE COMPONENT LABELS.
-    - DETAIL ANGLES (RIGHT STACK, 40%): 3 microscopic views with TECHNICAL CALLOUTS AND TEXT.
+        - MAIN HERO SHOT (LEFT, 60%): ${focusInstructions[promptIndex] || "Hero product focus."} THE LOGO/BRANDING MUST BE CLEARLY VISIBLE AND SHARP.
+    - DETAIL ANGLES (RIGHT STACK, 40%): 3 microscopic views. At least ONE must be a tight close-up of the logo/branding. The others focus on materials and textures from the photos.
 
-        CRITICAL: The product MUST be identical to the photos. Annotations must look premium and architectural.`;
+        CRITICAL: Perfect symmetry, cinematic grade. The product MUST be identical to the photos. Logo MUST be pixel-perfect and legible.`;
 
     // Build content parts: reference images (if available) + text prompt
     const contentParts: any[] = [];
