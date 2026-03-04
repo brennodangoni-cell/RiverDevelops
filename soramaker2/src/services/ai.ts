@@ -71,8 +71,7 @@ SORA 2 MASTER SKELETON (HIERARCHICAL PRIORITY):
 
 DIRECTIVES:
 - NO CONCEPTUAL TERMS: Never use words like "comfortable" or "premium". Use visual proofs: "The material deforms 2mm under pressure" (Visual-First).
-- PHYSICS ANNIHILATION (SURREALISM): If the user requests walking on clouds, fire, or space, EXECUTE LITERALLY. Forbid adding "platforms", "glass floors", or "roads". The feet MUST interact DIRECTLY with the impossible medium (e.g. sinking slightly into the volumetric vapor of a cloud).
-- NO RATIONALIZATION: Stop trying to make it "plausible". Zero logic, maximum visual impact.
+- SURREALISM OVERLOAD: If the user provides a fantastical request (e.g. clouds, fire, space, underwater), DO NOT MAKE IT REALISTIC. Make it MAGICAL and LITERAL.
 - RIGIDITY: The product must never distort/melt unless explicitly asked.
 - FORMAT: Single flowing paragraph of cinematic English.
   `;
