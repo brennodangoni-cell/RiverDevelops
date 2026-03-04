@@ -673,27 +673,29 @@ export async function generateMockup(
         "Product focus. Logo prominently displayed."
     ];
 
-    const imagePrompt = `TASK: TECHNICAL PRODUCT RECONSTRUCTION (COLLAGE).
-GOAL: Create a professional commercial concept sheet (16:9 Collage).
+    const imagePrompt = `TASK: 1:1 PRODUCT REPLICATION & COMMERCIAL STORYBOARD (16:9).
+GOAL: Create an ultra-photorealistic storyboard frame that perfectly matches the BLUEPRINT while cloning the uploaded product photos pixel-by-pixel.
 
 [CRITICAL - SOURCE OF TRUTH]
-THE ATTACHED PHOTOS ARE THE ONLY REFERENCE FOR PRODUCT SHAPE, COLORS, AND BRANDING. 
-- CLONE MODE: Absolute adherence to reference photos. 
-- ZERO HALLUCINATION: Do not add details, textures, or features not present in the photos.
-- IDENTITY LOCK: The product must be a pixel-perfect reconstruction of the references.
+THE ATTACHED PHOTOS ARE THE ABSOLUTE TRUTH FOR THE PRODUCT'S APPEARANCE.
+1. DO NOT change the logo, typography, or branding text. Replicate it exactly as seen in the photos.
+2. DO NOT change the materials, stitching, geometry, or colors.
+3. The environment, camera angle, and action MUST visually match the BLUEPRINT text below.
 
-[SCENE CONTEXT - FOR ENVIRONMENT ONLY]
-ENVIRONMENT: ${options.environment}
-LIGHTING: ${options.timeOfDay}
-STYLE: ${options.style}
-${options.mode === 'lifestyle' ? `- TALENT: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
-${promptText || productDescription ? `BLUEPRINT: "${promptText || productDescription}"` : ''}
+BLUEPRINT TO VISUALIZE:
+"${promptText || productDescription}"
+
+ENVIRONMENT & AESTHETICS:
+- Environment: ${options.environment}
+- Lighting: ${options.timeOfDay}
+- Style: ${options.style}
+${options.mode === 'lifestyle' ? `- Talent: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
 
 [LAYOUT]
-- MAIN HERO SHOT (LEFT, 60%): ${focusInstructions[promptIndex] || "Hero product focus."}
-- DETAIL ANGLES (RIGHT STACK, 40%): 3 microscopic views focusing strictly on the materials and branding found in the photos.
+- MAIN HERO SHOT (LEFT, 70%): The main shot exactly as described in the BLUEPRINT. Focus: ${focusInstructions[promptIndex] || "Hero product focus."}
+- DETAIL MACROS (RIGHT STACK, 30%): 2 extreme close-up panels showing the precise materials, textures, and logo text from the reference photos to prove material fidelity.
 
-CRITICAL: Perfect symmetry, cinematic grade. The product MUST be identical to the photos.`;
+Make it look like a high-end, cinematic agency pitch board. Perfect product clone. ZERO HALLUCINATION.`;
 
     // Build content parts: reference images (if available) + text prompt
     const contentParts: any[] = [];
