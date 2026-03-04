@@ -15,6 +15,7 @@ import { analyzeProduct, analyzeScenery, generatePrompts, generateMockup, AIErro
 interface Result {
     prompt: string;
     mockupUrl: string | null;
+    feedback?: string;
 }
 
 interface FavoriteProject {
@@ -516,6 +517,53 @@ export default function VideoLab() {
         });
     };
 
+    const updateFeedback = (index: number, newFeedback: string) => {
+        setResults(prev => {
+            const updated = [...prev];
+            updated[index] = { ...updated[index], feedback: newFeedback };
+            return updated;
+        });
+    };
+
+    const handleRegenerateWithFeedback = async (index: number) => {
+        if (!analysis || loadingIndices.includes(index)) return;
+        const currentDraft = results[index].prompt;
+        const feedback = results[index].feedback;
+        if (!feedback?.trim()) {
+            toast.error('Escreva o que você não gostou para melhorar!');
+            return;
+        }
+
+        setLoadingIndices(prev => [...prev, index]);
+        const baseDescription = editableDescription || analysis.description;
+        const hexInfo = analysis.dominantHexColors?.length ? `\nADOPT THESE EXACT HEX COLORS: ${analysis.dominantHexColors.join(', ')}` : '';
+        const hooksInfo = analysis.sellingPoints?.length ? `\nPONTOS DE VENDA A DESTACAR: ${analysis.sellingPoints.slice(0, 2).join(', ')}` : '';
+
+        const finalDescription = (marketingContext.trim()
+            ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
+            : baseDescription) + hexInfo + hooksInfo;
+
+        const draftWithFeedback = `CURRENT PROMPT:\n${currentDraft}\n\nDIRECTOR'S FEEDBACK (FIX THESE ISSUES):\n${feedback}`;
+
+        toast.promise(
+            (async () => {
+                const newPrompts = await generatePrompts(finalDescription, options, undefined, analysis.colors, draftWithFeedback);
+                const newPrompt = newPrompts[0];
+                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, newPrompt);
+                setResults(prev => {
+                    const updated = [...prev];
+                    updated[index] = { prompt: newPrompt, mockupUrl, feedback: '' };
+                    return updated;
+                });
+            })().finally(() => setLoadingIndices(prev => prev.filter(i => i !== index))),
+            {
+                loading: 'Aplicando feedback do Diretor...',
+                success: 'Nova versão gerada com sucesso!',
+                error: (e) => e instanceof AIError ? e.message : 'Erro ao aplicar feedback.',
+            }
+        );
+    };
+
     const addManualScene = () => {
         setResults(prev => [...prev, { prompt: '', mockupUrl: null }]);
         // Scroll to bottom
@@ -690,7 +738,7 @@ export default function VideoLab() {
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold tracking-tight text-white">River Sora Lab</h1>
-                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v14.0</span></p>
+                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v14.2</span></p>
                         </div>
                     </div>
                 </div>
@@ -1330,6 +1378,27 @@ export default function VideoLab() {
                                                     </button>
                                                 </div>
                                             </div>
+
+                                            {/* Feedback Section */}
+                                            <div className="mt-4 bg-black/40 border border-white/5 rounded-2xl p-4 focus-within:border-amber-500/30 transition-colors">
+                                                <textarea
+                                                    value={res.feedback || ''}
+                                                    onChange={(e) => updateFeedback(i, e.target.value)}
+                                                    placeholder="O que você não gostou? Ex: 'A logo tem que ser menor', 'Muda a cor de fundo'..."
+                                                    className="w-full bg-transparent text-xs text-zinc-300 leading-relaxed font-mono resize-none outline-none min-h-[60px] custom-scrollbar"
+                                                />
+                                                <div className="flex justify-end mt-2">
+                                                    <button
+                                                        onClick={() => handleRegenerateWithFeedback(i)}
+                                                        disabled={loadingIndices.includes(i) || !res.feedback?.trim()}
+                                                        className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black text-[10px] font-bold uppercase tracking-widest rounded-full transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-amber-900/20"
+                                                    >
+                                                        {loadingIndices.includes(i) ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
+                                                        Refinar com Feedback
+                                                    </button>
+                                                </div>
+                                            </div>
+
                                         </div>
                                     </div>
                                 ))}

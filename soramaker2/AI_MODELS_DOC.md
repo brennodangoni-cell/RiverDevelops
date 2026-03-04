@@ -1,4 +1,4 @@
-# River Sora Lab - AI Models Architecture & Strategy (v14.0)
+# AI Models Documentation - VideoLab v14.1 (Stable)
 
 Este documento serve como um guia definitivo sobre a arquitetura de Inteligência Artificial utilizada neste projeto. Se você for exportar este código ou passar para outro desenvolvedor/IA no futuro, **leia isto primeiro**.
 
@@ -10,6 +10,14 @@ Para garantir a melhor qualidade possível de roteiros (Prompts para o Sora 2) e
 *   **Modelo:** `gemini-3.1-pro-preview`
 *   **Função:** Analisar as imagens do produto enviadas pelo usuário (Visão Computacional) e gerar os roteiros altamente estruturados usando o "SORA 2 MASTER SKELETON".
 *   **Por que este modelo?** É o modelo mais avançado e inteligente do Google. Ele consegue seguir instruções complexas (como o esqueleto determinístico do Sora 2) sem se perder. Como o custo de processamento de texto é muito baixo, usar o modelo "Pro" aqui traz um ROI (Retorno sobre Investimento) gigantesco na qualidade do prompt final.
+
+## v14.1 - Sora 2 Director Blueprint
+This version uses the **Hierarchical Director Blueprint** logic to ensure physical stability, cinematic movement, and material fidelity in Sora 2 generations.
+
+### Stable Fallback Stack:
+- **ANALYSIS**: `gemini-3.1-pro-preview` (Stable for Vision)
+- **IMAGES**: `gemini-3.1-flash-image-preview` (Stable for Still Generation)
+- **BRAIN**: `gemini-3.1-pro-preview` (Highest reasoning depth)
 
 ### B. O Fotógrafo (Geração de Mockups Visuais)
 *   **Modelo:** `gemini-3.1-flash-image-preview`
