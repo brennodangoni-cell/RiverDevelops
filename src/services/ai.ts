@@ -159,7 +159,7 @@ async function generateWithFallback(
 // =======================================================================
 // 1. ANALYZE PRODUCT
 // =======================================================================
-export async function analyzeProduct(imagesBase64: string[], marketingContext?: string, creativityLevel: string = 'Balanceado'): Promise<ProductAnalysis> {
+export async function analyzeProduct(imagesBase64: string[], marketingContext?: string): Promise<ProductAnalysis> {
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
 
@@ -187,17 +187,9 @@ MANDATE: ALL Suggested Sceneries (Lifestyle & Product-Only) MUST directly serve 
 
 ENVIRONMENT RANDOMIZATION SEED: ${Date.now() + Math.random()}
 CRITICAL AESTHETIC MANDATE: DO NOT use generic luxury tropes over and over. FORBIDDEN WORDS: "Galeria de Arte", "Iate", "Museu", "Pedestal de Mármore". 
+Analyze these product images for a SORA 2 digital twin. You must invent COMPLETELY NEW, UNEXPECTED, AND HIGH-IMPACT environments that perfectly match THIS SPECIFIC PRODUCT'S DNA. If it's a shoe, maybe it's interacting with liquid neon on a cyberpunk rooftop or crushing volcanic rocks. If it's a beverage, maybe it's submerged in an anti-gravity frozen glacier. BE CREATIVE. NO BORING SCENARIOS.
 
-[CREATIVITY LEVEL ENFORCEMENT = "${creativityLevel}"]
-${creativityLevel === 'Conservador'
-                            ? 'MANDATO DE CRIATIVIDADE CONSERVADORA: Crie APENAS cenários lógicos, reais, cotidianos e altamente comerciais. Estúdios fotográficos limpos, mesas elegantes, praças iluminadas. O produto NUNCA deve fazer coisas fisicamente impossíveis. SEM MÁGICA, SEM FUMAÇAS SURREAIS. Apenas fotografia comercial premium.'
-                            : creativityLevel === 'Extremo'
-                                ? 'MANDATO DE SURREALISMO EXTREMO: Ignore completamente a física, o realismo e a lógica. Crie ambientes ALIENÍGENAS, AVANT-GARDE, IMPOSSÍVEIS e ALUCINADOS. Neve de fogo, chao feito de líquido metálico, desertos transparentes. Apenas sugestões 100% surreais voltadas pra alta moda/arte.'
-                                : 'MANDATO DE CRIATIVIDADE BALANCEADA: Misture cenários. Algumas sugestões reais e aplicáveis pro mundo físico com boa iluminação, e outras com uma "pitada" criativa (como superfícies flutuantes ou uma iluminação levemente fantasiosa), mantendo a credibilidade comercial.'}
-
-Analyze these product images for a SORA 2 digital twin. You must invent COMPLETELY NEW, UNEXPECTED environments that perfectly match THIS SPECIFIC PRODUCT'S DNA based strictly on the CREATIVITY LEVEL above.
-
-RETURN a JSON with: 1. 'description' (ENGLISH, detailed). 2. 'productType' (PT-BR). 3. 'suggestedSceneriesProductOnly' (PT-BR): 4 scenarios strictly following the Creativity Level. 4. 'suggestedSceneriesLifestyle' (PT-BR): 4 scenarios strictly following the Creativity Level.
+RETURN a JSON with: 1. 'description' (ENGLISH, detailed). 2. 'productType' (PT-BR). 3. 'suggestedSceneriesProductOnly' (PT-BR): 4 scenarios (2 realistic, 2 HIGH-FASHION/AVANT-GARDE SURREALISM). 4. 'suggestedSceneriesLifestyle' (PT-BR): 4 scenarios (2 realistic, 2 CINEMATIC DREAMLIKE/LUXURY SURREALISM). MANDATE: Avoid childish, toy-like, or 'ludic' metaphors. Use HIGH-END aesthetic references (e.g. perfume commercials, luxury fashion, liquid metal, volumetric light).
 
 1. "description" (ENGLISH, ultra-detailed):
     - Exact physical traits: shape, silhouette, weight distribution
@@ -209,9 +201,9 @@ RETURN a JSON with: 1. 'description' (ENGLISH, detailed). 2. 'productType' (PT-B
 
 2. "productType" (PORTUGUESE): Short category name
 
-3. "suggestedSceneriesProductOnly" (PORTUGUESE): 4 COMMERCIAL VIDEO SCENARIOS for product-only shots, following the "${creativityLevel}" mandate. Focus on cinematic movement and lighting. NEVER use "Galeria de arte".
+3. "suggestedSceneriesProductOnly" (PORTUGUESE): 4 REAL COMMERCIAL VIDEO SCENARIOS for product-only shots. Focus on cinematic movement and lighting. NEVER use "Galeria de arte".
 
-4. "suggestedSceneriesLifestyle" (PORTUGUESE): 4 COMMERCIAL VIDEO SCENARIOS with people/interaction, following the "${creativityLevel}" mandate. NEVER use "Galeria de arte".
+4. "suggestedSceneriesLifestyle" (PORTUGUESE): 4 REAL COMMERCIAL VIDEO SCENARIOS with people. Focus on physical interaction with the product. NEVER use "Galeria de arte".
 
 5. "colors" (ENGLISH): List of all unique colors/variations detected with HEX.
 
