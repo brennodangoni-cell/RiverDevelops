@@ -421,30 +421,27 @@ The prompt you generate will be paired with a product image, but Sora 2 CANNOT R
 
 [MANDATORY PROMPT LAYERS — ORDERED BY VISUAL WEIGHT]
 
-[MANDATORY PROMPT LAYERS — ORDERED BY VISUAL WEIGHT]
+LAYER 1 — COMPONENT SYNC & MATERIAL REALISM (START HERE):
+Describe the product using the COMPONENT NAMES from the Atlas below (e.g., "Component A", "Component B"). Describe them inside the narrative: "The camera zooms into Component A, revealing the intricate brushed-gold logo...". Include exact PBR materials, textures, and physics. Use terms like "high-fidelity leather", "brushed aerospace-grade aluminum", "translucent skin with visible pores". 
 
-LAYER 1 — REFERENCE IMAGE SUPREMACY (CRITICAL MANDATE):
-Start with: "FORCE 100% GEOMETRIC FIDELITY TO THE ATTACHED REFERENCE IMAGE. DO NOT MUTATE THE SUBJECT. THE TEXT BELOW IS A GUIDELINE FOR MATERIAL PHYSICS AND LIGHTING ONLY."
-Describe the subject using COMPONENT NAMES (Component A, B, etc.). Describe material density: "High-density micro-fiber knit", "Anisotropic brushed metal", "Porous high-grip rubber". Use DESCRIPTIVE COLORS (e.g. "Raw Bone White", "Industrial Sand Beige") — NEVER use HEX codes.
+LAYER 2 — ADVANCED LIGHTING & RENDER ENGINE JARGON:
+Force Sora 2 into its high-end tier. Use professional cinematography terms: "softbox key light", "dramatic rim lighting", "global illumination", "subsurface scattering", "ray-traced reflections", "fresnel effect", and "cinematic film grain".
 
-LAYER 2 — MATERIAL DEPTH & PHYSICS:
-Describe the product's surfaces as physical objects. Mention "low-relief logo embossing", "contact shadows between the sole and the ground", "sub-millimeter fabric grain", and "material rigidity". This prevents the "cheap plastic/AI look".
+LAYER 3 — THE KINETIC ACTION & CAMERA RIG:
+Specify the exact lens (e.g., 35mm anamorphic), movement (e.g., high-speed tracking, steady orbit), and the explosive action. Detail exactly how the subject moves.
 
-LAYER 3 — ADVANCED LIGHTING & RENDER ENGINE JARGON:
-Use professional terms: "softbox key light", "rim light wrap-around", "global illumination", "subsurface scattering (for skin/fabric)", "fresnel effect on curves".
+LAYER 4 — ENVIRONMENTAL REACTION & PHYSICS:
+How do water, dust, wind, or light interact with the scene? Describe splashing, volumetric haze, and dynamic shadows.
 
-LAYER 4 — THE KINETIC ACTION & CAMERA RIG:
-Specify lens (e.g., 35mm anamorphic), movement (e.g., high-speed tracking, handheld shake, steady orbit), and the exact physical interaction. Use only visual action words.
-
-LAYER 5 — CHARACTER & ENVIRONMENT (STRICT VISUALS):
-Describe the actor and environment with zero marketing adjectives. "Woman with long blonde hair, tanned skin, wearing off-white linen attire" — NO mentions of "comfort", "beauty", or "style".
+LAYER 5 — ATMOSPHERE & COLOR GRADE:
+The emotional mood, color palette, and rhythmic energy. Use specific color grading styles.
 
 [ABSOLUTE RULES]
-- NO MARKETING JARGON: Forbid words like "superior", "modern", "minimalist", "comfort", "beautiful", "premium", "luxury". Use only technical visual descriptions.
-- ZERO HEX CODES: Replace HEX codes with descriptive color names.
-- NO HALLUCINATION: If a detail isn't in the image, don't invent it.
-- MINIMUM PROMPT LENGTH: Each prompt MUST be at least 250-400 words.
-- FORMAT: A single monolithic, epic cinematic paragraph. Visual logic only.
+- NO STATIC SCENES. Every frame must have purposeful, dynamic movement.
+- NO CHEAP AI LOOK: Avoid generic descriptions and NEVER mention file extensions (e.g., no .png, .jpg). Use technical, professional terms only.
+- COMPONENT ATLAS MANDATE: You MUST refer to the specific components (Component A, B, C...) labeled in the mockup while describing the camera focus and action.
+- MINIMUM PROMPT LENGTH: Each prompt MUST be at least 250-350 words.
+- FORMAT: A single monolithic, epic cinematic paragraph. Start with the most visually important details first.
     `;
     const promptContext = `
 [STRICT DIRECTOR MANDATE]
@@ -469,17 +466,14 @@ ACTOR SPECIFICATION (MUST BE DESCRIBED IN DETAIL IN THE PROMPT):
 IMPORTANT: You MUST describe this actor/model in the output prompt with extreme detail — their appearance, clothing, expression, body language, and how they physically handle/interact with the product.
 ` : ''}
 
-[PRODUCT IDENTITY & COMPONENT ATLAS — INTEGRATE COMPONENTS INTO PHYSICS]
-The product consists of these technical components. Describe their material physics in the prompt using these labels:
+[PRODUCT IDENTITY & COMPONENT ATLAS — MUST USE THESE NAMES IN PROMPT]
+The product is divided into technical components. You MUST use these names (Component A, Component B, etc.) to direct the camera and describe details:
 """
 ${productDescription}
 """
 
 [CRITICAL INSTRUCTION]
-1. REMOVE ALL MARKETING FLUFF. No "modern", "cool", "premium", "comfortable". Use only visual physics.
-2. CONVERT ALL HEX CODES to descriptive English color names.
-3. NEVER mention filenames, .png, .jpg, or metadata.
-4. FOCUS ON MATERIAL REALISM: textures, reflections, and shadowing.
+NEVER mention filenames or extensions (like .png, .jpg, img_). Focus ONLY on the physical attributes and the component labels.
 
 SCENE TYPE: ${sceneDraft ? 'POLISH THIS SPECIFIC DRAFT:' : 'CREATE NEW SCENE:'}
 ${sceneDraft || 'Based on the above settings, generate a 10-second high-impact cinematic sequence.'}
