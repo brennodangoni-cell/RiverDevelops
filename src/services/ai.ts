@@ -142,6 +142,13 @@ function normalizeProductAnalysis(raw: any): ProductAnalysis {
     };
 }
 
+function normalizePromptOutput(raw: any): string[] {
+    if (!Array.isArray(raw)) return [];
+    return raw
+        .map((item) => compactText(String(item || ""), 900))
+        .filter((item) => item.length > 0);
+}
+
 async function generateWithFallback(ai: GoogleGenAI, models: string[], requestBuilder: (model: string) => any, maxRetries = 1): Promise<any> {
     let lastError: any;
     for (const model of models) {
@@ -277,7 +284,7 @@ RETURN JSON:
 }
 
 // =======================================================================
-// 2. GENERATE PROMPTS (Production Engine v17.3)
+// 2. GENERATE PROMPTS (Production Engine v17.4)
 // =======================================================================
 export async function generatePrompts(productDescription: string, options: any, previousPrompts?: string[], detectedColors?: string[], sceneDraft?: string): Promise<string[]> {
     const apiKey = getApiKey();
@@ -295,7 +302,7 @@ export async function generatePrompts(productDescription: string, options: any, 
     const characters = compactText(options.characters || "", 120);
     const speedIntent = compactText(options.animationSpeed || "Normal", 40);
 
-    const systemPrompt = `You are Product Engine v17.3 for Sora 2 commercials.
+    const systemPrompt = `You are Product Engine v17.4 for Sora 2 commercials.
 Goal: produce highly faithful motion prompts from product photos and identity data.
 
 NON-NEGOTIABLE PRODUCT LOCK
@@ -349,12 +356,12 @@ Structure inside each paragraph:
         }
     }));
 
-    try { return JSON.parse(response.text || "[]"); }
+    try { return normalizePromptOutput(JSON.parse(response.text || "[]")); }
     catch { return []; }
 }
 
 // =======================================================================
-// 3. GENERATE MOCKUP (v17.3)
+// 3. GENERATE MOCKUP (v17.4)
 // =======================================================================
 export async function generateMockup(productDescription: string, options: any, productImages: string[], promptText?: string): Promise<string | null> {
     const apiKey = getApiKey();
