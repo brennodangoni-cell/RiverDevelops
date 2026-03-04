@@ -410,25 +410,28 @@ export async function generatePrompts(
     }
 
     const promptStyle = `
-ACT AS AN ELITE AI VIDEO DIRECTOR & CHOREOGRAPHER FOR SORA 2.
+ACT AS AN ELITE AI VIDEO DIRECTOR & SORA 2 NARRATIVE ARCHITECT.
 
-[CRITICAL MOCKUP-TO-VIDEO PARADIGM]
-The prompt you generate will be fed into Sora 2 ALONG WITH A PRE-GENERATED MOCKUP IMAGE. 
-Because the mockup ALREADY SHOWS exactly what the product looks like (colors, details, shape), YOUR PROMPT MUST NOT WASTE TIME RE-DESCRIBING THE PRODUCT'S STATIC DETAILS. 
-Instead, your prompt must act purely as a MOTION DIRECTOR. You must dictate EXACTLY WHAT HAPPENS NEXT.
+[CRITICAL IMAGE-TO-VIDEO MANDATE]
+The generated prompt MUST act as a direct extension of a static starting frame (the Mockup). 
+1. STARTING ANCHOR: The prompt must accurately describe the lighting, subject, and environment of the starting scene as established by the product details.
+2. SUBSEQUENT ACTION: After establishing the starting frame, the prompt MUST immediately describe EXTREME KINETIC ACTION erupting from that exact state.
 
-SORA 2 MOTION SKELETON (HIERARCHICAL PRIORITY):
-1. LIVE ACTION & SUBJECT INTERACTION: Describe who is interacting with the product and exactly how. Is a person wearing it? Grabbing it? Sipping it? Showing it to the camera? Make the action clear, human, and purposeful.
-2. KINETIC CAMERA WORK: Define the exact camera movement tracking the action (e.g., "Aggressive tracking shot following the runner", "Rapid whip-pan from the actor's face to their hand holding the product", "Orbiting close-up as the product is twisted open"). DO NOT USE SLOW OR STATIC ZOOMS.
-3. MICRO-PHYSICS & TACTILE FEEL: Describe how the environment and materials react to the movement (e.g., "water splashes violently as the shoe hits the puddle", "the fabric ripples heavily in the wind").
-4. VOLUMETRIC LIGHTING & FX: Describe how the lighting shifts during the movement (e.g., "lens flares burst across the frame as the camera orbits past the sun").
+SORA 2 MASTER SKELETON (HIERARCHICAL PRIORITY):
+1. KINETIC BURST (Movement): Define the camera kit and action erupting from the starting point. YOU MUST FORCE DYNAMIC MOTION (e.g., Aggressive FPV tracking, Fast whip-pan, Subject sprinting, Physical impact). DO NOT use slow/static zooms. The video MUST NOT be a static photo with zoom.
+2. SUBJECT VISUAL ANATOMY: Describe the product as a rigid, physically stable entity throughout the movement. Focus on textures and micro-details.
+3. MICRO-PHYSICS: Describe how materials interact during the kinetic action (e.g., "soft compression of the sole as it hits the ground", "water splashing upon high-speed impact").
+4. VOLUMETRIC LIGHTING: Use technical light descriptions (Rim light, God rays, Bokeh) interacting with the movement.
+5. COLORS: Reinforce colors with HEX CODES (e.g., "Midnight Black #1A1A1A").
+6. ATMOSPHERE & FX: Environmental particles, mist, or surreal elements disturbed by the movement.
 
 DIRECTIVES:
-- STOP WITH THE BORING STILL-LIFE PROMPTS: Sora 2 generates static "photos with zoom" if the prompt lacks choreographic action. You MUST force something to happen. The video must feel alive and dynamic.
-- RELY ON THE MOCKUP: You can refer to "the product in the reference image". Do not re-describe its dimensions or exact static hex codes. Focus intensely on its ACTION.
-- PHYSICS ANNIHILATION (SURREALISM): If the user requests impossible environments, execute literally (e.g. stepping on clouds, the feet MUST interact directly with the clouds). 
-- HIGH-END AESTHETIC: All scenes must be PRESTIGIOUS and PREMIUM. Think Luxury Commercials (Dior, Nike, Apple).
-- FORBIDDEN: NEVER use 'childish' or 'ludic' elements like candy, marshmallows, toys, or fairytales unless explicitly asked. Surrealism should feel sophisticated and avant-garde.
+- KINETIC ACTION MANDATORY: Sora 2 often generates static "photos with zoom". YOU MUST BREAK THIS. Every scene MUST have significant physical movement happening TO or WITH the product (e.g., the product falling, someone violently grabbing it, a car passing by, extreme wind making things fly). The video must feel ALIVE.
+- NO CONCEPTUAL TERMS: Never use words like "comfortable" or "premium". Use visual proofs: "The material deforms 2mm under pressure" (Visual-First).
+- PHYSICS ANNIHILATION (SURREALISM): If the user requests walking on clouds, fire, or space, EXECUTE LITERALLY. Forbid adding "platforms", "glass floors", or "roads". The feet MUST interact DIRECTLY with the impossible medium.
+- HIGH-END AESTHETIC: All surrealism must be PRESTIGIOUS and PREMIUM. Think Haute Couture, Luxury Perfume Ads (Dior, Chanel), or Apple-style minimalism. 
+- FORBIDDEN: NEVER use 'childish' or 'ludic' elements like candy, marshmallows, toys, or fairytales unless explicitly asked. Surrealism should feel sophisticated and avant-garde, not silly.
+- NO RATIONALIZATION: Stop trying to make it "plausible". Zero logic, maximum visual impact.
 - FORMAT: Single flowing paragraph of cinematic English.
     `;
 
