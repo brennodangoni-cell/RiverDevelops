@@ -92,6 +92,20 @@ const sequenceTitles = [
     "Cena 9: Extensão Extra"
 ];
 
+const autoDetectLighting = (text: string, currentLighting: string) => {
+    const lower = text.toLowerCase();
+    if (lower.includes('golden') || lower.includes('pôr do sol') || lower.includes('crepúsculo') || lower.includes('entardecer') || lower.includes('sol poente')) return 'Golden Hour';
+    if (lower.includes('ensolarad') || lower.includes(' dia') || lower.includes(' ao dia') || lower.includes('manhã') || lower.includes('tarde') || lower.includes('sol')) return 'Bright Daylight';
+    if (lower.includes('frio') || lower.includes('nublad') || lower.includes('chuva') || lower.includes('inverno')) return 'Overcast/Moody';
+    if (lower.includes('neon') || lower.includes('cyberpunk') || lower.includes('futurist') || lower.includes('led')) return 'Night/Neon';
+    if (lower.includes('noite fria') || lower.includes('luar') || lower.includes('luz lunar') || lower.includes('noturno') && lower.includes('rio')) return 'Cold Night';
+    if (lower.includes('noite') || lower.includes('fogueira') || lower.includes('escuro') || lower.includes('madrugada') || lower.includes('meia-noite')) return 'Warm Night';
+    if (lower.includes('estúdio') || lower.includes('fundo infinito') || lower.includes('fundo branco') || lower.includes('fundo neutro') || lower.includes('fundo escuro') || lower.includes('iluminação controlada')) return 'Studio Lighting';
+    if (lower.includes('bioluminescen') || lower.includes('fluorescente') || lower.includes('alien') || lower.includes('avatar')) return 'Bioluminescent';
+    if (lower.includes('chiaroscuro') || lower.includes('alto contraste') || lower.includes('dramátic') || lower.includes('sombra profunda')) return 'Cinematic Chiaroscuro';
+    return currentLighting;
+};
+
 export default function VideoLab() {
     const [step, setStep] = useState<1 | 2 | 3>(1);
     const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -276,7 +290,8 @@ export default function VideoLab() {
             };
             setAnalysis(manualAnalysis);
             setEditableDescription(editableDescription);
-            setOptions(prev => ({ ...prev, environment: manualAnalysis.suggestedSceneriesLifestyle[0] }));
+            const firstIdea = manualAnalysis.suggestedSceneriesLifestyle[0] || '';
+            setOptions(prev => ({ ...prev, environment: firstIdea, timeOfDay: autoDetectLighting(firstIdea, prev.timeOfDay) }));
             setStep(2);
             return;
         }
@@ -297,7 +312,8 @@ export default function VideoLab() {
             clearInterval(progressTimer);
             setAnalysis(result);
             setEditableDescription(result.description);
-            setOptions(prev => ({ ...prev, environment: result.suggestedSceneriesLifestyle[0] || '' }));
+            const firstEnv = result.suggestedSceneriesLifestyle[0] || '';
+            setOptions(prev => ({ ...prev, environment: firstEnv, timeOfDay: autoDetectLighting(firstEnv, prev.timeOfDay) }));
             setProgress(100);
             // Save analysis to session (lightweight, no images)
             try { sessionStorage.setItem('sora_analysis', JSON.stringify(result)); } catch (_) { }
@@ -708,7 +724,10 @@ export default function VideoLab() {
                 const result = await analyzeProduct(compressedImages, marketingContext, options.creativityLevel);
                 setAnalysis(result);
                 setEditableDescription(result.description);
-                setOptions(prev => ({ ...prev, environment: (prev.mode === 'lifestyle' ? result.suggestedSceneriesLifestyle[0] : result.suggestedSceneriesProductOnly[0]) || '' }));
+                setOptions(prev => {
+                    const firstEnv = (prev.mode === 'lifestyle' ? result.suggestedSceneriesLifestyle[0] : result.suggestedSceneriesProductOnly[0]) || '';
+                    return { ...prev, environment: firstEnv, timeOfDay: autoDetectLighting(firstEnv, prev.timeOfDay) };
+                });
             })(),
             { loading: 'Regenerando sugestões de cena...', success: 'Novas sugestões geradas!', error: 'Erro ao regenerar.' }
         );
@@ -1070,7 +1089,7 @@ export default function VideoLab() {
                                                 {(options.mode === 'product_only' ? analysis.suggestedSceneriesProductOnly : analysis.suggestedSceneriesLifestyle).map((s, idx) => (
                                                     <button
                                                         key={idx}
-                                                        onClick={() => setOptions({ ...options, environment: s })}
+                                                        onClick={() => setOptions({ ...options, environment: s, timeOfDay: autoDetectLighting(s, options.timeOfDay) })}
                                                         className={`p-5 rounded-2xl border text-left transition-all duration-300 ${options.environment === s ? 'bg-cyan-500/5 border-cyan-500/30 text-white shadow-[0_0_20px_rgba(8,145,178,0.1)]' : 'bg-white/[0.02] border-white/5 text-zinc-400 hover:border-white/10 hover:bg-white/[0.04]'}`}
                                                     >
                                                         <div className="flex items-start gap-4">
