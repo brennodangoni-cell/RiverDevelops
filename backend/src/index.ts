@@ -3,15 +3,34 @@ import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import db, { initDb } from './db';
 import { authenticate, generateToken } from './auth';
+import multer from 'multer';
+import fs from 'fs';
+import path from 'path';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Setup static serving for uploads
+const uploadsDir = path.join(__dirname, '../public/uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
+app.use('/uploads', express.static(uploadsDir));
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, uploadsDir),
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage });
+
 // Initialize Database
 initDb();
 
-// Login
+// Generic Admin Login
 app.post('/api/login', (req: Request, res: Response) => {
     const { username, password } = req.body;
     const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username) as any;
@@ -137,6 +156,96 @@ app.put('/api/transactions/:id', authenticate, (req: Request, res: Response) => 
 app.delete('/api/transactions/:id', authenticate, (req: Request, res: Response) => {
     const { id } = req.params;
     db.prepare('DELETE FROM transactions WHERE id = ?').run(id);
+    res.json({ success: true });
+});
+
+// ==========================================
+// CLIENT PORTAL ROUTES
+// ==========================================
+
+// Client Login Endpoint
+app.post('/api/clients/login', (req: Request, res: Response) => {
+    const { username, password } = req.body;
+    const client = db.prepare('SELECT * FROM clients WHERE username = ?').get(username) as any;
+
+    if (!client) return res.status(401).json({ error: 'Client not found' });
+    if (!bcrypt.compareSync(password, client.password)) return res.status(401).json({ error: 'Invalid password' });
+
+    const token = generateToken({ id: client.id, username: client.username, role: 'client' });
+    res.json({ token, client: { id: client.id, username: client.username } });
+});
+
+// Client: Get their own content
+app.get('/api/client/content', authenticate, (req: Request, res: Response) => {
+    // We assume authenticate middleware just decodes and attaches user/client ID.
+    const clientId = (req as any).user.id;
+    const content = db.prepare('SELECT * FROM client_content WHERE client_id = ? ORDER BY created_at DESC').all(clientId);
+    res.json(content);
+});
+
+// Admin: Get all clients
+app.get('/api/admin/clients', authenticate, (req: Request, res: Response) => {
+    const clients = db.prepare('SELECT id, username, created_at FROM clients ORDER BY created_at DESC').all();
+    res.json(clients);
+});
+
+// Admin: Create client
+app.post('/api/admin/clients', authenticate, (req: Request, res: Response) => {
+    const { username, password } = req.body;
+    if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+
+    const hash = bcrypt.hashSync(password, 10);
+    try {
+        const insert = db.prepare('INSERT INTO clients (username, password) VALUES (?, ?)');
+        const result = insert.run(username, hash);
+        res.json({ id: result.lastInsertRowid, success: true });
+    } catch (e: any) {
+        if (e.message.includes('UNIQUE')) return res.status(400).json({ error: 'Username already exists' });
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Admin: Delete client
+app.delete('/api/admin/clients/:id', authenticate, (req: Request, res: Response) => {
+    const { id } = req.params;
+    db.prepare('DELETE FROM client_content WHERE client_id = ?').run(id); // cascade manual
+    db.prepare('DELETE FROM clients WHERE id = ?').run(id);
+    res.json({ success: true });
+});
+
+// Admin: Upload / Create Content for Client
+app.post('/api/admin/clients/:clientId/content', authenticate, upload.single('mediaFile'), (req: Request, res: Response) => {
+    const { clientId } = req.params;
+    // Fields can be sent via multipart/form-data
+    const { title, category, product, week_date, media_url, media_type } = req.body;
+
+    let finalMediaUrl = media_url;
+    let finalMediaType = media_type;
+
+    if (req.file) {
+        finalMediaUrl = `/uploads/${req.file.filename}`;
+        finalMediaType = req.file.mimetype.startsWith('video/') ? 'video' : 'image';
+    }
+
+    if (!finalMediaUrl) return res.status(400).json({ error: 'Media URL or File is required' });
+
+    const insert = db.prepare(`
+        INSERT INTO client_content (client_id, title, category, product, week_date, media_url, media_type)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    try {
+        const result = insert.run(clientId, title || '', category || '', product || '', week_date || '', finalMediaUrl, finalMediaType || 'image');
+        res.json({ id: result.lastInsertRowid, success: true, url: finalMediaUrl });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Admin: Delete Client Content
+app.delete('/api/admin/content/:contentId', authenticate, (req: Request, res: Response) => {
+    const { contentId } = req.params;
+    db.prepare('DELETE FROM client_content WHERE id = ?').run(contentId);
     res.json({ success: true });
 });
 
