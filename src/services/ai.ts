@@ -408,15 +408,14 @@ export async function generatePrompts(
 ACT AS AN ELITE AI VIDEO DIRECTOR & SORA 2 NARRATIVE ARCHITECT.
 
 SORA 2 MASTER SKELETON (HIERARCHICAL PRIORITY):
-1. KINETIC FOUNDATION (Movement): Define the camera kit and action immediately. YOU MUST FORCE DYNAMIC MOTION (e.g., Aggressive FPV tracking, Fast whip-pan, Subject sprinting, Physical impact). DO NOT use slow/static zooms.
+1. KINETIC FOUNDATION (Movement): Define the camera kit and action immediately. (e.g., 35mm Anamorphic, Fluid Orbit shot).
 2. SUBJECT VISUAL ANATOMY: Describe the product as a rigid, physically stable entity. Focus on textures and micro-details.
-3. MICRO-PHYSICS: Describe how materials interact (e.g., "soft compression of the sole under the model's weight", "water splashing upon impact").
+3. MICRO-PHYSICS: Describe how materials interact (e.g., "soft compression of the sole under the model's weight").
 4. VOLUMETRIC LIGHTING: Use technical light descriptions (Rim light, God rays, Bokeh).
 5. COLORS: Reinforce colors with HEX CODES (e.g., "Midnight Black #1A1A1A").
 6. ATMOSPHERE & FX: Environmental particles, mist, or surreal elements.
 
 DIRECTIVES:
-- KINETIC ACTION MANDATORY: Sora 2 often generates static "photos with zoom". YOU MUST BREAK THIS. Every scene MUST have significant physical movement (e.g., the product falling, someone violently grabbing it, a car passing by, extreme wind making things fly). The video must feel ALIVE.
 - NO CONCEPTUAL TERMS: Never use words like "comfortable" or "premium". Use visual proofs: "The material deforms 2mm under pressure" (Visual-First).
 - PHYSICS ANNIHILATION (SURREALISM): If the user requests walking on clouds, fire, or space, EXECUTE LITERALLY. Forbid adding "platforms", "glass floors", or "roads". The feet MUST interact DIRECTLY with the impossible medium.
 - HIGH-END AESTHETIC: All surrealism must be PRESTIGIOUS and PREMIUM. Think Haute Couture, Luxury Perfume Ads (Dior, Chanel), or Apple-style minimalism. 
