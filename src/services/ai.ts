@@ -194,14 +194,23 @@ ${creativityLevel === 'Conservador' ? 'CONSERVATIVE DIRECTIVE: Create 100% groun
 Analyze these product images for a SORA 2 MASTER BLUEPRINT.
 
 YOUR TWO JOBS:
-1. CREATE A HYPER-DETAILED, METICULOUS DESCRIPTION OF THE PRODUCT ITSELF. 
-Describe its precise geometry, architectural lines, textures (e.g. brushed metal, porous rubber, gloss plastic), exact text and logo placements, color codes, weight distribution, and scale. This description is the ONLY anchor the AI will have to preserve the product's identity. Leave absolutely no structural detail out. Be obsessive.
-2. INVENT COMPLETELY NEW, UNEXPECTED ENVIRONMENTS matching the CREATIVITY LEVEL. DO NOT use generic luxury tropes (No "Art Galleries", "Pedestals", or "Marble Tables"). Focus on kinetic action and lighting.
+
+1. CREATE A FORENSIC-LEVEL, OBSESSIVELY DETAILED DESCRIPTION OF THE PRODUCT.
+This description will be INJECTED VERBATIM into every Sora 2 video prompt. It is the ONLY thing preventing the AI from hallucinating the product's shape. YOU MUST COVER:
+   - GEOMETRY & SILHOUETTE: Exact overall shape (cylindrical, rectangular, organic curves, etc.). Proportions (height vs width vs depth ratio). Edge profiles (sharp, beveled, rounded). Any asymmetries or distinctive contours.
+   - MATERIALS & TEXTURES: Every visible material (matte plastic, brushed aluminum, knit fabric, patent leather, frosted glass, etc.). The surface finish (glossy, satin, textured grip, ribbed, smooth). How light reflects off each surface (specular highlights, diffuse scatter, etc.).
+   - COLORS (WITH HEX CODES): Every distinct color zone on the product. Primary body color, accent colors, sole/base colors, trim colors. Provide HEX codes for each.
+   - BRANDING, LOGOS & TYPOGRAPHY: Exact text visible on the product. Logo description (is it an icon? a wordmark? a symbol?). Precise placement of each logo/text (center front, left heel, top cap, etc.). Font style if visible (bold sans-serif, italic script, etc.). Size relative to the product.
+   - COMPONENTS & PARTS: Break the product into its physical components (e.g., for a shoe: outsole, midsole, upper, tongue, laces, heel counter, toe box). For a bottle: cap, neck, body, label, base. Describe each part individually.
+   - QUANTITY & ARRANGEMENT: Is it a single item, a pair, a set? How is it oriented in the photo (front-facing, 3/4 angle, side profile)?
+   - SCALE & WEIGHT: Approximate real-world size. Does it look heavy/solid or light/delicate?
+
+2. INVENT COMPLETELY NEW, UNEXPECTED ENVIRONMENTS matching the CREATIVITY LEVEL. DO NOT use generic luxury tropes (No "Art Galleries", "Pedestals", or "Marble Tables"). Focus on kinetic action and dramatic lighting.
 
 RETURN a strict JSON with:
-1. "description" (ENGLISH, ultra-detailed): The obsessive physical blueprint built from the image.
+1. "description" (ENGLISH, MINIMUM 300 WORDS): The forensic physical blueprint. This will be copy-pasted into Sora 2 prompts, so make it PERFECT and EXHAUSTIVE.
 2. "productType" (PT-BR): Short category.
-3. "suggestedSceneriesProductOnly" (PT-BR): 4 COMMERCIAL VIDEO SCENARIOS (Studio/Abstract). Must detail lighting, camera movement, and kinetic action without describing the product again.
+3. "suggestedSceneriesProductOnly" (PT-BR): 4 COMMERCIAL VIDEO SCENARIOS (Studio/Abstract). Must detail lighting, camera movement, and kinetic action.
 4. "suggestedSceneriesLifestyle" (PT-BR): 4 COMMERCIAL VIDEO SCENARIOS (Interaction/World). Must detail who interacts, the environment, camera angle, and kinetic action.
 5. "colors" (ENGLISH): Detected variants.
 6. "sellingPoints" (PT-BR): Top 3 visual/technical hooks.
@@ -348,17 +357,17 @@ export async function generatePrompts(
     [USER SCENE DRAFT]
     "${sceneDraft}"
     
-    TASK: TRANSFORM THIS DRAFT INTO A MASTER SORA 2 BLUEPRINT (999,999% IMPROVEMENT).
+    TASK: TRANSFORM THIS DRAFT INTO A MASTER SORA 2 CINEMATIC PROMPT (999,999% IMPROVEMENT).
     - GOAL: Extreme visual consistency for the product, but ABSOLUTE CREATIVE FREEDOM for the environment.
     - SURREALISM MANDATE: If the user draft contains impossible or fantastical elements (e.g., walking on clouds, flying, portals), DO NOT RATIONALIZE. Do not turn clouds into "white sand". Provide the LITERAL surrealist interpretation that Sora 2 excels at.
     - STRATEGY: Use the 5-LAYER CINEMATIC PROTOCOL:
       0. MARKETING ALIGNMENT & EMOTION: Evoke the EMOTION described. If the user says "stepping on clouds", describe the ethereal lightness and the model's divine comfort.
-      1. TECHNICAL SETTING: Specify lens (e.g., 35mm), movement (e.g., slow-motion tracking), and framing.
+      1. TECHNICAL SETTING: Specify lens (e.g., 35mm), movement (e.g., slow-motion tracking), and framing in extreme detail.
       2. PHYSICS & WEIGHT: The PRODUCT must be structurally rigid and feel solid. The WORLD can ignore gravity, time, and logic if requested.
-      3. ABSOLUTE SHAPE & TEXTURE LOCK: Describe how the light and environment beautifully interact with the object's surfaces, but STRICTLY FORBIDDEN to describe the physical shape, colors, or materials of the object itself. Let the image reference do the work.
-      4. ATMOSPHERIC GRADE & VFX: Ethereal lighting, volumetric mist, glow effects, or dream-state color grading.
+      3. ABSOLUTE SHAPE & TEXTURE LOCK: Describe the product, its shape, colors, materials, textures, and any visible logos/branding IN METICULOUS DETAIL. Explain exactly how the light and environment interact with it. The prompt MUST describe the product perfectly so Sora 2 does not guess.
+      4. ATMOSPHERIC GRADE & VFX: Very heavy detail on ethereal lighting, volumetric mist, glow effects, color grading, and particle physics.
     
-    - FORMAT: Natural, ultra-technical prose. No technical labels. Length: ~150-250 words.
+    - FORMAT: Natural, ultra-technical prose. No technical labels. WRITE A MASSIVE, EPIC, HYPER-DETAILED PARAGRAPH. Be incredibly verbose about the environment, atmosphere, and camera work.
     - Generate ONLY THIS ONE MASTER SCENE.
     ` : (detectedColors && detectedColors.length > 1 ? `
     DETECTION: We found ${detectedColors.length} unique color variants.
@@ -370,7 +379,7 @@ export async function generatePrompts(
     GOAL: Create 3 cinematic video scenes (10 seconds each) for a high-end commercial:
     Scene 1 — THE HOOK: Wide establishing shot. Reveal the product in a majestic environment.
     Scene 2 — THE STORY: Medium tracking shot. Show the core benefit and dynamic interaction.
-    Scene 3 — THE DETAILS: Extreme macro. Focus on dynamic lighting hitting the surface perfectly. DO NOT name or describe the physical item or its brand.
+    Scene 3 — THE DETAILS: Extreme macro. Focus on dynamic lighting hitting the surface perfectly. MINUTELY describe the physical item, its materials, textures, and its visible branding/shape.
     `)}
     `;
 
@@ -388,7 +397,7 @@ export async function generatePrompts(
     """
     
     TASK: BREAK DOWN THE SCRIPT INTO A COMPLETE STORYBOARD.
-    - Map every action and emotional beat to a professional Sora 2 blueprint.
+    - Map every action and emotional beat to a hyper-detailed, massive Sora 2 cinematic prompt.
     - FORCE visual continuity across all scenes (same lighting, same color grade, same product DNA).
     - Describe the specific benefits mentioned through visual narrative.
     - OBRIGATÓRIO: MUST OUTPUT AN ARRAY OF 4 TO 12 PROMPTS (SCENES), covering the entire script flow from start to finish sequentially.
@@ -407,26 +416,42 @@ export async function generatePrompts(
     }
 
     const promptStyle = `
-ACT AS A PROFESSIONAL AI VIDEO CINEMATOGRAPHER.
+ACT AS A PROFESSIONAL AI VIDEO CINEMATOGRAPHER AND OBSESSIVE VISUAL NARRATOR.
 
-[CORE IMAGE-TO-VIDEO PHILOSOPHY]
-The prompt you generate will be paired with a HIGH-FIDELITY PRODUCT IMAGE. The AI already sees the product perfectly. 
-YOUR ONLY JOB IS TO DIRECT THE CAMERA, THE ENVIRONMENT, AND THE MOVEMENT AROUND IT.
+[CORE PHILOSOPHY]
+The prompt you generate will be paired with a product image, but Sora 2 CANNOT READ IMAGES WELL. It relies HEAVILY on the TEXT PROMPT to understand what the product looks like, who the characters are, what the environment is, and what is happening. Therefore, YOUR PROMPT MUST BE EXTREMELY LONG AND DESCRIBE ABSOLUTELY EVERYTHING IN MINUTE DETAIL. Short prompts = bad videos. Long, obsessive prompts = perfect videos.
 
-CRITICAL RULES:
-1. NEVER describe the product. Do not mention colors, materials, shapes, typography, logos, or brand names.
-2. Refer to the main subject simply as "the item" or "the subject".
-3. DO NOT use words like "morphing, mutating, distorting, melting, exact geometry". AI models misunderstand negative prompts. Keep the prompt exclusively about the physical action and environment.
+[MANDATORY PROMPT LAYERS - ALL 8 LAYERS MUST APPEAR IN EVERY PROMPT]
 
-SORA 2 ACTION SKELETON (FOLLOW STRICTLY):
-1. CINEMATIC SHOT TYPE: Start with the camera movement. (e.g., "Macro tracking shot", "Fast drone dive", "Handheld orbit").
-2. THE ACTION: Describe the explosive kinetic movement or natural interaction. Who or what is interacting with "the item"? How is it moving through space?
-3. ENVIRONMENTAL REACTION: Describe how the surroundings react (e.g., splashing water, kicking up dust, light rays piercing through smoke).
-4. ATMOSPHERE & RHYTHM: Describe the lighting, weather, and the speed/energy of the shot.
+LAYER 1 — PRODUCT IDENTITY (CRITICAL — COPY FROM PRODUCT CONTEXT BELOW):
+Re-describe the product in the prompt itself. Include its exact shape, silhouette, colors (use descriptive color names like "deep midnight navy" not hex codes), materials, textures, visible logos/text, and branding placement. This anchors the product visually for Sora 2.
 
-DIRECTIVES:
-- NO STATIC SCENES. The scene must have purposeful, dynamic movement.
-- FORMAT: A single flowing, highly evocative cinematic paragraph. No bullet points, no labels, no technical jargon about the product itself.
+LAYER 2 — CINEMATIC SHOT TYPE:
+Specify the exact camera rig and movement: lens focal length (e.g., 24mm wide, 85mm portrait, 100mm macro), camera movement type (tracking, orbit, crane, steadicam, handheld, drone, dolly zoom), speed (slow-motion 120fps, real-time, speed ramp), and framing (extreme close-up, medium shot, wide establishing).
+
+LAYER 3 — THE ACTION & INTERACTION:
+Describe EXACTLY what is happening. WHO or WHAT is interacting with the product? A human hand? A model? Wind? Water? Describe the physical interaction in detail: how fingers grip it, how it catches the light as it rotates, how droplets slide off its surface, how fabric drapes around it.
+
+LAYER 4 — CHARACTER DESCRIPTION (if lifestyle/actor mode):
+Describe the actor/model in extreme detail: ethnicity, skin tone, hair color and style, clothing, expression, body language, age range, and how they physically interact with the product.
+
+LAYER 5 — ENVIRONMENT & SET DESIGN:
+Describe the full environment: surface textures (wet concrete, polished marble, raw wood), background elements (city skyline, forest canopy, studio infinity wall), props, and spatial depth.
+
+LAYER 6 — LIGHTING & COLOR GRADE:
+Specify the exact lighting setup: key light direction and intensity, fill light, rim/back light, color temperature (warm tungsten, cool daylight, neon accents), volumetric effects (god rays, haze, fog), and the overall color grade (teal and orange, desaturated matte, high-contrast editorial).
+
+LAYER 7 — ENVIRONMENTAL REACTIONS & PHYSICS:
+Describe how the environment responds to the action: particles kicked up, liquid splashing, fabric billowing, reflections shifting, shadows dancing, dust motes catching light, surface ripples.
+
+LAYER 8 — ATMOSPHERE, MOOD & ENERGY:
+Describe the emotional energy, pacing, and rhythm of the shot. Is it slow and luxurious? Fast and explosive? Dreamy and ethereal? Describe ambient sounds conceptually (even though it's video) to set the mood.
+
+[ABSOLUTE RULES]
+- NO STATIC SCENES. Every frame must have purposeful, dynamic movement.
+- NEVER use words like "morphing, mutating, distorting, melting, exact geometry" — these confuse AI models.
+- MINIMUM PROMPT LENGTH: Each prompt MUST be at least 150-250 words. Short prompts are FORBIDDEN.
+- FORMAT: A single flowing, epic cinematic paragraph. No bullet points, no labels, no section headers. Just a monolithic wall of obsessively detailed cinematic prose.
     `;
 
     const promptContext = `
@@ -445,14 +470,18 @@ TARGET CONFIGURATION:
 - Cinematography Style: ${options.style} (STRICT ADHERENCE)
 
 ${options.mode === 'lifestyle' ? `
-ACTOR SPECIFICATION:
+ACTOR SPECIFICATION (MUST BE DESCRIBED IN DETAIL IN THE PROMPT):
 - Gender: ${options.gender}
-- Skin Tone: ${options.skinTone} 
+- Skin Tone: ${options.skinTone}
 - Hair: ${options.hairColor}
+IMPORTANT: You MUST describe this actor/model in the output prompt with extreme detail — their appearance, clothing, expression, body language, and how they physically handle/interact with the product.
 ` : ''}
 
-PRODUCT CONTEXT (FOR CHOREOGRAPHY CONTEXT ONLY, DO NOT REPEAT IN PROMPT):
+[PRODUCT IDENTITY — INCLUDE THIS IN THE PROMPT]
+The following is the product description. You MUST weave these details INTO the cinematic prompt itself so Sora 2 knows exactly what the product looks like. Re-describe the product's shape, colors, materials, textures, logos, and branding naturally within the scene narrative:
+"""
 ${productDescription}
+"""
 
 SCENE TYPE: ${sceneDraft ? 'POLISH THIS SPECIFIC DRAFT:' : 'CREATE NEW SCENE:'}
 ${sceneDraft || 'Based on the above settings, generate a 10-second high-impact cinematic sequence.'}
@@ -460,10 +489,14 @@ ${sceneDraft || 'Based on the above settings, generate a 10-second high-impact c
 [SCENE TASK & STRATEGY]
 ${taskDescription}
 
-[DIRECTOR BLUEPRINT]
+[DIRECTOR'S CINEMATIC PROMPT RULES]
 ${promptStyle}
 
-CRITICAL: The output MUST be a SINGLE paragraph in ENGLISH, adhering to the SORA 2 MASTER SKELETON. No labels, no bullet points.
+[OUTPUT REQUIREMENTS]
+- The output MUST be a SINGLE, EXTREMELY LONG, ultra-detailed paragraph in ENGLISH.
+- MINIMUM 150-250 words per prompt. Short prompts are UNACCEPTABLE.
+- The prompt MUST include: product description, camera movement, action, environment, lighting, atmosphere, and character details (if lifestyle).
+- No labels, no bullet points, no section headers. Just pure cinematic prose.
     `;
 
 
@@ -521,7 +554,7 @@ export async function generateMockup(
     ];
 
     const imagePrompt = `TASK: TECHNICAL PRODUCT RECONSTRUCTION (COLLAGE).
-GOAL: Create a professional commercial concept sheet (16:9 Collage).
+            GOAL: Create a professional commercial concept sheet (16:9 Collage).
 
 [CRITICAL - SOURCE OF TRUTH]
 THE ATTACHED PHOTOS ARE THE ONLY REFERENCE FOR PRODUCT SHAPE, COLORS, AND BRANDING. 
@@ -530,17 +563,17 @@ THE ATTACHED PHOTOS ARE THE ONLY REFERENCE FOR PRODUCT SHAPE, COLORS, AND BRANDI
 - IDENTITY LOCK: The product must be a pixel-perfect reconstruction of the references.
 
 [SCENE CONTEXT - FOR ENVIRONMENT ONLY]
-ENVIRONMENT: ${options.environment}
-LIGHTING: ${options.timeOfDay}
-STYLE: ${options.style}
+    ENVIRONMENT: ${options.environment}
+    LIGHTING: ${options.timeOfDay}
+    STYLE: ${options.style}
 ${options.mode === 'lifestyle' ? `- TALENT: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
 ${promptText || productDescription ? `BLUEPRINT: "${promptText || productDescription}"` : ''}
 
-[LAYOUT]
-- MAIN HERO SHOT (LEFT, 60%): ${focusInstructions[promptIndex] || "Hero product focus."}
-- DETAIL ANGLES (RIGHT STACK, 40%): 3 microscopic views focusing strictly on the materials and branding found in the photos.
+    [LAYOUT]
+        - MAIN HERO SHOT (LEFT, 60%): ${focusInstructions[promptIndex] || "Hero product focus."}
+    - DETAIL ANGLES (RIGHT STACK, 40%): 3 microscopic views focusing strictly on the materials and branding found in the photos.
 
-CRITICAL: Perfect symmetry, cinematic grade. The product MUST be identical to the photos.`;
+        CRITICAL: Perfect symmetry, cinematic grade. The product MUST be identical to the photos.`;
 
     // Build content parts: reference images (if available) + text prompt
     const contentParts: any[] = [];
@@ -573,7 +606,7 @@ CRITICAL: Perfect symmetry, cinematic grade. The product MUST be identical to th
 
         for (const part of response.candidates?.[0]?.content?.parts || []) {
             if (part.inlineData) {
-                return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+                return `data:${part.inlineData.mimeType}; base64, ${part.inlineData.data} `;
             }
         }
     } catch (e: any) {
