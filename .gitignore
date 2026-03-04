@@ -8,3 +8,4 @@ dist
 dist-ssr
 *.pyc
 __pycache__
+backend/
