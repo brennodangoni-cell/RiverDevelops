@@ -418,26 +418,28 @@ export async function generatePrompts(
     }
 
     const promptStyle = `
-ACT AS A PROFESSIONAL AI VIDEO CINEMATOGRAPHER.
+ACT AS AN ELITE AI VIDEO DIRECTOR & CHOREOGRAPHER FOR SORA 2.
 
-[CORE IMAGE-TO-VIDEO PHILOSOPHY]
-The prompt you generate will be paired with a HIGH-FIDELITY PRODUCT IMAGE. The AI already sees the product perfectly. 
-YOUR ONLY JOB IS TO DIRECT THE CAMERA, THE ENVIRONMENT, AND THE MOVEMENT AROUND IT.
+[CRITICAL MOCKUP-TO-VIDEO PARADIGM]
+The prompt you generate will be fed into the video generator ALONG WITH A PRE-GENERATED MOCKUP IMAGE. 
+Because the image AI ALREADY KNOWS exactly what the product looks like:
+YOU MUST NOT DESCRIBE THE PRODUCT'S APPEARANCE. DO NOT describe its colors, materials, shapes, or branding.
+CRITICAL RULE: DO NOT WRITE THE WORD "LOGO", "BRAND", OR ANY ACTUAL LETTERS/TEXT IN YOUR PROMPT. If you write "an A logo" or "the brand name", the video AI will try to redraw it and will ruin the stylized logo from the mockup. Never mention specific letters, typography, or logos in your prompt!
 
-CRITICAL RULES:
-1. NEVER describe the product. Do not mention colors, materials, shapes, typography, logos, or brand names.
-2. Refer to the main subject simply as "the item" or "the subject".
-3. DO NOT use words like "morphing, mutating, distorting, melting, exact geometry". AI models misunderstand negative prompts. Keep the prompt exclusively about the physical action and environment.
-
-SORA 2 ACTION SKELETON (FOLLOW STRICTLY):
-1. CINEMATIC SHOT TYPE: Start with the camera movement. (e.g., "Macro tracking shot", "Fast drone dive", "Handheld orbit").
-2. THE ACTION: Describe the explosive kinetic movement or natural interaction. Who or what is interacting with "the item"? How is it moving through space?
-3. ENVIRONMENTAL REACTION: Describe how the surroundings react (e.g., splashing water, kicking up dust, light rays piercing through smoke).
-4. ATMOSPHERE & RHYTHM: Describe the lighting, weather, and the speed/energy of the shot.
+SORA 2 MOTION SKELETON (HIERARCHICAL PRIORITY):
+1. VISUAL ANCHOR & SHAPE LOCK: Begin your prompt EXACTLY with this phrase and do not change it: "The 3D shape, silhouette, geometry, and structural proportions of the main subject are 100% locked to the reference image. Zero morphing, zero distortion, zero physical alteration, freezing its exact textures and embedded graphics flawlessly."
+2. EXPLOSIVE KINETIC ACTION: THIS IS NOT A PHOTO. YOU MUST DIRECT MOVEMENT. Describe who is interacting with the product and exactly how. Is someone running? Smashes into water? Twisted mid-air? Eaten? Dropped? Make the action clear, dynamic, and purposeful. STATIC SCENES OR SIMPLE ZOOMS ARE STRICTLY FORBIDDEN.
+3. AGGRESSIVE CAMERA WORK: Define the exact camera movement tracking the action (e.g., "Aggressive tracking shot following the runner", "Rapid whip-pan", "Drone diving shot", "Macro lens orbiting rapidly"). DO NOT USE SLOW OR STATIC ZOOMS. 
+4. MICRO-PHYSICS REACTION: Describe how the environment violently reacts to the movement.
+5. AVOID STRUCTURAL DESCRIPTIONS: If you try to describe the shape of the object in your own words, Sora 2 will try to interpret it and warp the product. Do not describe the product's structure!
 
 DIRECTIVES:
-- NO STATIC SCENES. The scene must have purposeful, dynamic movement.
-- FORMAT: A single flowing, highly evocative cinematic paragraph. No bullet points, no labels, no technical jargon about the product itself.
+- STRICT SHAPE FIDELITY: The product's physical shape is sacred. Do not suggest any action that implies the product bending, morphing, or changing its core structure unless it's a natural property of the item (like clothing).
+- NO STATIC STILL-LIFES: You MUST force an action to happen. The video must feel alive and dynamic.
+- NO VISUAL DESCRIPTIONS OF THE OBJECT: Never write "blue shoe", "leather bag", or "logo". Write "the object" or "the item". Rely 100% on the image reference for visual data.
+- NO TEXT/LETTERS: Do not mention any text, numbers, or letters that could cause the AI to generate typography.
+- HIGH-END AESTHETIC: All scenes must be PRESTIGIOUS and PREMIUM. Think Luxury Commercials.
+- FORMAT: Single flowing paragraph of cinematic English.
     `;
 
     const promptContext = `
