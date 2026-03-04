@@ -29,68 +29,98 @@ export default function ClientLogin() {
     };
 
     return (
-        <div className="min-h-screen bg-[#030303] flex flex-col items-center justify-center p-4 text-white font-sans relative overflow-hidden">
-            {/* Background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-black to-cyan-500/10 pointer-events-none" />
-            <div className="absolute top-1/4 -left-64 w-96 h-96 bg-purple-500/20 rounded-full blur-[100px] pointer-events-none" />
-            <div className="absolute bottom-1/4 -right-64 w-96 h-96 bg-cyan-500/20 rounded-full blur-[100px] pointer-events-none" />
+        <div className="min-h-screen bg-[#020202] flex flex-col items-center justify-center p-4 text-white font-sans relative overflow-hidden select-none">
+            {/* Ambient Background */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-cyan-900/20 via-[#020202] to-[#020202] pointer-events-none" />
+            <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none opacity-50 mix-blend-screen" />
+            <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[100px] pointer-events-none opacity-50 mix-blend-screen" />
 
-            <button onClick={() => navigate('/')} className="absolute top-8 left-8 text-white/40 hover:text-white transition-colors bg-white/5 p-3 rounded-full hover:bg-white/10 z-10 flex items-center gap-2 text-xs font-bold uppercase tracking-widest group">
+            {/* Grid Pattern Overlay */}
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none mix-blend-overlay" />
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none" />
+
+            {/* Back Button */}
+            <button onClick={() => navigate('/')} className="absolute top-8 left-8 text-zinc-500 hover:text-white transition-all bg-white/[0.02] border border-white/5 p-4 rounded-full hover:bg-white/[0.05] hover:border-white/10 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)] z-20 flex items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] group backdrop-blur-md">
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                <span className="hidden sm:inline">Voltar ao Início</span>
+                <span className="hidden sm:inline">Início</span>
             </button>
 
-            <div className="w-full max-w-md bg-white/[0.02] backdrop-blur-2xl border border-white/10 p-10 sm:p-12 rounded-[3.5rem] shadow-[0_0_50px_rgba(0,0,0,0.8)] relative z-10 flex flex-col items-center">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-500 to-cyan-500 flex items-center justify-center mb-8 shadow-[0_0_20px_rgba(168,85,247,0.4)]">
-                    <img src="/logo.webp" alt="River" className="w-10 h-10 object-contain rounded-full" />
+            {/* Login Card */}
+            <div className="w-full max-w-sm relative z-10 flex flex-col items-center animate-in fade-in slide-in-from-bottom-8 duration-1000">
+                {/* Logo Area */}
+                <div className="mb-10 flex flex-col items-center">
+                    <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-white/10 to-transparent p-[1px] shadow-2xl mb-8 relative group">
+                        <div className="absolute inset-0 bg-cyan-500/20 blur-xl rounded-3xl group-hover:bg-cyan-400/30 transition-colors duration-500" />
+                        <div className="w-full h-full bg-black/50 backdrop-blur-xl rounded-3xl flex items-center justify-center border border-white/5 relative z-10">
+                            <img src="/logo.webp" alt="River" className="w-12 h-12 object-contain" />
+                        </div>
+                    </div>
+
+                    <h1 className="text-3xl font-light text-transparent bg-clip-text bg-gradient-to-b from-white to-white/50 tracking-widen mb-3">
+                        Portal <span className="font-semibold text-white">River</span>
+                    </h1>
+                    <p className="text-[11px] text-zinc-500 tracking-[0.3em] font-medium uppercase">
+                        Acesso Restrito
+                    </p>
                 </div>
 
-                <div className="text-center mb-10 w-full">
-                    <h1 className="text-2xl font-display font-medium text-white tracking-widest uppercase mb-2">Área do Cliente</h1>
-                    <p className="text-xs text-white/40 tracking-wider font-light">Acesse seu conteúdo exclusivo.</p>
-                </div>
+                {/* Form Container */}
+                <form onSubmit={handleLogin} className="w-full bg-white/[0.02] backdrop-blur-3xl border border-white/5 p-8 rounded-[2rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] flex flex-col gap-5 relative overflow-hidden">
+                    {/* Inner highlight */}
+                    <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent" />
 
-                <form onSubmit={handleLogin} className="w-full flex flex-col gap-5">
                     <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-white/30 group-focus-within:text-cyan-400 transition-colors">
-                            <User className="w-5 h-5" />
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-600 group-focus-within:text-cyan-400 transition-colors duration-300">
+                            <User className="w-4 h-4" />
                         </div>
                         <input
                             type="text"
                             required
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-full py-4 pl-12 pr-6 text-white text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 transition-all font-medium placeholder:text-white/20"
-                            placeholder="Seu Usuário"
+                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-white text-sm outline-none focus:border-cyan-500/50 focus:bg-white/[0.03] transition-all font-light placeholder:text-zinc-600 focus:shadow-[0_0_15px_rgba(6,182,212,0.1)]"
+                            placeholder="Usuário"
+                            autoComplete="off"
                         />
                     </div>
 
                     <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-white/30 group-focus-within:text-cyan-400 transition-colors">
-                            <KeyRound className="w-5 h-5" />
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-600 group-focus-within:text-cyan-400 transition-colors duration-300">
+                            <KeyRound className="w-4 h-4" />
                         </div>
                         <input
                             type="password"
                             required
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-full py-4 pl-12 pr-6 text-white text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 transition-all font-medium placeholder:text-white/20"
-                            placeholder="Sua Senha"
+                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-white text-sm outline-none focus:border-cyan-500/50 focus:bg-white/[0.03] transition-all font-light placeholder:text-zinc-600 focus:shadow-[0_0_15px_rgba(6,182,212,0.1)]"
+                            placeholder="Senha"
                         />
                     </div>
 
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full mt-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold tracking-widest uppercase text-xs py-4 rounded-full transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:pointer-events-none flex justify-center items-center"
+                        className="w-full mt-2 bg-white text-black font-semibold tracking-[0.15em] uppercase text-xs py-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex justify-center items-center shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] relative overflow-hidden group"
                     >
-                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Entrar na Plataforma'}
+                        {loading ? (
+                            <Loader2 className="w-4 h-4 animate-spin text-zinc-500" />
+                        ) : (
+                            <>
+                                <span className="relative z-10">Acessar</span>
+                                <div className="absolute inset-0 bg-gradient-to-r from-cyan-200 to-purple-200 opacity-0 group-hover:opacity-20 transition-opacity duration-300 mix-blend-overlay" />
+                            </>
+                        )}
                     </button>
                 </form>
 
-                <p className="mt-12 text-[10px] text-white/20 tracking-widest uppercase">
-                    &copy; 2026 River. Todos os direitos reservados.
-                </p>
+                {/* Footer */}
+                <div className="mt-12 flex items-center gap-3 opacity-30 hover:opacity-100 transition-opacity duration-500 cursor-default">
+                    <img src="/logo.webp" alt="River" className="w-3 h-3 grayscale" />
+                    <span className="text-[9px] text-white tracking-[0.3em] font-light uppercase">
+                        2026 River Studio
+                    </span>
+                </div>
             </div>
         </div>
     );
