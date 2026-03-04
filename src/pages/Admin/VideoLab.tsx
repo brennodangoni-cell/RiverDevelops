@@ -318,7 +318,7 @@ export default function VideoLab() {
             clearInterval(progressTimer);
             setAnalysis(result);
             setEditableDescription(result.description);
-            const firstEnv = result.suggestedSceneriesLifestyle[0] || '';
+            const firstEnv = (Array.isArray(result.suggestedSceneriesLifestyle) ? result.suggestedSceneriesLifestyle[0] : '') || '';
             setOptions(prev => ({ ...prev, environment: firstEnv, timeOfDay: autoDetectLighting(firstEnv, prev.timeOfDay) }));
             setProgress(100);
             // Save analysis to session (lightweight, no images)
@@ -353,7 +353,7 @@ export default function VideoLab() {
                 ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
                 : baseDescription) + hexInfo + hooksInfo;
 
-            setProgressText('Engenharia de Prompts (Sora 2 Product Engine v17.2)...');
+            setProgressText('Engenharia de Prompts (Sora 2 Product Engine v17.3)...');
             const progressTimer = simulateProgress(3, 18, 45000);
             const prompts = await generatePrompts(finalDescription, options, undefined, analysis.colors);
             clearInterval(progressTimer);
@@ -820,7 +820,7 @@ export default function VideoLab() {
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold tracking-tight text-white">River Sora Lab</h1>
-                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v17.2</span></p>
+                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v17.3</span></p>
                         </div>
                     </div>
                 </div>
@@ -1324,7 +1324,7 @@ export default function VideoLab() {
                                     <h1 className="text-2xl font-light text-white tracking-tight flex items-center gap-3">
                                         Storyboard <span className="text-cyan-500 text-sm font-bold uppercase tracking-[0.3em]">Cinematic</span>
                                     </h1>
-                                    <p className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">DNA do Produto + Contexto de Marketing + Sora 2 Product Engine v17.2</p>
+                                    <p className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">DNA do Produto + Contexto de Marketing + Sora 2 Product Engine v17.3</p>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     {results.some(r => r.mockupUrl === null) && (
