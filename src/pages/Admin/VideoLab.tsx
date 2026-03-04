@@ -360,7 +360,7 @@ export default function VideoLab() {
 
             // Render sequentially to show progress and avoid state corruption
             for (let i = 0; i < targets.length; i++) {
-                const mockupUrl = await generateMockup(finalDescription, options, i, compressedImages, prompts[i])
+                const mockupUrl = await generateMockup(finalDescription, options, compressedImages, prompts[i])
                     .catch(e => { console.warn(`Mockup ${i + 1} failed:`, e); return null; });
 
                 setResults(prev => {
@@ -410,7 +410,7 @@ export default function VideoLab() {
             setProgressText(`Renderizando ${newPrompts.length} Mockups extras...`);
 
             for (let i = 0; i < newPrompts.length; i++) {
-                const mockupUrl = await generateMockup(finalDescription, options, startIndex + i, compressedImages, newPrompts[i])
+                const mockupUrl = await generateMockup(finalDescription, options, compressedImages, newPrompts[i])
                     .catch(e => { console.warn(`Mockup extra ${i + 1} failed:`, e); return null; });
 
                 setResults(prev => {
@@ -453,7 +453,7 @@ export default function VideoLab() {
                     results.slice(0, index).map(r => r.prompt)
                 );
                 const newPrompt = newPrompts[0];
-                const mockupUrl = await generateMockup(finalDescription, newOptions, index, compressedImages, newPrompt);
+                const mockupUrl = await generateMockup(finalDescription, newOptions, compressedImages, newPrompt);
                 setResults(prev => {
                     const updated = [...prev];
                     updated[index] = { prompt: newPrompt, mockupUrl };
@@ -489,7 +489,7 @@ export default function VideoLab() {
             (async () => {
                 const newPrompts = await generatePrompts(finalDescription, options, undefined, undefined, currentDraft);
                 const newPrompt = newPrompts[0];
-                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, newPrompt);
+                const mockupUrl = await generateMockup(finalDescription, options, compressedImages, newPrompt);
                 setResults(prev => {
                     const updated = [...prev];
                     updated[index] = { prompt: newPrompt, mockupUrl };
@@ -517,7 +517,7 @@ export default function VideoLab() {
 
         toast.promise(
             (async () => {
-                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, results[index].prompt);
+                const mockupUrl = await generateMockup(finalDescription, options, compressedImages, results[index].prompt);
                 setResults(prev => {
                     const updated = [...prev];
                     updated[index] = { ...updated[index], mockupUrl };
@@ -600,7 +600,7 @@ export default function VideoLab() {
                         ? `${newPrompt}\n\n[MOCKUP REFINEMENT FEEDBACK NOW APPLYING]: ${feedbackContextText}`
                         : newPrompt;
 
-                    newMockupUrl = await generateMockup(finalDescription, options, index, compressedImages, finalMockupPrompt);
+                    newMockupUrl = await generateMockup(finalDescription, options, compressedImages, finalMockupPrompt);
                 }
 
                 setResults(prev => {
@@ -652,7 +652,7 @@ export default function VideoLab() {
                 for (const index of missingIndices) {
                     setLoadingIndices(prev => [...prev, index]);
                     try {
-                        const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, results[index].prompt);
+                        const mockupUrl = await generateMockup(finalDescription, options, compressedImages, results[index].prompt);
                         setResults(prev => {
                             const updated = [...prev];
                             updated[index] = { ...updated[index], mockupUrl };
@@ -800,7 +800,7 @@ export default function VideoLab() {
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold tracking-tight text-white">River Sora Lab</h1>
-                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v16.0</span></p>
+                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v16.2</span></p>
                         </div>
                     </div>
                 </div>
