@@ -61,10 +61,14 @@ const hairColors = [
 
 const lightings = [
     { id: 'Golden Hour', label: 'Golden Hour', desc: 'Luz suave e dourada do pôr do sol' },
-    { id: 'Bright Daylight', label: 'Dia Ensolarado', desc: 'Luz forte e natural' },
-    { id: 'Night/Neon', label: 'Noite / Neon', desc: 'Vibrante e escuro' },
-    { id: 'Studio Lighting', label: 'Estúdio', desc: 'Visual técnico e controlado' },
-    { id: 'Overcast/Moody', label: 'Nublado', desc: 'Tom dramático e frio' },
+    { id: 'Bright Daylight', label: 'Dia Ensolarado', desc: 'Luz forte e natural natural 5600K' },
+    { id: 'Overcast/Moody', label: 'Nublado Frio', desc: 'Tom dramático, cinza e sombras suaves' },
+    { id: 'Warm Night', label: 'Noite Quente', desc: 'Luzes amarelas, fogueira ou lâmpadas incandescentes' },
+    { id: 'Cold Night', label: 'Noite Fria', desc: 'Luz lunar, azulada e misteriosa' },
+    { id: 'Night/Neon', label: 'Noite / Neon', desc: 'Vibrante, escuro, cyberpunk' },
+    { id: 'Studio Lighting', label: 'Estúdio Técnico', desc: 'Luzes controladas, softbox, fundo infinito' },
+    { id: 'Bioluminescent', label: 'Bioluminescente', desc: 'Luz emitida da natureza (Alien/Avatar)' },
+    { id: 'Cinematic Chiaroscuro', label: 'Chiaroscuro', desc: 'Alto contraste, sombras profundas e intensas' },
 ];
 
 const styles = [
@@ -98,6 +102,7 @@ export default function VideoLab() {
     const [marketingContext, setMarketingContext] = useState('');
     const [options, setOptions] = useState({
         mode: 'product_only',
+        creativityLevel: 'Balanceado',
         environment: '',
         style: 'Cinematic',
         timeOfDay: 'Golden Hour',
@@ -286,7 +291,7 @@ export default function VideoLab() {
             const validImages = base64Images.filter(b => b.length > 0);
             setCompressedImages(validImages);
             setProgressText('Analisando DNA Visual do Produto...');
-            const result = await analyzeProduct(validImages, marketingContext);
+            const result = await analyzeProduct(validImages, marketingContext, options.creativityLevel);
             // Also run scenery analysis in background for Scene Mode
             analyzeScenery(validImages, marketingContext).then(sd => setSceneryData(sd)).catch(() => { });
             clearInterval(progressTimer);
@@ -700,7 +705,7 @@ export default function VideoLab() {
         }
         toast.promise(
             (async () => {
-                const result = await analyzeProduct(compressedImages);
+                const result = await analyzeProduct(compressedImages, marketingContext, options.creativityLevel);
                 setAnalysis(result);
                 setEditableDescription(result.description);
                 setOptions(prev => ({ ...prev, environment: (prev.mode === 'lifestyle' ? result.suggestedSceneriesLifestyle[0] : result.suggestedSceneriesProductOnly[0]) || '' }));
@@ -1035,12 +1040,32 @@ export default function VideoLab() {
                                         </div>
                                     ) : (
                                         <div className="space-y-4">
-                                            <div className="flex items-center justify-between">
+                                            <div className="flex items-center justify-between mb-2">
                                                 <label className="text-[9px] font-semibold text-zinc-500 uppercase tracking-[0.2em]">Cenários Sugeridos</label>
                                                 <button onClick={regenerateSuggestions} className="w-7 h-7 flex items-center justify-center bg-white/5 hover:bg-cyan-500/20 text-zinc-500 hover:text-cyan-400 rounded-full transition-all" title="Gerar novas sugestões">
                                                     <Dice5 className="w-3.5 h-3.5" />
                                                 </button>
                                             </div>
+
+                                            {/* Creativity Level Control */}
+                                            <div className="bg-black/20 rounded-2xl p-4 border border-white/5 space-y-3 mb-4">
+                                                <div className="flex items-center justify-between">
+                                                    <label className="text-[9px] font-semibold text-cyan-500 uppercase tracking-[0.2em]">Grau de Criatividade da IA</label>
+                                                </div>
+                                                <div className="flex gap-2 p-1 bg-white/5 rounded-xl border border-white/10">
+                                                    {['Conservador', 'Balanceado', 'Extremo'].map((level) => (
+                                                        <button
+                                                            key={level}
+                                                            onClick={() => setOptions({ ...options, creativityLevel: level })}
+                                                            className={`flex-1 py-2 rounded-lg text-xs font-medium uppercase tracking-wider transition-all duration-300 ${options.creativityLevel === level ? 'bg-zinc-800 text-white shadow-md border border-white/10' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}
+                                                        >
+                                                            {level}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                <p className="text-[9px] text-zinc-500 text-center uppercase tracking-widest">{options.creativityLevel === 'Conservador' ? 'Cenários realistas e básicos' : options.creativityLevel === 'Balanceado' ? 'Mistura entre realidade e comercial de luxo criativo' : 'Surrealismo insano, artístico e impossível'}</p>
+                                            </div>
+
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {(options.mode === 'product_only' ? analysis.suggestedSceneriesProductOnly : analysis.suggestedSceneriesLifestyle).map((s, idx) => (
                                                     <button
