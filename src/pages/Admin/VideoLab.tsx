@@ -373,7 +373,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
             clearInterval(progressTimer);
             setProgress(20);
             
-            const newResults: Result[] = concepts.map(_c => ({ prompt: 'Aguardando geração do Mockup...', mockupUrl: null }));
+            const newResults: Result[] = concepts.map(c => ({ prompt: c, mockupUrl: null }));
             setResults(newResults);
 
             const targets = renderAllOnInit ? concepts : concepts.slice(0, 1);
@@ -431,7 +431,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
             setProgress(30);
             
             const startIndex = results.length;
-            const newResults: Result[] = newConcepts.map(_c => ({ prompt: 'Aguardando Mockup...', mockupUrl: null }));
+            const newResults: Result[] = newConcepts.map(c => ({ prompt: c, mockupUrl: null }));
             setResults(prev => [...prev, ...newResults]);
 
             setProgressText(`Gerando ${newConcepts.length} cenas Vision-First...`);
@@ -546,17 +546,27 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
 
         toast.promise(
             (async () => {
-                // Use the current prompt to guide the mockup
-                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, results[index].prompt, aiEngine);
+                const currentPrompt = results[index].prompt;
+                
+                // 1. Generate Mockup based on current prompt (which is the concept)
+                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, currentPrompt, aiEngine);
+                
+                // 2. Generate Blueprint from generated Mockup
+                let finalPrompt = currentPrompt;
+                if (mockupUrl) {
+                    finalPrompt = await generateBlueprintFromMockup(mockupUrl, finalDescription, options, currentPrompt, aiEngine)
+                        .catch(() => currentPrompt);
+                }
+
                 setResults(prev => {
                     const updated = [...prev];
-                    updated[index] = { ...updated[index], mockupUrl };
+                    updated[index] = { ...updated[index], prompt: finalPrompt, mockupUrl };
                     return updated;
                 });
             })().finally(() => setLoadingIndices(prev => prev.filter(i => i !== index))),
             {
-                loading: 'Renderizando mockup com prompt atual...',
-                success: 'Mockup renderizado com sucesso!',
+                loading: 'Renderizando mockup & processando Blueprint...',
+                success: 'Mockup e Blueprint gerados com sucesso!',
                 error: (e) => e instanceof AIError ? e.message : 'Erro ao renderizar mockup.',
             }
         );
@@ -645,10 +655,17 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                 for (const index of missingIndices) {
                     setLoadingIndices(prev => [...prev, index]);
                     try {
-                        const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, results[index].prompt, aiEngine);
+                        const currentPrompt = results[index].prompt;
+                        const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, currentPrompt, aiEngine);
+                        
+                        let finalPrompt = currentPrompt;
+                        if (mockupUrl) {
+                            finalPrompt = await generateBlueprintFromMockup(mockupUrl, finalDescription, options, currentPrompt, aiEngine).catch(() => currentPrompt);
+                        }
+
                         setResults(prev => {
                             const updated = [...prev];
-                            updated[index] = { ...updated[index], mockupUrl };
+                            updated[index] = { ...updated[index], prompt: finalPrompt, mockupUrl };
                             return updated;
                         });
                     } finally {
@@ -784,7 +801,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold tracking-tight text-white">River Sora Lab</h1>
-                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v18.8</span></p>
+                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v18.9</span></p>
                         </div>
                     </div>
                 </div>
@@ -1350,7 +1367,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                     <h1 className="text-3xl font-light text-white tracking-tight flex items-center gap-3">
                                         Director's Timeline <span className="text-cyan-500 text-xs font-bold uppercase tracking-[0.4em] bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/30">Storyboard</span>
                                     </h1>
-                                    <p className="text-[10px] text-zinc-500 mt-3 uppercase tracking-widest">DNA do Produto + Contexto de Marketing + Sora 2 Blueprint Engine v18.8</p>
+                                    <p className="text-[10px] text-zinc-500 mt-3 uppercase tracking-widest">DNA do Produto + Contexto de Marketing + Sora 2 Blueprint Engine v18.9</p>
                                 </div>
                                 <div className="flex flex-wrap items-center gap-3">
                                     {results.some(r => r.mockupUrl === null) && (
