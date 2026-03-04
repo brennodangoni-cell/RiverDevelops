@@ -7,7 +7,7 @@ export interface ProductAnalysis {
     suggestedSceneriesLifestyle: string[];
     colors?: string[]; // Unique colors seen in images
     sellingPoints?: string[]; // Top 3 marketing hooks/advantages
-    dominantHexColors?: string[]; // Precise hex codes extracted from photos
+    dominantColors?: string[]; // Natural language colors using Material Metaphors (no hex)
     productDNA?: ProductDNA;
     branding?: {
         text?: string;
@@ -165,7 +165,7 @@ function normalizeProductAnalysis(value: any): ProductAnalysis {
         suggestedSceneriesLifestyle: normalizeStringList(value?.suggestedSceneriesLifestyle, fallbackLifestyle).slice(0, 4),
         colors: normalizeStringList(value?.colors).slice(0, 12),
         sellingPoints: normalizeStringList(value?.sellingPoints).slice(0, 6),
-        dominantHexColors: normalizeStringList(value?.dominantHexColors).slice(0, 6),
+        dominantColors: normalizeStringList(value?.dominantColors).slice(0, 6),
         rawThinking: String(value?.thinking || "")
     };
 
@@ -339,7 +339,7 @@ Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. '
     - Exact physical traits: shape, silhouette, weight distribution
     - MICRO-PHYSICS: How the materials react to touch and pressure (e.g., "memory foam compression", "rigid plastic", "liquid viscosity")
     - Textures & Finishes: (matte, glossy, brushed, rubberized, porous)
-    - Colors: Verbal description + precise HEX codes (e.g., "Emerald Green #50C878")
+    - Colors: Verbal description + precise material metaphors ONLY (e.g., "matte emerald green"). DO NOT use Hex codes (#).
     - QUANTITY: Exactly how many items (pair/set/single)?
     - Branding: Exact placement and legibility of all logos/text.
 
@@ -349,11 +349,11 @@ Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. '
 
 4. "suggestedSceneriesLifestyle" (PORTUGUESE): 4 REAL COMMERCIAL VIDEO SCENARIOS with people. Focus on physical interaction with the product.
 
-5. "colors" (ENGLISH): List of all unique colors/variations detected with HEX.
+5. "colors" (ENGLISH): List of all unique colors/variations detected with material metaphors.
 
 6. "sellingPoints" (PORTUGUESE): TOP 3 technical/visual advantages.
 
-7. "dominantHexColors": List the 3 most important HEX CODES detected.
+7. "dominantColors": List the 3 most important colors using material metaphors. DO NOT output hex codes.
 
 8. "productDNA" (ENGLISH object):
 {
@@ -404,10 +404,10 @@ Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. '
                         items: { type: Type.STRING },
                         description: "Top 3 marketing hooks/technical advantages in Portuguese."
                     },
-                    dominantHexColors: {
+                    dominantColors: {
                         type: Type.ARRAY,
                         items: { type: Type.STRING },
-                        description: "List of precise hex codes extracted (e.g. ['#FFFFFF'])."
+                        description: "List of precise material colors extracted (e.g. ['matte pure white'])."
                     },
                     productDNA: {
                         type: Type.OBJECT,
@@ -438,7 +438,7 @@ Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. '
                         }
                     }
                 },
-                required: ["thinking", "description", "productType", "suggestedSceneriesProductOnly", "suggestedSceneriesLifestyle", "colors", "sellingPoints", "dominantHexColors"]
+                required: ["thinking", "description", "productType", "suggestedSceneriesProductOnly", "suggestedSceneriesLifestyle", "colors", "sellingPoints", "dominantColors"]
             }
         }
     }));
@@ -591,34 +591,48 @@ export async function generateBlueprintFromMockup(
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
 
     const ai = new GoogleGenAI({ apiKey });
-    
+
     // Ensure format is clean for vision
     const cleanB64 = mockupBase64.replace(/^data:image\/\w+;base64,/, "");
 
-    const referenceLockLine = "Use the uploaded image(s) as the exact product reference. Preserve geometry, logo placement, proportions, materials, and texture scale.";
+    const productLockLine = "Use the uploaded image(s) as the exact product reference.";
 
-    const promptContext = `You are a Senior Sora 2 Prompt Engineer. 
-I have attached multiple images. The FIRST images are the original product photos (your ground truth for logos, materials, and exact shape). The LAST image is a concept mockup board (a collage with a MAIN HERO SHOT and detail panels).
+    const promptContext = `You are a Senior Sora 2 Prompt Engineer. Sora tends to obey narrative order: if the prompt starts with the scene before the product, it treats the environment as protagonist and the product becomes background. ALWAYS put product lock first to lock the visual model.
 
-YOUR TASK: Write the perfect, most accurate Sora 2 video generation prompt describing EXACTLY the MAIN HERO SHOT that you see in the mockup board (the LAST image). IGNORE the macro panels and the fact that it is a collage. You are describing a single, unified 3D environment based on the main shot, but adding instructions for 3D camera movement and physical action. 
-USE THE ORIGINAL PHOTOS (the first images) ONLY to ensure your description of the product itself is 100% physically accurate and faithful, specially regarding logos and materials.
+I have attached multiple images. The FIRST images are the original product photos (ground truth for logos, materials, exact shape). The LAST image is a concept mockup board (collage with MAIN HERO SHOT and detail panels).
 
-MANDATORY RULES:
-- English output only.
-- Length: 85-125 words.
-- Start the prompt with exactly this sentence: "${referenceLockLine}"
-- DESCRIBE WHAT YOU SEE: Faithfully describe the product, the exact lighting in the main hero shot, the colors, and the background environment. Do not invent things.
-- ANTI-STATIC LOCK: NEVER output a prompt that describes a static photo with just a zoom or pan. You MUST instruct the camera to move dynamically in 3D space (e.g., orbit, push in, tracking shot, macro reveal) and describe physical motion or life in the scene.
-- DO NOT mention "collage", "panels", "split screen", or "macro shots on the side". Act as if the main hero shot is the entire physical world.
-- No markdown, just the raw prompt text.
+YOUR TASK: Write a Sora 2 prompt with THREE CLEAR MENTAL LAYERS (this hierarchy dramatically improves results):
 
-SCENE CONTEXT HINT:
-"${sceneConcept}"
+1. PRODUCT LOCK (first — what cannot change)
+   - Start with: "${productLockLine}"
+   - Add one line: Preserve [geometry, logo placement, texture, proportions, sole shape, material fidelity] — adapt to the product type.
+   - Use the ORIGINAL PHOTOS to describe the product with 100% accuracy.
 
-PRODUCT DNA HINT:
-"${productDescription}"
+2. SHOT DESCRIPTION (the scene)
+   - Describe the environment, lighting, and action from the MAIN HERO SHOT in the mockup (LAST image). IGNORE macro panels and collage layout.
+   - Use simple, literal motion verbs: "calm walk", "slow stride", "fluid step" — NOT literary phrases like "meditative gait" (AI interprets poorly).
+   - The product must appear in context (e.g., "She wears [product]...").
+   - BE HIGHLY DETAILED. Expand significantly on the backdrop, the atmosphere, the elements in the scene, the lighting dynamics, and how the action unfolds chronologically. Make the scene rich and vivid.
 
-Remember: If Sora reads your prompt, it should generate a single full-frame video whose first frame looks EXACTLY like the main hero shot in the attached mockup image, but then bursts into cinematic motion.`;
+3. CINEMATOGRAPHY (how to film)
+   - Describe camera movement: tracking shot, orbit, push-in, etc. Be specific.
+   - End with technical specs that reduce chaotic animations:
+     Duration: 5 seconds
+     Motion speed: slow cinematic movement
+     Lens: 50mm product commercial look
+   - Add: Style: premium product commercial, cinematic lighting, shallow depth of field, smooth motion, ultra-realistic.
+
+MANDATORY:
+- English only for the ENTIRE prompt. No markdown. Raw prompt text.
+- NEVER use Hexadecimal Color Codes (like #FFFFFF). Always translate colors to descriptive physical objects (like "snow white", "matte obsidian", "glossy cherry leather"). Sora does NOT understand HEX colors.
+- ANTI-STATIC: Camera MUST move dynamically in 3D space. Never static zoom/pan only.
+- Do NOT mention "collage", "panels", "split screen". Act as if the main hero shot is the entire world.
+- Length: 200-300 words to accommodate the highly detailed 3-layer structure.
+
+SCENE CONTEXT HINT: "${sceneConcept}"
+PRODUCT DNA HINT: "${productDescription}"
+
+Output a prompt whose first frame matches the main hero shot exactly, then bursts into cinematic motion.`;
 
     const models = engine === 'speed' ? ["gemini-2.5-flash"] : BRAIN_MODELS; // We use brain models capable of vision
 
@@ -639,10 +653,10 @@ Remember: If Sora reads your prompt, it should generate a single full-frame vide
     }));
 
     let result = response.text?.trim() || "";
-    if (!result.toLowerCase().startsWith(referenceLockLine.toLowerCase())) {
-        result = `${referenceLockLine} ${result}`;
+    if (!result.toLowerCase().startsWith("use the uploaded")) {
+        result = `${productLockLine} ${result}`;
     }
-    
+
     return result;
 }
 export async function generateMockup(

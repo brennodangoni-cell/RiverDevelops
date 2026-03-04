@@ -269,8 +269,8 @@ export default function VideoLab() {
         const marketingInfo = marketingContext.trim()
             ? `\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
             : '';
-        const hexInfo = includeEnhancers && analysisData.dominantHexColors?.length
-            ? `\nADOPT THESE EXACT HEX COLORS: ${analysisData.dominantHexColors.join(', ')}`
+        const materialColorsInfo = includeEnhancers && analysisData.dominantColors?.length
+            ? `\nADOPT THESE MATERIAL COLORS: ${analysisData.dominantColors.join(', ')}`
             : '';
         const hooksInfo = includeEnhancers && analysisData.sellingPoints?.length
             ? `\nPONTOS DE VENDA A DESTACAR: ${analysisData.sellingPoints.slice(0, 2).join(', ')}`
@@ -293,7 +293,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
             ? `\nBRANDING_LOCK: Brand text "${branding.text}" must stay readable, undistorted, and in the expected position/orientation (${branding.position || 'unknown'} / ${branding.orientation || 'unknown'}).`
             : '';
 
-        return `${baseDescription}${marketingInfo}${hexInfo}${hooksInfo}${dnaInfo}${brandingInfo}`;
+        return `${baseDescription}${marketingInfo}${materialColorsInfo}${hooksInfo}${dnaInfo}${brandingInfo}`;
     };
 
     const handleAnalyze = async () => {
@@ -328,7 +328,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
             clearInterval(progressTimer);
             setAnalysis(result);
             setEditableDescription(result.description);
-            
+
             // V18 DNA INSPECTOR
             setEditableDNA({
                 category: result.productDNA?.category || '',
@@ -372,7 +372,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
             const concepts = await generateSceneConcepts(finalDescription, options, aiEngine);
             clearInterval(progressTimer);
             setProgress(20);
-            
+
             const newResults: Result[] = concepts.map(c => ({ prompt: c, mockupUrl: null }));
             setResults(newResults);
 
@@ -384,7 +384,15 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                 // 1. Generate Mockup based on Scene Concept
                 const mockupUrl = await generateMockup(finalDescription, options, i, compressedImages, concepts[i], aiEngine)
                     .catch(e => { console.warn(`Mockup ${i + 1} failed:`, e); return null; });
-                
+
+                setResults(prev => {
+                    const updated = [...prev];
+                    if (updated[i]) {
+                        updated[i] = { ...updated[i], mockupUrl };
+                    }
+                    return updated;
+                });
+
                 let finalPrompt = concepts[i];
                 // 2. Generate Blueprint from generated Mockup
                 if (mockupUrl) {
@@ -396,7 +404,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                 setResults(prev => {
                     const updated = [...prev];
                     if (updated[i]) {
-                        updated[i] = { prompt: finalPrompt, mockupUrl };
+                        updated[i] = { ...updated[i], prompt: finalPrompt };
                     }
                     return updated;
                 });
@@ -424,12 +432,12 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
         try {
             setProgressText('Concebendo novas cenas...');
             const progressTimer = simulateProgress(5, 28, 40000);
-            
+
             // Get more concepts
             const newConcepts = await generateSceneConcepts(finalDescription, options, aiEngine);
             clearInterval(progressTimer);
             setProgress(30);
-            
+
             const startIndex = results.length;
             const newResults: Result[] = newConcepts.map(c => ({ prompt: c, mockupUrl: null }));
             setResults(prev => [...prev, ...newResults]);
@@ -439,6 +447,15 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
             for (let i = 0; i < newConcepts.length; i++) {
                 const mockupUrl = await generateMockup(finalDescription, options, startIndex + i, compressedImages, newConcepts[i], aiEngine)
                     .catch(e => { console.warn(`Mockup extra ${i + 1} failed:`, e); return null; });
+
+                setResults(prev => {
+                    const updated = [...prev];
+                    const targetIndex = startIndex + i;
+                    if (updated[targetIndex]) {
+                        updated[targetIndex] = { ...updated[targetIndex], mockupUrl };
+                    }
+                    return updated;
+                });
 
                 let finalPrompt = newConcepts[i];
                 if (mockupUrl) {
@@ -450,7 +467,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                     const updated = [...prev];
                     const targetIndex = startIndex + i;
                     if (updated[targetIndex]) {
-                        updated[targetIndex] = { prompt: finalPrompt, mockupUrl };
+                        updated[targetIndex] = { ...updated[targetIndex], prompt: finalPrompt };
                     }
                     return updated;
                 });
@@ -475,14 +492,20 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
         toast.promise(
             (async () => {
                 const newOptions = { ...options, supportingDescription: `Regenerate scene ${index + 1} with a completely different creative angle.` };
-                
+
                 // 1. New Concept
                 const newConcepts = await generateSceneConcepts(finalDescription, newOptions, aiEngine);
                 const newConcept = newConcepts[0] || "Alternative product shot";
-                
+
                 // 2. New Mockup
                 const mockupUrl = await generateMockup(finalDescription, newOptions, index, compressedImages, newConcept, aiEngine);
-                
+
+                setResults(prev => {
+                    const updated = [...prev];
+                    updated[index] = { ...updated[index], mockupUrl };
+                    return updated;
+                });
+
                 // 3. New Blueprint
                 let finalPrompt = newConcept;
                 if (mockupUrl) {
@@ -518,7 +541,13 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
             (async () => {
                 // 1. Generate Mockup from Draft
                 const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, currentDraft, aiEngine);
-                
+
+                setResults(prev => {
+                    const updated = [...prev];
+                    updated[index] = { ...updated[index], mockupUrl };
+                    return updated;
+                });
+
                 // 2. Generate Blueprint from Mockup
                 let finalPrompt = currentDraft;
                 if (mockupUrl) {
@@ -547,10 +576,16 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
         toast.promise(
             (async () => {
                 const currentPrompt = results[index].prompt;
-                
+
                 // 1. Generate Mockup based on current prompt (which is the concept)
                 const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, currentPrompt, aiEngine);
-                
+
+                setResults(prev => {
+                    const updated = [...prev];
+                    updated[index] = { ...updated[index], mockupUrl };
+                    return updated;
+                });
+
                 // 2. Generate Blueprint from generated Mockup
                 let finalPrompt = currentPrompt;
                 if (mockupUrl) {
@@ -560,7 +595,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
 
                 setResults(prev => {
                     const updated = [...prev];
-                    updated[index] = { ...updated[index], prompt: finalPrompt, mockupUrl };
+                    updated[index] = { ...updated[index], prompt: finalPrompt };
                     return updated;
                 });
             })().finally(() => setLoadingIndices(prev => prev.filter(i => i !== index))),
@@ -608,10 +643,16 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                 // 1. Concept
                 const newConcepts = await generateSceneConcepts(finalDescription, newOptions, aiEngine);
                 const newConcept = newConcepts[0] || draftWithFeedback;
-                
+
                 // 2. Mockup
                 const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, newConcept, aiEngine);
-                
+
+                setResults(prev => {
+                    const updated = [...prev];
+                    updated[index] = { ...updated[index], mockupUrl };
+                    return updated;
+                });
+
                 // 3. Blueprint
                 let finalPrompt = newConcept;
                 if (mockupUrl) {
@@ -657,7 +698,13 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                     try {
                         const currentPrompt = results[index].prompt;
                         const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, currentPrompt, aiEngine);
-                        
+
+                        setResults(prev => {
+                            const updated = [...prev];
+                            updated[index] = { ...updated[index], mockupUrl };
+                            return updated;
+                        });
+
                         let finalPrompt = currentPrompt;
                         if (mockupUrl) {
                             finalPrompt = await generateBlueprintFromMockup(mockupUrl, compressedImages, finalDescription, options, currentPrompt, aiEngine).catch(() => currentPrompt);
@@ -665,7 +712,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
 
                         setResults(prev => {
                             const updated = [...prev];
-                            updated[index] = { ...updated[index], prompt: finalPrompt, mockupUrl };
+                            updated[index] = { ...updated[index], prompt: finalPrompt };
                             return updated;
                         });
                     } finally {
@@ -801,7 +848,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold tracking-tight text-white">River Sora Lab</h1>
-                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v18.10</span></p>
+                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v18.11</span></p>
                         </div>
                     </div>
                 </div>
@@ -809,13 +856,13 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                 <div className="flex items-center gap-4">
                     {/* V18 AI ENGINE SELECTOR */}
                     <div className="flex items-center bg-white/[0.03] border border-white/5 rounded-full p-1 mr-4">
-                        <button 
+                        <button
                             onClick={() => setAiEngine('speed')}
                             className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full transition-all ${aiEngine === 'speed' ? 'bg-zinc-800 text-white shadow-md' : 'text-zinc-500 hover:text-zinc-300'}`}
                         >
                             ⚡ Speed
                         </button>
-                        <button 
+                        <button
                             onClick={() => setAiEngine('ultra')}
                             className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full transition-all ${aiEngine === 'ultra' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 shadow-md' : 'text-zinc-500 hover:text-zinc-300'}`}
                         >
@@ -1028,7 +1075,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                         <div className="flex items-center justify-between">
                                             <label className="text-[9px] font-semibold text-cyan-500 uppercase tracking-[0.2em]">Identified Subject</label>
                                             {editableDNA && (
-                                                <button 
+                                                <button
                                                     onClick={() => setShowDNAInspector(!showDNAInspector)}
                                                     className={`px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all ${showDNAInspector ? 'bg-cyan-500 text-black shadow-md' : 'bg-white/5 text-cyan-400 hover:bg-white/10 border border-cyan-500/20'}`}
                                                 >
@@ -1038,13 +1085,13 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                         </div>
                                         <p className="text-xl font-medium text-white tracking-tight">{analysis.productType}</p>
                                     </div>
-                                    
+
                                     {/* V18 DNA INSPECTOR UI */}
                                     <AnimatePresence>
                                         {showDNAInspector && editableDNA && (
-                                            <motion.div 
-                                                initial={{ opacity: 0, height: 0 }} 
-                                                animate={{ opacity: 1, height: 'auto' }} 
+                                            <motion.div
+                                                initial={{ opacity: 0, height: 0 }}
+                                                animate={{ opacity: 1, height: 'auto' }}
                                                 exit={{ opacity: 0, height: 0 }}
                                                 className="overflow-hidden"
                                             >
@@ -1053,7 +1100,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                                         <Fingerprint className="w-4 h-4 text-cyan-400" />
                                                         <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-widest">Structured Visual DNA</h4>
                                                     </div>
-                                                    
+
                                                     {editableDNA.rawThinking && (
                                                         <div className="mb-4 p-3 bg-black/40 rounded-xl border border-white/5">
                                                             <p className="text-[9px] text-zinc-500 font-mono mb-1 uppercase tracking-widest">AI Chain of Thought:</p>
@@ -1064,27 +1111,27 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                                     <div className="grid grid-cols-2 gap-3">
                                                         <div className="space-y-1">
                                                             <label className="text-[8px] text-zinc-500 uppercase tracking-wider">Category</label>
-                                                            <input type="text" value={editableDNA.category || ''} onChange={e => setEditableDNA({...editableDNA, category: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none" />
+                                                            <input type="text" value={editableDNA.category || ''} onChange={e => setEditableDNA({ ...editableDNA, category: e.target.value })} className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none" />
                                                         </div>
                                                         <div className="space-y-1">
                                                             <label className="text-[8px] text-zinc-500 uppercase tracking-wider">Upper Material</label>
-                                                            <input type="text" value={editableDNA.upperMaterial || ''} onChange={e => setEditableDNA({...editableDNA, upperMaterial: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none" />
+                                                            <input type="text" value={editableDNA.upperMaterial || ''} onChange={e => setEditableDNA({ ...editableDNA, upperMaterial: e.target.value })} className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none" />
                                                         </div>
                                                         <div className="space-y-1">
                                                             <label className="text-[8px] text-zinc-500 uppercase tracking-wider">Sole Material</label>
-                                                            <input type="text" value={editableDNA.soleMaterial || ''} onChange={e => setEditableDNA({...editableDNA, soleMaterial: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none" />
+                                                            <input type="text" value={editableDNA.soleMaterial || ''} onChange={e => setEditableDNA({ ...editableDNA, soleMaterial: e.target.value })} className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none" />
                                                         </div>
                                                         <div className="space-y-1">
                                                             <label className="text-[8px] text-zinc-500 uppercase tracking-wider">Sole Shape</label>
-                                                            <input type="text" value={editableDNA.soleShape || ''} onChange={e => setEditableDNA({...editableDNA, soleShape: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none" />
+                                                            <input type="text" value={editableDNA.soleShape || ''} onChange={e => setEditableDNA({ ...editableDNA, soleShape: e.target.value })} className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none" />
                                                         </div>
                                                         <div className="space-y-1">
                                                             <label className="text-[8px] text-zinc-500 uppercase tracking-wider">Logo Placement</label>
-                                                            <input type="text" value={editableDNA.logoPosition || ''} onChange={e => setEditableDNA({...editableDNA, logoPosition: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none" />
+                                                            <input type="text" value={editableDNA.logoPosition || ''} onChange={e => setEditableDNA({ ...editableDNA, logoPosition: e.target.value })} className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none" />
                                                         </div>
                                                         <div className="space-y-1">
                                                             <label className="text-[8px] text-zinc-500 uppercase tracking-wider">Branding Text</label>
-                                                            <input type="text" value={editableDNA.brandingText || ''} onChange={e => setEditableDNA({...editableDNA, brandingText: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none placeholder:text-zinc-700" placeholder="Extracted text on logo" />
+                                                            <input type="text" value={editableDNA.brandingText || ''} onChange={e => setEditableDNA({ ...editableDNA, brandingText: e.target.value })} className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none placeholder:text-zinc-700" placeholder="Extracted text on logo" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1324,11 +1371,11 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                                         {sp}
                                                     </div>
                                                 ))}
-                                                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/5">
-                                                    {analysis.dominantHexColors?.map((c, idx) => (
-                                                        <div key={idx} className="w-5 h-5 rounded-md border border-white/10" style={{ backgroundColor: c }} title={c} />
+                                                <div className="flex flex-col gap-1 mt-4 pt-4 border-t border-white/5">
+                                                    {analysis.dominantColors?.map((c, idx) => (
+                                                        <div key={idx} className="text-[10px] text-zinc-400 font-light truncate" title={c}>• {c}</div>
                                                     ))}
-                                                    <span className="text-[9px] text-zinc-500 ml-2 font-mono uppercase">Paleta Extraída</span>
+                                                    <span className="text-[9px] text-zinc-500 font-mono uppercase mt-1">Paleta Extraída</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -1367,7 +1414,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                     <h1 className="text-3xl font-light text-white tracking-tight flex items-center gap-3">
                                         Director's Timeline <span className="text-cyan-500 text-xs font-bold uppercase tracking-[0.4em] bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/30">Storyboard</span>
                                     </h1>
-                                    <p className="text-[10px] text-zinc-500 mt-3 uppercase tracking-widest">DNA do Produto + Contexto de Marketing + Sora 2 Blueprint Engine v18.10</p>
+                                    <p className="text-[10px] text-zinc-500 mt-3 uppercase tracking-widest">DNA do Produto + Contexto de Marketing + Sora 2 Blueprint Engine v18.11</p>
                                 </div>
                                 <div className="flex flex-wrap items-center gap-3">
                                     {results.some(r => r.mockupUrl === null) && (
@@ -1412,7 +1459,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                             <div className="relative border-l border-white/10 pl-8 ml-4 space-y-12 pb-10">
                                 {results.map((res, i) => (
                                     <div key={i} className="relative bg-zinc-900/40 border border-white/5 backdrop-blur-sm rounded-2xl overflow-hidden flex flex-col lg:flex-row shadow-xl group transition-all hover:border-white/10">
-                                        
+
                                         {/* Timeline Node */}
                                         <div className="absolute -left-[41px] top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-black border-2 border-cyan-500/50 flex items-center justify-center shadow-md z-10 group-hover:border-cyan-400 group-hover:scale-110 transition-all">
                                             <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
