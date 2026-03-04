@@ -742,7 +742,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold tracking-tight text-white">River Sora Lab</h1>
-                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v18.0</span></p>
+                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v18.3</span></p>
                         </div>
                     </div>
                 </div>
@@ -1308,7 +1308,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                     <h1 className="text-3xl font-light text-white tracking-tight flex items-center gap-3">
                                         Director's Timeline <span className="text-cyan-500 text-xs font-bold uppercase tracking-[0.4em] bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/30">Storyboard</span>
                                     </h1>
-                                    <p className="text-[10px] text-zinc-500 mt-3 uppercase tracking-widest">DNA do Produto + Contexto de Marketing + Sora 2 Blueprint Engine v18.0</p>
+                                    <p className="text-[10px] text-zinc-500 mt-3 uppercase tracking-widest">DNA do Produto + Contexto de Marketing + Sora 2 Blueprint Engine v18.3</p>
                                 </div>
                                 <div className="flex flex-wrap items-center gap-3">
                                     {results.some(r => r.mockupUrl === null) && (

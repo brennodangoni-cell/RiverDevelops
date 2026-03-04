@@ -559,6 +559,7 @@ MANDATORY RULES
 - Each blueprint must be 85-125 words.
 - Start every blueprint with this exact sentence: "${referenceLockLine}"
 - One shot per blueprint: one main subject action + one camera move.
+- ANTI-STATIC LOCK: NEVER output a prompt that describes a static photo with just a zoom or pan. The camera MUST move dynamically in 3D space, and the subject/environment MUST have motion, physical interaction, or life.
 - Keep product identity locked: shape, logo, proportions, texture, stitching, materials.
 - Do NOT use HEX codes. Use natural color language only.
 - Use concrete visual words, not generic marketing adjectives.
