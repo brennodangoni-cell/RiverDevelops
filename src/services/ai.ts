@@ -93,55 +93,6 @@ function safeAspectRatio(aspectRatio?: string): string {
     return accepted.has(aspectRatio || "") ? (aspectRatio as string) : "16:9";
 }
 
-const DEFAULT_PRODUCT_ONLY_SCENERIES_PT: string[] = [
-    "Estudio minimalista com fundo infinito neutro e luz controlada destacando materiais",
-    "Set premium com reflexos suaves em superficie fosca, foco total no produto",
-    "Composicao tecnica com iluminacao lateral para revelar textura, costura e acabamento",
-    "Mesa de produto clean com recorte de luz cinematica e contraste elegante"
-];
-
-const DEFAULT_LIFESTYLE_SCENERIES_PT: string[] = [
-    "Ambiente urbano sofisticado com uso natural do produto em contexto real",
-    "Interior contemporaneo com luz de janela e atmosfera premium de campanha",
-    "Cena externa ao entardecer com movimento suave e foco no produto em uso",
-    "Lifestyle comercial de alto padrao em local moderno com profundidade cinematica"
-];
-
-function normalizeStringArray(value: unknown): string[] {
-    if (!Array.isArray(value)) return [];
-    return value
-        .map((item) => compactText(String(item || ""), 180))
-        .filter((item) => item.length > 0);
-}
-
-function forceFour(items: string[], fallback: string[]): string[] {
-    const out = items.slice(0, 4);
-    while (out.length < 4) out.push(fallback[out.length]);
-    return out;
-}
-
-function normalizeProductAnalysis(raw: any): ProductAnalysis {
-    const productOnly = forceFour(
-        normalizeStringArray(raw?.suggestedSceneriesProductOnly),
-        DEFAULT_PRODUCT_ONLY_SCENERIES_PT
-    );
-    const lifestyle = forceFour(
-        normalizeStringArray(raw?.suggestedSceneriesLifestyle),
-        DEFAULT_LIFESTYLE_SCENERIES_PT
-    );
-
-    return {
-        description: compactText(raw?.description || "", 2000),
-        geometricSignature: compactText(raw?.geometricSignature || "forma principal nao detectada", 140),
-        productType: compactText(raw?.productType || "Produto", 80),
-        suggestedSceneriesProductOnly: productOnly,
-        suggestedSceneriesLifestyle: lifestyle,
-        colors: normalizeStringArray(raw?.colors).slice(0, 10),
-        sellingPoints: normalizeStringArray(raw?.sellingPoints).slice(0, 6),
-        dominantHexColors: normalizeStringArray(raw?.dominantHexColors).slice(0, 8)
-    };
-}
-
 async function generateWithFallback(ai: GoogleGenAI, models: string[], requestBuilder: (model: string) => any, maxRetries = 1): Promise<any> {
     let lastError: any;
     for (const model of models) {
@@ -186,8 +137,7 @@ ${marketingContext?.trim() ? `MARKETING CONTEXT: ${compactText(marketingContext,
 INSTRUCTIONS:
 1. GEOMETRIC SIGNATURE: Fundamental shape in 5-8 words.
 2. PRODUCT DNA: Paragraph on material physics, texture, and branding.
-3. SCENARIOS: Return exactly 4 product-only scenarios and exactly 4 lifestyle scenarios for the "${creativityLevel}" tier.
-4. LANGUAGE: Both scenario arrays MUST be written in Portuguese (PT-BR), clear and natural.
+3. SCENARIOS: 4 scenarios for the "${creativityLevel}" tier.
 
 RETURN JSON:
 {
@@ -221,7 +171,7 @@ RETURN JSON:
         }
     }));
 
-    try { return normalizeProductAnalysis(JSON.parse(response.text || "{}")); }
+    try { return JSON.parse(response.text || "{}"); }
     catch { throw new AIError("Falha ao processar análise do produto.", "UNKNOWN"); }
 }
 
@@ -277,7 +227,7 @@ RETURN JSON:
 }
 
 // =======================================================================
-// 2. GENERATE PROMPTS (Production Engine v17.3)
+// 2. GENERATE PROMPTS (Production Engine v17.2)
 // =======================================================================
 export async function generatePrompts(productDescription: string, options: any, previousPrompts?: string[], detectedColors?: string[], sceneDraft?: string): Promise<string[]> {
     const apiKey = getApiKey();
@@ -295,7 +245,7 @@ export async function generatePrompts(productDescription: string, options: any, 
     const characters = compactText(options.characters || "", 120);
     const speedIntent = compactText(options.animationSpeed || "Normal", 40);
 
-    const systemPrompt = `You are Product Engine v17.3 for Sora 2 commercials.
+    const systemPrompt = `You are Product Engine v17.2 for Sora 2 commercials.
 Goal: produce highly faithful motion prompts from product photos and identity data.
 
 NON-NEGOTIABLE PRODUCT LOCK
@@ -354,7 +304,7 @@ Structure inside each paragraph:
 }
 
 // =======================================================================
-// 3. GENERATE MOCKUP (v17.3)
+// 3. GENERATE MOCKUP (v17.2)
 // =======================================================================
 export async function generateMockup(productDescription: string, options: any, productImages: string[], promptText?: string): Promise<string | null> {
     const apiKey = getApiKey();
