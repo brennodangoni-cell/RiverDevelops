@@ -171,40 +171,45 @@ export default function AdminClients() {
 
                 {!selectedClient ? (
                     <div className="w-full flex flex-col items-center">
-                        <div className="w-full max-w-4xl flex items-center justify-between mb-10 bg-white/5 border border-white/10 rounded-full py-4 px-8 backdrop-blur-xl">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center ring-1 ring-purple-500/30">
-                                    <Users className="w-6 h-6 text-purple-400" />
+                        <div className="w-full max-w-4xl flex items-center justify-between mb-10 bg-black/40 border border-white/10 rounded-[3rem] p-6 backdrop-blur-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden group">
+                            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent" />
+
+                            <div className="flex items-center gap-6 z-10">
+                                <div className="w-14 h-14 rounded-full bg-cyan-500/10 flex items-center justify-center ring-1 ring-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.2)]">
+                                    <Users className="w-6 h-6 text-cyan-400" />
                                 </div>
                                 <div>
-                                    <h1 className="text-xl font-display font-medium text-white tracking-widest uppercase">Portal de Clientes</h1>
-                                    <p className="text-xs text-white/40 tracking-wider">Gerencie os acessos e entregas</p>
+                                    <h1 className="text-2xl font-display font-medium text-white tracking-widest uppercase">Portal de Clientes</h1>
+                                    <p className="text-xs text-white/40 tracking-wider font-light mt-1">Gerencie os acessos e entregas</p>
                                 </div>
                             </div>
-                            <button onClick={() => setIsCreateModalOpen(true)} className="bg-purple-500 hover:bg-purple-600 text-white font-bold tracking-widest uppercase text-xs px-6 py-3 rounded-full flex items-center gap-2 transition-all shadow-lg shadow-purple-500/20">
-                                <Plus className="w-4 h-4" /> Novo Cliente
+                            <button onClick={() => setIsCreateModalOpen(true)} className="bg-white hover:bg-white/90 text-black font-bold tracking-[0.15em] uppercase text-xs px-8 py-4 rounded-full flex items-center gap-3 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] z-10 group/btn">
+                                <Plus className="w-4 h-4 transition-transform group-hover/btn:rotate-90" /> Novo Cliente
                             </button>
                         </div>
 
                         {clients.length === 0 ? (
-                            <div className="bg-white/5 border border-white/10 border-dashed rounded-[3rem] w-full max-w-4xl py-20 flex flex-col items-center justify-center text-center">
-                                <Users className="w-12 h-12 text-white/20 mb-4" />
-                                <span className="text-sm text-white/40 tracking-widest uppercase">Nenhum cliente cadastrado</span>
+                            <div className="bg-black/20 border border-white/5 border-dashed rounded-[3rem] w-full max-w-4xl py-32 flex flex-col items-center justify-center text-center backdrop-blur-xl">
+                                <Users className="w-12 h-12 text-white/10 mb-6" />
+                                <span className="text-xs text-white/30 tracking-[0.2em] font-light uppercase">Nenhum cliente cadastrado</span>
                             </div>
                         ) : (
                             <div className="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                                 {clients.map(client => (
-                                    <div key={client.id} className="relative group bg-white/5 border border-white/10 rounded-[2rem] p-6 hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer overflow-hidden backdrop-blur-xl" onClick={() => handleSelectClient(client)}>
+                                    <div key={client.id} className="relative group bg-black/40 border border-white/10 rounded-[2rem] p-6 hover:bg-white/5 hover:border-cyan-500/30 transition-all duration-500 cursor-pointer overflow-hidden backdrop-blur-3xl shadow-[0_10px_30px_-15px_rgba(0,0,0,0.8)]" onClick={() => handleSelectClient(client)}>
+                                        <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                                         <div className="flex flex-col h-full z-10 relative">
                                             <div className="flex items-start justify-between mb-6">
-                                                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500/20 to-cyan-500/20 border border-white/10 flex items-center justify-center shadow-lg">
-                                                    <span className="text-xl font-display font-bold text-white/80 uppercase">{client.username.charAt(0)}</span>
+                                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-white/10 to-transparent p-[1px] shadow-2xl relative">
+                                                    <div className="w-full h-full bg-black/50 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/5 relative z-10">
+                                                        <span className="text-xl font-display font-light text-white uppercase">{client.username.charAt(0)}</span>
+                                                    </div>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <button onClick={(e) => { e.stopPropagation(); setEditingClient(client); setNewPassword(''); setIsEditModalOpen(true); }} className="w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center text-cyan-500/50 hover:text-cyan-400 hover:bg-cyan-500/20 transition-colors">
-                                                        <KeyRound className="w-4 h-4" />
+                                                    <button onClick={(e) => { e.stopPropagation(); setEditingClient(client); setNewPassword(''); setIsEditModalOpen(true); }} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/30 hover:text-cyan-400 hover:bg-cyan-500/10 border border-white/5 hover:border-cyan-500/20 transition-all">
+                                                        <KeyRound className="w-3 h-3" />
                                                     </button>
-                                                    <button onClick={(e) => { e.stopPropagation(); handleDeleteClient(client.id); }} className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500/50 hover:text-red-500 hover:bg-red-500/20 transition-colors">
+                                                    <button onClick={(e) => { e.stopPropagation(); handleDeleteClient(client.id); }} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/30 hover:text-red-400 hover:bg-red-500/10 border border-white/5 hover:border-red-500/20 transition-all">
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
                                                 </div>
