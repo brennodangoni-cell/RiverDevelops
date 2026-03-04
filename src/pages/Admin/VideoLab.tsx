@@ -211,7 +211,8 @@ export default function VideoLab() {
                     try {
                         const canvas = document.createElement('canvas');
                         let { width, height } = img;
-                        const maxSize = 768;
+                        // Keep higher source detail to preserve logos, seams and texture fidelity.
+                        const maxSize = 1600;
                         if (width > maxSize || height > maxSize) {
                             const ratio = Math.min(maxSize / width, maxSize / height);
                             width = Math.round(width * ratio);
@@ -221,7 +222,11 @@ export default function VideoLab() {
                         canvas.height = height;
                         const ctx = canvas.getContext('2d')!;
                         ctx.drawImage(img, 0, 0, width, height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.75));
+                        const outputMime = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+                        const optimized = outputMime === 'image/png'
+                            ? canvas.toDataURL('image/png')
+                            : canvas.toDataURL('image/jpeg', 0.92);
+                        resolve(optimized);
                     } catch (_) {
                         resolve(dataUrl); // fallback to original
                     }
@@ -284,6 +289,7 @@ export default function VideoLab() {
         if (imageFiles.length === 0) {
             const manualAnalysis: ProductAnalysis = {
                 description: editableDescription || 'Product without reference images',
+                geometricSignature: 'manual entry from user description',
                 productType: 'Produto',
                 suggestedSceneriesProductOnly: ['Fundo branco minimalista com iluminação de estúdio', 'Superfície de mármore escuro com iluminação dramática', 'Mesa de madeira rústica com luz natural', 'Cenário tech futurista com neon'],
                 suggestedSceneriesLifestyle: ['Cena urbana moderna com pessoa interagindo', 'Ambiente ao ar livre com luz natural dourada', 'Interior sofisticado com decoração premium', 'Cena casual do dia a dia']
@@ -347,7 +353,7 @@ export default function VideoLab() {
                 ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
                 : baseDescription) + hexInfo + hooksInfo;
 
-            setProgressText('Engenharia de Prompts (Sora 2 Cinematic Engine)...');
+            setProgressText('Engenharia de Prompts (Sora 2 Product Engine v17)...');
             const progressTimer = simulateProgress(3, 18, 45000);
             const prompts = await generatePrompts(finalDescription, options, undefined, analysis.colors);
             clearInterval(progressTimer);
@@ -800,7 +806,7 @@ export default function VideoLab() {
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold tracking-tight text-white">River Sora Lab</h1>
-                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v16.2</span></p>
+                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v17</span></p>
                         </div>
                     </div>
                 </div>
@@ -1304,7 +1310,7 @@ export default function VideoLab() {
                                     <h1 className="text-2xl font-light text-white tracking-tight flex items-center gap-3">
                                         Storyboard <span className="text-cyan-500 text-sm font-bold uppercase tracking-[0.3em]">Cinematic</span>
                                     </h1>
-                                    <p className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">DNA do Produto + Contexto de Marketing + Sora 2 Blueprint Engine</p>
+                                    <p className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">DNA do Produto + Contexto de Marketing + Sora 2 Product Engine v17</p>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     {results.some(r => r.mockupUrl === null) && (
