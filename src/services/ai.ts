@@ -325,7 +325,6 @@ export async function generatePrompts(
     detectedColors?: string[],
     sceneDraft?: string // Specific scene draft to polish
 ): Promise<string[]> {
-    // Define DNA injection
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
 
@@ -425,39 +424,19 @@ DIRECTIVES:
     `;
 
     const promptContext = `
-[STRICT DIRECTOR MANDATE]
-LEAVE NO CHOICE BEHIND. Every parameter below must be the SOUL of the scene.
+    Product Description: ${productDescription}
+    
+    Video Style Options:
+    - Aspect Ratio: ${options.aspectRatio}
+    - Time of Day/Lighting: ${options.timeOfDay}
+    - Environment/Setting: ${options.environment}
+    - Cinematography Style: ${options.style}
+    ${options.supportingDescription ? `- Additional Context: ${options.supportingDescription}` : ''}
+    
+    ${taskDescription}
 
-TARGET CONFIGURATION:
-- Aspect Ratio: ${options.aspectRatio}
-- Mode: ${options.mode === 'lifestyle' ? 'LIFESTYLE (Actor Interaction Required)' : 'PRODUCT ONLY (Studio/Abstract)'}
-- Lighting/Time: ${options.timeOfDay} (STRICT ADHERENCE)
-- Environment: ${options.environment} (STRICT ADHERENCE)
-- Cinematography Style: ${options.style} (STRICT ADHERENCE)
-
-${options.mode === 'lifestyle' ? `
-ACTOR SPECIFICATION (NON-NEGOTIABLE):
-- Gender: ${options.gender}
-- Skin Tone: ${options.skinTone} 
-- Hair: ${options.hairColor}
-` : ''}
-
-PRODUCT DATA:
-${productDescription}
-${hexInfo}
-
-SCENE TYPE: ${sceneDraft ? 'POLISH THIS SPECIFIC DRAFT:' : 'CREATE NEW SCENE:'}
-${sceneDraft || 'Based on the above settings, generate a 10-second high-impact cinematic sequence.'}
-${options.supportingDescription ? `USER EXTRA REQUEST: ${options.supportingDescription}` : ''}
-
-[SCENE TASK & STRATEGY]
-${taskDescription}
-
-[DIRECTOR BLUEPRINT]
-${promptStyle}
-
-CRITICAL: The output MUST be a SINGLE paragraph in ENGLISH, adhering to the SORA 2 MASTER SKELETON. No labels, no bullet points.
-    `;
+    ${promptStyle}
+  `;
 
 
     const response = await generateWithFallback(ai, BRAIN_MODELS, (model) => ({
@@ -513,26 +492,22 @@ export async function generateMockup(
         "Product focus. Logo prominently displayed."
     ];
 
-    const imagePrompt = `TASK: Generate a PROFESSIONAL COMMERCIAL CONCEPT SHEET (COLLAGE).
-GOAL: Create a single 16:9 image containing a HERO SHOT and 3 DETAIL VIEWS.
+    const imagePrompt = `TASK: Generate a PROFESSIONAL COMMERCIAL STILL (1K RAW).
+GOAL: Create a hyper-realistic representation of the final Sora 2 video scene.
 
-DIRECTOR'S BLUEPRINT (BASE):
+DIRECTOR'S BLUEPRINT (MANDATORY):
 "${promptText || productDescription}"
 
-[STRICT CONFIGURATION ADHERENCE]
-- ENVIRONMENT: ${options.environment}
-- LIGHTING: ${options.timeOfDay}
-- STYLE: ${options.style}
-${options.mode === 'lifestyle' ? `- TALENT: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
-
-COLLAGE LAYOUT:
-- MAIN HERO SHOT (LEFT, 60%): ${focusInstructions[promptIndex] || "Hero product in environment."}
-- DETAIL ANGLES (RIGHT STACK, 40%): 3 microscopic views focusing on materials, branding, and physics.
-
 CRITICAL - VISUAL FIDELITY:
-- CLONE MODE: Absolute adherence to reference photos.
-- SYMMETRY: Perfect framing.
-- LOGOS: Sharp and identical placement.`;
+- CLONE MODE: Use attached photos as the only source of truth for the product.
+- MICRO-PHYSICS: Reflect the material interactions described in the blueprint (compression, reflections).
+- COLOR CONSISTENCY: Follow HEX codes strictly.
+- BRANDING: Logos must be perfectly readable and identically placed.
+
+COMPOSITION:
+${focusInstructions[promptIndex] || "Hero composition."}
+Environment: ${options.environment}, Lighting: ${options.timeOfDay}.
+Style: ${options.style}, 8k textures, cinematic grade.`;
 
     // Build content parts: reference images (if available) + text prompt
     const contentParts: any[] = [];
