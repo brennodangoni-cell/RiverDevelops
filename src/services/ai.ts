@@ -377,9 +377,9 @@ export async function generatePrompts(
     Scene 3 — Details: Macro shots of multiple variants in a premium layout.
     ` : `
     GOAL: Create 3 cinematic video scenes (10 seconds each) for a high-end commercial:
-    Scene 1 — THE HOOK: Wide establishing shot. Reveal the product in a majestic environment.
+    Scene 1 — THE HOOK: Wide establishing shot. Reveal the product in a majestic environment. The product's logo/branding must be facing the camera and clearly readable.
     Scene 2 — THE STORY: Medium tracking shot. Show the core benefit and dynamic interaction.
-    Scene 3 — THE DETAILS: Extreme macro. Focus on dynamic lighting hitting the surface perfectly. MINUTELY describe the physical item, its materials, textures, and its visible branding/shape.
+    Scene 3 — THE LOGO HERO: Slow cinematic orbit or macro tracking shot that lands DIRECTLY on the product's logo/branding. The camera must glide toward the logo and hold it in sharp focus. Describe the exact logo (its design, icon, text) as it appears on the product. This scene exists to showcase the brand identity with movement and cinematic lighting.
     `)}
     `;
 
@@ -452,6 +452,9 @@ Describe the emotional energy, pacing, and rhythm of the shot. Is it slow and lu
 - NEVER use words like "morphing, mutating, distorting, melting, exact geometry" — these confuse AI models.
 - MINIMUM PROMPT LENGTH: Each prompt MUST be at least 150-250 words. Short prompts are FORBIDDEN.
 - FORMAT: A single flowing, epic cinematic paragraph. No bullet points, no labels, no section headers. Just a monolithic wall of obsessively detailed cinematic prose.
+
+[LOGO SHOWCASE RULE - MANDATORY]
+If the product has a logo, branding, wordmark, or icon, AT LEAST ONE of the generated prompts MUST include a dedicated "logo hero" moment: a deliberate camera movement (slow orbit, macro push-in, tracking slide) that brings the logo into sharp focus. Describe the logo exactly as it appears on the product (its shape, text, icon design) within the prompt. The logo must be clearly readable in that take. This is NON-NEGOTIABLE for brand commercials.
     `;
 
     const promptContext = `
@@ -562,6 +565,12 @@ THE ATTACHED PHOTOS ARE THE ONLY REFERENCE FOR PRODUCT SHAPE, COLORS, AND BRANDI
 - ZERO HALLUCINATION: Do not add details, textures, or features not present in the photos.
 - IDENTITY LOCK: The product must be a pixel-perfect reconstruction of the references.
 
+[LOGO MANDATE - NON-NEGOTIABLE]
+If the product has ANY visible logo, branding, text, icon, or wordmark in the reference photos:
+- The logo MUST be clearly visible, sharp, and perfectly legible in the MAIN HERO SHOT.
+- At least ONE of the detail angles MUST be a dedicated close-up of the logo/branding area.
+- The logo must match the EXACT design from the reference photos — same font, same icon, same proportions. DO NOT invent or simplify the logo.
+
 [SCENE CONTEXT - FOR ENVIRONMENT ONLY]
     ENVIRONMENT: ${options.environment}
     LIGHTING: ${options.timeOfDay}
@@ -570,10 +579,10 @@ ${options.mode === 'lifestyle' ? `- TALENT: ${options.gender}, ${options.skinTon
 ${promptText || productDescription ? `BLUEPRINT: "${promptText || productDescription}"` : ''}
 
     [LAYOUT]
-        - MAIN HERO SHOT (LEFT, 60%): ${focusInstructions[promptIndex] || "Hero product focus."}
-    - DETAIL ANGLES (RIGHT STACK, 40%): 3 microscopic views focusing strictly on the materials and branding found in the photos.
+        - MAIN HERO SHOT (LEFT, 60%): ${focusInstructions[promptIndex] || "Hero product focus."} THE LOGO/BRANDING MUST BE CLEARLY VISIBLE AND SHARP.
+    - DETAIL ANGLES (RIGHT STACK, 40%): 3 microscopic views. At least ONE must be a tight close-up of the logo/branding. The others focus on materials and textures from the photos.
 
-        CRITICAL: Perfect symmetry, cinematic grade. The product MUST be identical to the photos.`;
+        CRITICAL: Perfect symmetry, cinematic grade. The product MUST be identical to the photos. Logo MUST be pixel-perfect and legible.`;
 
     // Build content parts: reference images (if available) + text prompt
     const contentParts: any[] = [];
