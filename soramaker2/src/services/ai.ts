@@ -24,7 +24,7 @@ export async function analyzeProduct(imagesBase64: string[]): Promise<ProductAna
   });
 
   const response = await ai.models.generateContent({
-    model: "gemini-3.1-pro-preview",
+    model: "gemini-1.5-flash",
     contents: {
       parts: [
         ...parts,
@@ -161,7 +161,7 @@ FORBIDDEN: [No text overlays, no watermarks, no CGI aesthetic, no unrealistic tr
   `;
 
   const response = await ai.models.generateContent({
-    model: "gemini-3.1-pro-preview",
+    model: "gemini-1.5-pro",
     contents: promptContext,
     config: {
       responseMimeType: "application/json",
@@ -203,7 +203,7 @@ export async function generateMockup(productDescription: string, options: any, p
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3.1-flash-image-preview',
+      model: 'imagen-3.0-generate-001',
       contents: {
         parts: [{ text: imagePrompt }]
       },
