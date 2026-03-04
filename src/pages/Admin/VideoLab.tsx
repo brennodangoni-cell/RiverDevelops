@@ -353,7 +353,7 @@ export default function VideoLab() {
                 ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
                 : baseDescription) + hexInfo + hooksInfo;
 
-            setProgressText('Engenharia de Prompts (Sora 2 Product Engine v17.1)...');
+            setProgressText('Engenharia de Prompts (Sora 2 Product Engine v17.2)...');
             const progressTimer = simulateProgress(3, 18, 45000);
             const prompts = await generatePrompts(finalDescription, options, undefined, analysis.colors);
             clearInterval(progressTimer);
@@ -686,11 +686,25 @@ export default function VideoLab() {
 
     const copyMockupImage = async (mockupUrl: string) => {
         try {
+            if (!navigator?.clipboard || typeof navigator.clipboard.write !== 'function' || typeof (window as any).ClipboardItem === 'undefined') {
+                await navigator.clipboard?.writeText?.(mockupUrl);
+                toast.success('Seu navegador não copia bitmap direto. Link da imagem copiado!');
+                return;
+            }
             const res = await fetch(mockupUrl);
             const blob = await res.blob();
-            await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+            const clipboardBlob = blob.type ? blob : new Blob([blob], { type: 'image/png' });
+            const ClipboardItemCtor = (window as any).ClipboardItem;
+            await navigator.clipboard.write([new ClipboardItemCtor({ [clipboardBlob.type]: clipboardBlob })]);
             toast.success('Mockup copiado!');
-        } catch { toast.error('Navegador não suporta copiar imagens.'); }
+        } catch {
+            try {
+                await navigator.clipboard.writeText(mockupUrl);
+                toast.success('Não foi possível copiar bitmap. Link da imagem copiado.');
+            } catch {
+                toast.error('Não foi possível copiar agora. Use o botão de download.');
+            }
+        }
     };
 
     const downloadAllPrompts = () => {
@@ -806,7 +820,7 @@ export default function VideoLab() {
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold tracking-tight text-white">River Sora Lab</h1>
-                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v17.1</span></p>
+                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v17.2</span></p>
                         </div>
                     </div>
                 </div>
@@ -1310,7 +1324,7 @@ export default function VideoLab() {
                                     <h1 className="text-2xl font-light text-white tracking-tight flex items-center gap-3">
                                         Storyboard <span className="text-cyan-500 text-sm font-bold uppercase tracking-[0.3em]">Cinematic</span>
                                     </h1>
-                                    <p className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">DNA do Produto + Contexto de Marketing + Sora 2 Product Engine v17.1</p>
+                                    <p className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">DNA do Produto + Contexto de Marketing + Sora 2 Product Engine v17.2</p>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     {results.some(r => r.mockupUrl === null) && (

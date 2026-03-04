@@ -227,7 +227,7 @@ RETURN JSON:
 }
 
 // =======================================================================
-// 2. GENERATE PROMPTS (Production Engine v17.1)
+// 2. GENERATE PROMPTS (Production Engine v17.2)
 // =======================================================================
 export async function generatePrompts(productDescription: string, options: any, previousPrompts?: string[], detectedColors?: string[], sceneDraft?: string): Promise<string[]> {
     const apiKey = getApiKey();
@@ -245,7 +245,7 @@ export async function generatePrompts(productDescription: string, options: any, 
     const characters = compactText(options.characters || "", 120);
     const speedIntent = compactText(options.animationSpeed || "Normal", 40);
 
-    const systemPrompt = `You are Product Engine v17.1 for Sora 2 commercials.
+    const systemPrompt = `You are Product Engine v17.2 for Sora 2 commercials.
 Goal: produce highly faithful motion prompts from product photos and identity data.
 
 NON-NEGOTIABLE PRODUCT LOCK
@@ -304,7 +304,7 @@ Structure inside each paragraph:
 }
 
 // =======================================================================
-// 3. GENERATE MOCKUP (v17.1)
+// 3. GENERATE MOCKUP (v17.2)
 // =======================================================================
 export async function generateMockup(productDescription: string, options: any, productImages: string[], promptText?: string): Promise<string | null> {
     const apiKey = getApiKey();
@@ -339,6 +339,7 @@ ${identityCore}
 
 OUTPUT
 - 16:9 product specification layout (mockup board), not a random cinematic frame.
+- Force horizontal canvas orientation. Never portrait.
 - Left side (about 65%): hero product view, clean and centered.
 - Right side (about 35%): 3 stacked macro detail panels.
 - Detail panel 1: sole/edge construction and material grain.
@@ -362,7 +363,7 @@ OUTPUT
             contents: { parts: contentParts },
             config: {
                 // @ts-ignore
-                imageConfig: { aspectRatio: safeAspectRatio(options.aspectRatio), imageSize: "1K" }
+                imageConfig: { aspectRatio: "16:9", imageSize: "1K" }
             }
         }));
         const part = response.candidates?.[0]?.content?.parts.find((p: any) => p.inlineData);
