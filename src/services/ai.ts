@@ -617,7 +617,7 @@ YOUR TASK: Write a Sora 2 prompt with THREE CLEAR MENTAL LAYERS (this hierarchy 
 3. CINEMATOGRAPHY (how to film)
    - Describe camera movement: tracking shot, orbit, push-in, etc. Be specific.
    - End with technical specs that reduce chaotic animations:
-     Duration: 5 seconds
+     Duration: 10 seconds
      Motion speed: slow cinematic movement
      Lens: 50mm product commercial look
    - Add: Style: premium product commercial, cinematic lighting, shallow depth of field, smooth motion, ultra-realistic.
@@ -689,7 +689,7 @@ export async function generateMockup(
 GOAL: Create an ultra-photorealistic storyboard board that perfectly matches the BLUEPRINT while cloning the uploaded product photos pixel-by-pixel.
 
 [CRITICAL - SOURCE OF TRUTH & LOGO FIDELITY]
-THE ATTACHED PHOTOS ARE THE ABSOLUTE TRUTH FOR THE PRODUCT'S APPEARANCE.
+THE ATTACHED PHOTOS LABELED "[SOURCE PRODUCT IMAGE]" ARE THE ABSOLUTE TRUTH FOR THE PRODUCT'S APPEARANCE. YOU MUST CLONE THIS EXACT PRODUCT (SHAPE, MATERIAL, LOGOS) INTO THE SCENE.
 1. ABSOLUTE TYPOGRAPHY LOCK: You must replicate the exact letters, font, and spelling of any logo or text seen on the product in the photos. Do not misspell, scramble, or alter the characters. The text MUST be perfectly readable in both the hero shot and the macro panels.
 2. DO NOT change the materials, stitching, geometry, or colors.
 3. The environment, camera angle, and action MUST visually match the BLUEPRINT text below.
@@ -719,9 +719,12 @@ Make it look like a high-end, cinematic agency pitch board. Perfect product clon
             ? productImages
             : [productImages[0], productImages[Math.floor(productImages.length / 2)], productImages[productImages.length - 1]];
         const prepared = await Promise.all(selected.map(ensureModelCompatibleImage));
+        let imgIndex = 1;
         for (const img of prepared) {
             const { data, mimeType } = parseBase64(img);
+            contentParts.push({ text: `[SOURCE PRODUCT IMAGE ${imgIndex} - REPLICATE 1:1 IN MOCKUP]` });
             contentParts.push({ inlineData: { data, mimeType } });
+            imgIndex++;
         }
     }
 
