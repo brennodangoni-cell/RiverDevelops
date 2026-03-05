@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Plus, X, Users, Upload, Trash2, Loader2, ArrowLeft, Image as ImageIcon, Video, Folder, Calendar, FileText, UserPlus, Pencil } from 'lucide-react';
+import { Plus, X, Users, Upload, Trash2, Loader2, ArrowLeft, Image as ImageIcon, Video, Folder, Calendar, FileText, Pencil } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 type Client = {
     id: number;
     username: string;
+    niche?: string | null;
     avatar_url: string | null;
     created_at: string;
 };
@@ -57,10 +58,12 @@ export default function AdminClients() {
     const [isClientModalOpen, setIsClientModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [clientFormId, setClientFormId] = useState<number | null>(null);
-    const [clientForm, setClientForm] = useState({ username: '', password: '' });
+    const [clientForm, setClientForm] = useState({ username: '', password: '', niche: '' });
     const [clientAvatar, setClientAvatar] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [clientSaving, setClientSaving] = useState(false);
+
+    const [searchQuery, setSearchQuery] = useState('');
 
     const navigate = useNavigate();
 
@@ -123,7 +126,7 @@ export default function AdminClients() {
     const openCreateModal = () => {
         setIsEditing(false);
         setClientFormId(null);
-        setClientForm({ username: '', password: '' });
+        setClientForm({ username: '', password: '', niche: '' });
         setClientAvatar(null);
         setPreviewUrl(null);
         setIsClientModalOpen(true);
@@ -133,7 +136,7 @@ export default function AdminClients() {
         e.stopPropagation();
         setIsEditing(true);
         setClientFormId(client.id);
-        setClientForm({ username: client.username, password: '' });
+        setClientForm({ username: client.username, password: '', niche: client.niche || '' });
         setClientAvatar(null);
         setPreviewUrl(getMediaUrl(client.avatar_url));
         setIsClientModalOpen(true);
@@ -146,6 +149,7 @@ export default function AdminClients() {
         try {
             const formData = new FormData();
             formData.append('username', clientForm.username);
+            formData.append('niche', clientForm.niche);
 
             // Password only required if creating. If editing, it's optional
             if (clientForm.password) {
@@ -250,8 +254,8 @@ export default function AdminClients() {
 
                 {!selectedClient ? (
                     <div className="w-full flex flex-col items-center">
-                        <div className="w-full max-w-4xl flex items-center justify-between mb-10 bg-white/5 border border-white/10 rounded-[3rem] p-4 sm:p-6 backdrop-blur-xl">
-                            <div className="flex items-center gap-4">
+                        <div className="w-full max-w-[1500px] flex flex-col md:flex-row items-center justify-between mb-10 bg-white/5 border border-white/10 rounded-[3rem] p-4 sm:p-6 backdrop-blur-xl gap-6">
+                            <div className="flex items-center gap-4 w-full md:w-auto">
                                 <button onClick={() => navigate('/admin')} className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors shrink-0 text-white/50 hover:text-cyan-400">
                                     <ArrowLeft className="w-5 h-5" />
                                 </button>
@@ -263,25 +267,34 @@ export default function AdminClients() {
                                     <p className="text-xs text-white/40 tracking-wider hidden sm:block">Gerencie os acessos e entregas</p>
                                 </div>
                             </div>
-                            <button onClick={openCreateModal} className="bg-cyan-500/10 hover:bg-cyan-500/20 ring-1 ring-inset ring-cyan-500/30 text-cyan-400 font-bold tracking-widest uppercase text-[10px] sm:text-xs px-6 py-3 rounded-full flex items-center gap-2 transition-all">
-                                <Plus className="w-4 h-4" /> Novo Cliente
-                            </button>
+                            <div className="flex items-center gap-4 w-full md:w-auto">
+                                <input
+                                    type="text"
+                                    placeholder="Buscar cliente ou nicho..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full md:w-64 bg-black/40 border border-white/10 rounded-full px-5 py-3 text-white text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 transition-all font-light placeholder:text-white/30 truncate"
+                                />
+                                <button onClick={openCreateModal} className="bg-cyan-500/10 hover:bg-cyan-500/20 ring-1 ring-inset ring-cyan-500/30 text-cyan-400 font-bold tracking-widest uppercase text-[10px] sm:text-xs px-6 py-3 rounded-full flex items-center gap-2 transition-all whitespace-nowrap">
+                                    <Plus className="w-4 h-4" /> Novo Cliente
+                                </button>
+                            </div>
                         </div>
 
-                        {clients.length === 0 ? (
-                            <div className="bg-white/5 border border-white/10 border-dashed rounded-[3rem] w-full max-w-4xl py-20 flex flex-col items-center justify-center text-center">
+                        {clients.filter(c => c.username.toLowerCase().includes(searchQuery.toLowerCase()) || c.niche?.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
+                            <div className="bg-white/5 border border-white/10 border-dashed rounded-[3rem] w-full max-w-[1500px] py-20 flex flex-col items-center justify-center text-center">
                                 <Users className="w-12 h-12 text-white/20 mb-4" />
-                                <span className="text-sm text-white/40 tracking-widest uppercase">Nenhum cliente cadastrado</span>
+                                <span className="text-sm text-white/40 tracking-widest uppercase">Nenhum cliente encontrado</span>
                             </div>
                         ) : (
-                            <div className="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                                {clients.map(client => (
+                            <div className="w-full max-w-[1500px] grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {clients.filter(c => c.username.toLowerCase().includes(searchQuery.toLowerCase()) || c.niche?.toLowerCase().includes(searchQuery.toLowerCase())).map(client => (
                                     <div key={client.id} className="relative group bg-white/5 border border-white/10 rounded-[2rem] p-6 hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer overflow-hidden backdrop-blur-xl" onClick={() => handleSelectClient(client)}>
                                         <div className="flex flex-col h-full z-10 relative">
                                             <div className="flex items-start justify-between mb-6">
                                                 <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-white/10 flex items-center justify-center shadow-lg relative overflow-hidden group-hover:scale-105 transition-transform duration-300">
                                                     {client.avatar_url ? (
-                                                        <img src={getMediaUrl(client.avatar_url)} alt="Profile" className="w-full h-full object-cover" />
+                                                        <img src={getMediaUrl(client.avatar_url)} alt="Profile" className="w-full h-full object-cover" style={{ imageRendering: 'high-quality' as any }} decoding="async" />
                                                     ) : (
                                                         <span className="text-xl font-display font-bold text-white/80 uppercase">{client.username.charAt(0)}</span>
                                                     )}
@@ -295,9 +308,12 @@ export default function AdminClients() {
                                                     </button>
                                                 </div>
                                             </div>
-                                            <h3 className="text-lg font-bold text-white tracking-wider truncate">{client.username}</h3>
-                                            <p className="text-[10px] text-white/40 mt-1 uppercase tracking-widest">
-                                                Inscrito: {new Date(client.created_at).toLocaleDateString('pt-BR')}
+                                            <h3 className="text-lg font-bold text-white tracking-wider truncate uppercase">{client.username}</h3>
+                                            <p className="text-[10px] text-cyan-400/80 mt-1 uppercase tracking-widest font-bold">
+                                                {client.niche || 'Área Secundária'}
+                                            </p>
+                                            <p className="text-[10px] text-white/30 mt-2 tracking-widest uppercase">
+                                                Inscrito em: {new Date(client.created_at).toLocaleDateString('pt-BR')}
                                             </p>
                                         </div>
                                     </div>
@@ -307,20 +323,20 @@ export default function AdminClients() {
                     </div>
                 ) : (
                     <div className="w-full flex flex-col items-center">
-                        <div className="w-full max-w-7xl flex flex-col md:flex-row items-center justify-between mb-8 gap-6 bg-black/40 border border-white/10 rounded-[3rem] p-6 md:p-8 backdrop-blur-xl">
+                        <div className="w-full max-w-[1500px] flex flex-col md:flex-row items-center justify-between mb-8 gap-6 bg-black/40 border border-white/10 rounded-[3rem] p-6 md:p-8 backdrop-blur-xl">
                             <div className="flex items-center gap-6">
                                 <button onClick={() => setSelectedClient(null)} className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors shrink-0">
                                     <ArrowLeft className="w-5 h-5" />
                                 </button>
                                 <div className="flex items-center gap-4">
                                     {selectedClient.avatar_url ? (
-                                        <img src={getMediaUrl(selectedClient.avatar_url)} className="w-12 h-12 rounded-full object-cover shadow-lg border border-white/10" alt="Avatar" />
+                                        <img src={getMediaUrl(selectedClient.avatar_url)} className="w-12 h-12 rounded-full object-cover shadow-lg border border-white/10" alt="Avatar" style={{ imageRendering: 'high-quality' as any }} decoding="async" />
                                     ) : (
                                         <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-white/10 flex items-center justify-center text-xl font-bold uppercase">{selectedClient.username.charAt(0)}</div>
                                     )}
                                     <div>
                                         <h2 className="text-2xl font-display font-bold tracking-widest text-white uppercase">{selectedClient.username}</h2>
-                                        <p className="text-xs text-emerald-400/80 tracking-wider">Membro Oficial / Dashboard Ativo</p>
+                                        <p className="text-xs text-emerald-400/80 tracking-wider uppercase font-bold">{selectedClient.niche || 'Área Secundária'}</p>
                                     </div>
                                 </div>
                             </div>
@@ -330,7 +346,7 @@ export default function AdminClients() {
                         </div>
 
                         {/* Demands Section */}
-                        <div className="w-full max-w-7xl mb-12">
+                        <div className="w-full max-w-[1500px] mb-12">
                             <h3 className="text-sm font-display font-medium text-white/50 tracking-widest uppercase mb-6 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-400"></div> Demandas do Cliente</h3>
                             {demandsLoading ? (
                                 <Loader2 className="w-6 h-6 animate-spin text-emerald-400" />
@@ -370,7 +386,7 @@ export default function AdminClients() {
                             )}
                         </div>
 
-                        <div className="w-full max-w-7xl flex items-center gap-2 mb-6">
+                        <div className="w-full max-w-[1500px] flex items-center gap-2 mb-6">
                             <div className="w-2 h-2 rounded-full bg-cyan-400"></div>
                             <h3 className="text-sm font-display font-medium text-white/50 tracking-widest uppercase">Entregas de Conteúdo</h3>
                         </div>
@@ -378,13 +394,13 @@ export default function AdminClients() {
                         {contentLoading ? (
                             <Loader2 className="w-8 h-8 animate-spin text-cyan-400 mt-20" />
                         ) : content.length === 0 ? (
-                            <div className="bg-white/5 border border-white/10 border-dashed rounded-[3rem] w-full max-w-7xl py-32 flex flex-col items-center justify-center text-center mt-4">
+                            <div className="bg-white/5 border border-white/10 border-dashed rounded-[3rem] w-full max-w-[1500px] py-32 flex flex-col items-center justify-center text-center mt-4">
                                 <Folder className="w-16 h-16 text-white/20 mb-6" />
                                 <span className="text-sm text-white/40 tracking-widest uppercase mb-4">Pasta Vazia</span>
                                 <p className="text-xs text-white/30 max-w-md leading-relaxed">Nenhum conteúdo foi entregue para este cliente ainda. Clique em "Enviar Entrega" para organizar os arquivos gerados.</p>
                             </div>
                         ) : (
-                            <div className="w-full max-w-7xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                            <div className="w-full max-w-[1500px] grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                                 {content.map(item => (
                                     <div key={item.id} className="group relative bg-[#0A0A0A] border border-white/10 rounded-[2rem] overflow-hidden hover:border-white/20 transition-all hover:shadow-2xl hover:shadow-cyan-500/10 flex flex-col pb-4">
 
@@ -432,12 +448,7 @@ export default function AdminClients() {
                     <div className="relative bg-[#080808]/90 backdrop-blur-2xl ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-md shadow-2xl p-10 flex flex-col items-center">
                         {!clientSaving && <button type="button" onClick={() => setIsClientModalOpen(false)} className="absolute top-5 right-5 text-white/30 hover:text-white bg-white/5 p-3 rounded-full"><X className="w-5 h-5" /></button>}
 
-                        <div className="w-16 h-16 rounded-full bg-black border border-white/20 flex items-center justify-center mb-6 shadow-xl relative overflow-hidden">
-                            <div className="absolute inset-0 bg-cyan-500/10" />
-                            {isEditing ? <Pencil className="w-6 h-6 text-cyan-400 relative z-10" /> : <UserPlus className="w-6 h-6 text-cyan-400 relative z-10" />}
-                        </div>
-
-                        <h2 className="text-xl font-display font-medium text-white mb-2 tracking-widest uppercase">{isEditing ? 'Editar Cliente' : 'Novo Cliente'}</h2>
+                        <h2 className="text-xl font-display font-medium text-white mb-2 tracking-widest uppercase mt-4">{isEditing ? 'Editar Cliente' : 'Novo Cliente'}</h2>
                         <p className="text-xs text-white/40 mb-8 tracking-wider text-center">{isEditing ? 'Atualize as informações do acesso.' : 'Crie um acesso para a Área Secundária.'}</p>
 
                         <form onSubmit={handleSaveClient} className="w-full flex flex-col gap-4">
@@ -477,7 +488,9 @@ export default function AdminClients() {
                                 </label>
                             )}
 
-                            <input required type="text" value={clientForm.username} onChange={e => setClientForm({ ...clientForm, username: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 transition-all font-light placeholder:text-white/20" placeholder="Nome de Usuário (Login)" />
+                            <input required type="text" value={clientForm.username} onChange={e => setClientForm({ ...clientForm, username: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 transition-all font-light placeholder:text-white/20" placeholder="Nome do Cliente" />
+
+                            <input type="text" value={clientForm.niche} onChange={e => setClientForm({ ...clientForm, niche: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 transition-all font-light placeholder:text-white/20" placeholder="Nicho (ex: Clínico Geral)" />
 
                             <input required={!isEditing} type="password" value={clientForm.password} onChange={e => setClientForm({ ...clientForm, password: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 transition-all font-light placeholder:text-white/20" placeholder={isEditing ? "Nova Senha (deixe em branco p/ manter)" : "Senha de Acesso"} />
 

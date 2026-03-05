@@ -240,17 +240,17 @@ async function uploadToSupabase(file: Express.Multer.File): Promise<string> {
 }
 
 app.post('/api/admin/clients', authenticate, upload.single('avatarFile'), async (req: Request, res: Response) => {
-    const { username, password } = req.body;
+    const { username, password, niche } = req.body;
     try {
         let finalAvatarUrl = null;
         if (req.file) finalAvatarUrl = await uploadToSupabase(req.file);
         const hash = bcrypt.hashSync(password, 10);
 
-        const payload = { username, password: hash, avatar_url: finalAvatarUrl };
+        const payload = { username, password: hash, niche: niche || 'Não definido', avatar_url: finalAvatarUrl };
         const { data, error } = await supabase.from('clients').insert([payload]).select('id').single();
         if (error) throw error;
 
-        res.json({ id: data.id, success: true, avatar_url: finalAvatarUrl });
+        res.json({ id: data.id, success: true, avatar_url: finalAvatarUrl, niche: payload.niche });
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }
@@ -258,7 +258,7 @@ app.post('/api/admin/clients', authenticate, upload.single('avatarFile'), async 
 
 app.get('/api/admin/clients', authenticate, async (req: Request, res: Response) => {
     try {
-        const { data, error } = await supabase.from('clients').select('id, username, avatar_url, created_at').order('created_at', { ascending: false });
+        const { data, error } = await supabase.from('clients').select('id, username, avatar_url, niche, created_at').order('created_at', { ascending: false });
         if (error) throw error;
         res.json(data);
     } catch (e: any) {
