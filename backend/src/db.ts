@@ -3,24 +3,24 @@ import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 import dns from 'dns';
 
-// Fix para Render (Forçar IPv4 antes da conexão)
+// Forçar IPv4 para o Render
 dns.setDefaultResultOrder('ipv4first');
 dotenv.config();
 
-// String de Conexão Supavisor (Porta 6543 - Transaction Mode)
-// O '*' na senha DEVE ser %2A para funcionar no Pooler
-const connectionString = 'postgresql://postgres.tctzbsjmuariwylrfbuy:Gameroficial2%2A@aws-0-sa-east-1.pooler.supabase.com:6543/postgres';
-
+// Configuração Supavisor (Pooler IPv4)
 const pool = new Pool({
-    connectionString,
+    user: 'postgres.tctzbsjmuariwylrfbuy',
+    host: 'aws-0-sa-east-1.pooler.supabase.com',
+    database: 'postgres',
+    password: 'Gameroficial2*',
+    port: 5432, // Session Mode (mais estável)
     ssl: { rejectUnauthorized: false },
     max: 10,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 10000,
+    connectionTimeoutMillis: 15000,
 });
 
 export async function initDb() {
-    // No Postgres (Supabase), criamos as tabelas em sequência
     const queries = [
         `CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
@@ -87,7 +87,11 @@ export async function initDb() {
     ];
 
     for (const q of queries) {
-        await pool.query(q);
+        try {
+            await pool.query(q);
+        } catch (e: any) {
+            console.error(`Erro ao criar tabela: ${e.message}`);
+        }
     }
 
     try {
@@ -104,17 +108,12 @@ export async function initDb() {
             await pool.query(`
                 INSERT INTO tasks (title, description, urgency, status, assigned_to, created_by)
                 VALUES ($1, $2, $3, $4, $5, $6)
-            `, ['Bem-vindo!', 'Sistema conectado ao Supabase com sucesso.', 'LOW', 'DONE', adminId, adminId]);
+            `, ['Bem-vindo!', 'Sistema conectado ao Supabase via IPv4 Pooler.', 'LOW', 'DONE', adminId, adminId]);
 
-            await pool.query(`
-                INSERT INTO transactions (type, amount, description, date, created_by)
-                VALUES ($1, $2, $3, NOW(), $4)
-            `, ['INCOME', 1.0, 'Setup Inicial Supabase', adminId]);
-
-            console.log("Banco de dados Supabase populado com sucesso.");
+            console.log("Banco de dados Supabase inicializado.");
         }
-    } catch (err) {
-        console.error("Failed to seed initial users:", err);
+    } catch (err: any) {
+        console.error("Erro no Seed do Supabase:", err.message);
     }
 }
 
