@@ -456,64 +456,69 @@ export default function AdminClients() {
             {isClientModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => !clientSaving && setIsClientModalOpen(false)} />
-                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-md p-10 flex flex-col items-center">
-                        {!clientSaving && <button type="button" onClick={() => setIsClientModalOpen(false)} className="absolute top-5 right-5 text-white/30 hover:text-white bg-white/5 p-3 rounded-full"><X className="w-5 h-5" /></button>}
+                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-md transform flex flex-col mx-auto my-auto overflow-hidden">
+                        {!clientSaving && <button type="button" onClick={() => setIsClientModalOpen(false)} className="absolute top-5 right-5 z-20 text-white/30 hover:text-white bg-white/5 p-3 rounded-full border border-transparent hover:border-white/10 opacity-70 hover:opacity-100 transition-all"><X className="w-5 h-5" /></button>}
 
-                        <h2 className="text-xl font-display font-medium text-white mb-2 tracking-widest uppercase mt-4">{isEditing ? 'Editar Cliente' : 'Novo Cliente'}</h2>
-                        <p className="text-xs text-white/40 mb-8 tracking-wider text-center">{isEditing ? 'Atualize as informações do acesso.' : 'Crie um acesso para a Área Secundária.'}</p>
+                        <div className="p-[clamp(1.5rem,4vh,2.5rem)] flex-1 relative z-10 w-full flex flex-col items-center gap-[clamp(1rem,3vh,1.5rem)] overflow-y-auto custom-scrollbar max-h-[90vh]">
+                            <div className="w-full text-center shrink-0">
+                                <h2 className="text-[clamp(1.25rem,4vh,1.5rem)] font-display font-medium text-white mb-1 tracking-widest uppercase mt-4">{isEditing ? 'Editar Cliente' : 'Novo Cliente'}</h2>
+                                <p className="text-[10px] sm:text-xs text-white/40 mb-2 tracking-wider">{isEditing ? 'Atualize as informações do acesso.' : 'Crie um acesso para a Área Secundária.'}</p>
+                            </div>
 
-                        <form onSubmit={handleSaveClient} className="w-full flex flex-col gap-4">
-                            {/* Avatar File Upload / Preview */}
-                            {previewUrl ? (
-                                <div className="w-full relative rounded-[2rem] overflow-hidden group border border-white/10 p-2 bg-white/5 flex flex-col items-center">
-                                    <div className="absolute inset-0 z-0">
-                                        <img src={previewUrl} className="w-full h-full object-cover blur-xl opacity-40 scale-125" alt="blur-bg" />
+                            <form onSubmit={handleSaveClient} className="w-full flex flex-col gap-[clamp(0.75rem,2vh,1.25rem)]">
+                                {/* Avatar File Upload / Preview */}
+                                {previewUrl ? (
+                                    <div className="w-full relative rounded-2xl overflow-hidden group border border-white/10 p-2 bg-white/5 flex flex-col items-center shrink-0">
+                                        <div className="absolute inset-0 z-0">
+                                            <img src={previewUrl} className="w-full h-full object-cover blur-xl opacity-40 scale-125" alt="blur-bg" />
+                                        </div>
+                                        <div className="relative z-10 w-[clamp(5rem,12vh,7rem)] h-[clamp(5rem,12vh,7rem)] rounded-full overflow-hidden border-2 border-cyan-400 my-2">
+                                            <img src={previewUrl} className="w-full h-full object-cover" alt="preview" />
+                                        </div>
+                                        <div className="relative z-10 flex gap-2 justify-center pb-2 w-full px-2">
+                                            <label className="flex-1 text-center text-[9px] font-bold uppercase tracking-widest text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 hover:bg-cyan-500/20 py-2 rounded-full cursor-pointer transition-colors">
+                                                Trocar
+                                                <input type="file" accept="image/*" onChange={e => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) { setClientAvatar(file); setPreviewUrl(URL.createObjectURL(file)); }
+                                                }} className="hidden" />
+                                            </label>
+                                            <button type="button" onClick={() => { setClientAvatar(null); setPreviewUrl(null); }} className="flex-1 text-[9px] font-bold uppercase tracking-widest text-red-500 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 py-2 rounded-full transition-colors">
+                                                Remover
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div className="relative z-10 w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-cyan-400 my-4 group-hover: ">
-                                        <img src={previewUrl} className="w-full h-full object-cover hover:scale-110   cursor-crosshair" alt="preview" />
-                                    </div>
-                                    <div className="relative z-10 flex gap-3 justify-center pb-4 w-full px-4">
-                                        <label className="flex-1 text-center text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 hover:bg-cyan-500/20 py-2.5 rounded-full cursor-pointer ">
-                                            Trocar Foto
-                                            <input type="file" accept="image/*" onChange={e => {
-                                                const file = e.target.files?.[0];
-                                                if (file) { setClientAvatar(file); setPreviewUrl(URL.createObjectURL(file)); }
-                                            }} className="hidden" />
-                                        </label>
-                                        <button type="button" onClick={() => { setClientAvatar(null); setPreviewUrl(null); if (isEditing && clientFormId && selectedClient) { /* Opt: clear in backend too if needed, here just UI */ } }} className="flex-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-red-500 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 py-2.5 rounded-full ">
-                                            Remover
+                                ) : (
+                                    <label className="w-full bg-white/[0.02] border border-dashed border-white/10 hover:border-cyan-400/50 rounded-2xl p-[clamp(1rem,3vh,2rem)] flex flex-col items-center justify-center cursor-pointer group shrink-0 transition-all">
+                                        <input type="file" accept="image/*" onChange={e => {
+                                            const file = e.target.files?.[0];
+                                            if (file) { setClientAvatar(file); setPreviewUrl(URL.createObjectURL(file)); }
+                                        }} className="hidden" />
+                                        <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-2 group-hover:bg-cyan-500/10 group-hover:border-cyan-500/30 transition-all">
+                                            <ImageIcon className="w-4 h-4 text-white/30 group-hover:text-cyan-400" />
+                                        </div>
+                                        <span className="text-[9px] font-bold uppercase tracking-widest text-white/50 group-hover:text-cyan-400">Subir Foto</span>
+                                    </label>
+                                )}
+
+                                <div className="space-y-[clamp(0.5rem,1.5vh,1rem)]">
+                                    <input required type="text" value={clientForm.username} onChange={e => setClientForm({ ...clientForm, username: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 font-light placeholder:text-white/20 transition-all" placeholder="Nome do Cliente" />
+
+                                    <input type="text" value={clientForm.niche} onChange={e => setClientForm({ ...clientForm, niche: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 font-light placeholder:text-white/20 transition-all" placeholder="Nicho / Ramo de Atuação" />
+
+                                    <div className="relative w-full">
+                                        <input required={!isEditing} type={showPassword ? "text" : "password"} value={clientForm.password} onChange={e => setClientForm({ ...clientForm, password: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 font-light placeholder:text-white/20 transition-all" placeholder={isEditing ? "Nova Senha (opcional)" : "Senha de Acesso"} autoComplete="new-password" />
+                                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white p-2">
+                                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                         </button>
                                     </div>
                                 </div>
-                            ) : (
-                                <label className="w-full bg-white/[0.02] border-2 border-dashed border-white/10 hover:border-cyan-400/50 rounded-[2rem] p-6 sm:p-8 flex flex-col items-center justify-center cursor-pointer  group overflow-hidden relative">
-                                    <input type="file" accept="image/*" onChange={e => {
-                                        const file = e.target.files?.[0];
-                                        if (file) { setClientAvatar(file); setPreviewUrl(URL.createObjectURL(file)); }
-                                    }} className="hidden" />
-                                    <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-3 group-hover:bg-cyan-500/10 group-hover:border-cyan-500/30 ">
-                                        <ImageIcon className="w-5 h-5 text-white/30 group-hover:text-cyan-400 " />
-                                    </div>
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-white/50 group-hover:text-cyan-400 ">Subir Foto de Perfil</span>
-                                    <span className="text-[9px] text-white/30 mt-1 tracking-wider">Permitido dar zoom e enquadrar via CSS</span>
-                                </label>
-                            )}
 
-                            <input required type="text" value={clientForm.username} onChange={e => setClientForm({ ...clientForm, username: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10  font-light placeholder:text-white/20" placeholder="Nome do Cliente" />
-
-                            <input type="text" value={clientForm.niche} onChange={e => setClientForm({ ...clientForm, niche: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10  font-light placeholder:text-white/20" placeholder="Nicho (ex: Clínico Geral)" />
-
-                            <div className="relative w-full">
-                                <input required={!isEditing} type={showPassword ? "text" : "password"} value={clientForm.password} onChange={e => setClientForm({ ...clientForm, password: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10  font-light placeholder:text-white/20" placeholder={isEditing ? "Nova Senha (deixe em branco p/ manter)" : "Senha de Acesso"} autoComplete="new-password" />
-                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white  p-2">
-                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                <button type="submit" disabled={clientSaving} className="w-full mt-2 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-400 disabled:opacity-50 disabled:pointer-events-none font-bold uppercase tracking-widest text-[clamp(0.6rem,1.5vh,0.7rem)] py-[clamp(1rem,2.8vh,1.25rem)] rounded-xl flex justify-center items-center transition-all">
+                                    {clientSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : (isEditing ? 'Salvar Alterações' : 'Criar Acesso')}
                                 </button>
-                            </div>
-
-                            <button type="submit" disabled={clientSaving} className="w-full mt-4 bg-cyan-500/10 ring-1 ring-inset  hover:bg-cyan-500/20 text-cyan-400 disabled:opacity-50 disabled:pointer-events-none font-bold uppercase tracking-widest text-[10px] py-4 rounded-xl  flex justify-center items-center">
-                                {clientSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : (isEditing ? 'Salvar Alterações' : 'Criar Acesso')}
-                            </button>
-                        </form>
+                            </form>
+                        </div>
                     </div>
                 </div>
             )}
@@ -522,44 +527,46 @@ export default function AdminClients() {
             {isUploadModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => !uploading && setIsUploadModalOpen(false)} />
-                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg p-8 sm:p-10 flex flex-col">
-                        {!uploading && <button type="button" onClick={() => setIsUploadModalOpen(false)} className="absolute top-5 right-5 text-white/30 hover:text-white bg-white/5 p-3 rounded-full z-10"><X className="w-5 h-5" /></button>}
+                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform  flex flex-col mx-auto my-auto overflow-hidden">
+                        {!uploading && <button type="button" onClick={() => setIsUploadModalOpen(false)} className="absolute top-5 right-5 z-20 text-white/30 hover:text-white bg-white/5 p-3 rounded-full z-20 border border-transparent hover:border-white/10 opacity-70 hover:opacity-100 transition-all"><X className="w-5 h-5" /></button>}
 
-                        <div className="text-center mb-8 relative z-0">
-                            <h2 className="text-xl font-display font-medium text-white mb-2 tracking-wide uppercase">Subir Arquivo</h2>
-                            <p className="text-xs text-white/40 tracking-wider">Organize a entrega para {selectedClient?.username}</p>
-                        </div>
-
-                        <form onSubmit={handleUploadContent} className="w-full flex flex-col gap-4 relative z-0">
-                            <div className="flex gap-4">
-                                <input required type="text" value={uploadData.category} onChange={e => setUploadData({ ...uploadData, category: e.target.value })} className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white text-sm outline-none focus:border-emerald-400/50  font-light" placeholder="Categoria (ex: Feed, Reels)" />
-                                <input required type="text" value={uploadData.week_date} onChange={e => setUploadData({ ...uploadData, week_date: e.target.value })} className="w-1/3 bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white text-sm outline-none focus:border-emerald-400/50  font-light" placeholder="Semana/Data" />
+                        <div className="p-[clamp(1.5rem,4vh,2.5rem)] flex-1 relative z-10 w-full flex flex-col items-center gap-[clamp(1rem,3vh,1.5rem)] overflow-y-auto custom-scrollbar max-h-[90vh]">
+                            <div className="w-full text-center shrink-0 mb-[clamp(0.5rem,2vh,1rem)]">
+                                <h2 className="text-[clamp(1.25rem,4vh,1.5rem)] font-display font-medium text-white mb-1 tracking-wide uppercase">Subir Arquivo</h2>
+                                <p className="text-[10px] sm:text-xs text-white/40 tracking-wider">Organize a entrega para {selectedClient?.username}</p>
                             </div>
-                            <input required type="text" value={uploadData.product} onChange={e => setUploadData({ ...uploadData, product: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white text-sm outline-none focus:border-emerald-400/50  font-light" placeholder="Produto Referente" />
-                            <input type="text" value={uploadData.title} onChange={e => setUploadData({ ...uploadData, title: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white text-sm outline-none focus:border-emerald-400/50  font-light" placeholder="Título (Opcional)" />
 
-                            <label className="w-full mt-2 bg-white/[0.02] border-2 border-dashed border-white/10 hover:border-emerald-400/50 rounded-3xl p-8 flex flex-col items-center justify-center cursor-pointer  group">
-                                <input type="file" required accept="image/*,video/*" onChange={e => setUploadFile(e.target.files?.[0] || null)} className="hidden" />
-                                {uploadFile ? (
-                                    <div className="flex flex-col items-center">
-                                        <FileText className="w-10 h-10 text-emerald-400 mb-2" />
-                                        <span className="text-sm font-medium text-white/80 text-center max-w-[200px] truncate">{uploadFile.name}</span>
-                                    </div>
-                                ) : (
-                                    <div className="flex flex-col items-center">
-                                        <div className="flex gap-4 mb-4 text-white/30 group-hover:text-emerald-400/70 ">
-                                            <ImageIcon className="w-8 h-8" />
-                                            <Video className="w-8 h-8" />
+                            <form onSubmit={handleUploadContent} className="w-full flex flex-col gap-[clamp(0.75rem,2.5vh,1.25rem)]">
+                                <div className="flex gap-4">
+                                    <input required type="text" value={uploadData.category} onChange={e => setUploadData({ ...uploadData, category: e.target.value })} className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-sm outline-none focus:border-emerald-400/50 font-light placeholder:text-white/20 transition-all" placeholder="Categoria (ex: Feed, Reels)" />
+                                    <input required type="text" value={uploadData.week_date} onChange={e => setUploadData({ ...uploadData, week_date: e.target.value })} className="w-1/3 bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-sm outline-none focus:border-emerald-400/50 font-light placeholder:text-white/20 transition-all" placeholder="Semana/Data" />
+                                </div>
+                                <input required type="text" value={uploadData.product} onChange={e => setUploadData({ ...uploadData, product: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-sm outline-none focus:border-emerald-400/50 font-light placeholder:text-white/20 transition-all" placeholder="Produto Referente" />
+                                <input type="text" value={uploadData.title} onChange={e => setUploadData({ ...uploadData, title: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-sm outline-none focus:border-emerald-400/50 font-light placeholder:text-white/20 transition-all" placeholder="Título (Opcional)" />
+
+                                <label className="w-full bg-white/[0.02] border-2 border-dashed border-white/10 hover:border-emerald-400/50 rounded-3xl p-[clamp(1.5rem,4vh,2.5rem)] flex flex-col items-center justify-center cursor-pointer group transition-all shrink-0">
+                                    <input type="file" required accept="image/*,video/*" onChange={e => setUploadFile(e.target.files?.[0] || null)} className="hidden" />
+                                    {uploadFile ? (
+                                        <div className="flex flex-col items-center">
+                                            <FileText className="w-8 h-8 text-emerald-400 mb-2" />
+                                            <span className="text-xs font-medium text-white/80 text-center max-w-[200px] truncate">{uploadFile.name}</span>
                                         </div>
-                                        <span className="text-xs font-bold uppercase tracking-widest text-white/50 group-hover:text-emerald-400 ">Selecionar Arquivo</span>
-                                    </div>
-                                )}
-                            </label>
+                                    ) : (
+                                        <div className="flex flex-col items-center">
+                                            <div className="flex gap-4 mb-2 text-white/30 group-hover:text-emerald-400/70 transition-colors">
+                                                <ImageIcon className="w-6 h-6" />
+                                                <Video className="w-6 h-6" />
+                                            </div>
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-white/50 group-hover:text-emerald-400">Selecionar Arquivo</span>
+                                        </div>
+                                    )}
+                                </label>
 
-                            <button type="submit" disabled={uploading} className="w-full mt-4 bg-emerald-500/10 ring-1 ring-inset ring-emerald-500/30 hover:bg-emerald-500/20 disabled:bg-emerald-900/10 disabled:opacity-50 text-emerald-400 font-bold uppercase tracking-widest text-[10px] py-4 rounded-xl  flex justify-center items-center">
-                                {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Começar Upload'}
-                            </button>
-                        </form>
+                                <button type="submit" disabled={uploading} className="w-full mt-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400 disabled:opacity-50 text-emerald-400 font-bold uppercase tracking-widest text-[clamp(0.6rem,1.5vh,0.7rem)] py-[clamp(1rem,2.8vh,1.25rem)] rounded-xl flex justify-center items-center transition-all">
+                                    {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Começar Upload'}
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             )}

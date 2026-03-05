@@ -847,136 +847,138 @@ export default function Dashboard() {
             {isDemandModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => setIsDemandModalOpen(false)} />
-                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform  flex flex-col ring-1 ring-white/5 p-8 sm:p-10 max-h-[90vh] overflow-y-auto custom-scrollbar">
+                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform  flex flex-col mx-auto my-auto ring-1 ring-white/5 overflow-hidden">
                         <button type="button" onClick={() => setIsDemandModalOpen(false)} className="absolute top-6 right-6 z-20 text-white/30 hover:text-white  bg-white/5 hover:bg-white/10 p-2.5 rounded-full">
                             <X className="w-5 h-5" />
                         </button>
 
-                        <div className="w-full text-center mb-8">
-                            <h2 className="text-xl sm:text-2xl font-display font-medium text-white tracking-wide uppercase">Nova Demanda</h2>
-                            <p className="text-xs text-white/40 tracking-wider">Adicione o projeto do cliente no mural.</p>
-                        </div>
-
-                        <form onSubmit={handleCreateDemand} className="flex flex-col gap-5">
-                            {!showNewClientForm ? (
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between px-2">
-                                        <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Escolher Cliente</label>
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowNewClientForm(true)}
-                                            className="text-[10px] font-bold text-cyan-400 hover:text-cyan-300 uppercase tracking-widest bg-cyan-400/10 px-3 py-1.5 rounded-full border border-cyan-400/20"
-                                        >
-                                            + Novo Cliente
-                                        </button>
-                                    </div>
-
-                                    <div className="relative group/custom-select">
-                                        <div
-                                            onClick={() => setIsClientDropdownOpen(!isClientDropdownOpen)}
-                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm cursor-pointer hover:border-emerald-400/50 transition-all flex justify-between items-center group-hover/custom-select:bg-white/[0.07]"
-                                        >
-                                            <span className={newDemand.client_name ? "text-white" : "text-white/40"}>
-                                                {newDemand.client_name || "Selecione o Cliente..."}
-                                            </span>
-                                            <div className={`w-3 h-3 flex items-center justify-center opacity-40 group-hover/custom-select:opacity-100 group-hover/custom-select:text-emerald-400 transition-transform duration-200 ${isClientDropdownOpen ? 'rotate-180' : ''}`}>
-                                                <Plus className="w-full h-full rotate-45" />
-                                            </div>
-                                        </div>
-
-                                        {isClientDropdownOpen && (
-                                            <div className="absolute top-[calc(100%+8px)] left-0 right-0 bg-[#0C0C0C] border border-white/10 rounded-2xl overflow-hidden z-[110] shadow-2xl backdrop-blur-xl max-h-60 overflow-y-auto custom-scrollbar ring-1 ring-white/5">
-                                                {clients.length === 0 ? (
-                                                    <div className="px-5 py-4 text-[10px] text-white/30 italic uppercase tracking-widest">Nenhum cliente cadastrado...</div>
-                                                ) : (
-                                                    clients.map(c => (
-                                                        <div
-                                                            key={c.id}
-                                                            onClick={() => {
-                                                                setNewDemand({ ...newDemand, client_name: c.username });
-                                                                setIsClientDropdownOpen(false);
-                                                            }}
-                                                            className="px-5 py-4 text-sm text-white/70 hover:text-white hover:bg-emerald-500/10 cursor-pointer border-b border-white/[0.03] last:border-0 flex items-center justify-between group/opt transition-colors"
-                                                        >
-                                                            <div className="flex flex-col">
-                                                                <span className="font-medium group-hover/opt:translate-x-1 transition-transform">{c.username}</span>
-                                                                {c.niche && <span className="text-[9px] text-white/30 uppercase tracking-widest mt-0.5">{c.niche}</span>}
-                                                            </div>
-                                                            {newDemand.client_name === c.username && <Check className="w-4 h-4 text-emerald-400" />}
-                                                        </div>
-                                                    ))
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="space-y-4 bg-white/[0.02] border border-white/5 rounded-[2rem] p-6">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="flex flex-col gap-1">
-                                            <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Novo Cliente</span>
-                                            <span className="text-[9px] text-white/20 font-light tracking-wide italic">cadastrando cliente na hora...</span>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowNewClientForm(false)}
-                                            className="text-[10px] font-bold text-white/40 hover:text-white uppercase tracking-widest"
-                                        >
-                                            Cancelar
-                                        </button>
-                                    </div>
-                                    <div className="space-y-3">
-                                        <input required={showNewClientForm} type="text" value={newClientData.username} onChange={e => setNewClientData({ ...newClientData, username: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3.5 text-white text-sm outline-none focus:border-cyan-400/50 font-light" placeholder="Nome / Usuário do Cliente" />
-                                        <div className="relative">
-                                            <input required={showNewClientForm} type={showNewClientPassword ? "text" : "password"} value={newClientData.password} onChange={e => setNewClientData({ ...newClientData, password: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3.5 text-white text-sm outline-none focus:border-cyan-400/50 font-light" placeholder="Senha de Acesso" />
-                                            <button type="button" onClick={() => setShowNewClientPassword(!showNewClientPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white p-2">
-                                                {showNewClientPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                            </button>
-                                        </div>
-                                        <input type="text" value={newClientData.niche} onChange={e => setNewClientData({ ...newClientData, niche: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3.5 text-white text-sm outline-none focus:border-cyan-400/50 font-light" placeholder="Nicho / Segmento (Opcional)" />
-                                    </div>
-                                </div>
-                            )}
-
-                            <div>
-                                <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-2 block mb-3">Escopo do Projeto</label>
-                                <div className="flex gap-4">
-                                    <div className="flex-1 relative">
-                                        <input
-                                            required
-                                            type="number"
-                                            min="1"
-                                            value={newDemand.total_videos}
-                                            onChange={e => setNewDemand({ ...newDemand, total_videos: e.target.value })}
-                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-base outline-none focus:border-emerald-400/50 font-bold placeholder:font-light hide-number-spin"
-                                            placeholder="Qtd. total de vídeos"
-                                        />
-                                        <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-white/20 uppercase tracking-widest">Vídeos</span>
-                                    </div>
-                                </div>
+                        <div className="p-[clamp(1.5rem,4vh,2.5rem)] flex-1 relative z-10 w-full flex flex-col items-center gap-[clamp(1rem,3vh,1.5rem)] overflow-y-auto custom-scrollbar max-h-[90vh]">
+                            <div className="w-full text-center mb-[clamp(0.5rem,2vh,1.5rem)]">
+                                <h2 className="text-[clamp(1.25rem,4vh,1.5rem)] font-display font-medium text-white tracking-wide uppercase">Nova Demanda</h2>
+                                <p className="text-[10px] sm:text-xs text-white/40 tracking-wider">Adicione o projeto do cliente no mural.</p>
                             </div>
 
-                            <label className="flex items-center gap-3 cursor-pointer mt-1 px-2 group">
-                                <div className={`w-5 h-5 rounded flex items-center justify-center border transition-all duration-0 ${newDemand.has_material ? 'bg-emerald-500 border-emerald-500' : 'bg-transparent border-white/20 group-hover:border-white/40'}`}>
-                                    {newDemand.has_material && <Check className="w-3.5 h-3.5 text-black" />}
+                            <form onSubmit={handleCreateDemand} className="w-full flex flex-col gap-[clamp(0.75rem,2.5vh,1.25rem)]">
+                                {!showNewClientForm ? (
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between px-2">
+                                            <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Escolher Cliente</label>
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowNewClientForm(true)}
+                                                className="text-[10px] font-bold text-cyan-400 hover:text-cyan-300 uppercase tracking-widest bg-cyan-400/10 px-3 py-1.5 rounded-full border border-cyan-400/20"
+                                            >
+                                                + Novo Cliente
+                                            </button>
+                                        </div>
+
+                                        <div className="relative group/custom-select">
+                                            <div
+                                                onClick={() => setIsClientDropdownOpen(!isClientDropdownOpen)}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm cursor-pointer hover:border-emerald-400/50 transition-all flex justify-between items-center group-hover/custom-select:bg-white/[0.07]"
+                                            >
+                                                <span className={newDemand.client_name ? "text-white" : "text-white/40"}>
+                                                    {newDemand.client_name || "Selecione o Cliente..."}
+                                                </span>
+                                                <div className={`w-3 h-3 flex items-center justify-center opacity-40 group-hover/custom-select:opacity-100 group-hover/custom-select:text-emerald-400 transition-transform duration-200 ${isClientDropdownOpen ? 'rotate-180' : ''}`}>
+                                                    <Plus className="w-full h-full rotate-45" />
+                                                </div>
+                                            </div>
+
+                                            {isClientDropdownOpen && (
+                                                <div className="absolute top-[calc(100%+8px)] left-0 right-0 bg-[#0C0C0C] border border-white/10 rounded-2xl overflow-hidden z-[110] shadow-2xl backdrop-blur-xl max-h-60 overflow-y-auto custom-scrollbar ring-1 ring-white/5">
+                                                    {clients.length === 0 ? (
+                                                        <div className="px-5 py-4 text-[10px] text-white/30 italic uppercase tracking-widest">Nenhum cliente cadastrado...</div>
+                                                    ) : (
+                                                        clients.map(c => (
+                                                            <div
+                                                                key={c.id}
+                                                                onClick={() => {
+                                                                    setNewDemand({ ...newDemand, client_name: c.username });
+                                                                    setIsClientDropdownOpen(false);
+                                                                }}
+                                                                className="px-5 py-4 text-sm text-white/70 hover:text-white hover:bg-emerald-500/10 cursor-pointer border-b border-white/[0.03] last:border-0 flex items-center justify-between group/opt transition-colors"
+                                                            >
+                                                                <div className="flex flex-col">
+                                                                    <span className="font-medium group-hover/opt:translate-x-1 transition-transform">{c.username}</span>
+                                                                    {c.niche && <span className="text-[9px] text-white/30 uppercase tracking-widest mt-0.5">{c.niche}</span>}
+                                                                </div>
+                                                                {newDemand.client_name === c.username && <Check className="w-4 h-4 text-emerald-400" />}
+                                                            </div>
+                                                        ))
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4 bg-white/[0.02] border border-white/5 rounded-[2rem] p-6">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Novo Cliente</span>
+                                                <span className="text-[9px] text-white/20 font-light tracking-wide italic">cadastrando cliente na hora...</span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowNewClientForm(false)}
+                                                className="text-[10px] font-bold text-white/40 hover:text-white uppercase tracking-widest"
+                                            >
+                                                Cancelar
+                                            </button>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <input required={showNewClientForm} type="text" value={newClientData.username} onChange={e => setNewClientData({ ...newClientData, username: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-[clamp(0.6rem,2vh,0.85rem)] text-white text-sm outline-none focus:border-cyan-400/50 font-light placeholder:text-white/20" placeholder="Nome / Usuário do Cliente" />
+                                            <div className="relative">
+                                                <input required={showNewClientForm} type={showNewClientPassword ? "text" : "password"} value={newClientData.password} onChange={e => setNewClientData({ ...newClientData, password: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-[clamp(0.6rem,2vh,0.85rem)] text-white text-sm outline-none focus:border-cyan-400/50 font-light placeholder:text-white/20" placeholder="Senha de Acesso" />
+                                                <button type="button" onClick={() => setShowNewClientPassword(!showNewClientPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white p-2">
+                                                    {showNewClientPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                </button>
+                                            </div>
+                                            <input type="text" value={newClientData.niche} onChange={e => setNewClientData({ ...newClientData, niche: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-[clamp(0.6rem,2vh,0.85rem)] text-white text-sm outline-none focus:border-cyan-400/50 font-light placeholder:text-white/20" placeholder="Nicho / Segmento (Opcional)" />
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div>
+                                    <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-2 block mb-3">Escopo do Projeto</label>
+                                    <div className="flex gap-4">
+                                        <div className="flex-1 relative">
+                                            <input
+                                                required
+                                                type="number"
+                                                min="1"
+                                                value={newDemand.total_videos}
+                                                onChange={e => setNewDemand({ ...newDemand, total_videos: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-base outline-none focus:border-emerald-400/50 font-bold placeholder:font-light hide-number-spin transition-all"
+                                                placeholder="Qtd. total de vídeos"
+                                            />
+                                            <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-white/20 uppercase tracking-widest pointer-events-none">Vídeos</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <span className="text-[10px] font-bold text-white/70 tracking-widest uppercase">Possui material de apoio?</span>
-                                <input type="checkbox" checked={newDemand.has_material} onChange={e => setNewDemand({ ...newDemand, has_material: e.target.checked })} className="hidden" />
-                            </label>
 
-                            {newDemand.has_material && (
-                                <input required={newDemand.has_material} type="url" value={newDemand.material_link} onChange={e => setNewDemand({ ...newDemand, material_link: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50 font-light" placeholder="Link do Google Drive / Dropbox" />
-                            )}
+                                <label className="flex items-center gap-3 cursor-pointer mt-1 px-2 group">
+                                    <div className={`w-5 h-5 rounded flex items-center justify-center border transition-all duration-0 ${newDemand.has_material ? 'bg-emerald-500 border-emerald-500' : 'bg-transparent border-white/20 group-hover:border-white/40'}`}>
+                                        {newDemand.has_material && <Check className="w-3.5 h-3.5 text-black" />}
+                                    </div>
+                                    <span className="text-[10px] font-bold text-white/70 tracking-widest uppercase">Possui material de apoio?</span>
+                                    <input type="checkbox" checked={newDemand.has_material} onChange={e => setNewDemand({ ...newDemand, has_material: e.target.checked })} className="hidden" />
+                                </label>
 
-                            <textarea rows={2} value={newDemand.description} onChange={e => setNewDemand({ ...newDemand, description: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50 font-light resize-none h-24" placeholder="Algum outro detalhe importante?" />
+                                {newDemand.has_material && (
+                                    <input required={newDemand.has_material} type="url" value={newDemand.material_link} onChange={e => setNewDemand({ ...newDemand, material_link: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-sm outline-none focus:border-emerald-400/50 font-light placeholder:text-white/20 transition-all" placeholder="Link do Google Drive / Dropbox" />
+                                )}
 
-                            <button type="submit" className="w-full mt-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400 hover:text-emerald-300 font-bold uppercase tracking-widest text-[10px] py-5 rounded-full flex justify-center items-center gap-3 group/btn">
-                                Registrar Demanda no Mural
-                                <div className="p-1 rounded-full bg-emerald-500 text-black group-hover/btn:scale-110">
-                                    <Plus className="w-3 h-3" />
-                                </div>
-                            </button>
-                        </form>
+                                <textarea rows={2} value={newDemand.description} onChange={e => setNewDemand({ ...newDemand, description: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-sm outline-none focus:border-emerald-400/50 font-light resize-none h-[clamp(4rem,10vh,6rem)]" placeholder="Algum outro detalhe importante?" />
+
+                                <button type="submit" className="w-full mt-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400 hover:text-emerald-300 font-bold uppercase tracking-widest text-[clamp(0.6rem,1.5vh,0.7rem)] py-[clamp(1rem,2.8vh,1.25rem)] rounded-full flex justify-center items-center gap-3 group/btn">
+                                    Registrar Demanda no Mural
+                                    <div className="p-1 rounded-full bg-emerald-500 text-black group-hover/btn:scale-110">
+                                        <Plus className="w-3 h-3" />
+                                    </div>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             )}
@@ -985,56 +987,59 @@ export default function Dashboard() {
             {isAllocateModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => setIsAllocateModalOpen(false)} />
-                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform  flex flex-col ring-1 ring-white/5 p-8 sm:p-10">
+                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform  flex flex-col mx-auto my-auto ring-1 ring-white/5 overflow-hidden">
                         <button type="button" onClick={() => setIsAllocateModalOpen(false)} className="absolute top-6 right-6 z-20 text-white/30 hover:text-white  bg-white/5 hover:bg-white/10 p-2.5 rounded-full">
                             <X className="w-5 h-5" />
                         </button>
 
-                        <div className="w-full text-center mb-8">
-                            <h2 className="text-xl sm:text-2xl font-display font-medium text-white tracking-wide uppercase">Pegar Parte</h2>
-                            <p className="text-xs text-white/40 tracking-wider">Designe uma parte da demanda como tarefa.</p>
-                        </div>
+                        <div className="p-[clamp(1.5rem,4vh,2.5rem)] flex-1 relative z-10 w-full flex flex-col items-center gap-[clamp(1rem,3vh,1.5rem)] overflow-y-auto custom-scrollbar max-h-[90vh]">
+                            <div className="w-full text-center mb-[clamp(0.5rem,2vh,1.5rem)]">
+                                <h2 className="text-[clamp(1.25rem,4vh,1.5rem)] font-display font-medium text-white tracking-wide uppercase">Pegar Parte</h2>
+                                <p className="text-[10px] sm:text-xs text-white/40 tracking-wider">Designe uma parte da demanda como tarefa.</p>
+                            </div>
 
-                        <form onSubmit={handleAllocateDemand} className="flex flex-col gap-4">
-                            <div className="flex flex-col gap-3">
-                                <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-2">Designar para</label>
-                                <div className="flex gap-4 w-full">
-                                    <div className="flex-1 dropdown-container relative bg-white/5 border border-white/10 rounded-2xl px-5 py-1 flex items-center cursor-pointer hover:bg-white/10 hover:border-cyan-400/50">
-                                        <select required value={allocateData.assigned_to} onChange={e => setAllocateData({ ...allocateData, assigned_to: e.target.value })} className="w-full bg-transparent text-white outline-none cursor-pointer appearance-none text-center font-bold tracking-widest text-sm uppercase py-3.5">
-                                            <option value="" disabled className="text-black bg-white">SELECIONAR MEMBRO</option>
-                                            <option value={currentUser.id} className="text-black bg-white">VOCÊ</option>
-                                            {users.filter(u => u.id !== currentUser.id).map(user => (
-                                                <option key={user.id} value={user.id} className="text-black bg-white">{user.username}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="w-1/3">
-                                        <input
-                                            required
-                                            type="number"
-                                            min="1"
-                                            max={allocateData.videos_count}
-                                            value={allocateData.videos_count}
-                                            onChange={e => setAllocateData({ ...allocateData, videos_count: e.target.value })}
-                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 font-bold placeholder:text-white/20 hide-number-spin"
-                                            placeholder="Qtd."
-                                        />
+                            <form onSubmit={handleAllocateDemand} className="w-full flex flex-col gap-[clamp(0.75rem,2.5vh,1.25rem)]">
+                                <div className="flex flex-col gap-3">
+                                    <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-2">Designar para</label>
+                                    <div className="flex gap-4 w-full">
+                                        <div className="flex-1 dropdown-container relative bg-white/5 border border-white/10 rounded-2xl px-5 py-1 flex items-center cursor-pointer hover:bg-white/10 hover:border-cyan-400/50">
+                                            <select required value={allocateData.assigned_to} onChange={e => setAllocateData({ ...allocateData, assigned_to: e.target.value })} className="w-full bg-transparent text-white outline-none cursor-pointer appearance-none text-center font-bold tracking-widest text-[clamp(0.6rem,1.5vh,0.75rem)] uppercase py-[clamp(0.75rem,2.5vh,1rem)]">
+                                                <option value="" disabled className="text-black bg-white">SELECIONAR MEMBRO</option>
+                                                <option value={currentUser.id} className="text-black bg-white">VOCÊ</option>
+                                                {users.filter(u => u.id !== currentUser.id).map(user => (
+                                                    <option key={user.id} value={user.id} className="text-black bg-white">{user.username}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="w-1/3">
+                                            <input
+                                                required
+                                                type="number"
+                                                min="1"
+                                                max={allocateData.videos_count}
+                                                value={allocateData.videos_count}
+                                                onChange={e => setAllocateData({ ...allocateData, videos_count: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(1rem,2.8vh,1.25rem)] text-white text-center text-sm outline-none focus:border-cyan-400/50 font-bold placeholder:text-white/20 hide-number-spin"
+                                                placeholder="Qtd."
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="flex bg-white/5 rounded-full overflow-hidden p-1 border border-white/10 w-full mt-2">
-                                <button type="button" onClick={() => setAllocateData({ ...allocateData, urgency: 'LOW' })} className={`flex-1 py-3 text-[9px] font-bold uppercase tracking-widest rounded-full  ${allocateData.urgency === 'LOW' ? 'bg-emerald-400 text-black' : 'text-emerald-400 hover:bg-white/10'}`}>Baixa Urgência</button>
-                                <button type="button" onClick={() => setAllocateData({ ...allocateData, urgency: 'MEDIUM' })} className={`flex-1 py-3 text-[9px] font-bold uppercase tracking-widest rounded-full  ${allocateData.urgency === 'MEDIUM' ? 'bg-yellow-400 text-black' : 'text-yellow-400 hover:bg-white/10'}`}>Normal</button>
-                                <button type="button" onClick={() => setAllocateData({ ...allocateData, urgency: 'HIGH' })} className={`flex-1 py-3 text-[9px] font-bold uppercase tracking-widest rounded-full  ${allocateData.urgency === 'HIGH' ? 'bg-red-500 text-black' : 'text-red-500 hover:bg-white/10'}`}>Urgente</button>
-                            </div>
+                                <div className="flex bg-white/5 rounded-full overflow-hidden p-1 border border-white/10 w-full mt-2">
+                                    <button type="button" onClick={() => setAllocateData({ ...allocateData, urgency: 'LOW' })} className={`flex-1 py-[clamp(0.5rem,2vh,0.75rem)] text-[9px] font-bold uppercase tracking-widest rounded-full transition-colors ${allocateData.urgency === 'LOW' ? 'bg-emerald-400 text-black' : 'text-emerald-400 hover:bg-white/10'}`}>Baixa</button>
+                                    <button type="button" onClick={() => setAllocateData({ ...allocateData, urgency: 'MEDIUM' })} className={`flex-1 py-[clamp(0.5rem,2vh,0.75rem)] text-[9px] font-bold uppercase tracking-widest rounded-full transition-colors ${allocateData.urgency === 'MEDIUM' ? 'bg-yellow-400 text-black' : 'text-yellow-400 hover:bg-white/10'}`}>Média</button>
+                                    <button type="button" onClick={() => setAllocateData({ ...allocateData, urgency: 'HIGH' })} className={`flex-1 py-[clamp(0.5rem,2vh,0.75rem)] text-[9px] font-bold uppercase tracking-widest rounded-full transition-colors ${allocateData.urgency === 'HIGH' ? 'bg-red-500 text-black' : 'text-red-500 hover:bg-white/10'}`}>Urgente</button>
+                                </div>
 
-                            <textarea rows={2} value={allocateData.notes} onChange={e => setAllocateData({ ...allocateData, notes: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-cyan-400/50  font-light resize-none mt-2" placeholder="Notas/Anotações Rápidas (Opcional)" />
+                                <textarea rows={2} value={allocateData.notes} onChange={e => setAllocateData({ ...allocateData, notes: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-sm outline-none focus:border-cyan-400/50 font-light resize-none mt-2 h-[clamp(4rem,10vh,6rem)]" placeholder="Notas/Anotações Rápidas (Opcional)" />
 
-                            <button type="submit" className="w-full mt-4 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-widest text-xs py-4 rounded-full  flex justify-center items-center">
-                                Confirmar e Criar Tarefa
-                            </button>
-                        </form>
+                                <button type="submit" className="w-full mt-2 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-widest text-[clamp(0.6rem,1.5vh,0.7rem)] py-[clamp(1rem,2.8vh,1.25rem)] rounded-full flex justify-center items-center gap-3 group/btn">
+                                    Confirmar Entrega
+                                    <Check className="w-4 h-4 group-hover/btn:scale-125 transition-transform" />
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             )}
