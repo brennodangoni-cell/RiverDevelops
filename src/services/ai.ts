@@ -440,70 +440,80 @@ Output: JSON array of 3 simple prompts (80-120 words each). Natural language. No
 }
 
 // =======================================================================
-// 3. GENERATE MOCKUP (Fix #1 — Now receives original product images!)
+// 3. GENERATE MOCKUP — 100% VISION-BASED (fotos = única fonte do produto)
 // =======================================================================
 export async function generateMockup(
-    productDescription: string,
+    _productDescription: string, // IGNORED — produto vem só das fotos
     options: any,
     promptIndex: number,
     productImages: string[],
-    promptText?: string // Optional: use the actual prompt text for the mockup
+    promptText?: string // Cena/ambiente para o mockup (não aparência do produto)
 ): Promise<string | null> {
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
 
+    if (!productImages?.length) {
+        throw new AIError("Envie fotos do produto para gerar o mockup. O gerador usa apenas as imagens, não descrições.", "UNKNOWN", false);
+    }
+
     const ai = new GoogleGenAI({ apiKey });
 
-
-    const focusInstructions = [
-        "Focus on the environment and how the product fits in. Show the whole object with logo/branding clearly visible.",
-        "Focus on the interaction/movement. The product must remain 100% rigid and faithful. Logo must be readable.",
-        "Hyper-zoom on materials, textures, AND the logo/branding. Text must be perfectly sharp and legible.",
-        "Show the silhouette from a clean side angle. If the logo is on this side, it must be clearly visible.",
-        "Show it from directly above. Clean geometry. Any top branding must be sharp.",
-        "Majestic hero angle, looking up at the product. Branding facing camera.",
-        "Dynamic scene. Logo visible.",
-        "Lifestyle action. Logo visible.",
-        "Product focus. Logo prominently displayed."
+    const angleHints = [
+        "Produto inteiro em cena, logo visível. Ambiente amplo.",
+        "Produto em uso/interação. Logo legível. Movimento sugerido.",
+        "Close-up de materiais, texturas e logo. Nitidez máxima.",
+        "Ângulo lateral limpo. Logo visível se estiver nesse lado.",
+        "Vista de cima. Geometria limpa. Branding superior nítido.",
+        "Ângulo hero, olhando para cima. Branding de frente.",
+        "Cena dinâmica. Produto e logo em destaque.",
+        "Lifestyle. Produto em ação. Logo visível.",
+        "Produto em foco. Logo em destaque."
     ];
 
-    const imagePrompt = `TASK: AGENCY PITCH BOARD — 16:9 COLLAGE WITH LABELS.
-Create a HIGH-END COMMERCIAL CONCEPT SHEET. Every panel MUST have a visible text label.
+    const sceneHint = angleHints[promptIndex] || angleHints[0];
 
-[ABSOLUTE PRODUCT FIDELITY — NON-NEGOTIABLE]
-THE ATTACHED PHOTOS ARE THE SOLE SOURCE OF TRUTH. You MUST clone the product EXACTLY:
-- Same shape, proportions, materials, stitching, sole geometry.
-- LOGO/TYPOGRAPHY: Replicate every letter, font, and spelling. Text MUST be perfectly readable — no blur, no distortion.
-- ZERO HALLUCINATION: Do not invent colors, textures, or details not in the photos.
+    const imagePrompt = `SORA 2 REFERENCE FRAME — Uma única imagem 16:9, cinematográfica, perfeita para guiar a geração de vídeo.
 
-[LAYOUT — MANDATORY STRUCTURE]
-1. HERO SHOT (LEFT, ~55%): Label "HERO" or "MAIN" in small text. ${focusInstructions[promptIndex] || "Full product in scene."}
-2. LOGO CLOSE-UP (RIGHT TOP, ~22%): Label "LOGO" or "BRANDING". Extreme close-up of the logo/branding from the photos. RAZOR-SHARP. Every letter legible.
-3. MATERIAL DETAIL (RIGHT MID, ~22%): Label "MATERIAL" or "TEXTURE". Macro of fabric, sole, or stitching.
-4. ANGLE DETAIL (RIGHT BOTTOM, ~22%): Label "DETAIL" or "ANGLE". Another key product angle.
+═══════════════════════════════════════════════════════════════
+REGRA ABSOLUTA — NÃO USE NENHUMA DESCRIÇÃO DE TEXTO DO PRODUTO
+═══════════════════════════════════════════════════════════════
 
-[SCENE CONTEXT]
-Environment: ${options.environment} | Lighting: ${options.timeOfDay} | Style: ${options.style}
-${options.mode === 'lifestyle' ? `Talent: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
-${promptText || productDescription ? `Scene: "${(promptText || productDescription).slice(0, 200)}"` : ''}
+Suas ÚNICAS fontes para a aparência do produto são as FOTOS anexadas acima.
 
-OUTPUT: Cinematic agency board. Labels in clean sans-serif. Product identical to references. Logo panel MUST be sharp.`;
+1. ESTUDE as fotos com atenção. Observe:
+   - Forma exata, proporções, geometria
+   - Cores (hex exatos se possível)
+   - Materiais, texturas, costuras, solas
+   - Logo, tipografia, cada letra — deve estar PERFEITAMENTE legível
+   - Detalhes únicos (acabamentos, etiquetas, etc.)
 
-    // Build content parts: reference images (if available) + text prompt
+2. REPLIQUE o produto IDÊNTICO. Zero alucinação. Zero invenção.
+   - Se não vê na foto, não coloque.
+   - Logo/ texto: cada caractere exato, fonte, espaçamento.
+
+3. CENA (use apenas para ambiente, iluminação, ângulo):
+   - Ambiente: ${options.environment}
+   - Luz: ${options.timeOfDay}
+   - Estilo: ${options.style}
+   ${options.mode === 'lifestyle' ? `- Pessoa: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
+   - Direção: ${sceneHint}
+   ${promptText ? `- Contexto da cena: "${promptText.slice(0, 300)}"` : ''}
+
+4. RESULTADO: Uma frame 16:9, cinematográfica, pronta para Sora 2.
+   - Produto = cópia fiel das fotos
+   - Cena = ambiente e luz conforme acima
+   - Sem painéis, sem labels, sem collage — uma imagem limpa e profissional.`;
+
     const contentParts: any[] = [];
 
-    // Send max 3 reference images — CRITICAL for product fidelity
-    if (productImages && productImages.length > 0) {
-        const selected = productImages.length <= 3
-            ? productImages
-            : [productImages[0], productImages[Math.floor(productImages.length / 2)], productImages[productImages.length - 1]];
-        let idx = 1;
-        for (const img of selected) {
-            const { data, mimeType } = parseBase64(img);
-            contentParts.push({ text: `[REFERENCE IMAGE ${idx} — CLONE THIS PRODUCT EXACTLY IN YOUR OUTPUT]` });
-            contentParts.push({ inlineData: { data, mimeType } });
-            idx++;
-        }
+    const selected = productImages.length <= 4
+        ? productImages
+        : [productImages[0], productImages[Math.floor(productImages.length / 3)], productImages[Math.floor(2 * productImages.length / 3)], productImages[productImages.length - 1]];
+
+    for (let i = 0; i < selected.length; i++) {
+        const { data, mimeType } = parseBase64(selected[i]);
+        contentParts.push({ text: `[FOTO DO PRODUTO ${i + 1} — FONTE ÚNICA DA APARÊNCIA. REPLIQUE EXATAMENTE.]` });
+        contentParts.push({ inlineData: { data, mimeType } });
     }
 
     contentParts.push({ text: imagePrompt });
