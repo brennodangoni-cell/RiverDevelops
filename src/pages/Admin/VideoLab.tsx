@@ -862,14 +862,6 @@ export default function VideoLab() {
     };
 
     // === MOCKUP LIBRARY ===
-    const saveMockupToLibrary = (url: string, label: string) => {
-        const mock: SavedMockup = { id: Date.now().toString(), url, label, savedAt: new Date().toLocaleString('pt-BR') };
-        const updated = [mock, ...savedMockups].slice(0, 30); // max 30
-        setSavedMockups(updated);
-        try { localStorage.setItem('sora_mockup_library', JSON.stringify(updated)); } catch { }
-        toast.success('💾 Mockup salvo na biblioteca!');
-    };
-
     const deleteSavedMockup = (id: string) => {
         const updated = savedMockups.filter(m => m.id !== id);
         setSavedMockups(updated);
