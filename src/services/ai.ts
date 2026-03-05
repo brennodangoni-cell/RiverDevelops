@@ -332,47 +332,17 @@ export async function generatePrompts(
 
     // Initialize DNA injection
     const hexInfo = detectedColors?.length ? `\nADOPT THESE EXACT HEX COLORS FOR PRODUCT MATERIALS: ${detectedColors.join(', ')}` : '';
-    const visualAnchor = previousPrompts && previousPrompts.length > 0
-        ? `\nVISUAL ANCHOR (FOR CONTINUITY): Match the lighting, camera kit, and atmosphere of the previous blueprint: "${previousPrompts[previousPrompts.length - 1]}"`
-        : '';
-
-    let taskDescription = `
-    [PRODUCT IDENTITY & DNA]
-    ${productDescription}
-    ${hexInfo}
-    ${visualAnchor}
-
-    ${sceneDraft ? `
-    ACT AS AN ELITE AI VIDEO DIRECTOR & SORA 2 NARRATIVE ARCHITECT.
-    
-    [USER SCENE DRAFT]
-    "${sceneDraft}"
-    
-    TASK: TRANSFORM THIS DRAFT INTO A MASTER SORA 2 BLUEPRINT (999,999% IMPROVEMENT).
-    - GOAL: Extreme visual consistency for the product, but ABSOLUTE CREATIVE FREEDOM for the environment.
-    - SURREALISM MANDATE: If the user draft contains impossible or fantastical elements (e.g., walking on clouds, flying, portals), DO NOT RATIONALIZE. Do not turn clouds into "white sand". Provide the LITERAL surrealist interpretation that Sora 2 excels at.
-    - STRATEGY: Use the 5-LAYER CINEMATIC PROTOCOL:
-      0. MARKETING ALIGNMENT & EMOTION: Evoke the EMOTION described. If the user says "stepping on clouds", describe the ethereal lightness and the model's divine comfort.
-      1. TECHNICAL SETTING: Specify lens (e.g., 35mm), movement (e.g., slow-motion tracking), and framing.
-      2. PHYSICS & WEIGHT: The PRODUCT must be structurally rigid and feel solid. The WORLD can ignore gravity, time, and logic if requested.
-      3. PRODUCT FIDELITY: Meticulously describe materials (matte rubber, brushed aluminum), logo placement, and light reflection.
-      4. ATMOSPHERIC GRADE & VFX: Ethereal lighting, volumetric mist, glow effects, or dream-state color grading.
-    
-    - FORMAT: Natural, ultra-technical prose. No technical labels. Length: ~150-250 words.
-    - Generate ONLY THIS ONE MASTER SCENE.
+    let taskDescription = sceneDraft ? `
+    Polish this draft into a simple, natural prompt. Keep the same vibe — person, action, product, logo visibility, ambient sound.
     ` : (detectedColors && detectedColors.length > 1 ? `
-    DETECTION: We found ${detectedColors.length} unique color variants.
-    GOAL: Generate a 3-scene sequence showcasing the VARIETY while maintaining a STRIKING stylistic consistency.
-    Scene 1 — Reveal: Highlighting one version with a dramatic orbit shot.
-    Scene 2 — Interaction: Another variant being used/worn in close-up.
-    Scene 3 — Details: Macro shots of multiple variants in a premium layout.
+    Create 3 scenes showcasing different color variants. Same simple style: person + action + product + logo visible + sound.
     ` : `
-    GOAL: Create 3 cinematic video scenes (10 seconds each) for a high-end commercial:
-    Scene 1 — THE HOOK: Wide establishing shot. Reveal the product in a majestic environment.
-    Scene 2 — THE STORY: Medium tracking shot. Show the core benefit and product DNA in action.
-    Scene 3 — THE DETAILS: Extreme macro. Focus on the sharpest textures and perfectly legible branding.
-    `)}
-    `;
+    Create 3 simple scenes:
+    Scene 1: Person in a relaxed setting (e.g. by pool, in living room). Product visible. Logo clear. Natural light.
+    Scene 2: Different person or angle. Product in use (stepping, walking). Logo on strap/footbed clearly visible.
+    Scene 3: Close-up or detail. Product colors and materials. Logo sharp.
+    All in the same natural, flowing style — no jargon.
+    `);
 
     const isScriptMode = options.mode === 'script' && !!options.script;
 
@@ -380,94 +350,59 @@ export async function generatePrompts(
         // Task description for "Magic" expansion is already set above
     } else if (isScriptMode) {
         taskDescription = `
-    ACT AS A STRICT SCRIPT-TO-VISUAL ADAPTER.
-    
-    RAW SCRIPT:
-    """
-    ${options.script}
-    """
-    
-    TASK: BREAK DOWN THE SCRIPT INTO A COMPLETE STORYBOARD.
-    - Map every action and emotional beat to a professional Sora 2 blueprint.
-    - FORCE visual continuity across all scenes (same lighting, same color grade, same product DNA).
-    - Describe the specific benefits mentioned through visual narrative.
+    Script: ${options.script}
+    Break into 3 simple prompts. Same natural style: person, action, product, logo visible, sound.
         `;
     } else if (previousPrompts && previousPrompts.length > 0) {
         taskDescription = `
-    SCENE EXPANSION PROTOCOL: 
-    Continue the commercial. CURRENT SEQUENCE:
-    ${previousPrompts.map((p, i) => `Scene ${i + 1}: ${p}`).join('\n')}
-
-    TASK: Generate 3 NEW scenes that perfectly match the previous aesthetic.
-    Scene A — Reaction or alternative angle.
-    Scene B — Dynamic stylized transition.
-    Scene C — Final majestic outro with a focus on brand identity.
+    Previous scenes: ${previousPrompts.map((p, i) => `Scene ${i + 1}: ${p.slice(0, 80)}...`).join('\n')}
+    Generate 3 NEW scenes in the same simple, natural style. Match the vibe.
         `;
     }
 
     const promptStyle = `
-ACT AS AN ELITE AI VIDEO DIRECTOR & SORA 2 NARRATIVE ARCHITECT.
+WRITE SIMPLE, NATURAL SORA 2 PROMPTS — LIKE A SUCCESSFUL COMMERCIAL BRIEF.
 
-SORA 2 MASTER SKELETON (HIERARCHICAL PRIORITY):
-1. PRODUCT REFERENCE (FIRST): Always start with "Use the uploaded image(s) as the exact product reference..."
-2. KINETIC FOUNDATION (Movement): Define the camera kit and action immediately. (e.g., 35mm Anamorphic, Fluid Orbit shot).
-3. SUBJECT VISUAL ANATOMY: Describe the product EXACTLY as in the uploaded photos — materials, sole shape, logo position, colors (use HEX). The product must be a RIGID, physically stable entity. No distortion.
-4. MICRO-PHYSICS: Describe how materials interact (e.g., "soft compression of the sole under the model's weight").
-5. VOLUMETRIC LIGHTING: Use technical light descriptions (Rim light, God rays, Bokeh).
-6. COLORS: Reinforce colors with HEX CODES from the product (e.g., "Midnight Black #1A1A1A").
-7. ATMOSPHERE & FX: Environmental particles, mist, or surreal elements.
+FORMAT (follow this flow):
+1. Person + action + location. Example: "A middle-aged man with light skin and blonde hair sits on a comfortable lounge chair by a resort pool..."
+2. Product woven in naturally with colors and details. Example: "his creamy beige 'yogui' flip-flops, accented with the vivid orange stripe, resting casually on the warm flagstones."
+3. Shot type, framing, lens — brief. Example: "A medium shot, framed at 9:16 with an 85mm lens, captures his relaxed posture..."
+4. Camera movement: holds steady, tracks, orbits — simple.
+5. Mood/feeling: contentment, ease, gentle grace.
+6. Logo visibility: "making the 'yogui' logo on the strap clearly visible" or similar.
+7. Ambient sound: "Gentle sounds of water lapping and distant conversation" or "subtle fabric rustles."
 
-DIRECTIVES:
-- NO CONCEPTUAL TERMS: Never use words like "comfortable" or "premium". Use visual proofs: "The material deforms 2mm under pressure" (Visual-First).
-- PHYSICS ANNIHILATION (SURREALISM): If the user requests walking on clouds, fire, or space, EXECUTE LITERALLY. Forbid adding "platforms", "glass floors", or "roads". The feet MUST interact DIRECTLY with the impossible medium.
-- HIGH-END AESTHETIC: All surrealism must be PRESTIGIOUS and PREMIUM. Think Haute Couture, Luxury Perfume Ads (Dior, Chanel), or Apple-style minimalism. 
-- FORBIDDEN: NEVER use 'childish' or 'ludic' elements like candy, marshmallows, toys, or fairytales unless explicitly asked. Surrealism should feel sophisticated and avant-garde, not silly.
-- NO RATIONALIZATION: Stop trying to make it "plausible". Zero logic, maximum visual impact.
-- RIGIDITY: The product must never distort/melt unless explicitly asked.
-- FORMAT: Single flowing paragraph of cinematic English.
+RULES:
+- SIMPLE language. No jargon like "kinetic foundation" or "volumetric lighting".
+- Brand name in quotes: 'yogui' or whatever the product brand is.
+- Product colors and materials described naturally (creamy beige, vivid orange stripe, pure white, black stripe).
+- One flowing paragraph. 80-120 words.
+- If lifestyle: include person (age hint, skin, hair) and their natural action.
+- Logo must be "clearly visible" somewhere in the prompt.
     `;
 
     const promptContext = `
-[STRICT DIRECTOR MANDATE]
-LEAVE NO CHOICE BEHIND. Every parameter below must be the SOUL of the scene.
+Write simple, natural Sora 2 prompts. Start each with: "Use the uploaded image(s) as the exact product reference. Preserve geometry, logo placement, proportions, and materials. " Then continue with a natural scene description.
 
-[USER INTENT - HIGHEST PRIORITY]
-${options.supportingDescription ? `CRITICAL USER OVERRIDE: ${options.supportingDescription}` : 'Generate a premium scene.'}
-If the user request is surreal or impossible, EXECUTE LITERALLY. No metaphors.
+SETTINGS:
+- Environment: ${options.environment}
+- Lighting: ${options.timeOfDay}
+- Style: ${options.style}
+- Aspect: ${options.aspectRatio}
+${options.mode === 'lifestyle' ? `- Person: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
 
-TARGET CONFIGURATION:
-- Aspect Ratio: ${options.aspectRatio}
-- Mode: ${options.mode === 'lifestyle' ? 'LIFESTYLE (Actor Interaction Required)' : 'PRODUCT ONLY (Studio/Abstract)'}
-- Lighting/Time: ${options.timeOfDay} (STRICT ADHERENCE)
-- Environment: ${options.environment} (STRICT ADHERENCE)
-- Cinematography Style: ${options.style} (STRICT ADHERENCE)
-
-${options.mode === 'lifestyle' ? `
-ACTOR SPECIFICATION (NON-NEGOTIABLE):
-- Gender: ${options.gender}
-- Skin Tone: ${options.skinTone} 
-- Hair: ${options.hairColor}
-` : ''}
-
-PRODUCT DATA:
+PRODUCT:
 ${productDescription}
 ${hexInfo}
 
-SCENE TYPE: ${sceneDraft ? 'POLISH THIS SPECIFIC DRAFT:' : 'CREATE NEW SCENE:'}
-${sceneDraft || 'Based on the above settings, generate a 10-second high-impact cinematic sequence.'}
+${sceneDraft ? `SCENE DRAFT TO POLISH:\n"${sceneDraft}"` : ''}
+${options.supportingDescription ? `\nUSER REQUEST: ${options.supportingDescription}` : ''}
 
-[SCENE TASK & STRATEGY]
 ${taskDescription}
 
-[DIRECTOR BLUEPRINT]
 ${promptStyle}
 
-CRITICAL: The output MUST be a SINGLE paragraph in ENGLISH, adhering to the SORA 2 MASTER SKELETON. No labels, no bullet points.
-
-[PRODUCT REFERENCE LOCK — MANDATORY FIRST SENTENCE]
-Every generated prompt MUST begin with this exact sentence (copy it verbatim):
-"Use the uploaded image(s) as the exact product reference. Preserve geometry, logo placement, proportions, materials, texture scale, and typography. Do not invent or alter any product details."
-Then continue with the cinematic description. This ensures Sora 2 matches the product EXACTLY when the user uploads the same photos.
+Output: JSON array of 3 simple prompts (80-120 words each). Natural language. No jargon.
     `;
 
 
