@@ -101,7 +101,22 @@ export async function initDb() {
             await connection.query('INSERT INTO users (username, password) VALUES (?, ?)', ['Turbalada', hash]);
             await connection.query('INSERT INTO users (username, password) VALUES (?, ?)', ['Floripa', hash]);
             await connection.query('INSERT INTO users (username, password) VALUES (?, ?)', ['Brenno', hash]);
-            console.log("Banco de dados Hostinger populado com admins iniciais.");
+
+            // Adicionar uma tarefa e transação de boas-vindas para o dashboard não bugar
+            const [admin]: any = await connection.query('SELECT id FROM users LIMIT 1');
+            const adminId = admin[0].id;
+
+            await connection.query(`
+                INSERT INTO tasks (title, description, urgency, status, assigned_to, created_by)
+                VALUES ('Bem-vindo!', 'Seu sistema está operando 100% na Hostinger.', 'LOW', 'DONE', ?, ?)
+            `, [adminId, adminId]);
+
+            await connection.query(`
+                INSERT INTO transactions (type, amount, description, date, created_by)
+                VALUES ('INCOME', 1.0, 'Ativação do Sistema', NOW(), ?)
+            `, [adminId]);
+
+            console.log("Banco de dados Hostinger populado com sucesso.");
         }
     } catch (err) {
         console.error("Failed to seed initial users:", err);
