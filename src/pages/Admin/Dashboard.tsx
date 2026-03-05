@@ -54,7 +54,7 @@ type Demand = {
     id: number;
     client_name: string;
     total_videos: number;
-    duration_seconds: number | null;
+    duration_seconds: string | null;
     has_material: number; // sqlite gets 0 or 1
     material_link: string | null;
     description: string | null;
@@ -171,7 +171,7 @@ export default function Dashboard() {
             await axios.post('/api/demands', {
                 ...newDemand,
                 total_videos: Number(newDemand.total_videos) || 0,
-                duration_seconds: Number(newDemand.duration_seconds) || 0,
+                duration_seconds: newDemand.duration_seconds
             });
             toast.success('Demanda criada!');
             setIsDemandModalOpen(false);
@@ -552,13 +552,13 @@ export default function Dashboard() {
                                         </button>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4 mb-4">
-                                        <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                                        <div className="bg-white/5 rounded-xl p-3 border border-white/5 flex flex-col justify-between">
                                             <span className="text-[10px] text-white/40 uppercase tracking-widest block mb-1">Restam</span>
                                             <span className="text-xl font-display font-bold text-cyan-400">{demand.total_videos - demand.assigned_videos} <span className="text-[10px] text-white/30 font-medium">/ {demand.total_videos} vlog</span></span>
                                         </div>
-                                        <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                                            <span className="text-[10px] text-white/40 uppercase tracking-widest block mb-1">Duração Calc.</span>
-                                            <span className="text-xl font-display font-bold text-emerald-400">{demand.duration_seconds || '--'}<span className="text-[10px] text-emerald-400/50">s</span></span>
+                                        <div className="bg-white/5 rounded-xl p-3 border border-white/5 flex flex-col justify-between">
+                                            <span className="text-[10px] text-white/40 uppercase tracking-widest block mb-1">Formatos</span>
+                                            <span className="text-[11px] font-display font-medium text-emerald-400 break-words line-clamp-2">{demand.duration_seconds || '--'}</span>
                                         </div>
                                     </div>
                                     {demand.description && <p className="text-xs text-white/50 mb-4 line-clamp-3 leading-relaxed">{demand.description}</p>}
@@ -830,9 +830,9 @@ export default function Dashboard() {
                         <form onSubmit={handleCreateDemand} className="flex flex-col gap-4">
                             <input required type="text" value={newDemand.client_name} onChange={e => setNewDemand({ ...newDemand, client_name: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50 transition-all font-light" placeholder="Nome do Cliente" />
 
-                            <div className="flex gap-4">
-                                <input required type="number" min="1" value={newDemand.total_videos} onChange={e => setNewDemand({ ...newDemand, total_videos: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50 transition-all font-light" placeholder="Qtd. de Vídeos" />
-                                <input required type="number" min="1" value={newDemand.duration_seconds} onChange={e => setNewDemand({ ...newDemand, duration_seconds: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50 transition-all font-light" placeholder="Segundos CADA" />
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <input required type="number" min="1" value={newDemand.total_videos} onChange={e => setNewDemand({ ...newDemand, total_videos: e.target.value })} className="w-full sm:w-1/3 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50 transition-all font-bold placeholder:font-light hide-number-spin" placeholder="Total de Vídeos" />
+                                <input required type="text" value={newDemand.duration_seconds} onChange={e => setNewDemand({ ...newDemand, duration_seconds: e.target.value })} className="w-full sm:w-2/3 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50 transition-all font-light" placeholder="Ex: 5 de 30s, 2 de 60s" />
                             </div>
 
                             <label className="flex items-center gap-3 cursor-pointer mt-2 mb-1 px-2">

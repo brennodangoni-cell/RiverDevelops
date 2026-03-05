@@ -21,12 +21,31 @@ type Content = {
     created_at: string;
 };
 
+type Demand = {
+    id: number;
+    client_name: string;
+    total_videos: number;
+    duration_seconds: string | null;
+    has_material: number;
+    material_link: string | null;
+    description: string | null;
+    assigned_videos: number;
+    status: 'pending' | 'partial' | 'completed';
+    created_by: number;
+    created_by_username: string;
+    created_at: string;
+};
+
 export default function AdminClients() {
     const [clients, setClients] = useState<Client[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedClient, setSelectedClient] = useState<Client | null>(null);
     const [content, setContent] = useState<Content[]>([]);
     const [contentLoading, setContentLoading] = useState(false);
+
+    // Demands state
+    const [demands, setDemands] = useState<Demand[]>([]);
+    const [demandsLoading, setDemandsLoading] = useState(false);
 
     // Create / Edit Modal State
     const [isClientModalOpen, setIsClientModalOpen] = useState(false);
@@ -73,9 +92,23 @@ export default function AdminClients() {
         }
     };
 
+    const fetchDemands = async (username: string) => {
+        setDemandsLoading(true);
+        try {
+            const res = await axios.get('/api/demands');
+            const clientDemands = res.data.filter((d: Demand) => d.client_name === username);
+            setDemands(clientDemands);
+        } catch (error) {
+            console.error('Erro ao buscar demandas.');
+        } finally {
+            setDemandsLoading(false);
+        }
+    };
+
     const handleSelectClient = (client: Client) => {
         setSelectedClient(client);
         fetchContent(client.id);
+        fetchDemands(client.username);
     };
 
     const openCreateModal = () => {
@@ -280,6 +313,52 @@ export default function AdminClients() {
                             <button onClick={() => setIsUploadModalOpen(true)} className="bg-cyan-500/10 ring-1 ring-inset ring-cyan-500/30 hover:bg-cyan-500/20 text-cyan-400 font-bold tracking-widest uppercase text-xs px-8 py-4 rounded-full flex items-center gap-3 transition-all shrink-0">
                                 <Upload className="w-4 h-4" /> Enviar Entrega
                             </button>
+                        </div>
+
+                        {/* Demands Section */}
+                        <div className="w-full max-w-7xl mb-12">
+                            <h3 className="text-sm font-display font-medium text-white/50 tracking-widest uppercase mb-6 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-400"></div> Demandas do Cliente</h3>
+                            {demandsLoading ? (
+                                <Loader2 className="w-6 h-6 animate-spin text-emerald-400" />
+                            ) : demands.length === 0 ? (
+                                <div className="bg-white/5 border border-white/10 rounded-[2rem] p-8 text-center">
+                                    <span className="text-xs text-white/40 tracking-widest uppercase">Nenhuma demanda registrada para este cliente.</span>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {demands.map(demand => (
+                                        <div key={demand.id} className="bg-[#0A0A0A] border border-white/10 rounded-[2rem] p-6 flex flex-col relative group">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <h3 className="text-lg font-bold text-white tracking-wider truncate uppercase">{demand.client_name}</h3>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                                <div className="bg-white/5 rounded-xl p-3 border border-white/5 flex flex-col justify-between">
+                                                    <span className="text-[10px] text-white/40 uppercase tracking-widest block mb-1">Restam</span>
+                                                    <span className="text-xl font-display font-bold text-cyan-400">{demand.total_videos - demand.assigned_videos} <span className="text-[10px] text-white/30 font-medium">/ {demand.total_videos} vlog</span></span>
+                                                </div>
+                                                <div className="bg-white/5 rounded-xl p-3 border border-white/5 flex flex-col justify-between">
+                                                    <span className="text-[10px] text-white/40 uppercase tracking-widest block mb-1">Formatos</span>
+                                                    <span className="text-[11px] font-display font-medium text-emerald-400 break-words line-clamp-2">{demand.duration_seconds || '--'}</span>
+                                                </div>
+                                            </div>
+                                            {demand.description && <p className="text-xs text-white/50 mb-4 line-clamp-3 leading-relaxed">{demand.description}</p>}
+                                            {demand.has_material === 1 && demand.material_link && (
+                                                <a href={demand.material_link} target="_blank" rel="noreferrer" className="text-[10px] text-blue-400 hover:text-blue-300 underline tracking-wider mb-4 block truncate">Material de Referência</a>
+                                            )}
+                                            <div className="mt-auto pt-4 border-t border-white/10 flex justify-between items-center">
+                                                <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full ${demand.status === 'completed' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : demand.status === 'partial' ? 'bg-amber-400/10 text-amber-500 border border-amber-400/20' : 'bg-white/5 text-white/50 border border-white/10'}`}>
+                                                    {demand.status === 'completed' ? 'Concluída' : demand.status === 'partial' ? 'Em Progresso' : 'Pendente'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="w-full max-w-7xl flex items-center gap-2 mb-6">
+                            <div className="w-2 h-2 rounded-full bg-cyan-400"></div>
+                            <h3 className="text-sm font-display font-medium text-white/50 tracking-widest uppercase">Entregas de Conteúdo</h3>
                         </div>
 
                         {contentLoading ? (
