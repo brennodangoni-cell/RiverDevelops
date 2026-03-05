@@ -9,7 +9,6 @@ type Client = {
     username: string;
     niche?: string | null;
     avatar_url: string | null;
-    password_raw?: string;
     created_at: string;
 };
 
@@ -133,7 +132,7 @@ export default function AdminClients() {
         e.stopPropagation();
         setIsEditing(true);
         setClientFormId(client.id);
-        setClientForm({ username: client.username, password: client.password_raw || '', niche: client.niche || '' });
+        setClientForm({ username: client.username, password: '', niche: client.niche || '' });
         setClientAvatar(null);
         setPreviewUrl(getMediaUrl(client.avatar_url));
         setIsClientModalOpen(true);
