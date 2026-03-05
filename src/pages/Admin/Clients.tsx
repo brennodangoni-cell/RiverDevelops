@@ -37,6 +37,11 @@ type Demand = {
     created_at: string;
 };
 
+const getMediaUrl = (url?: string | null) => {
+    if (!url) return '';
+    return url.startsWith('http') ? url : (axios.defaults.baseURL || '') + url;
+};
+
 export default function AdminClients() {
     const [clients, setClients] = useState<Client[]>([]);
     const [loading, setLoading] = useState(true);
@@ -130,7 +135,7 @@ export default function AdminClients() {
         setClientFormId(client.id);
         setClientForm({ username: client.username, password: '' });
         setClientAvatar(null);
-        setPreviewUrl(client.avatar_url ? `${axios.defaults.baseURL || ''}${client.avatar_url}` : null);
+        setPreviewUrl(getMediaUrl(client.avatar_url));
         setIsClientModalOpen(true);
     };
 
@@ -276,7 +281,7 @@ export default function AdminClients() {
                                             <div className="flex items-start justify-between mb-6">
                                                 <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-white/10 flex items-center justify-center shadow-lg relative overflow-hidden group-hover:scale-105 transition-transform duration-300">
                                                     {client.avatar_url ? (
-                                                        <img src={(axios.defaults.baseURL || '') + client.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                                                        <img src={getMediaUrl(client.avatar_url)} alt="Profile" className="w-full h-full object-cover" />
                                                     ) : (
                                                         <span className="text-xl font-display font-bold text-white/80 uppercase">{client.username.charAt(0)}</span>
                                                     )}
@@ -309,7 +314,7 @@ export default function AdminClients() {
                                 </button>
                                 <div className="flex items-center gap-4">
                                     {selectedClient.avatar_url ? (
-                                        <img src={(axios.defaults.baseURL || '') + selectedClient.avatar_url} className="w-12 h-12 rounded-full object-cover shadow-lg border border-white/10" alt="Avatar" />
+                                        <img src={getMediaUrl(selectedClient.avatar_url)} className="w-12 h-12 rounded-full object-cover shadow-lg border border-white/10" alt="Avatar" />
                                     ) : (
                                         <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-white/10 flex items-center justify-center text-xl font-bold uppercase">{selectedClient.username.charAt(0)}</div>
                                     )}
@@ -392,7 +397,7 @@ export default function AdminClients() {
                                         <div className="aspect-[4/5] bg-white/5 relative flex items-center justify-center group-hover:scale-105 transition-transform duration-700">
                                             {item.media_type === 'video' ? (
                                                 <div className="w-full h-full relative">
-                                                    <video src={(axios.defaults.baseURL || '') + item.media_url} className="w-full h-full object-cover" muted loop playsInline onMouseEnter={e => e.currentTarget.play()} onMouseLeave={e => e.currentTarget.pause()} />
+                                                    <video src={getMediaUrl(item.media_url)} className="w-full h-full object-cover" muted loop playsInline onMouseEnter={e => e.currentTarget.play()} onMouseLeave={e => e.currentTarget.pause()} />
                                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                                         <div className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/20 flex items-center justify-center">
                                                             <Video className="w-5 h-5 text-white/80" />
@@ -400,7 +405,7 @@ export default function AdminClients() {
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <img src={(axios.defaults.baseURL || '') + item.media_url} alt={item.title} className="w-full h-full object-cover" />
+                                                <img src={getMediaUrl(item.media_url)} alt={item.title} className="w-full h-full object-cover" />
                                             )}
                                         </div>
 

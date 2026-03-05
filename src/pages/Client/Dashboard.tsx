@@ -15,6 +15,11 @@ type Content = {
     created_at: string;
 };
 
+const getMediaUrl = (url?: string | null) => {
+    if (!url) return '';
+    return url.startsWith('http') ? url : (axios.defaults.baseURL || '') + url;
+};
+
 export default function ClientDashboard() {
     const [content, setContent] = useState<Content[]>([]);
     const [loading, setLoading] = useState(true);
@@ -77,7 +82,7 @@ export default function ClientDashboard() {
                             <div className="relative">
                                 <div className="absolute -inset-2 bg-cyan-500/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                                 {clientUser?.avatar_url ? (
-                                    <img src={(axios.defaults.baseURL || '') + clientUser.avatar_url} alt="Profile" className="relative h-10 w-10 object-cover rounded-full shadow-lg border border-white/10 group-hover:scale-105 transition-transform" />
+                                    <img src={getMediaUrl(clientUser.avatar_url)} alt="Profile" className="relative h-10 w-10 object-cover rounded-full shadow-lg border border-white/10 group-hover:scale-105 transition-transform" />
                                 ) : (
                                     <div className="relative h-10 w-10 rounded-full shadow-lg bg-black border border-white/20 flex items-center justify-center group-hover:scale-105 transition-transform">
                                         <span className="text-lg font-display font-medium text-white tracking-widest uppercase">{clientUser?.username?.charAt(0) || 'C'}</span>
@@ -143,7 +148,7 @@ export default function ClientDashboard() {
                                 <div className="relative w-full overflow-hidden bg-black flex items-center justify-center">
                                     {item.media_type === 'video' ? (
                                         <div className="w-full relative aspect-[9/16]">
-                                            <video src={(axios.defaults.baseURL || '') + item.media_url} className="w-full h-full object-cover" muted loop playsInline onMouseEnter={e => e.currentTarget.play()} onMouseLeave={e => e.currentTarget.pause()} />
+                                            <video src={getMediaUrl(item.media_url)} className="w-full h-full object-cover" muted loop playsInline onMouseEnter={e => e.currentTarget.play()} onMouseLeave={e => e.currentTarget.pause()} />
                                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-black/10 group-hover:bg-transparent transition-colors">
                                                 <div className="w-16 h-16 rounded-full bg-black/40 backdrop-blur-md border border-white/20 flex items-center justify-center scale-100 group-hover:scale-110 transition-transform">
                                                     <PlayCircle className="w-8 h-8 text-white" />
@@ -152,7 +157,7 @@ export default function ClientDashboard() {
                                         </div>
                                     ) : (
                                         <div className="w-full relative">
-                                            <img src={(axios.defaults.baseURL || '') + item.media_url} alt={item.title} className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]" />
+                                            <img src={getMediaUrl(item.media_url)} alt={item.title} className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]" />
                                         </div>
                                     )}
 
@@ -166,7 +171,7 @@ export default function ClientDashboard() {
 
                                     {/* Action Hover */}
                                     <div className="absolute bottom-4 right-4 z-20 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-100">
-                                        <a href={(axios.defaults.baseURL || '') + item.media_url} download target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+                                        <a href={getMediaUrl(item.media_url)} download target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)]">
                                             <Download className="w-5 h-5" />
                                         </a>
                                     </div>
