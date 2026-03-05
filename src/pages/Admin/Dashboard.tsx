@@ -254,24 +254,18 @@ export default function Dashboard() {
     const formattedBalance = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(balance);
 
     if (loading) {
-        return <div className="min-h-screen flex items-center justify-center bg-[#030303]"><Loader2 className="w-6 h-6 animate-spin text-cyan-400" /></div>;
+        return <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a]"><Loader2 className="w-6 h-6 animate-spin text-cyan-400" /></div>;
     }
 
     return (
-        <div className="min-h-screen relative font-sans text-white bg-[#030303] overflow-x-hidden selection:bg-cyan-500/30">
-
-            {/* Clear Background */}
-            <div
-                className="fixed inset-0 pointer-events-none"
-                style={{ backgroundImage: 'url(/bgtasks.webp)', backgroundSize: 'cover', backgroundPosition: 'center' }}
-            />
+        <div className="min-h-screen relative font-sans text-white bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a] overflow-x-hidden selection:bg-cyan-500/30">
 
             {/* Premium Header - Exactly Like Main Site */}
             <nav className="fixed top-0 left-0 right-0 z-50 pt-4 md:pt-6 px-4 md:px-10 pointer-events-auto">
                 <div className="max-w-[1500px] mx-auto">
                     <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4 py-3 md:py-2.5 px-4 rounded-[1.5rem] md:rounded-full shadow-2xl isolate">
-                        {/* Glassmorphism Fix Layer */}
-                        <div className="absolute inset-0 bg-white/5 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-full -z-10 overflow-hidden" />
+                        {/* Solid Background Layer */}
+                        <div className="absolute inset-0 bg-[#141414] border border-white/5 rounded-[1.5rem] md:rounded-full -z-10 overflow-hidden" />
 
                         {/* Top Row on Mobile / Left Section on Desktop */}
                         <div className="flex items-center justify-between w-full md:w-auto">
@@ -345,7 +339,7 @@ export default function Dashboard() {
                         </div>
 
                         {/* Center (User Selection Switcher) */}
-                        <div className="flex items-center justify-center w-fit max-w-full mx-auto overflow-x-auto custom-scrollbar md:absolute md:left-1/2 md:-translate-x-1/2 bg-black/40 backdrop-blur-md rounded-full border border-white/5 p-1 gap-1">
+                        <div className="flex items-center justify-center w-fit max-w-full mx-auto overflow-x-auto custom-scrollbar md:absolute md:left-1/2 md:-translate-x-1/2 bg-black/40 rounded-full border border-white/5 p-1 gap-1">
                             {[...users].sort((a, b) => {
                                 if (a.id === currentUser.id) return -1;
                                 if (b.id === currentUser.id) return 1;
@@ -428,8 +422,8 @@ export default function Dashboard() {
             </nav>
 
             {/* Top Toggle Demands vs Tasks */}
-            <div className="max-w-[1600px] mx-auto px-4 sm:px-6 md:px-10 pt-[150px] lg:pt-[170px] relative z-20 flex justify-center mb-6">
-                <div className="bg-black/40 backdrop-blur-md rounded-full border border-white/5 p-1 flex items-center gap-1">
+            <div className="max-w-[1600px] mx-auto px-4 sm:px-6 md:px-10 pt-[120px] lg:pt-[130px] relative z-20 flex justify-center mb-10 lg:mb-12">
+                <div className="bg-[#141414] rounded-full border border-white/5 p-1 flex items-center gap-1">
                     <button onClick={() => setActiveTab('tasks')} className={`px-5 py-2 sm:px-8 sm:py-2.5 rounded-full text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-all duration-300 ${activeTab === 'tasks' ? 'bg-cyan-500 text-black shadow-[0_0_20px_rgba(34,211,238,0.3)]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}>
                         Tarefas Ativas
                     </button>
@@ -446,7 +440,7 @@ export default function Dashboard() {
                         <div key={section.status} className="w-full sm:w-auto md:min-w-[340px] md:max-w-lg flex-1 flex flex-col relative shrink-0">
                             {/* Floating Pill Header */}
                             <div className="flex items-center justify-between mb-6 rounded-full py-4 px-6 shrink-0 shadow-lg relative isolate">
-                                <div className="absolute inset-0 bg-white/5 backdrop-blur-xl ring-1 ring-inset ring-white/10 rounded-full -z-10 overflow-hidden" />
+                                <div className="absolute inset-0 bg-white/5 ring-1 ring-inset ring-white/10 rounded-full -z-10 overflow-hidden" />
                                 <div className="flex items-center gap-4">
                                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${section.bg} ring-1 ring-white/10 shadow-lg`}>
                                         <section.icon className={`w-5 h-5 ${section.color}`} />
@@ -462,11 +456,11 @@ export default function Dashboard() {
                             <div className="flex flex-col pb-8 space-y-4">
                                 {tasks.filter(t => t.status === section.status && t.assigned_to === viewingUserId && !(t.status === 'DONE' && isOlderThanToday(t.updated_at || t.created_at))).map(task => (
                                     <div key={task.id} className="group relative flex flex-col rounded-[2rem] p-6 transition-all duration-300 shadow-lg hover:shadow-2xl cursor-default isolate">
-                                        <div className="absolute inset-0 bg-white/5 backdrop-blur-xl ring-1 ring-inset ring-white/10 group-hover:bg-white/10 group-hover:ring-white/20 rounded-[2rem] transition-all duration-300 -z-10 overflow-hidden pointer-events-none" />
+                                        <div className="absolute inset-0 bg-white/5 ring-1 ring-inset ring-white/10 group-hover:bg-white/10 group-hover:ring-white/20 rounded-[2rem] transition-all duration-300 -z-10 overflow-hidden pointer-events-none" />
 
                                         {/* Action Buttons (Floating pill inside card - restricted to assignee) */}
                                         {task.assigned_to === currentUser.id && (
-                                            <div className="absolute top-5 right-5 z-10 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 flex gap-1 bg-black/80 backdrop-blur-md rounded-full border border-white/10 p-1.5 shadow-xl">
+                                            <div className="absolute top-5 right-5 z-10 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 flex gap-1 bg-black/80 rounded-full border border-white/10 p-1.5 shadow-xl">
                                                 {task.status !== 'TODO' && (
                                                     <button onClick={() => handleUpdateStatus(task.id, 'TODO')} className="p-2 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-colors" title="Mover para Por Fazer"><CircleDashed className="w-4 h-4" /></button>
                                                 )}
@@ -531,7 +525,7 @@ export default function Dashboard() {
                 </main>
             ) : (
                 <main className="max-w-[1600px] mx-auto px-4 sm:px-6 md:px-10 min-h-[50dvh] relative z-10 pb-12 w-full flex flex-col items-center">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 bg-white/5 border border-white/10 rounded-[2rem] sm:rounded-full py-6 sm:py-4 px-6 sm:px-8 backdrop-blur-xl shrink-0 w-full max-w-7xl shadow-lg">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 bg-white/5 border border-white/10 rounded-[2rem] sm:rounded-full py-6 sm:py-4 px-6 sm:px-8 shrink-0 w-full max-w-7xl shadow-lg">
                         <div>
                             <h1 className="text-xl font-display font-medium text-white tracking-widest uppercase">Demandas em Aberto</h1>
                             <p className="text-xs text-white/40 tracking-wider">Gerencie a fila de projetos pendentes de clientes.</p>
@@ -591,9 +585,9 @@ export default function Dashboard() {
             {/* Create Task Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsModalOpen(false)} />
+                    <div className="absolute inset-0 bg-black/80 " onClick={() => setIsModalOpen(false)} />
 
-                    <div className="relative bg-[#080808]/90 backdrop-blur-2xl ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] transform transition-all flex flex-col mx-auto my-auto ring-1 ring-white/5 font-sans overflow-hidden">
+                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] transform transition-all flex flex-col mx-auto my-auto ring-1 ring-white/5 font-sans overflow-hidden">
                         <button type="button" onClick={() => setIsModalOpen(false)} className="absolute top-5 right-5 z-20 text-white/30 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-3 rounded-full border border-transparent hover:border-white/10">
                             <X className="w-5 h-5" />
                         </button>
@@ -683,9 +677,9 @@ export default function Dashboard() {
             {/* Edit Task Modal */}
             {editingTaskId && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setEditingTaskId(null)} />
+                    <div className="absolute inset-0 bg-black/80 " onClick={() => setEditingTaskId(null)} />
 
-                    <div className="relative bg-[#080808]/90 backdrop-blur-2xl ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] transform transition-all flex flex-col mx-auto my-auto ring-1 ring-white/5 font-sans overflow-hidden">
+                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] transform transition-all flex flex-col mx-auto my-auto ring-1 ring-white/5 font-sans overflow-hidden">
                         <button type="button" onClick={() => setEditingTaskId(null)} className="absolute top-5 right-5 z-20 text-white/30 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-3 rounded-full border border-transparent hover:border-white/10">
                             <X className="w-5 h-5" />
                         </button>
@@ -727,9 +721,9 @@ export default function Dashboard() {
             {/* History Modal */}
             {isHistoryModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsHistoryModalOpen(false)} />
+                    <div className="absolute inset-0 bg-black/80 " onClick={() => setIsHistoryModalOpen(false)} />
 
-                    <div className="relative bg-[#060606]/40 backdrop-blur-[50px] ring-1 ring-inset ring-white/10 rounded-[2.5rem] w-full max-w-2xl shadow-2xl transform transition-all flex flex-col mx-auto my-auto h-[80vh] overflow-hidden">
+                    <div className="relative bg-[#060606]/40 ring-1 ring-inset ring-white/10 rounded-[2.5rem] w-full max-w-2xl shadow-2xl transform transition-all flex flex-col mx-auto my-auto h-[80vh] overflow-hidden">
                         <button type="button" onClick={() => setIsHistoryModalOpen(false)} className="absolute top-6 right-6 z-10 text-white/40 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2.5 rounded-full border border-transparent hover:border-white/10">
                             <X className="w-4 h-4" />
                         </button>
@@ -789,8 +783,8 @@ export default function Dashboard() {
             {/* Delete Confirmation Modal */}
             {isDeleteModalOpen && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsDeleteModalOpen(false)} />
-                    <div className="relative bg-[#060606]/40 backdrop-blur-[50px] ring-1 ring-inset ring-white/10 rounded-[2.5rem] w-full max-w-sm shadow-2xl transform transition-all flex flex-col mx-auto my-auto overflow-hidden">
+                    <div className="absolute inset-0 bg-black/80 " onClick={() => setIsDeleteModalOpen(false)} />
+                    <div className="relative bg-[#060606]/40 ring-1 ring-inset ring-white/10 rounded-[2.5rem] w-full max-w-sm shadow-2xl transform transition-all flex flex-col mx-auto my-auto overflow-hidden">
                         <div className="p-8 flex flex-col items-center text-center">
                             <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6 ring-1 ring-red-500/20">
                                 <Trash2 className="w-8 h-8 text-red-500" />
@@ -820,8 +814,8 @@ export default function Dashboard() {
             {/* Create Demand Modal */}
             {isDemandModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsDemandModalOpen(false)} />
-                    <div className="relative bg-[#080808]/90 backdrop-blur-2xl ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] transform transition-all flex flex-col ring-1 ring-white/5 p-8 sm:p-10">
+                    <div className="absolute inset-0 bg-black/80 " onClick={() => setIsDemandModalOpen(false)} />
+                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] transform transition-all flex flex-col ring-1 ring-white/5 p-8 sm:p-10">
                         <button type="button" onClick={() => setIsDemandModalOpen(false)} className="absolute top-6 right-6 z-20 text-white/30 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2.5 rounded-full">
                             <X className="w-5 h-5" />
                         </button>
@@ -864,8 +858,8 @@ export default function Dashboard() {
             {/* Allocate Demand Modal */}
             {isAllocateModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsAllocateModalOpen(false)} />
-                    <div className="relative bg-[#080808]/90 backdrop-blur-2xl ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] transform transition-all flex flex-col ring-1 ring-white/5 p-8 sm:p-10">
+                    <div className="absolute inset-0 bg-black/80 " onClick={() => setIsAllocateModalOpen(false)} />
+                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] transform transition-all flex flex-col ring-1 ring-white/5 p-8 sm:p-10">
                         <button type="button" onClick={() => setIsAllocateModalOpen(false)} className="absolute top-6 right-6 z-20 text-white/30 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2.5 rounded-full">
                             <X className="w-5 h-5" />
                         </button>

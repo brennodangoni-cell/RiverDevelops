@@ -61,22 +61,19 @@ export default function ClientDashboard() {
     };
 
     if (loading) {
-        return <div className="min-h-screen flex items-center justify-center bg-[#030303]"><Loader2 className="w-8 h-8 animate-spin text-cyan-400" /></div>;
+        return <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a]"><Loader2 className="w-8 h-8 animate-spin text-cyan-400" /></div>;
     }
 
     const categories = ['Tudo', ...Array.from(new Set(content.map(c => c.category).filter(Boolean)))];
     const filteredContent = selectedCategory === 'Tudo' ? content : content.filter(c => c.category === selectedCategory);
 
     return (
-        <div className="min-h-screen font-sans text-white bg-[#030303] selection:bg-cyan-500/30">
-            {/* Ambient Background */}
-            <div className="fixed inset-0 pointer-events-none" style={{ backgroundImage: 'url(/bgtasks.webp)', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.5 }} />
-            <div className="fixed inset-0 bg-gradient-to-t from-black via-transparent to-black pointer-events-none" />
+        <div className="min-h-screen font-sans text-white bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a] selection:bg-cyan-500/30">
 
             {/* Premium Client Header */}
             <nav className="fixed top-0 left-0 right-0 z-50 pt-6 px-6 lg:px-12 pointer-events-auto">
                 <div className="max-w-[1600px] mx-auto">
-                    <div className="relative flex items-center justify-between py-3 px-6 rounded-full shadow-2xl isolate bg-white/5 backdrop-blur-2xl ring-1 ring-inset ring-white/10">
+                    <div className="relative flex items-center justify-between py-3 px-6 rounded-full shadow-2xl isolate bg-[#141414] ring-1 ring-inset ring-white/5">
                         {/* Logo & Welcome */}
                         <div className="flex items-center gap-4 group cursor-default">
                             <div className="relative">
@@ -150,7 +147,7 @@ export default function ClientDashboard() {
                                         <div className="w-full relative aspect-[9/16]">
                                             <video src={getMediaUrl(item.media_url)} className="w-full h-full object-cover" muted loop playsInline onMouseEnter={e => e.currentTarget.play()} onMouseLeave={e => e.currentTarget.pause()} />
                                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-black/10 group-hover:bg-transparent transition-colors">
-                                                <div className="w-16 h-16 rounded-full bg-black/40 backdrop-blur-md border border-white/20 flex items-center justify-center scale-100 group-hover:scale-110 transition-transform">
+                                                <div className="w-16 h-16 rounded-full bg-black/40 border border-white/20 flex items-center justify-center scale-100 group-hover:scale-110 transition-transform">
                                                     <PlayCircle className="w-8 h-8 text-white" />
                                                 </div>
                                             </div>
@@ -163,7 +160,7 @@ export default function ClientDashboard() {
 
                                     {/* Format Badge */}
                                     <div className="absolute top-4 left-4 z-10">
-                                        <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-2">
+                                        <div className="bg-black/60 px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-2">
                                             {item.media_type === 'video' ? <Video className="w-3.5 h-3.5 text-cyan-400" /> : <ImageIcon className="w-3.5 h-3.5 text-emerald-400" />}
                                             <span className="text-[9px] font-bold text-white uppercase tracking-widest">{item.media_type}</span>
                                         </div>

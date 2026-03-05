@@ -177,18 +177,13 @@ export default function Finance() {
     }
 
     return (
-        <div className="min-h-screen relative font-sans text-white bg-black">
-            {/* Background identical to Dashboard */}
-            <div className="fixed inset-0 pointer-events-none">
-                <img src="/bgtasks.webp" alt="Background" className="w-full h-full object-cover opacity-70" />
-            </div>
-            <div className="fixed inset-0 bg-black/50 pointer-events-none" />
+        <div className="min-h-screen relative font-sans text-white bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a]">
 
             {/* Premium Header */}
             <nav className="fixed top-0 left-0 right-0 z-50 pt-4 md:pt-6 px-4 md:px-10 pointer-events-auto">
                 <div className="max-w-[1500px] mx-auto">
                     <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4 py-3 md:py-2.5 px-4 rounded-[1.5rem] md:rounded-full shadow-2xl isolate">
-                        <div className="absolute inset-0 bg-white/5 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-full -z-10 overflow-hidden" />
+                        <div className="absolute inset-0 bg-[#141414] border border-white/5 rounded-[1.5rem] md:rounded-full -z-10 overflow-hidden" />
 
                         <div className="flex items-center justify-between w-full md:w-auto">
                             <div className="flex items-center gap-4 group">
@@ -219,7 +214,7 @@ export default function Finance() {
                         </div>
 
                         {/* Center (Filters) */}
-                        <div className="flex items-center justify-center w-fit max-w-full mx-auto overflow-x-auto custom-scrollbar md:absolute md:left-1/2 md:-translate-x-1/2 bg-black/40 backdrop-blur-md rounded-full border border-white/5 p-1 gap-1">
+                        <div className="flex items-center justify-center w-fit max-w-full mx-auto overflow-x-auto custom-scrollbar md:absolute md:left-1/2 md:-translate-x-1/2 bg-black/40 rounded-full border border-white/5 p-1 gap-1">
                             {['TODAY', 'WEEK', 'MONTH', 'YEAR', 'ALL'].map((f) => {
                                 const labels: any = { 'TODAY': 'Hoje', 'WEEK': '7 Dias', 'MONTH': 'Mês', 'YEAR': 'Ano', 'ALL': 'Tudo' };
                                 const isActive = filter === f;
@@ -272,7 +267,7 @@ export default function Finance() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
                     {/* Saldo Total */}
                     <div className="relative flex flex-col p-8 group isolate h-full">
-                        <div className="absolute inset-0 bg-emerald-500/10 backdrop-blur-2xl ring-1 ring-inset ring-emerald-500/30 rounded-[2rem] -z-20 pointer-events-none overflow-hidden" />
+                        <div className="absolute inset-0 bg-emerald-500/10 ring-1 ring-inset ring-emerald-500/30 rounded-[2rem] -z-20 pointer-events-none overflow-hidden" />
                         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 blur-[100px] rounded-full -z-10 group-hover:bg-emerald-400/30 transition-all duration-700 pointer-events-none translate-x-1/3 -translate-y-1/3" />
 
                         <div className="flex items-center gap-3 mb-4">
@@ -290,7 +285,7 @@ export default function Finance() {
 
                     {/* Entradas */}
                     <div className="relative flex flex-col p-8 isolate group h-full">
-                        <div className="absolute inset-0 bg-cyan-500/10 backdrop-blur-xl ring-1 ring-inset ring-cyan-500/30 rounded-[2rem] shadow-xl -z-20 pointer-events-none overflow-hidden" />
+                        <div className="absolute inset-0 bg-cyan-500/10 ring-1 ring-inset ring-cyan-500/30 rounded-[2rem] shadow-xl -z-20 pointer-events-none overflow-hidden" />
                         <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/20 blur-[80px] rounded-full -z-10 group-hover:bg-cyan-400/30 transition-all duration-700 pointer-events-none translate-x-1/3 -translate-y-1/3" />
 
                         <div className="flex items-center gap-3 mb-4">
@@ -308,7 +303,7 @@ export default function Finance() {
 
                     {/* Saídas */}
                     <div className="relative flex flex-col p-8 isolate group h-full">
-                        <div className="absolute inset-0 bg-rose-500/10 backdrop-blur-xl ring-1 ring-inset ring-rose-500/30 rounded-[2rem] shadow-xl -z-20 pointer-events-none overflow-hidden" />
+                        <div className="absolute inset-0 bg-rose-500/10 ring-1 ring-inset ring-rose-500/30 rounded-[2rem] shadow-xl -z-20 pointer-events-none overflow-hidden" />
                         <div className="absolute top-0 right-0 w-48 h-48 bg-rose-500/20 blur-[80px] rounded-full -z-10 group-hover:bg-rose-400/30 transition-all duration-700 pointer-events-none translate-x-1/3 -translate-y-1/3" />
 
                         <div className="flex items-center gap-3 mb-4">
@@ -327,7 +322,7 @@ export default function Finance() {
 
                 {/* Transitions List */}
                 <div className="relative flex flex-col rounded-[2.5rem] p-4 sm:p-8 shadow-2xl isolate">
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[50px] ring-1 ring-inset ring-white/10 rounded-[2.5rem] -z-10 overflow-hidden pointer-events-none" />
+                    <div className="absolute inset-0 bg-black/40 ring-1 ring-inset ring-white/10 rounded-[2.5rem] -z-10 overflow-hidden pointer-events-none" />
 
                     <div className="flex items-center gap-4 mb-8 pl-4">
                         <CalendarDays className="w-5 h-5 text-white/40" />
@@ -395,9 +390,9 @@ export default function Finance() {
             {/* Create Transation Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsModalOpen(false)} />
+                    <div className="absolute inset-0 bg-black/80 " onClick={() => setIsModalOpen(false)} />
 
-                    <div className="relative bg-[#080808]/90 backdrop-blur-2xl ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] transform transition-all flex flex-col mx-auto my-auto font-sans overflow-hidden">
+                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] transform transition-all flex flex-col mx-auto my-auto font-sans overflow-hidden">
                         <button type="button" onClick={() => setIsModalOpen(false)} className="absolute top-5 right-5 z-20 text-white/30 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-3 rounded-full border border-transparent hover:border-white/10 shrink-0">
                             <X className="w-5 h-5" />
                         </button>

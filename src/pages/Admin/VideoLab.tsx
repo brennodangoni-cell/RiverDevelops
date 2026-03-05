@@ -835,9 +835,9 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
     };
 
     return (
-        <div className="min-h-screen bg-[#030303] text-zinc-300 font-sans selection:bg-cyan-500/30 relative overflow-hidden">
+        <div className="min-h-screen bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a] text-zinc-300 font-sans selection:bg-cyan-500/30 relative overflow-hidden">
             {/* Glassmorphic Header */}
-            <header className="fixed top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-sm border-b border-white/5 px-6 h-16 flex items-center justify-between">
+            <header className="fixed top-0 left-0 right-0 z-50 bg-black/40 border-b border-white/5 px-6 h-16 flex items-center justify-between">
                 <div className="flex items-center gap-6">
                     <Link to="/admin" className="p-2 hover:bg-white/5 rounded-full transition-colors">
                         <ChevronLeft className="w-5 h-5 text-zinc-400" />
@@ -898,7 +898,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
             {/* === FAVORITES PANEL === */}
             <AnimatePresence>
                 {showFavorites && (
-                    <motion.div initial={{ opacity: 0, x: 300 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 300 }} className="fixed top-16 right-0 bottom-0 w-96 z-40 bg-black/90 backdrop-blur-sm border-l border-white/5 overflow-y-auto">
+                    <motion.div initial={{ opacity: 0, x: 300 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 300 }} className="fixed top-16 right-0 bottom-0 w-96 z-40 bg-black/90 border-l border-white/5 overflow-y-auto">
                         <div className="p-6 space-y-4">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-sm font-semibold text-white flex items-center gap-2"><Star className="w-4 h-4 text-yellow-400" /> Favoritos</h3>
@@ -927,7 +927,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
             {/* === MOCKUP LIBRARY PANEL === */}
             <AnimatePresence>
                 {showMockupLib && (
-                    <motion.div initial={{ opacity: 0, x: 300 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 300 }} className="fixed top-16 right-0 bottom-0 w-96 z-40 bg-black/90 backdrop-blur-sm border-l border-white/5 overflow-y-auto">
+                    <motion.div initial={{ opacity: 0, x: 300 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 300 }} className="fixed top-16 right-0 bottom-0 w-96 z-40 bg-black/90 border-l border-white/5 overflow-y-auto">
                         <div className="p-6 space-y-4">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-sm font-semibold text-white flex items-center gap-2"><BookImage className="w-4 h-4 text-purple-400" /> Biblioteca de Mockups</h3>
@@ -982,7 +982,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                     {/* STEP 1: IMPORT */}
                     {step === 1 && (
                         <motion.div key="s1" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="flex flex-col items-center">
-                            <div className="w-full max-w-2xl bg-zinc-900/40 border border-white/[0.05] backdrop-blur-sm rounded-3xl p-12 text-center shadow-xl">
+                            <div className="w-full max-w-2xl bg-zinc-900/40 border border-white/[0.05] rounded-3xl p-12 text-center shadow-xl">
                                 <input type="file" multiple accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
 
                                 <div
@@ -1013,7 +1013,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                                     className="relative flex-1 max-w-[6rem] aspect-square rounded-xl overflow-hidden border border-white/10 group shadow-lg"
                                                 >
                                                     <img src={url} className="w-full h-full object-cover" alt="Uploaded" />
-                                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm">
+                                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center ">
                                                         <button onClick={(e) => { e.stopPropagation(); removeImage(idx); }} className="p-1.5 sm:p-2 bg-red-500/80 hover:bg-red-500 rounded-full text-white transition-colors">
                                                             <X className="w-3 h-3 sm:w-4 sm:h-4" />
                                                         </button>
@@ -1070,7 +1070,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
 
                             {/* Left Column: Summary & Mode */}
                             <div className="lg:col-span-4 space-y-6">
-                                <div className="bg-zinc-900/40 border border-white/[0.05] backdrop-blur-sm rounded-3xl p-8 space-y-6 shadow-xl">
+                                <div className="bg-zinc-900/40 border border-white/[0.05] rounded-3xl p-8 space-y-6 shadow-xl">
                                     <div className="space-y-2">
                                         <div className="flex items-center justify-between">
                                             <label className="text-[9px] font-semibold text-cyan-500 uppercase tracking-[0.2em]">Identified Subject</label>
@@ -1170,7 +1170,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
 
                             {/* Right Column: Detailed Configuration */}
                             <div className="lg:col-span-8 space-y-6">
-                                <div className="bg-zinc-900/40 border border-white/[0.05] backdrop-blur-sm rounded-3xl p-8 shadow-xl">
+                                <div className="bg-zinc-900/40 border border-white/[0.05] rounded-3xl p-8 shadow-xl">
                                     <div className="flex items-center gap-3 mb-8">
                                         <Settings2 className="w-5 h-5 text-zinc-400" />
                                         <h3 className="text-sm font-medium tracking-tight text-white">
@@ -1441,7 +1441,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
 
                             {/* Progress Indicator */}
                             {(isGenerating || isContinuing) && (
-                                <div className="bg-zinc-900/40 border border-cyan-500/20 backdrop-blur-xl rounded-3xl p-8 mb-10 shadow-md">
+                                <div className="bg-zinc-900/40 border border-cyan-500/20 rounded-3xl p-8 mb-10 shadow-md">
                                     <div className="flex items-center justify-between mb-5">
                                         <div className="flex items-center gap-4">
                                             <Loader2 className="w-5 h-5 animate-spin text-cyan-400" />
@@ -1458,7 +1458,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                             {/* Storyboard List - Director's Timeline */}
                             <div className="relative border-l border-white/10 pl-8 ml-4 space-y-12 pb-10">
                                 {results.map((res, i) => (
-                                    <div key={i} className="relative bg-zinc-900/40 border border-white/5 backdrop-blur-sm rounded-2xl overflow-hidden flex flex-col lg:flex-row shadow-xl group transition-all hover:border-white/10">
+                                    <div key={i} className="relative bg-zinc-900/40 border border-white/5 rounded-2xl overflow-hidden flex flex-col lg:flex-row shadow-xl group transition-all hover:border-white/10">
 
                                         {/* Timeline Node */}
                                         <div className="absolute -left-[41px] top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-black border-2 border-cyan-500/50 flex items-center justify-center shadow-md z-10 group-hover:border-cyan-400 group-hover:scale-110 transition-all">
@@ -1480,19 +1480,19 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                                                     <img src={res.mockupUrl} className="w-full h-full object-cover" alt="Result" />
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
                                                     <div className="absolute top-4 right-4 flex gap-2 z-10">
-                                                        <button onClick={(e) => { e.stopPropagation(); copyMockupImage(res.mockupUrl!); }} className="w-9 h-9 bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-cyan-500 hover:scale-110 shadow-lg border border-white/10 transition-all" title="Copiar mockup">
+                                                        <button onClick={(e) => { e.stopPropagation(); copyMockupImage(res.mockupUrl!); }} className="w-9 h-9 bg-black/70 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-cyan-500 hover:scale-110 shadow-lg border border-white/10 transition-all" title="Copiar mockup">
                                                             <Copy className="w-4 h-4" />
                                                         </button>
-                                                        <button onClick={(e) => { e.stopPropagation(); saveMockupToLibrary(res.mockupUrl!, `Cena ${i + 1}`); }} className="w-9 h-9 bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-purple-500 hover:scale-110 shadow-lg border border-white/10 transition-all" title="Salvar na galeria">
+                                                        <button onClick={(e) => { e.stopPropagation(); saveMockupToLibrary(res.mockupUrl!, `Cena ${i + 1}`); }} className="w-9 h-9 bg-black/70 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-purple-500 hover:scale-110 shadow-lg border border-white/10 transition-all" title="Salvar na galeria">
                                                             <BookImage className="w-4 h-4" />
                                                         </button>
-                                                        <a href={res.mockupUrl} download onClick={(e) => e.stopPropagation()} className="w-9 h-9 bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-cyan-500 hover:scale-110 shadow-lg border border-white/10 transition-all" title="Baixar mockup">
+                                                        <a href={res.mockupUrl} download onClick={(e) => e.stopPropagation()} className="w-9 h-9 bg-black/70 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-cyan-500 hover:scale-110 shadow-lg border border-white/10 transition-all" title="Baixar mockup">
                                                             <Download className="w-4 h-4" />
                                                         </a>
                                                     </div>
                                                     <div className="absolute bottom-6 left-6 flex gap-2 pointer-events-none">
-                                                        <span className="bg-black/60 backdrop-blur-sm text-[9px] font-semibold text-cyan-400 px-3 py-1.5 rounded-full border border-cyan-500/30 uppercase tracking-wider">AI Master Take</span>
-                                                        <span className="bg-black/60 backdrop-blur-sm text-[9px] font-semibold text-zinc-300 px-3 py-1.5 rounded-full border border-white/10 uppercase tracking-wider">1K RAW</span>
+                                                        <span className="bg-black/60 text-[9px] font-semibold text-cyan-400 px-3 py-1.5 rounded-full border border-cyan-500/30 uppercase tracking-wider">AI Master Take</span>
+                                                        <span className="bg-black/60 text-[9px] font-semibold text-zinc-300 px-3 py-1.5 rounded-full border border-white/10 uppercase tracking-wider">1K RAW</span>
                                                     </div>
                                                 </>
                                             ) : (
@@ -1638,7 +1638,7 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-center justify-center p-8"
+                        className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-8"
                         onClick={() => setLightboxUrl(null)}
                     >
                         <motion.div
@@ -1651,13 +1651,13 @@ rigidity_sole=${dna.rigidity?.sole || ''}` : '';
                         >
                             <img src={lightboxUrl} className="max-w-full max-h-[85vh] rounded-2xl shadow-xl border border-white/10 object-contain" alt="Mockup Full" />
                             <div className="absolute top-4 right-4 flex gap-2">
-                                <button onClick={() => copyMockupImage(lightboxUrl)} className="w-10 h-10 bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-cyan-500 transition-all border border-white/20" title="Copiar">
+                                <button onClick={() => copyMockupImage(lightboxUrl)} className="w-10 h-10 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-cyan-500 transition-all border border-white/20" title="Copiar">
                                     <Copy className="w-4 h-4" />
                                 </button>
-                                <a href={lightboxUrl} download className="w-10 h-10 bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-cyan-500 transition-all border border-white/20" title="Baixar">
+                                <a href={lightboxUrl} download className="w-10 h-10 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-cyan-500 transition-all border border-white/20" title="Baixar">
                                     <Download className="w-4 h-4" />
                                 </a>
-                                <button onClick={() => setLightboxUrl(null)} className="w-10 h-10 bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-red-500 transition-all border border-white/20" title="Fechar">
+                                <button onClick={() => setLightboxUrl(null)} className="w-10 h-10 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-red-500 transition-all border border-white/20" title="Fechar">
                                     <X className="w-4 h-4" />
                                 </button>
                             </div>

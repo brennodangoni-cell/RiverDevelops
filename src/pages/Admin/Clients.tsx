@@ -243,18 +243,16 @@ export default function AdminClients() {
         }
     };
 
-    if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#030303]"><Loader2 className="w-6 h-6 animate-spin text-cyan-400" /></div>;
+    if (loading) return <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a]"><Loader2 className="w-6 h-6 animate-spin text-cyan-400" /></div>;
 
     return (
-        <div className="min-h-screen font-sans text-white relative bg-[#030303]">
-            {/* Background elements to match Dashboard */}
-            <div className="fixed inset-0 pointer-events-none" style={{ backgroundImage: 'url(/bgtasks.webp)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
+        <div className="min-h-screen font-sans text-white relative bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a]">
 
             <main className="max-w-[1600px] mx-auto px-4 sm:px-6 md:px-10 pt-[160px] lg:pt-[180px] min-h-[100dvh] relative z-10 pb-12 flex flex-col items-center lg:items-start">
 
                 {!selectedClient ? (
                     <div className="w-full flex flex-col items-center">
-                        <div className="w-full max-w-[1500px] flex flex-col md:flex-row items-center justify-between mb-10 bg-white/5 border border-white/10 rounded-[3rem] p-4 sm:p-6 backdrop-blur-xl gap-6">
+                        <div className="w-full max-w-[1500px] flex flex-col md:flex-row items-center justify-between mb-10 bg-white/5 border border-white/10 rounded-[3rem] p-4 sm:p-6 gap-6">
                             <div className="flex items-center gap-4 w-full md:w-auto">
                                 <button onClick={() => navigate('/admin')} className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors shrink-0 text-white/50 hover:text-cyan-400">
                                     <ArrowLeft className="w-5 h-5" />
@@ -289,7 +287,7 @@ export default function AdminClients() {
                         ) : (
                             <div className="w-full max-w-[1500px] grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
                                 {clients.filter(c => c.username.toLowerCase().includes(searchQuery.toLowerCase()) || c.niche?.toLowerCase().includes(searchQuery.toLowerCase())).map(client => (
-                                    <div key={client.id} className="relative group bg-white/5 border border-white/10 rounded-[2rem] p-6 hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer overflow-hidden backdrop-blur-xl" onClick={() => handleSelectClient(client)}>
+                                    <div key={client.id} className="relative group bg-white/5 border border-white/10 rounded-[2rem] p-6 hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer overflow-hidden " onClick={() => handleSelectClient(client)}>
                                         <div className="flex flex-col h-full z-10 relative">
                                             <div className="flex items-start justify-between mb-6">
                                                 <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-white/10 flex items-center justify-center shadow-lg relative overflow-hidden group-hover:scale-105 transition-transform duration-300">
@@ -323,7 +321,7 @@ export default function AdminClients() {
                     </div>
                 ) : (
                     <div className="w-full flex flex-col items-center">
-                        <div className="w-full max-w-[1500px] flex flex-col md:flex-row items-center justify-between mb-8 gap-6 bg-black/40 border border-white/10 rounded-[3rem] p-6 md:p-8 backdrop-blur-xl">
+                        <div className="w-full max-w-[1500px] flex flex-col md:flex-row items-center justify-between mb-8 gap-6 bg-black/40 border border-white/10 rounded-[3rem] p-6 md:p-8 ">
                             <div className="flex items-center gap-6">
                                 <button onClick={() => setSelectedClient(null)} className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors shrink-0">
                                     <ArrowLeft className="w-5 h-5" />
@@ -405,7 +403,7 @@ export default function AdminClients() {
                                     <div key={item.id} className="group relative bg-[#0A0A0A] border border-white/10 rounded-[2rem] overflow-hidden hover:border-white/20 transition-all hover:shadow-2xl hover:shadow-cyan-500/10 flex flex-col pb-4">
 
                                         <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => handleDeleteContent(item.id)} className="w-8 h-8 rounded-full bg-red-500/80 backdrop-blur-md flex items-center justify-center text-white hover:bg-red-500 hover:scale-110 transition-all">
+                                            <button onClick={() => handleDeleteContent(item.id)} className="w-8 h-8 rounded-full bg-red-500/80 flex items-center justify-center text-white hover:bg-red-500 hover:scale-110 transition-all">
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
                                         </div>
@@ -415,7 +413,7 @@ export default function AdminClients() {
                                                 <div className="w-full h-full relative">
                                                     <video src={getMediaUrl(item.media_url)} className="w-full h-full object-cover" muted loop playsInline onMouseEnter={e => e.currentTarget.play()} onMouseLeave={e => e.currentTarget.pause()} />
                                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                                        <div className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/20 flex items-center justify-center">
+                                                        <div className="w-12 h-12 rounded-full bg-black/40 border border-white/20 flex items-center justify-center">
                                                             <Video className="w-5 h-5 text-white/80" />
                                                         </div>
                                                     </div>
@@ -444,8 +442,8 @@ export default function AdminClients() {
             {/* Create/Edit Client Modal */}
             {isClientModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => !clientSaving && setIsClientModalOpen(false)} />
-                    <div className="relative bg-[#080808]/90 backdrop-blur-2xl ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-md shadow-2xl p-10 flex flex-col items-center">
+                    <div className="absolute inset-0 bg-black/80 " onClick={() => !clientSaving && setIsClientModalOpen(false)} />
+                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-md shadow-2xl p-10 flex flex-col items-center">
                         {!clientSaving && <button type="button" onClick={() => setIsClientModalOpen(false)} className="absolute top-5 right-5 text-white/30 hover:text-white bg-white/5 p-3 rounded-full"><X className="w-5 h-5" /></button>}
 
                         <h2 className="text-xl font-display font-medium text-white mb-2 tracking-widest uppercase mt-4">{isEditing ? 'Editar Cliente' : 'Novo Cliente'}</h2>
@@ -505,8 +503,8 @@ export default function AdminClients() {
             {/* Upload Content Modal */}
             {isUploadModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => !uploading && setIsUploadModalOpen(false)} />
-                    <div className="relative bg-[#080808]/90 backdrop-blur-2xl ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg shadow-2xl p-8 sm:p-10 flex flex-col">
+                    <div className="absolute inset-0 bg-black/80 " onClick={() => !uploading && setIsUploadModalOpen(false)} />
+                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg shadow-2xl p-8 sm:p-10 flex flex-col">
                         {!uploading && <button type="button" onClick={() => setIsUploadModalOpen(false)} className="absolute top-5 right-5 text-white/30 hover:text-white bg-white/5 p-3 rounded-full z-10"><X className="w-5 h-5" /></button>}
 
                         <div className="text-center mb-8 relative z-0">

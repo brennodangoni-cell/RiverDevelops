@@ -27,13 +27,10 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans text-white bg-black" style={{ backgroundImage: 'url(/bgtasks.webp)', backgroundSize: 'cover', backgroundAttachment: 'fixed', backgroundPosition: 'center' }}>
-
-            {/* Dark overlay for readability, no blur */}
-            <div className="absolute inset-0 bg-black/60 pointer-events-none" />
+        <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans text-white bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a]">
 
             {/* Login Glass Card */}
-            <div className="z-10 w-full max-w-[420px] bg-black/40 border border-white/10 p-10 sm:p-12 rounded-3xl backdrop-blur-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] relative group">
+            <div className="z-10 w-full max-w-[420px] bg-[#141414] border border-white/5 p-10 sm:p-12 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] relative group">
                 {/* Top thin luminous line */}
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent" />
 
