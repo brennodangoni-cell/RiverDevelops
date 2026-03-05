@@ -80,8 +80,8 @@ export default function AdminClients() {
     const navigate = useNavigate();
 
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-    const [uploadData, setUploadData] = useState({ title: '', category: '', product: '', week_date: '' });
-    const [uploadFile, setUploadFile] = useState<File | null>(null);
+    const [uploadData, setUploadData] = useState({ title: '', week_date: new Date().toISOString().slice(0, 10) });
+    const [uploadFiles, setUploadFiles] = useState<File[]>([]);
     const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
@@ -215,30 +215,28 @@ export default function AdminClients() {
     const handleUploadContent = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedClient) return;
-        if (!uploadFile) {
-            toast.error('Selecione um arquivo.');
+        if (uploadFiles.length === 0) {
+            toast.error('Selecione pelo menos um arquivo (vídeo ou imagem).');
             return;
         }
 
         setUploading(true);
         const formData = new FormData();
         formData.append('title', uploadData.title);
-        formData.append('category', uploadData.category);
-        formData.append('product', uploadData.product);
         formData.append('week_date', uploadData.week_date);
-        formData.append('mediaFile', uploadFile);
+        uploadFiles.forEach(f => formData.append('mediaFiles', f));
 
         try {
-            await axios.post(`/api/admin/clients/${selectedClient.id}/content`, formData, {
+            const res = await axios.post(`/api/admin/clients/${selectedClient.id}/content`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            toast.success('Conteúdo enviado com sucesso!');
+            toast.success(`${res.data?.count ?? uploadFiles.length} arquivo(s) enviado(s)!`);
             setIsUploadModalOpen(false);
-            setUploadData({ title: '', category: '', product: '', week_date: '' });
-            setUploadFile(null);
+            setUploadData({ title: '', week_date: new Date().toISOString().slice(0, 10) });
+            setUploadFiles([]);
             fetchContent(selectedClient.id);
-        } catch (error) {
-            toast.error('Erro ao enviar conteúdo.');
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || 'Erro ao enviar conteúdo.');
         } finally {
             setUploading(false);
         }
@@ -573,29 +571,34 @@ export default function AdminClients() {
             {isUploadModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => !uploading && setIsUploadModalOpen(false)} />
-                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform  flex flex-col mx-auto my-auto overflow-hidden">
-                        {!uploading && <button type="button" onClick={() => setIsUploadModalOpen(false)} className="absolute top-5 right-5 z-20 text-white/30 hover:text-white bg-white/5 p-3 rounded-full z-20 border border-transparent hover:border-white/10 opacity-70 hover:opacity-100 transition-all"><X className="w-5 h-5" /></button>}
+                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform flex flex-col mx-auto my-auto overflow-hidden">
+                        {!uploading && <button type="button" onClick={() => setIsUploadModalOpen(false)} className="absolute top-5 right-5 z-20 text-white/30 hover:text-white bg-white/5 p-3 rounded-full border border-transparent hover:border-white/10 opacity-70 hover:opacity-100 transition-all"><X className="w-5 h-5" /></button>}
 
                         <div className="p-[clamp(1.5rem,4vh,2.5rem)] flex-1 relative z-10 w-full flex flex-col items-center gap-[clamp(1rem,3vh,1.5rem)] overflow-y-auto custom-scrollbar max-h-[90vh]">
                             <div className="w-full text-center shrink-0 mb-[clamp(0.5rem,2vh,1rem)]">
-                                <h2 className="text-[clamp(1.25rem,4vh,1.5rem)] font-display font-medium text-white mb-1 tracking-wide uppercase">Subir Arquivo</h2>
-                                <p className="text-[10px] sm:text-xs text-white/40 tracking-wider">Organize a entrega para {selectedClient?.username}</p>
+                                <h2 className="text-[clamp(1.25rem,4vh,1.5rem)] font-display font-medium text-white mb-1 tracking-wide uppercase">Enviar Entrega</h2>
+                                <p className="text-[10px] sm:text-xs text-white/40 tracking-wider">Material pronto para {selectedClient?.username}</p>
                             </div>
 
                             <form onSubmit={handleUploadContent} className="w-full flex flex-col gap-[clamp(0.75rem,2.5vh,1.25rem)]">
-                                <div className="flex gap-4">
-                                    <input required type="text" value={uploadData.category} onChange={e => setUploadData({ ...uploadData, category: e.target.value })} className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-sm outline-none focus:border-emerald-400/50 font-light placeholder:text-white/20 transition-all" placeholder="Categoria (ex: Feed, Reels)" />
-                                    <input required type="text" value={uploadData.week_date} onChange={e => setUploadData({ ...uploadData, week_date: e.target.value })} className="w-1/3 bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-sm outline-none focus:border-emerald-400/50 font-light placeholder:text-white/20 transition-all" placeholder="Semana/Data" />
-                                </div>
-                                <input required type="text" value={uploadData.product} onChange={e => setUploadData({ ...uploadData, product: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-sm outline-none focus:border-emerald-400/50 font-light placeholder:text-white/20 transition-all" placeholder="Produto Referente" />
-                                <input type="text" value={uploadData.title} onChange={e => setUploadData({ ...uploadData, title: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-sm outline-none focus:border-emerald-400/50 font-light placeholder:text-white/20 transition-all" placeholder="Título (Opcional)" />
+                                <input required type="text" value={uploadData.title} onChange={e => setUploadData({ ...uploadData, title: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-sm outline-none focus:border-emerald-400/50 font-light placeholder:text-white/30 transition-all" placeholder="Título" />
 
-                                <label className="w-full bg-white/[0.02] border-2 border-dashed border-white/10 hover:border-emerald-400/50 rounded-3xl p-[clamp(1.5rem,4vh,2.5rem)] flex flex-col items-center justify-center cursor-pointer group transition-all shrink-0">
-                                    <input type="file" required accept="image/*,video/*" onChange={e => setUploadFile(e.target.files?.[0] || null)} className="hidden" />
-                                    {uploadFile ? (
-                                        <div className="flex flex-col items-center">
-                                            <FileText className="w-8 h-8 text-emerald-400 mb-2" />
-                                            <span className="text-xs font-medium text-white/80 text-center max-w-[200px] truncate">{uploadFile.name}</span>
+                                <div className="relative flex items-center gap-3">
+                                    <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest shrink-0 w-12">Data</label>
+                                    <input type="date" value={uploadData.week_date} onChange={e => setUploadData({ ...uploadData, week_date: e.target.value })} className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-sm outline-none focus:border-emerald-400/50 font-light transition-all [color-scheme:dark] [&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-datetime-edit]:text-white/90" />
+                                    <Calendar className="w-5 h-5 text-white/30 shrink-0" />
+                                </div>
+
+                                <label className="w-full bg-white/[0.02] border-2 border-dashed border-white/10 hover:border-emerald-400/50 rounded-3xl p-[clamp(1.5rem,4vh,2.5rem)] flex flex-col items-center justify-center cursor-pointer group transition-all shrink-0 min-h-[140px]">
+                                    <input type="file" accept="image/*,video/*" multiple onChange={e => setUploadFiles(Array.from(e.target.files || []))} className="hidden" />
+                                    {uploadFiles.length > 0 ? (
+                                        <div className="flex flex-col items-center gap-2">
+                                            <div className="flex gap-2 text-emerald-400">
+                                                <ImageIcon className="w-6 h-6" />
+                                                <Video className="w-6 h-6" />
+                                            </div>
+                                            <span className="text-xs font-medium text-white/80 text-center">{uploadFiles.length} arquivo(s) selecionado(s)</span>
+                                            <span className="text-[10px] text-white/40 truncate max-w-[220px]">{uploadFiles.map(f => f.name).join(', ')}</span>
                                         </div>
                                     ) : (
                                         <div className="flex flex-col items-center">
@@ -603,13 +606,13 @@ export default function AdminClients() {
                                                 <ImageIcon className="w-6 h-6" />
                                                 <Video className="w-6 h-6" />
                                             </div>
-                                            <span className="text-[10px] font-bold uppercase tracking-widest text-white/50 group-hover:text-emerald-400">Selecionar Arquivo</span>
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-white/50 group-hover:text-emerald-400">Vídeos e imagens (vários de uma vez)</span>
                                         </div>
                                     )}
                                 </label>
 
-                                <button type="submit" disabled={uploading} className="w-full mt-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400 disabled:opacity-50 text-emerald-400 font-bold uppercase tracking-widest text-[clamp(0.6rem,1.5vh,0.7rem)] py-[clamp(1rem,2.8vh,1.25rem)] rounded-xl flex justify-center items-center transition-all">
-                                    {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Começar Upload'}
+                                <button type="submit" disabled={uploading || uploadFiles.length === 0} className="w-full mt-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400 disabled:opacity-50 disabled:pointer-events-none font-bold uppercase tracking-widest text-[clamp(0.6rem,1.5vh,0.7rem)] py-[clamp(1rem,2.8vh,1.25rem)] rounded-xl flex justify-center items-center transition-all">
+                                    {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Enviar Tudo'}
                                 </button>
                             </form>
                         </div>

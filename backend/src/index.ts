@@ -376,31 +376,36 @@ app.get('/api/admin/clients', authenticate, async (req: Request, res: Response) 
     }
 });
 
-app.post('/api/admin/clients/:clientId/content', authenticate, upload.single('mediaFile'), async (req: Request, res: Response) => {
+app.post('/api/admin/clients/:clientId/content', authenticate, upload.array('mediaFiles', 50), async (req: Request, res: Response) => {
     const { clientId } = req.params;
-    const { title, category, product, week_date, media_url, media_type } = req.body;
+    const { title, week_date } = req.body;
+    const files = (req.files as Express.Multer.File[]) || [];
     try {
-        let finalMediaUrl = media_url;
-        let finalMediaType = media_type;
-        if (req.file) {
-            finalMediaUrl = await uploadToSupabase(req.file);
-            finalMediaType = req.file.mimetype.startsWith('video/') ? 'video' : 'image';
+        if (files.length === 0) {
+            return res.status(400).json({ error: 'Selecione pelo menos um arquivo (vídeo ou imagem).' });
         }
 
-        const payload = {
-            client_id: parseInt(clientId as string),
-            title: title || '',
-            category: category || '',
-            product: product || '',
-            week_date: week_date || '',
-            media_url: finalMediaUrl,
-            media_type: finalMediaType || 'image'
-        };
+        const dateStr = week_date || new Date().toISOString().slice(0, 10);
+        const inserted: string[] = [];
 
-        const { error } = await supabase.from('client_content').insert([payload]);
-        if (error) throw error;
+        for (const file of files) {
+            const finalMediaUrl = await uploadToSupabase(file);
+            const finalMediaType = file.mimetype.startsWith('video/') ? 'video' : 'image';
+            const payload = {
+                client_id: parseInt(clientId as string),
+                title: title || file.originalname || 'Sem título',
+                category: '',
+                product: '',
+                week_date: dateStr,
+                media_url: finalMediaUrl,
+                media_type: finalMediaType
+            };
+            const { error } = await supabase.from('client_content').insert([payload]);
+            if (error) throw error;
+            inserted.push(finalMediaUrl);
+        }
 
-        res.json({ success: true, url: finalMediaUrl });
+        res.json({ success: true, count: inserted.length, urls: inserted });
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }
