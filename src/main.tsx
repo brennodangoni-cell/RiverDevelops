@@ -14,8 +14,9 @@ import ClientDashboard from './pages/Client/Dashboard.tsx'
 import './index.css'
 import axios from 'axios'
 
-// Set globally the Railway API base URL
-axios.defaults.baseURL = 'https://river-tasks-production.up.railway.app';
+// Set globally the API base URL (Vercel Env or Localhost)
+// @ts-ignore
+axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const router = createBrowserRouter([
     {
