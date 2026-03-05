@@ -10,11 +10,12 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import axios from 'axios';
-import { analyzeProduct, analyzeScenery, generatePrompts, generateMockup, AIError, ProductAnalysis, SceneryAnalysis } from '../../services/ai';
+import { analyzeProduct, analyzeScenery, generatePrompts, generateMockup, generateVideo, AIError, ProductAnalysis, SceneryAnalysis } from '../../services/ai';
 
 interface Result {
     prompt: string;
     mockupUrl: string | null;
+    videoUrl?: string | null;
     feedback?: string;
     feedbackHistory?: string[];
     refineMode?: 'both' | 'prompt' | 'mockup';
@@ -130,6 +131,7 @@ export default function VideoLab() {
     const [favorites, setFavorites] = useState<FavoriteProject[]>([]);
     const [savedMockups, setSavedMockups] = useState<SavedMockup[]>([]);
     const [renderAllOnInit, setRenderAllOnInit] = useState(false);
+    const [generateVideoVeo, setGenerateVideoVeo] = useState(false);
     const [sceneryData, setSceneryData] = useState<SceneryAnalysis | null>(null);
     const [loadingIndices, setLoadingIndices] = useState<number[]>([]);
     const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
@@ -350,6 +352,23 @@ export default function VideoLab() {
                     }
                     return updated;
                 });
+
+                // Gerar vídeo Veo 3.1 para a primeira cena (se habilitado)
+                if (generateVideoVeo && i === 0 && mockupUrl && prompts[i]) {
+                    setProgressText('Gerando vídeo Veo 3.1 (pode levar 2-5 min)...');
+                    try {
+                        const videoUrl = await generateVideo(prompts[i], mockupUrl, { aspectRatio: options.aspectRatio, durationSeconds: 8 });
+                        setResults(prev => {
+                            const updated = [...prev];
+                            if (updated[0]) updated[0] = { ...updated[0], videoUrl: videoUrl ?? undefined };
+                            return updated;
+                        });
+                        if (videoUrl) toast.success('Vídeo Veo 3.1 gerado!');
+                    } catch (e: any) {
+                        console.warn('Video generation failed:', e);
+                        toast.error(e instanceof AIError ? e.message : 'Erro ao gerar vídeo Veo.');
+                    }
+                }
 
                 // Small delay to allow UI to breathe
                 if (i < targets.length - 1) await new Promise(r => setTimeout(r, 1000));
@@ -1252,6 +1271,21 @@ export default function VideoLab() {
                                                 </div>
                                             </div>
                                         </div>
+
+                                        <div
+                                            onClick={() => setGenerateVideoVeo(!generateVideoVeo)}
+                                            className={`p-5 rounded-2xl border cursor-pointer transition-all ${generateVideoVeo ? 'bg-amber-500/5 border-amber-500/30' : 'bg-white/[0.02] border-white/5'}`}
+                                        >
+                                            <div className="flex items-start gap-4">
+                                                <div className={`mt-0.5 w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center transition-colors ${generateVideoVeo ? 'bg-amber-500 border-amber-400' : 'border-zinc-600'}`}>
+                                                    {generateVideoVeo && <Check className="w-2.5 h-2.5 text-black" />}
+                                                </div>
+                                                <div>
+                                                    <span className="text-xs font-semibold text-white block mb-1 flex items-center gap-2"><Video className="w-3.5 h-3.5" /> Gerar vídeo Veo 3.1 (8s)</span>
+                                                    <span className="text-[10px] text-zinc-400 leading-normal block">Após o mockup, gera um vídeo de 8 segundos com a cena. Usa o prompt + mockup como referência. Pode levar alguns minutos.</span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div className="mt-12">
@@ -1363,6 +1397,19 @@ export default function VideoLab() {
                                                 </div>
                                             )}
                                         </div>
+
+                                        {res.videoUrl && (
+                                            <div className="w-full lg:w-[480px] p-4 bg-black/30 border-b lg:border-r lg:border-b-0 border-white/5 flex flex-col">
+                                                <div className="flex items-center gap-2 mb-3">
+                                                    <Video className="w-4 h-4 text-amber-400" />
+                                                    <span className="text-[9px] font-bold uppercase tracking-wider text-amber-400">Vídeo Veo 3.1 (8s)</span>
+                                                </div>
+                                                <video src={res.videoUrl} controls className="w-full rounded-lg border border-white/10 aspect-video" playsInline />
+                                                <a href={res.videoUrl} download={`veo_cena_${i + 1}.mp4`} className="mt-3 text-[10px] font-semibold text-amber-400 hover:text-amber-300 uppercase tracking-wider flex items-center gap-2">
+                                                    <Download className="w-3.5 h-3.5" /> Baixar vídeo
+                                                </a>
+                                            </div>
+                                        )}
 
                                         {/* Prompt Section */}
                                         <div className="flex-1 p-8 lg:p-10 flex flex-col">

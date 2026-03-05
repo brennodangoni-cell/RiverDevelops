@@ -543,3 +543,70 @@ ${promptText ? `Contexto da cena: "${promptText.slice(0, 250)}"` : ''}`;
     }
     return null;
 }
+
+// =======================================================================
+// 4. GENERATE VIDEO (Veo 3.1) — 8s, opcional com mockup como referência
+// =======================================================================
+const VEO_MODELS = ["veo-3.1-generate-preview", "veo-2.0-generate-001"];
+const POLL_INTERVAL_MS = 15000;
+const MAX_POLL_MINUTES = 10;
+
+export async function generateVideo(
+    prompt: string,
+    mockupImageBase64?: string | null,
+    options?: { aspectRatio?: string; durationSeconds?: number }
+): Promise<string | null> {
+    const apiKey = getApiKey();
+    if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
+
+    const ai = new GoogleGenAI({ apiKey });
+    const duration = Math.min(8, options?.durationSeconds ?? 8); // Veo max 8s
+    const aspectRatio = options?.aspectRatio ?? "16:9";
+
+    const source: { prompt: string; image?: { imageBytes: string; mimeType: string } } = { prompt };
+    if (mockupImageBase64) {
+        const { data, mimeType } = parseBase64(mockupImageBase64);
+        source.image = { imageBytes: data, mimeType };
+    }
+
+    let operation: any;
+    try {
+        operation = await ai.models.generateVideos({
+            model: VEO_MODELS[0],
+            source,
+            config: {
+                durationSeconds: duration,
+                aspectRatio,
+                numberOfVideos: 1,
+                generateAudio: true
+            }
+        });
+    } catch (e: any) {
+        const classified = classifyError(e);
+        console.error("Video generation start failed:", classified.type, classified.message);
+        throw classified;
+    }
+
+    const startTime = Date.now();
+    while (!operation?.done) {
+        if (Date.now() - startTime > MAX_POLL_MINUTES * 60 * 1000) {
+            throw new AIError("Timeout: geração de vídeo excedeu o tempo limite.", "TIMEOUT", false);
+        }
+        await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
+        try {
+            operation = await ai.operations.getVideosOperation({ operation });
+        } catch (e: any) {
+            throw classifyError(e);
+        }
+    }
+
+    const video = operation?.response?.generatedVideos?.[0]?.video;
+    if (!video) return null;
+
+    if (video.uri) return video.uri;
+    if (video.videoBytes) {
+        const mime = video.mimeType || "video/mp4";
+        return `data:${mime};base64,${video.videoBytes}`;
+    }
+    return null;
+}
