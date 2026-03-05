@@ -337,11 +337,11 @@ Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. '
 
 1. "description" (ENGLISH, ultra-detailed):
     - Exact physical traits: shape, silhouette, weight distribution
-    - MICRO-PHYSICS: How the materials react to touch and pressure (e.g., "memory foam compression", "rigid plastic", "liquid viscosity")
+    - MICRO-PHYSICS: Describe EXACTLY how the materials react to pressure in millimeters (e.g., "visibly compresses by 1.5mm and rebounds in 0.2s"). MANDATORY.
     - Textures & Finishes: (matte, glossy, brushed, rubberized, porous)
     - Colors: Verbal description + precise material metaphors ONLY (e.g., "matte emerald green"). DO NOT use Hex codes (#).
     - QUANTITY: Exactly how many items (pair/set/single)?
-    - Branding: Exact placement and legibility of all logos/text.
+    - Branding & Logos: Exact placement, spelling, and physical nature (3D, printed, embossed).
 
 2. "productType" (PORTUGUESE): Short category name
 
@@ -597,42 +597,45 @@ export async function generateBlueprintFromMockup(
 
     const productLockLine = "Use the uploaded image(s) as the exact product reference.";
 
-    const promptContext = `You are a Senior Sora 2 Prompt Engineer. Sora tends to obey narrative order: if the prompt starts with the scene before the product, it treats the environment as protagonist and the product becomes background. ALWAYS put product lock first to lock the visual model.
+    const promptContext = `You are a Lead Sora 2 Technical Director. Sora 2 requires extreme physical and cinematic precision to prevent geometry drift. You will generate a prompt using a 4-LAYER TECHNICAL ARCHITECTURE.
 
-I have attached multiple images. The FIRST images are the original product photos (ground truth for logos, materials, exact shape). The LAST image is a concept mockup board (collage with MAIN HERO SHOT and detail panels).
+[ATTACHMENTS INFO]
+- FIRST IMAGES: Ground-truth product photos (look at logos, materials, exact silhouette).
+- LAST IMAGE: Agency Mockup (the visual target for the scene).
 
-YOUR TASK: Write a Sora 2 prompt with THREE CLEAR MENTAL LAYERS (this hierarchy dramatically improves results):
+YOUR TASK: Write a 250-400 word prompt with these layers IN ORDER:
 
-1. PRODUCT LOCK (first — what cannot change)
-   - Start with: "${productLockLine}"
-   - Add one line: Preserve [geometry, logo placement, texture, proportions, sole shape, material fidelity] — adapt to the product type.
-   - Use the ORIGINAL PHOTOS to describe the product with 100% accuracy.
+LAYER 1: GEOMETRIC FIDELITY LOCK (The anchor)
+- Start EXACTLY with: "${productLockLine}"
+- Describe the item's silhouette and geometry with 100% accuracy using the ground-truth photos.
+- Specify: "Preserve exact logo placement, material textures, and physical proportions."
+- Describe logos as 3D physical elements (e.g., "3D molded rubber logo", "embossed leather text").
 
-2. SHOT DESCRIPTION (the scene)
-   - Describe the environment, lighting, and action from the MAIN HERO SHOT in the mockup (LAST image). IGNORE macro panels and collage layout.
-   - Use simple, literal motion verbs: "calm walk", "slow stride", "fluid step" — NOT literary phrases like "meditative gait" (AI interprets poorly).
-   - The product must appear in context (e.g., "She wears [product]...").
-   - BE HIGHLY DETAILED. Expand significantly on the backdrop, the atmosphere, the elements in the scene, the lighting dynamics, and how the action unfolds chronologically. Make the scene rich and vivid.
+LAYER 2: MICRO-PHYSICS & TACTILE RESILIENCY (The material truth)
+- Describe how the materials react to physics in millimeters.
+- Use the user's signature style: "The [material] visibly compresses by 1-2mm under [pressure/movement] and resiliently rebounds to its original form."
+- Mention "memory foam-like adaptability", "fine-ribbed texture", "anatomical grooves".
+- Describe textures as surviving the motion (e.g., "knit pattern expands and contracts without losing its grid").
 
-3. CINEMATOGRAPHY (how to film)
-   - Describe camera movement: tracking shot, orbit, push-in, etc. Be specific.
-   - End with technical specs that reduce chaotic animations:
-     Duration: 10 seconds
-     Motion speed: slow cinematic movement
-     Lens: 50mm product commercial look
-   - Add: Style: premium product commercial, cinematic lighting, shallow depth of field, smooth motion, ultra-realistic.
+LAYER 3: NARRATIVE WORLD & AESTHETIC (The scene)
+- Describe the environment from the mockup's MAIN HERO SHOT.
+- Use "Material Metaphors" for ALL colors (e.g., "matte obsidian", "brushed titanium", "liquid mercury clouds").
+- Describe lighting with high-end terminology: "Diffused Golden Hour light", "Subtle caustics dancing across surfaces", "God rays piercing through atmospheric depth".
+- Actions must be technical: "slow stride", "ankle flex", "gentle compression".
 
-MANDATORY:
-- English only for the ENTIRE prompt. No markdown. Raw prompt text.
-- NEVER use Hexadecimal Color Codes (like #FFFFFF). Always translate colors to descriptive physical objects (like "snow white", "matte obsidian", "glossy cherry leather"). Sora does NOT understand HEX colors.
-- ANTI-STATIC: Camera MUST move dynamically in 3D space. Never static zoom/pan only.
-- Do NOT mention "collage", "panels", "split screen". Act as if the main hero shot is the entire world.
-- Length: 200-300 words to accommodate the highly detailed 3-layer structure.
+LAYER 4: TECHNICAL CINEMATOGRAPHY (The rig)
+- Be hyper-specific about the lens and movement.
+- Use professional rig commands: "35mm Anamorphic orbit", "50mm macro tracking shot", "micro-macro glide shot with a shallow depth of field".
+- End with: "Style: premium commercial, ultra-photorealistic, 10-second duration, smooth cinematic motion, zero-drift geometry."
 
-SCENE CONTEXT HINT: "${sceneConcept}"
-PRODUCT DNA HINT: "${productDescription}"
+[MANDATORY RULES]
+- NO HEX CODES (e.g. #000000). Use only verbal material metaphors.
+- NO "LUDIC" or "TOY" metaphors. Only High-Fashion/Luxury Commercial tone.
+- NO mentions of "collage", "panels", or "mockup". Act as if the hero shot is the real world.
+- NARRATIVE CHRONOLOGY: Start with the product, move to the interaction, end with the lighting.
 
-Output a prompt whose first frame matches the main hero shot exactly, then bursts into cinematic motion.`;
+CONTEXT: ${sceneConcept}
+DATA: ${productDescription}`;
 
     const models = engine === 'speed' ? ["gemini-2.5-flash"] : BRAIN_MODELS; // We use brain models capable of vision
 

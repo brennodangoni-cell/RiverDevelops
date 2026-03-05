@@ -370,25 +370,8 @@ export default function Dashboard() {
                             </div>
                         </div>
 
-                        {/* Center (User Selection Switcher) */}
-                        <div className="flex items-center justify-center w-fit max-w-full mx-auto overflow-x-auto custom-scrollbar md:absolute md:left-1/2 md:-translate-x-1/2 bg-black/40 rounded-full border border-white/5 p-1 gap-1">
-                            {[...users].sort((a, b) => {
-                                if (a.id === currentUser.id) return -1;
-                                if (b.id === currentUser.id) return 1;
-                                return 0;
-                            }).map(u => {
-                                const isCurrentUser = u.id === currentUser.id;
-                                return (
-                                    <button
-                                        key={u.id}
-                                        onClick={() => setViewingUserId(u.id)}
-                                        className={`px-4 py-1.5 rounded-full text-[9px] font-bold tracking-widest uppercase   shrink-0 ${viewingUserId === u.id ? 'bg-white/10 text-white border border-white/10' : 'text-white/30 hover:text-white/70 border border-transparent'}`}
-                                    >
-                                        {isCurrentUser ? 'VOCÊ' : u.username.split(' ')[0]}
-                                    </button>
-                                );
-                            })}
-                        </div>
+                        {/* Center (Empty to give space) */}
+                        <div className="flex-1" />
 
                         {/* Desktop CTA + User Area (Hidden on Mobile) */}
                         <div className="hidden md:flex items-center gap-4 shrink-0">
@@ -402,29 +385,32 @@ export default function Dashboard() {
                             </Link>
                             <Link
                                 to="/admin/laboratorio"
-                                className="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center hover:bg-cyan-500/20 hover:border-cyan-500   shrink-0"
+                                className="h-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center px-4 hover:bg-cyan-500/20 hover:border-cyan-500   shrink-0 gap-2"
                                 title="Laboratório IA"
                             >
                                 <Sparkles className="w-4 h-4" />
+                                <span className="font-bold text-[10px] tracking-widest uppercase">Lab</span>
                             </Link>
                             <Link
                                 to="/admin/clientes"
-                                className="w-10 h-10 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center hover:bg-purple-500/20 hover:border-purple-500   shrink-0"
+                                className="h-10 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center px-4 hover:bg-purple-500/20 hover:border-purple-500   shrink-0 gap-2"
                                 title="Gestão de Clientes"
                             >
                                 <Users className="w-4 h-4" />
+                                <span className="font-bold text-[10px] tracking-widest uppercase">Clientes</span>
                             </Link>
                             <button
                                 onClick={() => setIsHistoryModalOpen(true)}
-                                className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center hover:bg-amber-500/20 hover:border-amber-500   shrink-0"
+                                className="h-10 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center px-4 hover:bg-amber-500/20 hover:border-amber-500   shrink-0 gap-2"
                                 title="Histórico de Tarefas"
                             >
                                 <Clock className="w-4 h-4" />
+                                <span className="font-bold text-[10px] tracking-widest uppercase">Histórico</span>
                             </button>
 
                             <button
                                 onClick={() => setIsModalOpen(true)}
-                                className="bg-white/5 border border-white/20 text-white pl-4 pr-5 py-2.5 rounded-full font-medium text-xs hover:bg-white/10 hover:border-white/40 hover:text-cyan-50   flex items-center gap-2 group/btn shrink-0"
+                                className="bg-white/5 border border-white/20 text-white pl-4 pr-5 py-2.5 h-10 rounded-full font-bold text-[10px] tracking-widest uppercase hover:bg-white/10 hover:border-white/40 hover:text-cyan-50   flex items-center gap-2 group/btn shrink-0"
                                 title="Nova Tarefa"
                             >
                                 <Plus className="w-4 h-4 opacity-70 group-hover/btn:rotate-90  " />
@@ -467,94 +453,128 @@ export default function Dashboard() {
 
             {activeTab === 'tasks' ? (
                 /* Sleek Kanban Board */
-                <main className="max-w-[1600px] mx-auto px-4 sm:px-6 md:px-10 min-h-[50dvh] relative z-10 flex flex-wrap justify-center lg:justify-start gap-8 pb-12">
-                    {sections.map(section => (
-                        <div key={section.status} className="w-full sm:w-auto md:min-w-[340px] md:max-w-lg flex-1 flex flex-col relative shrink-0">
-                            {/* Floating Pill Header */}
-                            <div className="flex items-center justify-between mb-6 rounded-full py-4 px-6 shrink-0 relative isolate">
-                                <div className="absolute inset-0 bg-white/5 ring-1 ring-inset ring-white/10 rounded-full -z-10 overflow-hidden" />
-                                <div className="flex items-center gap-4">
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${section.bg} ring-1 ring-white/10`}>
-                                        <section.icon className={`w-5 h-5 ${section.color}`} />
+                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 md:px-10 pb-12 w-full flex flex-col items-center">
+                    {/* Filter by User row */}
+                    <div className="w-full flex flex-col items-center mb-8 bg-white/[0.03] border border-white/10 rounded-[2.5rem] py-6 px-8 shrink-0">
+                        <div className="text-center mb-4">
+                            <span className="text-[10px] font-bold text-white/30 tracking-[0.3em] uppercase">Visualizando Tarefas de:</span>
+                        </div>
+                        <div className="flex flex-wrap items-center justify-center gap-2">
+                            {[...users].sort((a, b) => {
+                                if (a.id === currentUser.id) return -1;
+                                if (b.id === currentUser.id) return 1;
+                                return 0;
+                            }).map(u => {
+                                const isCurrentUser = u.id === currentUser.id;
+                                const isActive = viewingUserId === u.id;
+                                return (
+                                    <button
+                                        key={u.id}
+                                        onClick={() => setViewingUserId(u.id)}
+                                        className={`flex items-center gap-2 pl-1 pr-4 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all duration-0 ${isActive ? 'bg-cyan-500 text-black ring-4 ring-cyan-500/10' : 'bg-white/5 text-white/40 hover:text-white hover:bg-white/10'}`}
+                                    >
+                                        <img
+                                            src={`/${u.username?.toLowerCase() || 'default'}.webp`}
+                                            alt={u.username}
+                                            className="w-7 h-7 rounded-full object-cover border border-white/10"
+                                            onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${u.username}&background=111&color=fff`; }}
+                                        />
+                                        {isCurrentUser ? 'VOCÊ' : u.username.split(' ')[0]}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <main className="w-full min-h-[50dvh] relative z-10 flex flex-wrap justify-center lg:justify-start gap-8 pb-12">
+                        {sections.map(section => (
+                            <div key={section.status} className="w-full sm:w-auto md:min-w-[340px] md:max-w-lg flex-1 flex flex-col relative shrink-0">
+                                {/* Floating Pill Header */}
+                                <div className="flex items-center justify-between mb-6 rounded-full py-4 px-6 shrink-0 relative isolate">
+                                    <div className="absolute inset-0 bg-white/5 ring-1 ring-inset ring-white/10 rounded-full -z-10 overflow-hidden" />
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${section.bg} ring-1 ring-white/10`}>
+                                            <section.icon className={`w-5 h-5 ${section.color}`} />
+                                        </div>
+                                        <h2 className="text-lg lg:text-xl font-display font-medium text-white tracking-wide">{section.title}</h2>
                                     </div>
-                                    <h2 className="text-lg lg:text-xl font-display font-medium text-white tracking-wide">{section.title}</h2>
+                                    <span className="text-xs font-sans font-bold text-white/50 bg-white/5 px-4 py-1.5 rounded-full ring-1 ring-white/10">
+                                        {tasks.filter(t => t.status === section.status && t.assigned_to === viewingUserId && !(t.status === 'DONE' && isOlderThanToday(t.updated_at || t.created_at))).length}
+                                    </span>
                                 </div>
-                                <span className="text-xs font-sans font-bold text-white/50 bg-white/5 px-4 py-1.5 rounded-full ring-1 ring-white/10">
-                                    {tasks.filter(t => t.status === section.status && t.assigned_to === viewingUserId && !(t.status === 'DONE' && isOlderThanToday(t.updated_at || t.created_at))).length}
-                                </span>
-                            </div>
 
-                            {/* Task List */}
-                            <div className="flex flex-col pb-8 space-y-4">
-                                {tasks.filter(t => t.status === section.status && t.assigned_to === viewingUserId && !(t.status === 'DONE' && isOlderThanToday(t.updated_at || t.created_at))).map(task => (
-                                    <div key={task.id} className="group relative flex flex-col rounded-[2rem] p-6   cursor-default isolate">
-                                        <div className="absolute inset-0 bg-white/5 ring-1 ring-inset ring-white/10 group-hover:bg-white/10 group-hover:ring-white/20 rounded-[2rem]   -z-10 overflow-hidden pointer-events-none" />
+                                {/* Task List */}
+                                <div className="flex flex-col pb-8 space-y-4">
+                                    {tasks.filter(t => t.status === section.status && t.assigned_to === viewingUserId && !(t.status === 'DONE' && isOlderThanToday(t.updated_at || t.created_at))).map(task => (
+                                        <div key={task.id} className="group relative flex flex-col rounded-[2rem] p-6   cursor-default isolate">
+                                            <div className="absolute inset-0 bg-white/5 ring-1 ring-inset ring-white/10 group-hover:bg-white/10 group-hover:ring-white/20 rounded-[2rem]   -z-10 overflow-hidden pointer-events-none" />
 
-                                        {/* Action Buttons (Floating pill inside card - restricted to assignee) */}
-                                        {task.assigned_to === currentUser.id && (
-                                            <div className="absolute top-5 right-5 z-10 opacity-0 group-hover:opacity-100  translate-y-2 group-hover:translate-y-0 flex gap-1 bg-black/80 rounded-full border border-white/10 p-1.5">
-                                                {task.status !== 'TODO' && (
-                                                    <button onClick={() => handleUpdateStatus(task.id, 'TODO')} className="p-2 text-white/40 hover:text-white hover:bg-white/10 rounded-full " title="Mover para Por Fazer"><CircleDashed className="w-4 h-4" /></button>
-                                                )}
-                                                {task.status !== 'IN_PROGRESS' && (
-                                                    <button onClick={() => handleUpdateStatus(task.id, 'IN_PROGRESS')} className="p-2 text-white/40 hover:text-cyan-400 hover:bg-cyan-400/10 rounded-full " title="Mover para Andamento"><Clock className="w-4 h-4" /></button>
-                                                )}
-                                                {task.status !== 'DONE' && (
-                                                    <button onClick={() => handleUpdateStatus(task.id, 'DONE')} className="p-2 text-white/40 hover:text-green-400 hover:bg-green-400/10 rounded-full " title="Mover para Concluído"><Check className="w-4 h-4" /></button>
-                                                )}
-                                                {task.status !== 'DONE' && (
-                                                    <button onClick={() => {
-                                                        setEditingTaskId(task.id);
-                                                        setEditingTaskData({ title: task.title, description: task.description || '' });
-                                                    }} className="p-2 text-white/40 hover:text-blue-400 hover:bg-blue-400/10 rounded-full " title="Editar Tarefa">
-                                                        <Edit2 className="w-4 h-4" />
-                                                    </button>
-                                                )}
-                                                <div className="w-px h-6 bg-white/10 mx-0.5 my-auto" />
-                                                <button onClick={() => { setTaskToDelete(task.id); setIsDeleteModalOpen(true); }} className="p-2 text-white/40 hover:text-red-400 hover:bg-red-400/10 rounded-full " title="Excluir"><Trash2 className="w-4 h-4" /></button>
-                                            </div>
-                                        )}
-
-                                        <>
-                                            <h3 className="text-base font-medium leading-relaxed text-white tracking-wide mb-3 pr-24">{task.title}</h3>
-                                            {task.description && (
-                                                <p className="text-sm text-white/50 line-clamp-3 leading-relaxed mb-6 font-light">{task.description}</p>
+                                            {/* Action Buttons (Floating pill inside card - restricted to assignee) */}
+                                            {task.assigned_to === currentUser.id && (
+                                                <div className="absolute top-5 right-5 z-10 opacity-0 group-hover:opacity-100  translate-y-2 group-hover:translate-y-0 flex gap-1 bg-black/80 rounded-full border border-white/10 p-1.5">
+                                                    {task.status !== 'TODO' && (
+                                                        <button onClick={() => handleUpdateStatus(task.id, 'TODO')} className="p-2 text-white/40 hover:text-white hover:bg-white/10 rounded-full " title="Mover para Por Fazer"><CircleDashed className="w-4 h-4" /></button>
+                                                    )}
+                                                    {task.status !== 'IN_PROGRESS' && (
+                                                        <button onClick={() => handleUpdateStatus(task.id, 'IN_PROGRESS')} className="p-2 text-white/40 hover:text-cyan-400 hover:bg-cyan-400/10 rounded-full " title="Mover para Andamento"><Clock className="w-4 h-4" /></button>
+                                                    )}
+                                                    {task.status !== 'DONE' && (
+                                                        <button onClick={() => handleUpdateStatus(task.id, 'DONE')} className="p-2 text-white/40 hover:text-green-400 hover:bg-green-400/10 rounded-full " title="Mover para Concluído"><Check className="w-4 h-4" /></button>
+                                                    )}
+                                                    {task.status !== 'DONE' && (
+                                                        <button onClick={() => {
+                                                            setEditingTaskId(task.id);
+                                                            setEditingTaskData({ title: task.title, description: task.description || '' });
+                                                        }} className="p-2 text-white/40 hover:text-blue-400 hover:bg-blue-400/10 rounded-full " title="Editar Tarefa">
+                                                            <Edit2 className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                    <div className="w-px h-6 bg-white/10 mx-0.5 my-auto" />
+                                                    <button onClick={() => { setTaskToDelete(task.id); setIsDeleteModalOpen(true); }} className="p-2 text-white/40 hover:text-red-400 hover:bg-red-400/10 rounded-full " title="Excluir"><Trash2 className="w-4 h-4" /></button>
+                                                </div>
                                             )}
-                                        </>
 
-                                        <div className="flex items-center justify-between mt-auto pt-5 border-t border-white/5">
-                                            <div className="flex flex-col gap-1.5">
-                                                <span className="text-[10px] text-white/40 uppercase tracking-widest font-medium">Atribuída por:</span>
-                                                <div className="flex items-center gap-2">
-                                                    <img
-                                                        src={task.created_by_username === currentUser.username ? `/${currentUser.username?.toLowerCase() || 'default'}.webp` : `/${task.created_by_username?.toLowerCase()}.webp`}
-                                                        alt={task.created_by_username}
-                                                        className="w-7 h-7 rounded-full object-cover border border-white/10"
-                                                        onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${task.created_by_username}&background=111&color=fff`; }}
-                                                    />
-                                                    <span className="text-xs tracking-wide text-white/80 font-medium">
-                                                        {task.created_by_username === currentUser.username ? 'VOCÊ' : task.created_by_username?.split(' ')[0]}
-                                                    </span>
+                                            <>
+                                                <h3 className="text-base font-medium leading-relaxed text-white tracking-wide mb-3 pr-24">{task.title}</h3>
+                                                {task.description && (
+                                                    <p className="text-sm text-white/50 line-clamp-3 leading-relaxed mb-6 font-light">{task.description}</p>
+                                                )}
+                                            </>
+
+                                            <div className="flex items-center justify-between mt-auto pt-5 border-t border-white/5">
+                                                <div className="flex flex-col gap-1.5">
+                                                    <span className="text-[10px] text-white/40 uppercase tracking-widest font-medium">Atribuída por:</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <img
+                                                            src={task.created_by_username === currentUser.username ? `/${currentUser.username?.toLowerCase() || 'default'}.webp` : `/${task.created_by_username?.toLowerCase()}.webp`}
+                                                            alt={task.created_by_username}
+                                                            className="w-7 h-7 rounded-full object-cover border border-white/10"
+                                                            onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${task.created_by_username}&background=111&color=fff`; }}
+                                                        />
+                                                        <span className="text-xs tracking-wide text-white/80 font-medium">
+                                                            {task.created_by_username === currentUser.username ? 'VOCÊ' : task.created_by_username?.split(' ')[0]}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col items-end justify-center h-full pt-4">
+                                                    {getUrgencyIndicator(task.urgency)}
                                                 </div>
                                             </div>
-                                            <div className="flex flex-col items-end justify-center h-full pt-4">
-                                                {getUrgencyIndicator(task.urgency)}
+                                        </div>
+                                    ))}
+                                    {tasks.filter(t => t.status === section.status && t.assigned_to === viewingUserId && !(t.status === 'DONE' && isOlderThanToday(t.updated_at || t.created_at))).length === 0 && (
+                                        <div className="bg-white/[0.02] border border-white/5 border-dashed rounded-[2rem] py-14 flex flex-col items-center justify-center text-center opacity-70">
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-4 ${section.bg} ring-1 ring-white/5`}>
+                                                <section.icon className={`w-4 h-4 ${section.color}`} />
                                             </div>
+                                            <span className="text-xs text-white/50 font-display font-medium tracking-widest uppercase">Pilha Vazia</span>
                                         </div>
-                                    </div>
-                                ))}
-                                {tasks.filter(t => t.status === section.status && t.assigned_to === viewingUserId && !(t.status === 'DONE' && isOlderThanToday(t.updated_at || t.created_at))).length === 0 && (
-                                    <div className="bg-white/[0.02] border border-white/5 border-dashed rounded-[2rem] py-14 flex flex-col items-center justify-center text-center opacity-70">
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-4 ${section.bg} ring-1 ring-white/5`}>
-                                            <section.icon className={`w-4 h-4 ${section.color}`} />
-                                        </div>
-                                        <span className="text-xs text-white/50 font-display font-medium tracking-widest uppercase">Pilha Vazia</span>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    ))}
-                </main>
+                        ))}
+                    </main>
+                </div>
             ) : (
                 <main className="max-w-[1600px] mx-auto px-4 sm:px-6 md:px-10 min-h-[50dvh] relative z-10 pb-12 w-full flex flex-col items-center">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 bg-white/5 border border-white/10 rounded-[2rem] sm:rounded-full py-6 sm:py-4 px-6 sm:px-8 shrink-0 w-full max-w-7xl">
@@ -615,434 +635,446 @@ export default function Dashboard() {
             )}
 
             {/* Create Task Modal */}
-            {isModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => setIsModalOpen(false)} />
+            {
+                isModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
+                        <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => setIsModalOpen(false)} />
 
-                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform  flex flex-col mx-auto my-auto ring-1 ring-white/5 font-sans overflow-hidden">
-                        <button type="button" onClick={() => setIsModalOpen(false)} className="absolute top-5 right-5 z-20 text-white/30 hover:text-white  bg-white/5 hover:bg-white/10 p-3 rounded-full border border-transparent hover:border-white/10">
-                            <X className="w-5 h-5" />
-                        </button>
+                        <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform  flex flex-col mx-auto my-auto ring-1 ring-white/5 font-sans overflow-hidden">
+                            <button type="button" onClick={() => setIsModalOpen(false)} className="absolute top-5 right-5 z-20 text-white/30 hover:text-white  bg-white/5 hover:bg-white/10 p-3 rounded-full border border-transparent hover:border-white/10">
+                                <X className="w-5 h-5" />
+                            </button>
 
-                        <form onSubmit={handleCreateTask} className="p-[clamp(1.5rem,4vh,2.5rem)] flex-1 relative z-10 w-full flex flex-col items-center gap-[clamp(1rem,4vh,1.75rem)]">
+                            <form onSubmit={handleCreateTask} className="p-[clamp(1.5rem,4vh,2.5rem)] flex-1 relative z-10 w-full flex flex-col items-center gap-[clamp(1rem,4vh,1.75rem)]">
 
-                            <div className="w-full text-center flex flex-col gap-[clamp(0.25rem,1vh,0.5rem)] shrink-0">
-                                <h2 className="text-[clamp(1.25rem,4vh,1.5rem)] leading-none font-display font-medium text-white tracking-wide">Planejar Ação</h2>
-                                <p className="text-[10px] sm:text-xs text-white/40 lowercase font-light tracking-wide">defina o próximo passo de forma objetiva</p>
-                            </div>
-
-                            <div className="w-full flex flex-col gap-[clamp(0.75rem,2vh,1rem)] shrink-0">
-                                <input required type="text" value={newTask.title} onChange={e => setNewTask({ ...newTask, title: e.target.value })}
-                                    className="w-full bg-white/[0.03] border border-white/10 rounded-[1.5rem] px-6 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-center text-base outline-none focus:outline-none focus:ring-0 focus:border-cyan-400/50 focus:bg-white/[0.05]  font-medium placeholder:text-white/20 focus:placeholder-transparent placeholder:font-light caret-cyan-400"
-                                    style={{ WebkitTapHighlightColor: 'transparent' }}
-                                    placeholder="Qual a missão?" autoFocus />
-
-                                <textarea rows={1} value={newTask.description} onChange={e => {
-                                    setNewTask({ ...newTask, description: e.target.value });
-                                    e.target.style.height = 'auto';
-                                    e.target.style.height = `${e.target.scrollHeight}px`;
-                                }}
-                                    className="w-full bg-white/[0.03] border border-white/10 rounded-[1.5rem] px-6 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-center text-sm outline-none focus:outline-none focus:ring-0 focus:border-cyan-400/50 focus:bg-white/[0.05]  font-light placeholder:text-white/20 focus:placeholder-transparent resize-none overflow-hidden caret-cyan-400 leading-relaxed block max-h-[120px] custom-scrollbar"
-                                    style={{ WebkitTapHighlightColor: 'transparent', minHeight: '52px' }}
-                                    placeholder="Mais detalhes (Opcional)" />
-                            </div>
-
-                            <div className="w-full flex flex-col items-center gap-3">
-                                <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Prioridade</span>
-                                <div className="flex gap-2 p-1.5 bg-white/[0.03] border border-white/10 rounded-[2rem]">
-                                    {[
-                                        { value: 'LOW', label: 'Baixa', baseClass: 'text-emerald-500/40 hover:text-emerald-500/80 hover:bg-white/5', active: 'bg-emerald-400/10 text-emerald-400 ring-1 ring-emerald-400/30' },
-                                        { value: 'MEDIUM', label: 'Média', baseClass: 'text-amber-500/40 hover:text-amber-500/80 hover:bg-white/5', active: 'bg-amber-400/10 text-amber-400 ring-1 ring-amber-400/30' },
-                                        { value: 'HIGH', label: 'Urgente', baseClass: 'text-red-500/40 hover:text-red-500/80 hover:bg-white/5', active: 'bg-red-400/10 text-red-400 ring-1 ring-red-400/30' }
-                                    ].map(opt => (
-                                        <button
-                                            key={opt.value}
-                                            type="button"
-                                            onClick={() => setNewTask({ ...newTask, urgency: opt.value })}
-                                            className={`px-6 py-2.5 rounded-[1.5rem] text-[10px] font-bold uppercase tracking-widest   ${newTask.urgency === opt.value ? opt.active : opt.baseClass}`}
-                                        >
-                                            {opt.label}
-                                        </button>
-                                    ))}
+                                <div className="w-full text-center flex flex-col gap-[clamp(0.25rem,1vh,0.5rem)] shrink-0">
+                                    <h2 className="text-[clamp(1.25rem,4vh,1.5rem)] leading-none font-display font-medium text-white tracking-wide">Planejar Ação</h2>
+                                    <p className="text-[10px] sm:text-xs text-white/40 lowercase font-light tracking-wide">defina o próximo passo de forma objetiva</p>
                                 </div>
-                            </div>
 
-                            <div className="w-full flex flex-col items-center gap-4 shrink-0">
-                                <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Atribuir Para</span>
-                                <div className="flex flex-wrap gap-4 justify-center w-full pb-[clamp(0.2rem,1vh,0.5rem)]">
-                                    <div
-                                        onClick={() => setNewTask({ ...newTask, assigned_to: '' })}
-                                        className="flex flex-col items-center gap-2 cursor-pointer group"
-                                    >
-                                        <div className={`w-[clamp(2.5rem,6.5vh,3.5rem)] h-[clamp(2.5rem,6.5vh,3.5rem)] rounded-full overflow-hidden flex items-center justify-center   ${!newTask.assigned_to ? 'ring-2 ring-cyan-400 ring-offset-4 ring-offset-[#080808] grayscale-0 opacity-100 scale-110' : 'ring-1 ring-white/10 grayscale opacity-40 group-hover:opacity-80 group-hover:grayscale-[20%] group-hover:scale-110'}`}>
-                                            <img src={`/${currentUser.username?.toLowerCase() || 'default'}.webp`} alt="Eu" className="w-full h-full object-cover object-center" onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${currentUser.username}&background=0D8ABC&color=fff`; }} />
-                                        </div>
-                                        <span className={`text-[9px] font-bold uppercase tracking-widest   ${!newTask.assigned_to ? 'text-cyan-400 scale-110 translate-y-1' : 'text-white/40 group-hover:text-white/70 group-hover:translate-y-0.5 group-hover:scale-110'}`}>Você</span>
+                                <div className="w-full flex flex-col gap-[clamp(0.75rem,2vh,1rem)] shrink-0">
+                                    <input required type="text" value={newTask.title} onChange={e => setNewTask({ ...newTask, title: e.target.value })}
+                                        className="w-full bg-white/[0.03] border border-white/10 rounded-[1.5rem] px-6 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-center text-base outline-none focus:outline-none focus:ring-0 focus:border-cyan-400/50 focus:bg-white/[0.05]  font-medium placeholder:text-white/20 focus:placeholder-transparent placeholder:font-light caret-cyan-400"
+                                        style={{ WebkitTapHighlightColor: 'transparent' }}
+                                        placeholder="Qual a missão?" autoFocus />
+
+                                    <textarea rows={1} value={newTask.description} onChange={e => {
+                                        setNewTask({ ...newTask, description: e.target.value });
+                                        e.target.style.height = 'auto';
+                                        e.target.style.height = `${e.target.scrollHeight}px`;
+                                    }}
+                                        className="w-full bg-white/[0.03] border border-white/10 rounded-[1.5rem] px-6 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-center text-sm outline-none focus:outline-none focus:ring-0 focus:border-cyan-400/50 focus:bg-white/[0.05]  font-light placeholder:text-white/20 focus:placeholder-transparent resize-none overflow-hidden caret-cyan-400 leading-relaxed block max-h-[120px] custom-scrollbar"
+                                        style={{ WebkitTapHighlightColor: 'transparent', minHeight: '52px' }}
+                                        placeholder="Mais detalhes (Opcional)" />
+                                </div>
+
+                                <div className="w-full flex flex-col items-center gap-3">
+                                    <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Prioridade</span>
+                                    <div className="flex gap-2 p-1.5 bg-white/[0.03] border border-white/10 rounded-[2rem]">
+                                        {[
+                                            { value: 'LOW', label: 'Baixa', baseClass: 'text-emerald-500/40 hover:text-emerald-500/80 hover:bg-white/5', active: 'bg-emerald-400/10 text-emerald-400 ring-1 ring-emerald-400/30' },
+                                            { value: 'MEDIUM', label: 'Média', baseClass: 'text-amber-500/40 hover:text-amber-500/80 hover:bg-white/5', active: 'bg-amber-400/10 text-amber-400 ring-1 ring-amber-400/30' },
+                                            { value: 'HIGH', label: 'Urgente', baseClass: 'text-red-500/40 hover:text-red-500/80 hover:bg-white/5', active: 'bg-red-400/10 text-red-400 ring-1 ring-red-400/30' }
+                                        ].map(opt => (
+                                            <button
+                                                key={opt.value}
+                                                type="button"
+                                                onClick={() => setNewTask({ ...newTask, urgency: opt.value })}
+                                                className={`px-6 py-2.5 rounded-[1.5rem] text-[10px] font-bold uppercase tracking-widest   ${newTask.urgency === opt.value ? opt.active : opt.baseClass}`}
+                                            >
+                                                {opt.label}
+                                            </button>
+                                        ))}
                                     </div>
+                                </div>
 
-                                    {users.filter(u => u.id !== currentUser.id).map(u => (
+                                <div className="w-full flex flex-col items-center gap-4 shrink-0">
+                                    <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Atribuir Para</span>
+                                    <div className="flex flex-wrap gap-4 justify-center w-full pb-[clamp(0.2rem,1vh,0.5rem)]">
                                         <div
-                                            key={u.id}
-                                            onClick={() => setNewTask({ ...newTask, assigned_to: u.id.toString() })}
+                                            onClick={() => setNewTask({ ...newTask, assigned_to: '' })}
                                             className="flex flex-col items-center gap-2 cursor-pointer group"
                                         >
-                                            <div className={`w-[clamp(2.5rem,6.5vh,3.5rem)] h-[clamp(2.5rem,6.5vh,3.5rem)] rounded-full overflow-hidden flex items-center justify-center   ${newTask.assigned_to === u.id.toString() ? 'ring-2 ring-cyan-400 ring-offset-4 ring-offset-[#080808] grayscale-0 opacity-100 scale-110' : 'ring-1 ring-white/10 grayscale opacity-40 group-hover:opacity-80 group-hover:grayscale-[20%] group-hover:scale-110'}`}>
-                                                <img src={`/${u.username.toLowerCase()}.webp`} alt={u.username} className="w-full h-full object-cover object-center" onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${u.username}&background=111&color=fff`; }} />
+                                            <div className={`w-[clamp(2.5rem,6.5vh,3.5rem)] h-[clamp(2.5rem,6.5vh,3.5rem)] rounded-full overflow-hidden flex items-center justify-center   ${!newTask.assigned_to ? 'ring-2 ring-cyan-400 ring-offset-4 ring-offset-[#080808] grayscale-0 opacity-100 scale-110' : 'ring-1 ring-white/10 grayscale opacity-40 group-hover:opacity-80 group-hover:grayscale-[20%] group-hover:scale-110'}`}>
+                                                <img src={`/${currentUser.username?.toLowerCase() || 'default'}.webp`} alt="Eu" className="w-full h-full object-cover object-center" onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${currentUser.username}&background=0D8ABC&color=fff`; }} />
                                             </div>
-                                            <span className={`text-[9px] font-bold uppercase tracking-widest   ${newTask.assigned_to === u.id.toString() ? 'text-cyan-400 scale-110 translate-y-1' : 'text-white/40 group-hover:text-white/70 group-hover:translate-y-0.5 group-hover:scale-110'}`}>{u.username.split(' ')[0]}</span>
+                                            <span className={`text-[9px] font-bold uppercase tracking-widest   ${!newTask.assigned_to ? 'text-cyan-400 scale-110 translate-y-1' : 'text-white/40 group-hover:text-white/70 group-hover:translate-y-0.5 group-hover:scale-110'}`}>Você</span>
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
 
-                            <div className="w-full pt-[clamp(0.2rem,1vh,1rem)] shrink-0">
-                                <button type="submit" className="w-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-widest text-[clamp(0.6rem,1.5vh,0.75rem)] py-[clamp(1rem,2.8vh,1.25rem)] rounded-[2rem]   flex items-center justify-center gap-3 group/submit">
-                                    Adicionar Missão
-                                    <Plus className="w-4 h-4 group-hover/submit:scale-125 " />
-                                </button>
-                            </div>
-                        </form>
+                                        {users.filter(u => u.id !== currentUser.id).map(u => (
+                                            <div
+                                                key={u.id}
+                                                onClick={() => setNewTask({ ...newTask, assigned_to: u.id.toString() })}
+                                                className="flex flex-col items-center gap-2 cursor-pointer group"
+                                            >
+                                                <div className={`w-[clamp(2.5rem,6.5vh,3.5rem)] h-[clamp(2.5rem,6.5vh,3.5rem)] rounded-full overflow-hidden flex items-center justify-center   ${newTask.assigned_to === u.id.toString() ? 'ring-2 ring-cyan-400 ring-offset-4 ring-offset-[#080808] grayscale-0 opacity-100 scale-110' : 'ring-1 ring-white/10 grayscale opacity-40 group-hover:opacity-80 group-hover:grayscale-[20%] group-hover:scale-110'}`}>
+                                                    <img src={`/${u.username.toLowerCase()}.webp`} alt={u.username} className="w-full h-full object-cover object-center" onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${u.username}&background=111&color=fff`; }} />
+                                                </div>
+                                                <span className={`text-[9px] font-bold uppercase tracking-widest   ${newTask.assigned_to === u.id.toString() ? 'text-cyan-400 scale-110 translate-y-1' : 'text-white/40 group-hover:text-white/70 group-hover:translate-y-0.5 group-hover:scale-110'}`}>{u.username.split(' ')[0]}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="w-full pt-[clamp(0.2rem,1vh,1rem)] shrink-0">
+                                    <button type="submit" className="w-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-widest text-[clamp(0.6rem,1.5vh,0.75rem)] py-[clamp(1rem,2.8vh,1.25rem)] rounded-[2rem]   flex items-center justify-center gap-3 group/submit">
+                                        Adicionar Missão
+                                        <Plus className="w-4 h-4 group-hover/submit:scale-125 " />
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Edit Task Modal */}
-            {editingTaskId && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => setEditingTaskId(null)} />
+            {
+                editingTaskId && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
+                        <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => setEditingTaskId(null)} />
 
-                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform  flex flex-col mx-auto my-auto ring-1 ring-white/5 font-sans overflow-hidden">
-                        <button type="button" onClick={() => setEditingTaskId(null)} className="absolute top-5 right-5 z-20 text-white/30 hover:text-white  bg-white/5 hover:bg-white/10 p-3 rounded-full border border-transparent hover:border-white/10">
-                            <X className="w-5 h-5" />
-                        </button>
+                        <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform  flex flex-col mx-auto my-auto ring-1 ring-white/5 font-sans overflow-hidden">
+                            <button type="button" onClick={() => setEditingTaskId(null)} className="absolute top-5 right-5 z-20 text-white/30 hover:text-white  bg-white/5 hover:bg-white/10 p-3 rounded-full border border-transparent hover:border-white/10">
+                                <X className="w-5 h-5" />
+                            </button>
 
-                        <form onSubmit={(e) => { e.preventDefault(); handleUpdateText(editingTaskId); }} className="p-[clamp(1.5rem,4vh,2.5rem)] flex-1 relative z-10 w-full flex flex-col items-center gap-[clamp(1rem,4vh,1.75rem)]">
+                            <form onSubmit={(e) => { e.preventDefault(); handleUpdateText(editingTaskId); }} className="p-[clamp(1.5rem,4vh,2.5rem)] flex-1 relative z-10 w-full flex flex-col items-center gap-[clamp(1rem,4vh,1.75rem)]">
 
-                            <div className="w-full text-center flex flex-col gap-[clamp(0.25rem,1vh,0.5rem)] shrink-0">
-                                <h2 className="text-[clamp(1.25rem,4vh,1.5rem)] leading-none font-display font-medium text-white tracking-wide">Editar Missão</h2>
-                                <p className="text-[10px] sm:text-xs text-white/40 lowercase font-light tracking-wide">ajuste os detalhes da operação</p>
-                            </div>
+                                <div className="w-full text-center flex flex-col gap-[clamp(0.25rem,1vh,0.5rem)] shrink-0">
+                                    <h2 className="text-[clamp(1.25rem,4vh,1.5rem)] leading-none font-display font-medium text-white tracking-wide">Editar Missão</h2>
+                                    <p className="text-[10px] sm:text-xs text-white/40 lowercase font-light tracking-wide">ajuste os detalhes da operação</p>
+                                </div>
 
-                            <div className="w-full flex flex-col gap-[clamp(0.75rem,2vh,1rem)] shrink-0">
-                                <input required type="text" value={editingTaskData.title} onChange={e => setEditingTaskData({ ...editingTaskData, title: e.target.value })}
-                                    className="w-full bg-white/[0.03] border border-white/10 rounded-[1.5rem] px-6 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-center text-base outline-none focus:outline-none focus:ring-0 focus:border-cyan-400/50 focus:bg-white/[0.05]  font-medium placeholder:text-white/20 focus:placeholder-transparent placeholder:font-light caret-cyan-400"
-                                    style={{ WebkitTapHighlightColor: 'transparent' }}
-                                    placeholder="Qual a missão?" autoFocus />
+                                <div className="w-full flex flex-col gap-[clamp(0.75rem,2vh,1rem)] shrink-0">
+                                    <input required type="text" value={editingTaskData.title} onChange={e => setEditingTaskData({ ...editingTaskData, title: e.target.value })}
+                                        className="w-full bg-white/[0.03] border border-white/10 rounded-[1.5rem] px-6 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-center text-base outline-none focus:outline-none focus:ring-0 focus:border-cyan-400/50 focus:bg-white/[0.05]  font-medium placeholder:text-white/20 focus:placeholder-transparent placeholder:font-light caret-cyan-400"
+                                        style={{ WebkitTapHighlightColor: 'transparent' }}
+                                        placeholder="Qual a missão?" autoFocus />
 
-                                <textarea rows={1} value={editingTaskData.description} onChange={e => {
-                                    setEditingTaskData({ ...editingTaskData, description: e.target.value });
-                                    e.target.style.height = 'auto';
-                                    e.target.style.height = `${e.target.scrollHeight}px`;
-                                }}
-                                    className="w-full bg-white/[0.03] border border-white/10 rounded-[1.5rem] px-6 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-center text-sm outline-none focus:outline-none focus:ring-0 focus:border-cyan-400/50 focus:bg-white/[0.05]  font-light placeholder:text-white/20 focus:placeholder-transparent resize-none overflow-hidden caret-cyan-400 leading-relaxed block max-h-[120px] custom-scrollbar"
-                                    style={{ WebkitTapHighlightColor: 'transparent', minHeight: '52px' }}
-                                    placeholder="Mais detalhes (Opcional)" />
-                            </div>
+                                    <textarea rows={1} value={editingTaskData.description} onChange={e => {
+                                        setEditingTaskData({ ...editingTaskData, description: e.target.value });
+                                        e.target.style.height = 'auto';
+                                        e.target.style.height = `${e.target.scrollHeight}px`;
+                                    }}
+                                        className="w-full bg-white/[0.03] border border-white/10 rounded-[1.5rem] px-6 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-center text-sm outline-none focus:outline-none focus:ring-0 focus:border-cyan-400/50 focus:bg-white/[0.05]  font-light placeholder:text-white/20 focus:placeholder-transparent resize-none overflow-hidden caret-cyan-400 leading-relaxed block max-h-[120px] custom-scrollbar"
+                                        style={{ WebkitTapHighlightColor: 'transparent', minHeight: '52px' }}
+                                        placeholder="Mais detalhes (Opcional)" />
+                                </div>
 
-                            <div className="w-full pt-[clamp(0.2rem,1vh,1rem)] shrink-0">
-                                <button type="submit" className="w-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-widest text-[clamp(0.6rem,1.5vh,0.75rem)] py-[clamp(1rem,2.8vh,1.25rem)] rounded-[2rem]   flex items-center justify-center gap-3 group/submit">
-                                    Salvar Alterações
-                                    <Check className="w-4 h-4 group-hover/submit:scale-125 " />
-                                </button>
-                            </div>
-                        </form>
+                                <div className="w-full pt-[clamp(0.2rem,1vh,1rem)] shrink-0">
+                                    <button type="submit" className="w-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-widest text-[clamp(0.6rem,1.5vh,0.75rem)] py-[clamp(1rem,2.8vh,1.25rem)] rounded-[2rem]   flex items-center justify-center gap-3 group/submit">
+                                        Salvar Alterações
+                                        <Check className="w-4 h-4 group-hover/submit:scale-125 " />
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* History Modal */}
-            {isHistoryModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => setIsHistoryModalOpen(false)} />
+            {
+                isHistoryModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
+                        <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => setIsHistoryModalOpen(false)} />
 
-                    <div className="relative bg-[#060606]/40 ring-1 ring-inset ring-white/10 rounded-[2.5rem] w-full max-w-2xl transform  flex flex-col mx-auto my-auto h-[80vh] overflow-hidden">
-                        <button type="button" onClick={() => setIsHistoryModalOpen(false)} className="absolute top-6 right-6 z-10 text-white/40 hover:text-white  bg-white/5 hover:bg-white/10 p-2.5 rounded-full border border-transparent hover:border-white/10">
-                            <X className="w-4 h-4" />
-                        </button>
+                        <div className="relative bg-[#060606]/40 ring-1 ring-inset ring-white/10 rounded-[2.5rem] w-full max-w-2xl transform  flex flex-col mx-auto my-auto h-[80vh] overflow-hidden">
+                            <button type="button" onClick={() => setIsHistoryModalOpen(false)} className="absolute top-6 right-6 z-10 text-white/40 hover:text-white  bg-white/5 hover:bg-white/10 p-2.5 rounded-full border border-transparent hover:border-white/10">
+                                <X className="w-4 h-4" />
+                            </button>
 
-                        <div className="p-8 sm:p-10 flex flex-col h-full relative z-0">
-                            <h2 className="text-xl sm:text-2xl font-display font-medium text-white tracking-wide mb-8 text-center sm:text-left">Histórico de Tarefas</h2>
+                            <div className="p-8 sm:p-10 flex flex-col h-full relative z-0">
+                                <h2 className="text-xl sm:text-2xl font-display font-medium text-white tracking-wide mb-8 text-center sm:text-left">Histórico de Tarefas</h2>
 
-                            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4">
-                                {tasks.filter(t => t.status === 'DONE').length === 0 ? (
-                                    <div className="bg-white/[0.02] border border-white/5 border-dashed rounded-[2rem] py-14 flex flex-col items-center justify-center text-center opacity-70">
-                                        <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-white/5 ring-1 ring-white/10`}>
-                                            <Clock className={`w-5 h-5 text-white/40`} />
+                                <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4">
+                                    {tasks.filter(t => t.status === 'DONE').length === 0 ? (
+                                        <div className="bg-white/[0.02] border border-white/5 border-dashed rounded-[2rem] py-14 flex flex-col items-center justify-center text-center opacity-70">
+                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-white/5 ring-1 ring-white/10`}>
+                                                <Clock className={`w-5 h-5 text-white/40`} />
+                                            </div>
+                                            <span className="text-xs text-white/50 font-display font-medium tracking-widest uppercase">Nenhum histórico passado</span>
                                         </div>
-                                        <span className="text-xs text-white/50 font-display font-medium tracking-widest uppercase">Nenhum histórico passado</span>
-                                    </div>
-                                ) : (
-                                    tasks.filter(t => t.status === 'DONE')
-                                        .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())
-                                        .map(task => (
-                                            <div key={task.id} className="relative flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white/5 border border-white/10 rounded-[1.5rem] p-5 w-full">
-                                                <div className="flex-1 min-w-0 pr-4">
-                                                    <h3 className="text-sm font-semibold text-white tracking-wide truncate mb-1">{task.title}</h3>
-                                                    <div className="text-[10px] font-medium text-white/40 uppercase tracking-widest">
-                                                        Concluído em: {formatDate(task.updated_at || task.created_at)}
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-3 shrink-0">
-                                                    <div className="flex flex-col items-end">
-                                                        <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-400 mb-1">Executor</span>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-xs font-semibold text-white/80">{task.assigned_to_username.split(' ')[0]}</span>
-                                                            <img
-                                                                src={`/${task.assigned_to_username?.toLowerCase() || 'default'}.webp`}
-                                                                alt={task.assigned_to_username}
-                                                                className="w-6 h-6 rounded-full object-cover ring-1 ring-white/10"
-                                                                onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${task.assigned_to_username}&background=0D8ABC&color=fff`; }}
-                                                            />
+                                    ) : (
+                                        tasks.filter(t => t.status === 'DONE')
+                                            .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())
+                                            .map(task => (
+                                                <div key={task.id} className="relative flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white/5 border border-white/10 rounded-[1.5rem] p-5 w-full">
+                                                    <div className="flex-1 min-w-0 pr-4">
+                                                        <h3 className="text-sm font-semibold text-white tracking-wide truncate mb-1">{task.title}</h3>
+                                                        <div className="text-[10px] font-medium text-white/40 uppercase tracking-widest">
+                                                            Concluído em: {formatDate(task.updated_at || task.created_at)}
                                                         </div>
                                                     </div>
-                                                    <button
-                                                        onClick={() => { setTaskToDelete(task.id); setIsDeleteModalOpen(true); }}
-                                                        className="ml-2 w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500/50 hover:text-red-500 hover:bg-red-500/20 "
-                                                        title="Excluir Definitivamente"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
+                                                    <div className="flex items-center gap-3 shrink-0">
+                                                        <div className="flex flex-col items-end">
+                                                            <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-400 mb-1">Executor</span>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-xs font-semibold text-white/80">{task.assigned_to_username.split(' ')[0]}</span>
+                                                                <img
+                                                                    src={`/${task.assigned_to_username?.toLowerCase() || 'default'}.webp`}
+                                                                    alt={task.assigned_to_username}
+                                                                    className="w-6 h-6 rounded-full object-cover ring-1 ring-white/10"
+                                                                    onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${task.assigned_to_username}&background=0D8ABC&color=fff`; }}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => { setTaskToDelete(task.id); setIsDeleteModalOpen(true); }}
+                                                            className="ml-2 w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500/50 hover:text-red-500 hover:bg-red-500/20 "
+                                                            title="Excluir Definitivamente"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))
-                                )}
+                                            ))
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Delete Confirmation Modal */}
-            {isDeleteModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => setIsDeleteModalOpen(false)} />
-                    <div className="relative bg-[#060606]/40 ring-1 ring-inset ring-white/10 rounded-[2.5rem] w-full max-w-sm transform  flex flex-col mx-auto my-auto overflow-hidden">
-                        <div className="p-8 flex flex-col items-center text-center">
-                            <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6 ring-1 ring-red-500/20">
-                                <Trash2 className="w-8 h-8 text-red-500" />
-                            </div>
-                            <h2 className="text-xl font-display font-medium text-white tracking-wide mb-2">Excluir Tarefa</h2>
-                            <p className="text-sm text-white/50 mb-8 leading-relaxed">
-                                Tem certeza que deseja excluir esta tarefa permanentemente? Esta ação não pode ser desfeita.
-                            </p>
-                            <div className="flex gap-4 w-full">
-                                <button
-                                    onClick={() => setIsDeleteModalOpen(false)}
-                                    className="flex-1 py-3.5 rounded-full text-xs font-bold uppercase tracking-widest text-white bg-white/5 hover:bg-white/10 "
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    onClick={handleDelete}
-                                    className="flex-1 py-3.5 rounded-full text-xs font-bold uppercase tracking-widest text-white bg-red-500 hover:bg-red-600 "
-                                >
-                                    Excluir
-                                </button>
+            {
+                isDeleteModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
+                        <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => setIsDeleteModalOpen(false)} />
+                        <div className="relative bg-[#060606]/40 ring-1 ring-inset ring-white/10 rounded-[2.5rem] w-full max-w-sm transform  flex flex-col mx-auto my-auto overflow-hidden">
+                            <div className="p-8 flex flex-col items-center text-center">
+                                <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6 ring-1 ring-red-500/20">
+                                    <Trash2 className="w-8 h-8 text-red-500" />
+                                </div>
+                                <h2 className="text-xl font-display font-medium text-white tracking-wide mb-2">Excluir Tarefa</h2>
+                                <p className="text-sm text-white/50 mb-8 leading-relaxed">
+                                    Tem certeza que deseja excluir esta tarefa permanentemente? Esta ação não pode ser desfeita.
+                                </p>
+                                <div className="flex gap-4 w-full">
+                                    <button
+                                        onClick={() => setIsDeleteModalOpen(false)}
+                                        className="flex-1 py-3.5 rounded-full text-xs font-bold uppercase tracking-widest text-white bg-white/5 hover:bg-white/10 "
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={handleDelete}
+                                        className="flex-1 py-3.5 rounded-full text-xs font-bold uppercase tracking-widest text-white bg-red-500 hover:bg-red-600 "
+                                    >
+                                        Excluir
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
             {/* Create Demand Modal */}
-            {isDemandModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => setIsDemandModalOpen(false)} />
-                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform  flex flex-col mx-auto my-auto ring-1 ring-white/5 overflow-hidden">
-                        <button type="button" onClick={() => setIsDemandModalOpen(false)} className="absolute top-6 right-6 z-20 text-white/30 hover:text-white  bg-white/5 hover:bg-white/10 p-2.5 rounded-full">
-                            <X className="w-5 h-5" />
-                        </button>
+            {
+                isDemandModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
+                        <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => setIsDemandModalOpen(false)} />
+                        <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform  flex flex-col mx-auto my-auto ring-1 ring-white/5 overflow-hidden">
+                            <button type="button" onClick={() => setIsDemandModalOpen(false)} className="absolute top-6 right-6 z-20 text-white/30 hover:text-white  bg-white/5 hover:bg-white/10 p-2.5 rounded-full">
+                                <X className="w-5 h-5" />
+                            </button>
 
-                        <div className="p-[clamp(1.5rem,4vh,2.5rem)] flex-1 relative z-10 w-full flex flex-col items-center gap-[clamp(1rem,3vh,1.5rem)] overflow-y-auto custom-scrollbar max-h-[90vh]">
-                            <div className="w-full text-center mb-[clamp(0.5rem,2vh,1.5rem)]">
-                                <h2 className="text-[clamp(1.25rem,4vh,1.5rem)] font-display font-medium text-white tracking-wide uppercase">Nova Demanda</h2>
-                                <p className="text-[10px] sm:text-xs text-white/40 tracking-wider">Adicione o projeto do cliente no mural.</p>
-                            </div>
+                            <div className="p-[clamp(1.5rem,4vh,2.5rem)] flex-1 relative z-10 w-full flex flex-col items-center gap-[clamp(1rem,3vh,1.5rem)] overflow-y-auto custom-scrollbar max-h-[90vh]">
+                                <div className="w-full text-center mb-[clamp(0.5rem,2vh,1.5rem)]">
+                                    <h2 className="text-[clamp(1.25rem,4vh,1.5rem)] font-display font-medium text-white tracking-wide uppercase">Nova Demanda</h2>
+                                    <p className="text-[10px] sm:text-xs text-white/40 tracking-wider">Adicione o projeto do cliente no mural.</p>
+                                </div>
 
-                            <form onSubmit={handleCreateDemand} className="w-full flex flex-col gap-[clamp(0.75rem,2.5vh,1.25rem)]">
-                                {!showNewClientForm ? (
-                                    <div className="space-y-3">
-                                        <div className="flex items-center justify-between px-2">
-                                            <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Escolher Cliente</label>
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowNewClientForm(true)}
-                                                className="text-[10px] font-bold text-cyan-400 hover:text-cyan-300 uppercase tracking-widest bg-cyan-400/10 px-3 py-1.5 rounded-full border border-cyan-400/20"
-                                            >
-                                                + Novo Cliente
-                                            </button>
-                                        </div>
-
-                                        <div className="relative group/custom-select">
-                                            <div
-                                                onClick={() => setIsClientDropdownOpen(!isClientDropdownOpen)}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm cursor-pointer hover:border-emerald-400/50 transition-all flex justify-between items-center group-hover/custom-select:bg-white/[0.07]"
-                                            >
-                                                <span className={newDemand.client_name ? "text-white" : "text-white/40"}>
-                                                    {newDemand.client_name || "Selecione o Cliente..."}
-                                                </span>
-                                                <div className={`w-3 h-3 flex items-center justify-center opacity-40 group-hover/custom-select:opacity-100 group-hover/custom-select:text-emerald-400 transition-transform duration-200 ${isClientDropdownOpen ? 'rotate-180' : ''}`}>
-                                                    <Plus className="w-full h-full rotate-45" />
-                                                </div>
-                                            </div>
-
-                                            {isClientDropdownOpen && (
-                                                <div className="absolute top-[calc(100%+8px)] left-0 right-0 bg-[#0C0C0C] border border-white/10 rounded-2xl overflow-hidden z-[110] shadow-2xl backdrop-blur-xl max-h-60 overflow-y-auto custom-scrollbar ring-1 ring-white/5">
-                                                    {clients.length === 0 ? (
-                                                        <div className="px-5 py-4 text-[10px] text-white/30 italic uppercase tracking-widest">Nenhum cliente cadastrado...</div>
-                                                    ) : (
-                                                        clients.map(c => (
-                                                            <div
-                                                                key={c.id}
-                                                                onClick={() => {
-                                                                    setNewDemand({ ...newDemand, client_name: c.username });
-                                                                    setIsClientDropdownOpen(false);
-                                                                }}
-                                                                className="px-5 py-4 text-sm text-white/70 hover:text-white hover:bg-emerald-500/10 cursor-pointer border-b border-white/[0.03] last:border-0 flex items-center justify-between group/opt transition-colors"
-                                                            >
-                                                                <div className="flex flex-col">
-                                                                    <span className="font-medium group-hover/opt:translate-x-1 transition-transform">{c.username}</span>
-                                                                    {c.niche && <span className="text-[9px] text-white/30 uppercase tracking-widest mt-0.5">{c.niche}</span>}
-                                                                </div>
-                                                                {newDemand.client_name === c.username && <Check className="w-4 h-4 text-emerald-400" />}
-                                                            </div>
-                                                        ))
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-4 bg-white/[0.02] border border-white/5 rounded-[2rem] p-6">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <div className="flex flex-col gap-1">
-                                                <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Novo Cliente</span>
-                                                <span className="text-[9px] text-white/20 font-light tracking-wide italic">cadastrando cliente na hora...</span>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowNewClientForm(false)}
-                                                className="text-[10px] font-bold text-white/40 hover:text-white uppercase tracking-widest"
-                                            >
-                                                Cancelar
-                                            </button>
-                                        </div>
+                                <form onSubmit={handleCreateDemand} className="w-full flex flex-col gap-[clamp(0.75rem,2.5vh,1.25rem)]">
+                                    {!showNewClientForm ? (
                                         <div className="space-y-3">
-                                            <input required={showNewClientForm} type="text" value={newClientData.username} onChange={e => setNewClientData({ ...newClientData, username: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-[clamp(0.6rem,2vh,0.85rem)] text-white text-sm outline-none focus:border-cyan-400/50 font-light placeholder:text-white/20" placeholder="Nome / Usuário do Cliente" />
-                                            <div className="relative">
-                                                <input required={showNewClientForm} type={showNewClientPassword ? "text" : "password"} value={newClientData.password} onChange={e => setNewClientData({ ...newClientData, password: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-[clamp(0.6rem,2vh,0.85rem)] text-white text-sm outline-none focus:border-cyan-400/50 font-light placeholder:text-white/20" placeholder="Senha de Acesso" />
-                                                <button type="button" onClick={() => setShowNewClientPassword(!showNewClientPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white p-2">
-                                                    {showNewClientPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                            <div className="flex items-center justify-between px-2">
+                                                <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Escolher Cliente</label>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowNewClientForm(true)}
+                                                    className="text-[10px] font-bold text-cyan-400 hover:text-cyan-300 uppercase tracking-widest bg-cyan-400/10 px-3 py-1.5 rounded-full border border-cyan-400/20"
+                                                >
+                                                    + Novo Cliente
                                                 </button>
                                             </div>
-                                            <input type="text" value={newClientData.niche} onChange={e => setNewClientData({ ...newClientData, niche: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-[clamp(0.6rem,2vh,0.85rem)] text-white text-sm outline-none focus:border-cyan-400/50 font-light placeholder:text-white/20" placeholder="Nicho / Segmento (Opcional)" />
+
+                                            <div className="relative group/custom-select">
+                                                <div
+                                                    onClick={() => setIsClientDropdownOpen(!isClientDropdownOpen)}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm cursor-pointer hover:border-emerald-400/50 transition-all flex justify-between items-center group-hover/custom-select:bg-white/[0.07]"
+                                                >
+                                                    <span className={newDemand.client_name ? "text-white" : "text-white/40"}>
+                                                        {newDemand.client_name || "Selecione o Cliente..."}
+                                                    </span>
+                                                    <div className={`w-3 h-3 flex items-center justify-center opacity-40 group-hover/custom-select:opacity-100 group-hover/custom-select:text-emerald-400 transition-transform duration-200 ${isClientDropdownOpen ? 'rotate-180' : ''}`}>
+                                                        <Plus className="w-full h-full rotate-45" />
+                                                    </div>
+                                                </div>
+
+                                                {isClientDropdownOpen && (
+                                                    <div className="absolute top-[calc(100%+8px)] left-0 right-0 bg-[#0C0C0C] border border-white/10 rounded-2xl overflow-hidden z-[110] shadow-2xl backdrop-blur-xl max-h-60 overflow-y-auto custom-scrollbar ring-1 ring-white/5">
+                                                        {clients.length === 0 ? (
+                                                            <div className="px-5 py-4 text-[10px] text-white/30 italic uppercase tracking-widest">Nenhum cliente cadastrado...</div>
+                                                        ) : (
+                                                            clients.map(c => (
+                                                                <div
+                                                                    key={c.id}
+                                                                    onClick={() => {
+                                                                        setNewDemand({ ...newDemand, client_name: c.username });
+                                                                        setIsClientDropdownOpen(false);
+                                                                    }}
+                                                                    className="px-5 py-4 text-sm text-white/70 hover:text-white hover:bg-emerald-500/10 cursor-pointer border-b border-white/[0.03] last:border-0 flex items-center justify-between group/opt transition-colors"
+                                                                >
+                                                                    <div className="flex flex-col">
+                                                                        <span className="font-medium group-hover/opt:translate-x-1 transition-transform">{c.username}</span>
+                                                                        {c.niche && <span className="text-[9px] text-white/30 uppercase tracking-widest mt-0.5">{c.niche}</span>}
+                                                                    </div>
+                                                                    {newDemand.client_name === c.username && <Check className="w-4 h-4 text-emerald-400" />}
+                                                                </div>
+                                                            ))
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-4 bg-white/[0.02] border border-white/5 rounded-[2rem] p-6">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Novo Cliente</span>
+                                                    <span className="text-[9px] text-white/20 font-light tracking-wide italic">cadastrando cliente na hora...</span>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowNewClientForm(false)}
+                                                    className="text-[10px] font-bold text-white/40 hover:text-white uppercase tracking-widest"
+                                                >
+                                                    Cancelar
+                                                </button>
+                                            </div>
+                                            <div className="space-y-3">
+                                                <input required={showNewClientForm} type="text" value={newClientData.username} onChange={e => setNewClientData({ ...newClientData, username: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-[clamp(0.6rem,2vh,0.85rem)] text-white text-sm outline-none focus:border-cyan-400/50 font-light placeholder:text-white/20" placeholder="Nome / Usuário do Cliente" />
+                                                <div className="relative">
+                                                    <input required={showNewClientForm} type={showNewClientPassword ? "text" : "password"} value={newClientData.password} onChange={e => setNewClientData({ ...newClientData, password: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-[clamp(0.6rem,2vh,0.85rem)] text-white text-sm outline-none focus:border-cyan-400/50 font-light placeholder:text-white/20" placeholder="Senha de Acesso" />
+                                                    <button type="button" onClick={() => setShowNewClientPassword(!showNewClientPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white p-2">
+                                                        {showNewClientPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                    </button>
+                                                </div>
+                                                <input type="text" value={newClientData.niche} onChange={e => setNewClientData({ ...newClientData, niche: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-[clamp(0.6rem,2vh,0.85rem)] text-white text-sm outline-none focus:border-cyan-400/50 font-light placeholder:text-white/20" placeholder="Nicho / Segmento (Opcional)" />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div>
+                                        <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-2 block mb-3">Escopo do Projeto</label>
+                                        <div className="flex gap-4">
+                                            <div className="flex-1 relative">
+                                                <input
+                                                    required
+                                                    type="number"
+                                                    min="1"
+                                                    value={newDemand.total_videos}
+                                                    onChange={e => setNewDemand({ ...newDemand, total_videos: e.target.value })}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-base outline-none focus:border-emerald-400/50 font-bold placeholder:font-light hide-number-spin transition-all"
+                                                    placeholder="Qtd. total de vídeos"
+                                                />
+                                                <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-white/20 uppercase tracking-widest pointer-events-none">Vídeos</span>
+                                            </div>
                                         </div>
                                     </div>
-                                )}
 
-                                <div>
-                                    <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-2 block mb-3">Escopo do Projeto</label>
-                                    <div className="flex gap-4">
-                                        <div className="flex-1 relative">
-                                            <input
-                                                required
-                                                type="number"
-                                                min="1"
-                                                value={newDemand.total_videos}
-                                                onChange={e => setNewDemand({ ...newDemand, total_videos: e.target.value })}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-base outline-none focus:border-emerald-400/50 font-bold placeholder:font-light hide-number-spin transition-all"
-                                                placeholder="Qtd. total de vídeos"
-                                            />
-                                            <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-white/20 uppercase tracking-widest pointer-events-none">Vídeos</span>
+                                    <label className="flex items-center gap-3 cursor-pointer mt-1 px-2 group">
+                                        <div className={`w-5 h-5 rounded flex items-center justify-center border transition-all duration-0 ${newDemand.has_material ? 'bg-emerald-500 border-emerald-500' : 'bg-transparent border-white/20 group-hover:border-white/40'}`}>
+                                            {newDemand.has_material && <Check className="w-3.5 h-3.5 text-black" />}
                                         </div>
-                                    </div>
-                                </div>
+                                        <span className="text-[10px] font-bold text-white/70 tracking-widest uppercase">Possui material de apoio?</span>
+                                        <input type="checkbox" checked={newDemand.has_material} onChange={e => setNewDemand({ ...newDemand, has_material: e.target.checked })} className="hidden" />
+                                    </label>
 
-                                <label className="flex items-center gap-3 cursor-pointer mt-1 px-2 group">
-                                    <div className={`w-5 h-5 rounded flex items-center justify-center border transition-all duration-0 ${newDemand.has_material ? 'bg-emerald-500 border-emerald-500' : 'bg-transparent border-white/20 group-hover:border-white/40'}`}>
-                                        {newDemand.has_material && <Check className="w-3.5 h-3.5 text-black" />}
-                                    </div>
-                                    <span className="text-[10px] font-bold text-white/70 tracking-widest uppercase">Possui material de apoio?</span>
-                                    <input type="checkbox" checked={newDemand.has_material} onChange={e => setNewDemand({ ...newDemand, has_material: e.target.checked })} className="hidden" />
-                                </label>
+                                    {newDemand.has_material && (
+                                        <input required={newDemand.has_material} type="url" value={newDemand.material_link} onChange={e => setNewDemand({ ...newDemand, material_link: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-sm outline-none focus:border-emerald-400/50 font-light placeholder:text-white/20 transition-all" placeholder="Link do Google Drive / Dropbox" />
+                                    )}
 
-                                {newDemand.has_material && (
-                                    <input required={newDemand.has_material} type="url" value={newDemand.material_link} onChange={e => setNewDemand({ ...newDemand, material_link: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-sm outline-none focus:border-emerald-400/50 font-light placeholder:text-white/20 transition-all" placeholder="Link do Google Drive / Dropbox" />
-                                )}
+                                    <textarea rows={2} value={newDemand.description} onChange={e => setNewDemand({ ...newDemand, description: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-sm outline-none focus:border-emerald-400/50 font-light resize-none h-[clamp(4rem,10vh,6rem)]" placeholder="Algum outro detalhe importante?" />
 
-                                <textarea rows={2} value={newDemand.description} onChange={e => setNewDemand({ ...newDemand, description: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-sm outline-none focus:border-emerald-400/50 font-light resize-none h-[clamp(4rem,10vh,6rem)]" placeholder="Algum outro detalhe importante?" />
-
-                                <button type="submit" className="w-full mt-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400 hover:text-emerald-300 font-bold uppercase tracking-widest text-[clamp(0.6rem,1.5vh,0.7rem)] py-[clamp(1rem,2.8vh,1.25rem)] rounded-full flex justify-center items-center gap-3 group/btn">
-                                    Registrar Demanda no Mural
-                                    <div className="p-1 rounded-full bg-emerald-500 text-black group-hover/btn:scale-110">
-                                        <Plus className="w-3 h-3" />
-                                    </div>
-                                </button>
-                            </form>
+                                    <button type="submit" className="w-full mt-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400 hover:text-emerald-300 font-bold uppercase tracking-widest text-[clamp(0.6rem,1.5vh,0.7rem)] py-[clamp(1rem,2.8vh,1.25rem)] rounded-full flex justify-center items-center gap-3 group/btn">
+                                        Registrar Demanda no Mural
+                                        <div className="p-1 rounded-full bg-emerald-500 text-black group-hover/btn:scale-110">
+                                            <Plus className="w-3 h-3" />
+                                        </div>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Allocate Demand Modal */}
-            {isAllocateModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => setIsAllocateModalOpen(false)} />
-                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform  flex flex-col mx-auto my-auto ring-1 ring-white/5 overflow-hidden">
-                        <button type="button" onClick={() => setIsAllocateModalOpen(false)} className="absolute top-6 right-6 z-20 text-white/30 hover:text-white  bg-white/5 hover:bg-white/10 p-2.5 rounded-full">
-                            <X className="w-5 h-5" />
-                        </button>
+            {
+                isAllocateModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
+                        <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => setIsAllocateModalOpen(false)} />
+                        <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform  flex flex-col mx-auto my-auto ring-1 ring-white/5 overflow-hidden">
+                            <button type="button" onClick={() => setIsAllocateModalOpen(false)} className="absolute top-6 right-6 z-20 text-white/30 hover:text-white  bg-white/5 hover:bg-white/10 p-2.5 rounded-full">
+                                <X className="w-5 h-5" />
+                            </button>
 
-                        <div className="p-[clamp(1.5rem,4vh,2.5rem)] flex-1 relative z-10 w-full flex flex-col items-center gap-[clamp(1rem,3vh,1.5rem)] overflow-y-auto custom-scrollbar max-h-[90vh]">
-                            <div className="w-full text-center mb-[clamp(0.5rem,2vh,1.5rem)]">
-                                <h2 className="text-[clamp(1.25rem,4vh,1.5rem)] font-display font-medium text-white tracking-wide uppercase">Pegar Parte</h2>
-                                <p className="text-[10px] sm:text-xs text-white/40 tracking-wider">Designe uma parte da demanda como tarefa.</p>
-                            </div>
+                            <div className="p-[clamp(1.5rem,4vh,2.5rem)] flex-1 relative z-10 w-full flex flex-col items-center gap-[clamp(1rem,3vh,1.5rem)] overflow-y-auto custom-scrollbar max-h-[90vh]">
+                                <div className="w-full text-center mb-[clamp(0.5rem,2vh,1.5rem)]">
+                                    <h2 className="text-[clamp(1.25rem,4vh,1.5rem)] font-display font-medium text-white tracking-wide uppercase">Pegar Parte</h2>
+                                    <p className="text-[10px] sm:text-xs text-white/40 tracking-wider">Designe uma parte da demanda como tarefa.</p>
+                                </div>
 
-                            <form onSubmit={handleAllocateDemand} className="w-full flex flex-col gap-[clamp(0.75rem,2.5vh,1.25rem)]">
-                                <div className="flex flex-col gap-3">
-                                    <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-2">Designar para</label>
-                                    <div className="flex gap-4 w-full">
-                                        <div className="flex-1 dropdown-container relative bg-white/5 border border-white/10 rounded-2xl px-5 py-1 flex items-center cursor-pointer hover:bg-white/10 hover:border-cyan-400/50">
-                                            <select required value={allocateData.assigned_to} onChange={e => setAllocateData({ ...allocateData, assigned_to: e.target.value })} className="w-full bg-transparent text-white outline-none cursor-pointer appearance-none text-center font-bold tracking-widest text-[clamp(0.6rem,1.5vh,0.75rem)] uppercase py-[clamp(0.75rem,2.5vh,1rem)]">
-                                                <option value="" disabled className="text-black bg-white">SELECIONAR MEMBRO</option>
-                                                <option value={currentUser.id} className="text-black bg-white">VOCÊ</option>
-                                                {users.filter(u => u.id !== currentUser.id).map(user => (
-                                                    <option key={user.id} value={user.id} className="text-black bg-white">{user.username}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div className="w-1/3">
-                                            <input
-                                                required
-                                                type="number"
-                                                min="1"
-                                                max={allocateData.videos_count}
-                                                value={allocateData.videos_count}
-                                                onChange={e => setAllocateData({ ...allocateData, videos_count: e.target.value })}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(1rem,2.8vh,1.25rem)] text-white text-center text-sm outline-none focus:border-cyan-400/50 font-bold placeholder:text-white/20 hide-number-spin"
-                                                placeholder="Qtd."
-                                            />
+                                <form onSubmit={handleAllocateDemand} className="w-full flex flex-col gap-[clamp(0.75rem,2.5vh,1.25rem)]">
+                                    <div className="flex flex-col gap-3">
+                                        <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-2">Designar para</label>
+                                        <div className="flex gap-4 w-full">
+                                            <div className="flex-1 dropdown-container relative bg-white/5 border border-white/10 rounded-2xl px-5 py-1 flex items-center cursor-pointer hover:bg-white/10 hover:border-cyan-400/50">
+                                                <select required value={allocateData.assigned_to} onChange={e => setAllocateData({ ...allocateData, assigned_to: e.target.value })} className="w-full bg-transparent text-white outline-none cursor-pointer appearance-none text-center font-bold tracking-widest text-[clamp(0.6rem,1.5vh,0.75rem)] uppercase py-[clamp(0.75rem,2.5vh,1rem)]">
+                                                    <option value="" disabled className="text-black bg-white">SELECIONAR MEMBRO</option>
+                                                    <option value={currentUser.id} className="text-black bg-white">VOCÊ</option>
+                                                    {users.filter(u => u.id !== currentUser.id).map(user => (
+                                                        <option key={user.id} value={user.id} className="text-black bg-white">{user.username}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div className="w-1/3">
+                                                <input
+                                                    required
+                                                    type="number"
+                                                    min="1"
+                                                    max={allocateData.videos_count}
+                                                    value={allocateData.videos_count}
+                                                    onChange={e => setAllocateData({ ...allocateData, videos_count: e.target.value })}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(1rem,2.8vh,1.25rem)] text-white text-center text-sm outline-none focus:border-cyan-400/50 font-bold placeholder:text-white/20 hide-number-spin"
+                                                    placeholder="Qtd."
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div className="flex bg-white/5 rounded-full overflow-hidden p-1 border border-white/10 w-full mt-2">
-                                    <button type="button" onClick={() => setAllocateData({ ...allocateData, urgency: 'LOW' })} className={`flex-1 py-[clamp(0.5rem,2vh,0.75rem)] text-[9px] font-bold uppercase tracking-widest rounded-full transition-colors ${allocateData.urgency === 'LOW' ? 'bg-emerald-400 text-black' : 'text-emerald-400 hover:bg-white/10'}`}>Baixa</button>
-                                    <button type="button" onClick={() => setAllocateData({ ...allocateData, urgency: 'MEDIUM' })} className={`flex-1 py-[clamp(0.5rem,2vh,0.75rem)] text-[9px] font-bold uppercase tracking-widest rounded-full transition-colors ${allocateData.urgency === 'MEDIUM' ? 'bg-yellow-400 text-black' : 'text-yellow-400 hover:bg-white/10'}`}>Média</button>
-                                    <button type="button" onClick={() => setAllocateData({ ...allocateData, urgency: 'HIGH' })} className={`flex-1 py-[clamp(0.5rem,2vh,0.75rem)] text-[9px] font-bold uppercase tracking-widest rounded-full transition-colors ${allocateData.urgency === 'HIGH' ? 'bg-red-500 text-black' : 'text-red-500 hover:bg-white/10'}`}>Urgente</button>
-                                </div>
+                                    <div className="flex bg-white/5 rounded-full overflow-hidden p-1 border border-white/10 w-full mt-2">
+                                        <button type="button" onClick={() => setAllocateData({ ...allocateData, urgency: 'LOW' })} className={`flex-1 py-[clamp(0.5rem,2vh,0.75rem)] text-[9px] font-bold uppercase tracking-widest rounded-full transition-colors ${allocateData.urgency === 'LOW' ? 'bg-emerald-400 text-black' : 'text-emerald-400 hover:bg-white/10'}`}>Baixa</button>
+                                        <button type="button" onClick={() => setAllocateData({ ...allocateData, urgency: 'MEDIUM' })} className={`flex-1 py-[clamp(0.5rem,2vh,0.75rem)] text-[9px] font-bold uppercase tracking-widest rounded-full transition-colors ${allocateData.urgency === 'MEDIUM' ? 'bg-yellow-400 text-black' : 'text-yellow-400 hover:bg-white/10'}`}>Média</button>
+                                        <button type="button" onClick={() => setAllocateData({ ...allocateData, urgency: 'HIGH' })} className={`flex-1 py-[clamp(0.5rem,2vh,0.75rem)] text-[9px] font-bold uppercase tracking-widest rounded-full transition-colors ${allocateData.urgency === 'HIGH' ? 'bg-red-500 text-black' : 'text-red-500 hover:bg-white/10'}`}>Urgente</button>
+                                    </div>
 
-                                <textarea rows={2} value={allocateData.notes} onChange={e => setAllocateData({ ...allocateData, notes: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-sm outline-none focus:border-cyan-400/50 font-light resize-none mt-2 h-[clamp(4rem,10vh,6rem)]" placeholder="Notas/Anotações Rápidas (Opcional)" />
+                                    <textarea rows={2} value={allocateData.notes} onChange={e => setAllocateData({ ...allocateData, notes: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-sm outline-none focus:border-cyan-400/50 font-light resize-none mt-2 h-[clamp(4rem,10vh,6rem)]" placeholder="Notas/Anotações Rápidas (Opcional)" />
 
-                                <button type="submit" className="w-full mt-2 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-widest text-[clamp(0.6rem,1.5vh,0.7rem)] py-[clamp(1rem,2.8vh,1.25rem)] rounded-full flex justify-center items-center gap-3 group/btn">
-                                    Confirmar Entrega
-                                    <Check className="w-4 h-4 group-hover/btn:scale-125 transition-transform" />
-                                </button>
-                            </form>
+                                    <button type="submit" className="w-full mt-2 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-widest text-[clamp(0.6rem,1.5vh,0.7rem)] py-[clamp(1rem,2.8vh,1.25rem)] rounded-full flex justify-center items-center gap-3 group/btn">
+                                        Confirmar Entrega
+                                        <Check className="w-4 h-4 group-hover/btn:scale-125 transition-transform" />
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
         </div>
     );
 }
