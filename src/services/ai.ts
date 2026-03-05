@@ -547,10 +547,11 @@ ${promptText ? `Contexto da cena: "${promptText.slice(0, 250)}"` : ''}`;
 // =======================================================================
 // 4. GENERATE VIDEO (Veo) — 8s, opcional com mockup como referência
 // =======================================================================
-const VEO_MODELS = ["models/veo-3.1-generate-preview", "models/veo-3.0-generate-001", "veo-2.0-generate-001"];
+const VEO_MODELS = ["models/veo-3.0-generate-001"];
 const POLL_INTERVAL_MS = 15000;
 const MAX_POLL_MINUTES = 10;
-const RATE_LIMIT_RETRY_DELAY_MS = 45000; // 45s entre retentativas
+// Veo preview = 10 req/min. Backoff: 90s, 120s, 180s, 240s
+const RATE_LIMIT_DELAYS = [90000, 120000, 180000, 240000];
 
 export async function generateVideo(
     prompt: string,
@@ -574,7 +575,7 @@ export async function generateVideo(
     let lastError: any;
 
     for (const model of VEO_MODELS) {
-        for (let attempt = 0; attempt <= 2; attempt++) {
+        for (let attempt = 0; attempt < RATE_LIMIT_DELAYS.length + 1; attempt++) {
             try {
                 operation = await ai.models.generateVideos({
                     model,
@@ -593,10 +594,12 @@ export async function generateVideo(
                 const classified = classifyError(e);
                 console.warn(`Video gen [${model}] attempt ${attempt + 1}:`, classified.type, classified.message);
 
-                if (classified.type === 'RATE_LIMIT' && attempt < 2) {
-                    await new Promise(r => setTimeout(r, RATE_LIMIT_RETRY_DELAY_MS));
+                if (classified.type === 'RATE_LIMIT' && attempt < RATE_LIMIT_DELAYS.length) {
+                    const delay = RATE_LIMIT_DELAYS[attempt];
+                    console.warn(`Aguardando ${delay / 1000}s antes de retentar (Veo tem limite de 10 req/min)...`);
+                    await new Promise(r => setTimeout(r, delay));
                 } else if (classified.type === 'MODEL_NOT_FOUND') {
-                    break; // tenta próximo modelo
+                    break;
                 } else {
                     throw classified;
                 }
@@ -606,7 +609,15 @@ export async function generateVideo(
     }
 
     if (!operation && lastError) {
-        throw classifyError(lastError);
+        const err = classifyError(lastError);
+        if (err.type === 'RATE_LIMIT') {
+            throw new AIError(
+                "Veo está com fila cheia. Tente em 1-2 horas ou use Vertex AI (Google Cloud) para quotas maiores.",
+                'RATE_LIMIT',
+                true
+            );
+        }
+        throw err;
     }
 
     const startTime = Date.now();
