@@ -186,7 +186,7 @@ ${marketingContext}
 MANDATE: ALL Suggested Sceneries (Lifestyle & Product-Only) MUST directly serve the marketing goals, target audience, and benefits described above. No generic suggestions allowed.
 ` : ''}
 
-Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. 'description' (ENGLISH, detailed). 2. 'productType' (PT-BR). 3. 'suggestedSceneriesProductOnly' (PT-BR): 4 scenarios (2 realistic, 2 HIGH-FASHION/AVANT-GARDE SURREALISM). 4. 'suggestedSceneriesLifestyle' (PT-BR): 4 scenarios (2 realistic, 2 CINEMATIC DREAMLIKE/LUXURY SURREALISM). MANDATE: Avoid childish, toy-like, or 'ludic' metaphors. No marshmallows, no candy, no fairytales. Use HIGH-END aesthetic references (e.g. perfume commercials, luxury fashion, liquid metal, volumetric light).
+Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. 'description' (ENGLISH, detailed). 2. 'productType' (PT-BR). 3. 'suggestedSceneriesProductOnly' (PT-BR): 4 scenarios. 4. 'suggestedSceneriesLifestyle' (PT-BR): 4 scenarios. MANDATE: REALISTIC, PROFESSIONAL, GROUNDED. Cinematic = good lighting, clean composition, believable — NOT surreal, NOT dreamlike, NOT avant-garde. Think: Nike/Apple/real brand commercials. Real locations, real people, real light. No liquid metal, no floating objects, no fantasy. Elegant but believable.
 
 1. "description" (ENGLISH, ultra-detailed):
     - Exact physical traits: shape, silhouette, weight distribution
@@ -198,9 +198,9 @@ Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. '
 
 2. "productType" (PORTUGUESE): Short category name
 
-3. "suggestedSceneriesProductOnly" (PORTUGUESE): 4 REAL COMMERCIAL VIDEO SCENARIOS for product-only shots. Focus on cinematic movement and lighting.
+3. "suggestedSceneriesProductOnly" (PORTUGUESE): 4 REALISTIC scenarios — studio, fundo neutro, mesa de madeira, superfície natural. Clean, professional, believable. No surrealism.
 
-4. "suggestedSceneriesLifestyle" (PORTUGUESE): 4 REAL COMMERCIAL VIDEO SCENARIOS with people. Focus on physical interaction with the product.
+4. "suggestedSceneriesLifestyle" (PORTUGUESE): 4 REALISTIC scenarios — pessoa em ambiente real (sala, rua, praia, café). Natural, elegante, sem exageros. Interação genuína com o produto.
 
 5. "colors" (ENGLISH): List of all unique colors/variations detected with HEX.
 
@@ -219,12 +219,12 @@ Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. '
                     suggestedSceneriesProductOnly: {
                         type: Type.ARRAY,
                         items: { type: Type.STRING },
-                        description: "Array of 3-4 studio, minimalist, or 3D environment descriptions in Portuguese."
+                        description: "Array of 3-4 realistic studio/neutral environment descriptions in Portuguese. Professional, believable, no surrealism."
                     },
                     suggestedSceneriesLifestyle: {
                         type: Type.ARRAY,
                         items: { type: Type.STRING },
-                        description: "Array of 3-4 cinematic, real-world environment descriptions in Portuguese."
+                        description: "Array of 3-4 realistic lifestyle scenarios in Portuguese. Real locations, natural actions, no fantasy."
                     },
                     colors: {
                         type: Type.ARRAY,
@@ -373,6 +373,7 @@ FORMAT (follow this flow):
 7. Ambient sound: "Gentle sounds of water lapping and distant conversation" or "subtle fabric rustles."
 
 RULES:
+- REALISTIC scenes only. No surrealism, no dreamlike, no fantasy. Believable locations and actions.
 - SIMPLE language. No jargon like "kinetic foundation" or "volumetric lighting".
 - Brand name in quotes: 'yogui' or whatever the product brand is.
 - Product colors and materials described naturally (creamy beige, vivid orange stripe, pure white, black stripe).
@@ -382,7 +383,7 @@ RULES:
     `;
 
     const promptContext = `
-Write simple, natural Sora 2 prompts. Start each with: "Use the uploaded image(s) as the exact product reference. Preserve geometry, logo placement, proportions, and materials. " Then continue with a natural scene description.
+Write simple, natural Sora 2 prompts. Natural scene descriptions only — no meta-instructions about "uploaded images" or "product reference".
 
 SETTINGS:
 - Environment: ${options.environment}
@@ -423,16 +424,14 @@ Output: JSON array of 3 simple prompts (80-120 words each). Natural language. No
         }
     }));
 
-    const REFERENCE_LOCK = "Use the uploaded image(s) as the exact product reference. Preserve geometry, logo placement, proportions, materials, texture scale, and typography. Do not invent or alter any product details. ";
     try {
         const parsed = JSON.parse(response.text || "[]");
         if (!Array.isArray(parsed)) return [];
         return parsed.map((p: string) => {
             const s = (typeof p === 'string' ? p : '').trim();
-            if (!s) return REFERENCE_LOCK.trim();
-            if (s.toLowerCase().startsWith("use the uploaded")) return s;
-            return REFERENCE_LOCK + s;
-        });
+            if (!s) return '';
+            return s;
+        }).filter((s: string) => s.length > 0);
     } catch (e) {
         console.error("Failed to parse prompts", e);
         return [];
@@ -458,51 +457,51 @@ export async function generateMockup(
 
     const ai = new GoogleGenAI({ apiKey });
 
-    const angleHints = [
+    const heroHints = [
         "Produto inteiro em cena, logo visível. Ambiente amplo.",
-        "Produto em uso/interação. Logo legível. Movimento sugerido.",
-        "Close-up de materiais, texturas e logo. Nitidez máxima.",
-        "Ângulo lateral limpo. Logo visível se estiver nesse lado.",
-        "Vista de cima. Geometria limpa. Branding superior nítido.",
-        "Ângulo hero, olhando para cima. Branding de frente.",
+        "Produto em uso/interação. Logo legível.",
+        "Close-up de materiais e logo. Nitidez máxima.",
+        "Ângulo lateral limpo. Logo visível.",
+        "Vista de cima. Geometria limpa. Branding nítido.",
+        "Ângulo hero, branding de frente.",
         "Cena dinâmica. Produto e logo em destaque.",
         "Lifestyle. Produto em ação. Logo visível.",
         "Produto em foco. Logo em destaque."
     ];
+    const heroHint = heroHints[promptIndex] || heroHints[0];
 
-    const sceneHint = angleHints[promptIndex] || angleHints[0];
-
-    const imagePrompt = `SORA 2 REFERENCE FRAME — Uma única imagem 16:9, cinematográfica, perfeita para guiar a geração de vídeo.
+    const imagePrompt = `AGENCY PITCH BOARD — 16:9 COLLAGE. Layout OBRIGATÓRIO com painéis separados.
 
 ═══════════════════════════════════════════════════════════════
-REGRA ABSOLUTA — NÃO USE NENHUMA DESCRIÇÃO DE TEXTO DO PRODUTO
+REGRA: PRODUTO = SÓ DAS FOTOS. Nenhuma descrição de texto.
 ═══════════════════════════════════════════════════════════════
 
-Suas ÚNICAS fontes para a aparência do produto são as FOTOS anexadas acima.
+ESTRUTURA OBRIGATÓRIA (igual referência de sapatos em painéis):
 
-1. ESTUDE as fotos com atenção. Observe:
-   - Forma exata, proporções, geometria
-   - Cores (hex exatos se possível)
-   - Materiais, texturas, costuras, solas
-   - Logo, tipografia, cada letra — deve estar PERFEITAMENTE legível
-   - Detalhes únicos (acabamentos, etiquetas, etc.)
+[ESQUERDA ~55%] — HERO / MAIN
+- Shot principal do produto inteiro
+- ${heroHint}
+- Ambiente: ${options.environment} | Luz: ${options.timeOfDay}
+${options.mode === 'lifestyle' ? `- Pessoa: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
 
-2. REPLIQUE o produto IDÊNTICO. Zero alucinação. Zero invenção.
-   - Se não vê na foto, não coloque.
-   - Logo/ texto: cada caractere exato, fonte, espaçamento.
+[DIREITA — 3 painéis empilhados, ~15% cada]
 
-3. CENA (use apenas para ambiente, iluminação, ângulo):
-   - Ambiente: ${options.environment}
-   - Luz: ${options.timeOfDay}
-   - Estilo: ${options.style}
-   ${options.mode === 'lifestyle' ? `- Pessoa: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
-   - Direção: ${sceneHint}
-   ${promptText ? `- Contexto da cena: "${promptText.slice(0, 300)}"` : ''}
+1. TOPO — LOGO / BRANDING
+   - Close-up extremo do logo/marca das fotos
+   - Cada letra PERFEITAMENTE legível, nítida
+   - Textura do material visível
 
-4. RESULTADO: Uma frame 16:9, cinematográfica, pronta para Sora 2.
-   - Produto = cópia fiel das fotos
-   - Cena = ambiente e luz conforme acima
-   - Sem painéis, sem labels, sem collage — uma imagem limpa e profissional.`;
+2. MEIO — MATERIAL / INTERIOR
+   - Detalhe de costura, forro, acabamento
+   - Ou textura do tecido/couro/sola
+   - O que as fotos mostram de melhor
+
+3. BAIXO — DETALHE / ÂNGULO
+   - Outro ângulo importante (sola, lateral, costas)
+   - Geometria limpa, produto fiel às fotos
+
+REPLIQUE o produto EXATAMENTE das fotos. Zero invenção. Logo nítido em todos os painéis onde aparecer.
+${promptText ? `Contexto da cena: "${promptText.slice(0, 250)}"` : ''}`;
 
     const contentParts: any[] = [];
 
