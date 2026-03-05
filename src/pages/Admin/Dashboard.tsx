@@ -94,6 +94,7 @@ export default function Dashboard() {
 
     const [isAllocateModalOpen, setIsAllocateModalOpen] = useState(false);
     const [allocateData, setAllocateData] = useState({ demand_id: 0, assigned_to: '', videos_count: '', urgency: 'MEDIUM', notes: '' });
+    const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
 
     const currentUser = JSON.parse(localStorage.getItem('rivertasks_user') || '{}');
 
@@ -202,6 +203,7 @@ export default function Dashboard() {
 
             toast.success('Demanda criada!');
             setIsDemandModalOpen(false);
+            setIsClientDropdownOpen(false);
             setNewDemand({ client_name: '', total_videos: '', has_material: false, material_link: '', description: '' });
             setShowNewClientForm(false);
             setNewClientData({ username: '', password: '', niche: '' });
@@ -867,19 +869,45 @@ export default function Dashboard() {
                                             + Novo Cliente
                                         </button>
                                     </div>
-                                    <select
-                                        required={!showNewClientForm}
-                                        value={newDemand.client_name}
-                                        onChange={e => setNewDemand({ ...newDemand, client_name: e.target.value })}
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50 font-light appearance-none"
-                                    >
-                                        <option value="" className="bg-[#080808] text-white/40">Selecione o Cliente...</option>
-                                        {clients.map(c => (
-                                            <option key={c.id} value={c.username} className="bg-[#080808] text-white">
-                                                {c.username} {c.niche ? `(${c.niche})` : ''}
-                                            </option>
-                                        ))}
-                                    </select>
+
+                                    <div className="relative group/custom-select">
+                                        <div
+                                            onClick={() => setIsClientDropdownOpen(!isClientDropdownOpen)}
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm cursor-pointer hover:border-emerald-400/50 transition-all flex justify-between items-center group-hover/custom-select:bg-white/[0.07]"
+                                        >
+                                            <span className={newDemand.client_name ? "text-white" : "text-white/40"}>
+                                                {newDemand.client_name || "Selecione o Cliente..."}
+                                            </span>
+                                            <div className={`w-3 h-3 flex items-center justify-center opacity-40 group-hover/custom-select:opacity-100 group-hover/custom-select:text-emerald-400 transition-transform duration-200 ${isClientDropdownOpen ? 'rotate-180' : ''}`}>
+                                                <Plus className="w-full h-full rotate-45" />
+                                            </div>
+                                        </div>
+
+                                        {isClientDropdownOpen && (
+                                            <div className="absolute top-[calc(100%+8px)] left-0 right-0 bg-[#0C0C0C] border border-white/10 rounded-2xl overflow-hidden z-[110] shadow-2xl backdrop-blur-xl max-h-60 overflow-y-auto custom-scrollbar ring-1 ring-white/5">
+                                                {clients.length === 0 ? (
+                                                    <div className="px-5 py-4 text-[10px] text-white/30 italic uppercase tracking-widest">Nenhum cliente cadastrado...</div>
+                                                ) : (
+                                                    clients.map(c => (
+                                                        <div
+                                                            key={c.id}
+                                                            onClick={() => {
+                                                                setNewDemand({ ...newDemand, client_name: c.username });
+                                                                setIsClientDropdownOpen(false);
+                                                            }}
+                                                            className="px-5 py-4 text-sm text-white/70 hover:text-white hover:bg-emerald-500/10 cursor-pointer border-b border-white/[0.03] last:border-0 flex items-center justify-between group/opt transition-colors"
+                                                        >
+                                                            <div className="flex flex-col">
+                                                                <span className="font-medium group-hover/opt:translate-x-1 transition-transform">{c.username}</span>
+                                                                {c.niche && <span className="text-[9px] text-white/30 uppercase tracking-widest mt-0.5">{c.niche}</span>}
+                                                            </div>
+                                                            {newDemand.client_name === c.username && <Check className="w-4 h-4 text-emerald-400" />}
+                                                        </div>
+                                                    ))
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="space-y-4 bg-white/[0.02] border border-white/5 rounded-[2rem] p-6">
