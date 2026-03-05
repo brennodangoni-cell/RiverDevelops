@@ -473,34 +473,35 @@ export async function generateMockup(
     const imagePrompt = `AGENCY PITCH BOARD — 16:9 COLLAGE. Layout OBRIGATÓRIO com painéis separados.
 
 ═══════════════════════════════════════════════════════════════
-REGRA: PRODUTO = SÓ DAS FOTOS. Nenhuma descrição de texto.
+REGRA CRÍTICA — ZERO INVENÇÃO DE LOGO/MARCA
 ═══════════════════════════════════════════════════════════════
 
-ESTRUTURA OBRIGATÓRIA (igual referência de sapatos em painéis):
+O produto deve ser IDÊNTICO ao que aparece nas fotos do PRODUTO.
+
+- Se uma foto mostra logo/marca SOZINHA (sem produto) = é de APOIO/REFERÊNCIA. NÃO adicione esse logo ao produto. NUNCA.
+- Só replique logo/marca que já aparece VISÍVEL NO PRODUTO nas fotos do produto.
+- Se o produto nas fotos NÃO tem logo visível = o mockup NÃO deve ter logo. Mostre detalhe de material/textura no painel em vez de inventar logo.
+
+ESTRUTURA OBRIGATÓRIA:
 
 [ESQUERDA ~55%] — HERO / MAIN
-- Shot principal do produto inteiro
+- Shot principal do produto inteiro — exatamente como nas fotos
 - ${heroHint}
 - Ambiente: ${options.environment} | Luz: ${options.timeOfDay}
 ${options.mode === 'lifestyle' ? `- Pessoa: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
 
 [DIREITA — 3 painéis empilhados, ~15% cada]
 
-1. TOPO — LOGO / BRANDING
-   - Close-up extremo do logo/marca das fotos
-   - Cada letra PERFEITAMENTE legível, nítida
-   - Textura do material visível
+1. TOPO — Só se o produto NAS FOTOS tiver logo visível: close-up do logo. Se NÃO tiver logo no produto, use: close-up de textura/material.
 
 2. MEIO — MATERIAL / INTERIOR
-   - Detalhe de costura, forro, acabamento
-   - Ou textura do tecido/couro/sola
-   - O que as fotos mostram de melhor
+   - Detalhe de costura, forro, acabamento, textura
+   - O que as fotos do produto mostram
 
 3. BAIXO — DETALHE / ÂNGULO
-   - Outro ângulo importante (sola, lateral, costas)
-   - Geometria limpa, produto fiel às fotos
+   - Sola, lateral, costas — fiel às fotos
 
-REPLIQUE o produto EXATAMENTE das fotos. Zero invenção. Logo nítido em todos os painéis onde aparecer.
+NUNCA invente logo, letra ou marca. Produto = cópia exata do que está nas fotos do produto.
 ${promptText ? `Contexto da cena: "${promptText.slice(0, 250)}"` : ''}`;
 
     const contentParts: any[] = [];
@@ -511,7 +512,7 @@ ${promptText ? `Contexto da cena: "${promptText.slice(0, 250)}"` : ''}`;
 
     for (let i = 0; i < selected.length; i++) {
         const { data, mimeType } = parseBase64(selected[i]);
-        contentParts.push({ text: `[FOTO DO PRODUTO ${i + 1} — FONTE ÚNICA DA APARÊNCIA. REPLIQUE EXATAMENTE.]` });
+        contentParts.push({ text: `[IMAGEM ${i + 1}] Se for foto do PRODUTO: replique exatamente. Se for logo/marca SOZINHA (de apoio): NÃO coloque no produto.` });
         contentParts.push({ inlineData: { data, mimeType } });
     }
 
