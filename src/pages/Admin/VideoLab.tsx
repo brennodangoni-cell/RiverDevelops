@@ -1382,25 +1382,25 @@ export default function VideoLab() {
                                                     ? 'Otimizado para Kling: Takes de 5s, prompts diretos e frames limpos para I2V.'
                                                     : 'Otimizado para Sora: Takes de 10s, prompts detalhados e mockups em collage.'}
                                             </span>
-                                        </div>
 
-                                        {promptEngine === 'kling' && (
-                                            <div
-                                                onClick={() => setUseEndFrame(!useEndFrame)}
-                                                className={`p-5 rounded-2xl border cursor-pointer transition-all ${useEndFrame ? 'bg-amber-500/5 border-amber-500/30' : 'bg-white/[0.02] border-white/5 opacity-60'}`}
-                                            >
-                                                <div className="flex items-start gap-4">
-                                                    <div className={`mt-0.5 w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center transition-colors ${useEndFrame ? 'bg-amber-500 border-amber-400' : 'border-zinc-600'}`}>
-                                                        {useEndFrame && <Check className="w-2.5 h-2.5 text-black" />}
-                                                    </div>
-                                                    <div>
-                                                        <span className="text-xs font-semibold text-white block mb-1">Modo Sequencial (Start + End Frame)</span>
-                                                        <span className="text-[10px] text-zinc-400 leading-normal block italic mb-2">Gera uma imagem inicial e uma final para guiar o movimento do Kling. O custo de renderização de mockups dobra.</span>
-                                                        <span className="text-[9px] text-zinc-500 uppercase tracking-tighter leading-tight bg-white/5 py-1 px-2 rounded-md border border-white/10 block w-fit">Ideal para transições suaves e movimentos controlados</span>
+                                            {promptEngine === 'kling' && (
+                                                <div
+                                                    onClick={() => setUseEndFrame(!useEndFrame)}
+                                                    className={`mt-4 p-4 rounded-xl border cursor-pointer transition-all ${useEndFrame ? 'bg-amber-500/10 border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.05)]' : 'bg-white/[0.02] border-white/5 opacity-60 hover:opacity-100'}`}
+                                                >
+                                                    <div className="flex items-start gap-3">
+                                                        <div className={`mt-0.5 w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center transition-colors ${useEndFrame ? 'bg-amber-500 border-amber-400' : 'border-zinc-600'}`}>
+                                                            {useEndFrame && <Check className="w-2.5 h-2.5 text-black" />}
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-[11px] font-bold text-white block mb-0.5">Modo Sequencial (Start + End)</span>
+                                                            <span className="text-[9px] text-zinc-500 leading-tight block">Gera imagem de início e fim. Dobra o custo de mockup, mas guia o movimento.</span>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        )}
+                                            )}
+                                        </div>
+
 
                                         <div
                                             onClick={() => setRenderAllOnInit(!renderAllOnInit)}
