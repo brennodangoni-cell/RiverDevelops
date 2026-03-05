@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { Plus, X, Users, Upload, Trash2, Loader2, ArrowLeft, Image as ImageIcon, Video, Folder, Calendar, FileText, UserPlus, Pencil } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -53,7 +54,10 @@ export default function AdminClients() {
     const [clientFormId, setClientFormId] = useState<number | null>(null);
     const [clientForm, setClientForm] = useState({ username: '', password: '' });
     const [clientAvatar, setClientAvatar] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [clientSaving, setClientSaving] = useState(false);
+
+    const navigate = useNavigate();
 
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [uploadData, setUploadData] = useState({ title: '', category: '', product: '', week_date: '' });
@@ -116,6 +120,7 @@ export default function AdminClients() {
         setClientFormId(null);
         setClientForm({ username: '', password: '' });
         setClientAvatar(null);
+        setPreviewUrl(null);
         setIsClientModalOpen(true);
     };
 
@@ -125,6 +130,7 @@ export default function AdminClients() {
         setClientFormId(client.id);
         setClientForm({ username: client.username, password: '' });
         setClientAvatar(null);
+        setPreviewUrl(client.avatar_url ? `${axios.defaults.baseURL || ''}${client.avatar_url}` : null);
         setIsClientModalOpen(true);
     };
 
@@ -239,17 +245,20 @@ export default function AdminClients() {
 
                 {!selectedClient ? (
                     <div className="w-full flex flex-col items-center">
-                        <div className="w-full max-w-4xl flex items-center justify-between mb-10 bg-white/5 border border-white/10 rounded-full py-4 px-8 backdrop-blur-xl">
+                        <div className="w-full max-w-4xl flex items-center justify-between mb-10 bg-white/5 border border-white/10 rounded-[3rem] p-4 sm:p-6 backdrop-blur-xl">
                             <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full bg-cyan-500/10 flex items-center justify-center ring-1 ring-cyan-500/30">
+                                <button onClick={() => navigate('/admin/dashboard')} className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors shrink-0 text-white/50 hover:text-cyan-400">
+                                    <ArrowLeft className="w-5 h-5" />
+                                </button>
+                                <div className="hidden sm:flex w-12 h-12 rounded-full bg-cyan-500/10 items-center justify-center ring-1 ring-cyan-500/30">
                                     <Users className="w-6 h-6 text-cyan-400" />
                                 </div>
                                 <div>
                                     <h1 className="text-xl font-display font-medium text-white tracking-widest uppercase">Portal de Clientes</h1>
-                                    <p className="text-xs text-white/40 tracking-wider">Gerencie os acessos e entregas</p>
+                                    <p className="text-xs text-white/40 tracking-wider hidden sm:block">Gerencie os acessos e entregas</p>
                                 </div>
                             </div>
-                            <button onClick={openCreateModal} className="bg-cyan-500/10 hover:bg-cyan-500/20 ring-1 ring-inset ring-cyan-500/30 text-cyan-400 font-bold tracking-widest uppercase text-xs px-6 py-3 rounded-full flex items-center gap-2 transition-all">
+                            <button onClick={openCreateModal} className="bg-cyan-500/10 hover:bg-cyan-500/20 ring-1 ring-inset ring-cyan-500/30 text-cyan-400 font-bold tracking-widest uppercase text-[10px] sm:text-xs px-6 py-3 rounded-full flex items-center gap-2 transition-all">
                                 <Plus className="w-4 h-4" /> Novo Cliente
                             </button>
                         </div>
@@ -427,18 +436,41 @@ export default function AdminClients() {
                         <p className="text-xs text-white/40 mb-8 tracking-wider text-center">{isEditing ? 'Atualize as informações do acesso.' : 'Crie um acesso para a Área Secundária.'}</p>
 
                         <form onSubmit={handleSaveClient} className="w-full flex flex-col gap-4">
-                            {/* Avatar File Upload */}
-                            <label className="w-full bg-white/[0.02] border-2 border-dashed border-white/10 hover:border-cyan-400/50 rounded-2xl p-4 flex items-center justify-center cursor-pointer transition-all group overflow-hidden relative">
-                                <input type="file" accept="image/*" onChange={e => setClientAvatar(e.target.files?.[0] || null)} className="hidden" />
-                                {clientAvatar ? (
-                                    <div className="text-xs text-white/80 font-medium truncate">{clientAvatar.name}</div>
-                                ) : (
-                                    <div className="flex items-center gap-2 text-white/30 group-hover:text-cyan-400/70 transition-colors">
-                                        <ImageIcon className="w-4 h-4" />
-                                        <span className="text-[10px] font-bold uppercase tracking-widest">Subir Foto de Perfil</span>
+                            {/* Avatar File Upload / Preview */}
+                            {previewUrl ? (
+                                <div className="w-full relative rounded-[2rem] overflow-hidden group border border-white/10 p-2 bg-white/5 flex flex-col items-center">
+                                    <div className="absolute inset-0 z-0">
+                                        <img src={previewUrl} className="w-full h-full object-cover blur-xl opacity-40 scale-125" alt="blur-bg" />
                                     </div>
-                                )}
-                            </label>
+                                    <div className="relative z-10 w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-cyan-400 shadow-[0_0_40px_rgba(34,211,238,0.2)] my-4 group-hover:shadow-[0_0_50px_rgba(34,211,238,0.4)] transition-all">
+                                        <img src={previewUrl} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500 cursor-crosshair" alt="preview" />
+                                    </div>
+                                    <div className="relative z-10 flex gap-3 justify-center pb-4 w-full px-4">
+                                        <label className="flex-1 text-center text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 hover:bg-cyan-500/20 py-2.5 rounded-full cursor-pointer transition-colors shadow-lg">
+                                            Trocar Foto
+                                            <input type="file" accept="image/*" onChange={e => {
+                                                const file = e.target.files?.[0];
+                                                if (file) { setClientAvatar(file); setPreviewUrl(URL.createObjectURL(file)); }
+                                            }} className="hidden" />
+                                        </label>
+                                        <button type="button" onClick={() => { setClientAvatar(null); setPreviewUrl(null); if (isEditing && clientFormId && selectedClient) { /* Opt: clear in backend too if needed, here just UI */ } }} className="flex-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-red-500 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 py-2.5 rounded-full transition-colors shadow-lg">
+                                            Remover
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <label className="w-full bg-white/[0.02] border-2 border-dashed border-white/10 hover:border-cyan-400/50 rounded-[2rem] p-6 sm:p-8 flex flex-col items-center justify-center cursor-pointer transition-all group overflow-hidden relative">
+                                    <input type="file" accept="image/*" onChange={e => {
+                                        const file = e.target.files?.[0];
+                                        if (file) { setClientAvatar(file); setPreviewUrl(URL.createObjectURL(file)); }
+                                    }} className="hidden" />
+                                    <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-3 group-hover:bg-cyan-500/10 group-hover:border-cyan-500/30 transition-all">
+                                        <ImageIcon className="w-5 h-5 text-white/30 group-hover:text-cyan-400 transition-colors" />
+                                    </div>
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-white/50 group-hover:text-cyan-400 transition-colors">Subir Foto de Perfil</span>
+                                    <span className="text-[9px] text-white/30 mt-1 tracking-wider">Permitido dar zoom e enquadrar via CSS</span>
+                                </label>
+                            )}
 
                             <input required type="text" value={clientForm.username} onChange={e => setClientForm({ ...clientForm, username: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 transition-all font-light placeholder:text-white/20" placeholder="Nome de Usuário (Login)" />
 
