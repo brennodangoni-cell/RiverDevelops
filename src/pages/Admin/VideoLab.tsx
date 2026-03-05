@@ -3,23 +3,19 @@ import {
     Copy, Check, ChevronLeft, Loader2, Upload,
     X, ArrowRight, Download, Video, DollarSign, LogOut,
     Smartphone, Monitor, Camera, Palette,
-    Layers, Wand2, PlayCircle, Play, Settings2, Dice5, FileDown, ArrowLeft, PenTool,
+    Layers, Wand2, PlayCircle, Settings2, Dice5, FileDown, ArrowLeft, PenTool,
     Star, BookImage, Trash2
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import axios from 'axios';
-import { analyzeProduct, analyzeScenery, generatePrompts, generateMockup, generateVideo, generateVideoKling, AIError, ProductAnalysis, SceneryAnalysis } from '../../services/ai';
+import { analyzeProduct, analyzeScenery, generatePrompts, generateMockup, AIError, ProductAnalysis, SceneryAnalysis } from '../../services/ai';
 
 interface Result {
     prompt: string;
     mockupUrl: string | null;
-    endMockupUrl?: string | null;
-    videoUrl?: string | null;
     feedback?: string;
-    feedbackHistory?: string[];
-    refineMode?: 'both' | 'prompt' | 'mockup';
 }
 
 interface FavoriteProject {
@@ -108,7 +104,6 @@ export default function VideoLab() {
         skinTone: 'Light',
         hairColor: 'Blonde',
         supportingDescription: '',
-        customScenario: '',
         script: '',
         characters: '',
         cameraAngle: '',
@@ -132,16 +127,7 @@ export default function VideoLab() {
     const [favorites, setFavorites] = useState<FavoriteProject[]>([]);
     const [savedMockups, setSavedMockups] = useState<SavedMockup[]>([]);
     const [renderAllOnInit, setRenderAllOnInit] = useState(false);
-    const [generateVideoVeo, setGenerateVideoVeo] = useState(false);
-    const [promptEngine, setPromptEngine] = useState<'sora' | 'kling'>(() => (localStorage.getItem('prompt_engine') as 'sora' | 'kling') || 'kling');
-    const [videoProvider, setVideoProvider] = useState<'veo' | 'kling'>(() => (localStorage.getItem('video_provider') as 'veo' | 'kling') || 'kling');
-    const [klingApiKey, setKlingApiKey] = useState(() => localStorage.getItem('kling_api_key') || '');
     const [sceneryData, setSceneryData] = useState<SceneryAnalysis | null>(null);
-    const [useEndFrame, setUseEndFrame] = useState(() => localStorage.getItem('use_end_frame') === 'true');
-    useEffect(() => {
-        localStorage.setItem('use_end_frame', String(useEndFrame));
-    }, [useEndFrame]);
-
     const [loadingIndices, setLoadingIndices] = useState<number[]>([]);
     const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
@@ -167,18 +153,6 @@ export default function VideoLab() {
             if (envKey) localStorage.setItem('gemini_api_key', envKey);
         }
     }, []);
-
-    useEffect(() => {
-        if (klingApiKey) localStorage.setItem('kling_api_key', klingApiKey);
-    }, [klingApiKey]);
-
-    useEffect(() => {
-        localStorage.setItem('prompt_engine', promptEngine);
-    }, [promptEngine]);
-
-    useEffect(() => {
-        localStorage.setItem('video_provider', videoProvider);
-    }, [videoProvider]);
 
     useEffect(() => {
         const fetchBalance = async () => {
@@ -334,10 +308,6 @@ export default function VideoLab() {
 
     const handleGenerate = async () => {
         if (!analysis) return;
-        if (generateVideoVeo && videoProvider === 'kling' && !klingApiKey.trim()) {
-            toast.error('Configure a chave da API Kling para gerar vídeos.');
-            return;
-        }
         setIsGenerating(true);
         setStep(3);
         setResults([]);
@@ -354,9 +324,9 @@ export default function VideoLab() {
                 ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
                 : baseDescription) + hexInfo + hooksInfo;
 
-            setProgressText(`Engenharia de Prompts (${promptEngine === 'kling' ? 'Kling 3.0' : 'Sora 2'} Engine)...`);
+            setProgressText('Engenharia de Prompts (Sora 2 Cinematic Engine v17.8)...');
             const progressTimer = simulateProgress(3, 18, 45000);
-            const prompts = await generatePrompts(finalDescription, options, undefined, analysis.colors, undefined, promptEngine);
+            const prompts = await generatePrompts(finalDescription, options, undefined, analysis.colors);
             clearInterval(progressTimer);
             setProgress(20);
             const newResults: Result[] = prompts.map(p => ({ prompt: p, mockupUrl: null }));
@@ -367,46 +337,16 @@ export default function VideoLab() {
 
             // Render sequentially to show progress and avoid state corruption
             for (let i = 0; i < targets.length; i++) {
-                const mockupUrl = await generateMockup(finalDescription, options, i, compressedImages, prompts[i], promptEngine, 'start')
+                const mockupUrl = await generateMockup(finalDescription, options, i, compressedImages, prompts[i])
                     .catch(e => { console.warn(`Mockup ${i + 1} failed:`, e); return null; });
-
-                let endMockupUrl: string | null = null;
-                if (useEndFrame && promptEngine === 'kling' && mockupUrl) {
-                    setProgressText(`Renderizando Frame Final (Sequence Mode)...`);
-                    endMockupUrl = await generateMockup(finalDescription, options, i, compressedImages, prompts[i], promptEngine, 'end', mockupUrl)
-                        .catch(e => { console.warn(`End Mockup ${i + 1} failed:`, e); return null; });
-                }
 
                 setResults(prev => {
                     const updated = [...prev];
                     if (updated[i]) {
-                        updated[i] = { ...updated[i], mockupUrl, endMockupUrl };
+                        updated[i] = { ...updated[i], mockupUrl };
                     }
                     return updated;
                 });
-
-                // Gerar vídeo para a primeira cena (se habilitado)
-                if (generateVideoVeo && i === 0 && mockupUrl && prompts[i]) {
-                    const genVideo = videoProvider === 'kling' ? generateVideoKling : generateVideo;
-                    setProgressText(videoProvider === 'kling' ? 'Gerando vídeo Kling 3.0 (~30s)...' : 'Gerando vídeo Veo (pode levar 2-5 min)...');
-                    const duration = promptEngine === 'sora' ? 10 : 5;
-                    try {
-                        const videoUrl = await genVideo(prompts[i], mockupUrl, {
-                            aspectRatio: options.aspectRatio,
-                            durationSeconds: videoProvider === 'kling' ? duration : 8,
-                            endMockupUrl: endMockupUrl ?? undefined
-                        });
-                        setResults(prev => {
-                            const updated = [...prev];
-                            if (updated[0]) updated[0] = { ...updated[0], videoUrl: videoUrl ?? undefined };
-                            return updated;
-                        });
-                        if (videoUrl) toast.success(`Vídeo ${videoProvider === 'kling' ? 'Kling' : 'Veo'} gerado!`);
-                    } catch (e: any) {
-                        console.warn('Video generation failed:', e);
-                        toast.error(e instanceof AIError ? e.message : 'Erro ao gerar vídeo.');
-                    }
-                }
 
                 // Small delay to allow UI to breathe
                 if (i < targets.length - 1) await new Promise(r => setTimeout(r, 1000));
@@ -437,7 +377,7 @@ export default function VideoLab() {
             setProgressText('Expandindo Sequência Narrativa...');
             const progressTimer = simulateProgress(5, 28, 40000);
             const previousPrompts = results.map(r => r.prompt);
-            const newPrompts = await generatePrompts(finalDescription, options, previousPrompts, analysis.colors, undefined, promptEngine);
+            const newPrompts = await generatePrompts(finalDescription, options, previousPrompts, analysis.colors);
             clearInterval(progressTimer);
             setProgress(30);
             const startIndex = results.length;
@@ -447,20 +387,14 @@ export default function VideoLab() {
             setProgressText(`Renderizando ${newPrompts.length} Mockups extras...`);
 
             for (let i = 0; i < newPrompts.length; i++) {
-                const mockupUrl = await generateMockup(finalDescription, options, startIndex + i, compressedImages, newPrompts[i], promptEngine, 'start')
+                const mockupUrl = await generateMockup(finalDescription, options, startIndex + i, compressedImages, newPrompts[i])
                     .catch(e => { console.warn(`Mockup extra ${i + 1} failed:`, e); return null; });
-
-                let endMockupUrl: string | null = null;
-                if (useEndFrame && promptEngine === 'kling' && mockupUrl) {
-                    endMockupUrl = await generateMockup(finalDescription, options, startIndex + i, compressedImages, newPrompts[i], promptEngine, 'end', mockupUrl)
-                        .catch(e => { console.warn(`End mockup extra ${i + 1} failed:`, e); return null; });
-                }
 
                 setResults(prev => {
                     const updated = [...prev];
                     const targetIndex = startIndex + i;
                     if (updated[targetIndex]) {
-                        updated[targetIndex] = { ...updated[targetIndex], mockupUrl, endMockupUrl };
+                        updated[targetIndex] = { ...updated[targetIndex], mockupUrl };
                     }
                     return updated;
                 });
@@ -493,20 +427,13 @@ export default function VideoLab() {
                 const newOptions = { ...options, supportingDescription: `Regenerate scene ${index + 1} with a completely different creative angle.` };
                 const newPrompts = await generatePrompts(
                     finalDescription, newOptions,
-                    results.slice(0, index).map(r => r.prompt),
-                    undefined, undefined, promptEngine
+                    results.slice(0, index).map(r => r.prompt)
                 );
                 const newPrompt = newPrompts[0];
-                const mockupUrl = await generateMockup(finalDescription, newOptions, index, compressedImages, newPrompt, promptEngine, 'start');
-
-                let endMockupUrl: string | null = null;
-                if (useEndFrame && promptEngine === 'kling' && mockupUrl) {
-                    endMockupUrl = await generateMockup(finalDescription, newOptions, index, compressedImages, newPrompt, promptEngine, 'end', mockupUrl);
-                }
-
+                const mockupUrl = await generateMockup(finalDescription, newOptions, index, compressedImages, newPrompt);
                 setResults(prev => {
                     const updated = [...prev];
-                    updated[index] = { prompt: newPrompt, mockupUrl, endMockupUrl };
+                    updated[index] = { prompt: newPrompt, mockupUrl };
                     return updated;
                 });
             })().finally(() => setLoadingIndices(prev => prev.filter(i => i !== index))),
@@ -514,37 +441,6 @@ export default function VideoLab() {
                 loading: 'Regenerando take com nova perspectiva...',
                 success: 'Take atualizado com sucesso!',
                 error: (e) => e instanceof AIError ? e.message : 'Erro ao regenerar take.',
-            }
-        );
-    };
-
-    const handleGenerateSceneVideo = async (index: number) => {
-        if (!results[index].mockupUrl || loadingIndices.includes(index)) return;
-
-        setLoadingIndices(prev => [...prev, index]);
-        const genVideo = videoProvider === 'kling' ? generateVideoKling : generateVideo;
-        const duration = promptEngine === 'sora' ? 10 : 5;
-
-        toast.promise(
-            (async () => {
-                const videoUrl = await genVideo(results[index].prompt, results[index].mockupUrl, {
-                    aspectRatio: options.aspectRatio,
-                    durationSeconds: videoProvider === 'kling' ? (duration === 10 ? 10 : 5) : 8,
-                    endMockupUrl: (useEndFrame && promptEngine === 'kling') ? results[index].endMockupUrl : undefined
-                });
-
-                if (!videoUrl) throw new Error("Falha ao obter URL do vídeo");
-
-                setResults(prev => {
-                    const updated = [...prev];
-                    updated[index] = { ...updated[index], videoUrl: videoUrl ?? undefined };
-                    return updated;
-                });
-            })().finally(() => setLoadingIndices(prev => prev.filter(i => i !== index))),
-            {
-                loading: videoProvider === 'kling' ? 'Gerando vídeo Kling 3.0 (~30s)...' : 'Gerando vídeo Veo...',
-                success: 'Vídeo gerado com sucesso!',
-                error: (e) => e instanceof AIError ? e.message : 'Erro ao gerar vídeo.',
             }
         );
     };
@@ -568,18 +464,12 @@ export default function VideoLab() {
 
         toast.promise(
             (async () => {
-                const newPrompts = await generatePrompts(finalDescription, options, undefined, undefined, currentDraft, promptEngine);
+                const newPrompts = await generatePrompts(finalDescription, options, undefined, undefined, currentDraft);
                 const newPrompt = newPrompts[0];
-                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, newPrompt, promptEngine, 'start');
-
-                let endMockupUrl: string | null = null;
-                if (useEndFrame && promptEngine === 'kling' && mockupUrl) {
-                    endMockupUrl = await generateMockup(finalDescription, options, index, compressedImages, newPrompt, promptEngine, 'end', mockupUrl);
-                }
-
+                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, newPrompt);
                 setResults(prev => {
                     const updated = [...prev];
-                    updated[index] = { prompt: newPrompt, mockupUrl, endMockupUrl };
+                    updated[index] = { prompt: newPrompt, mockupUrl };
                     return updated;
                 });
             })().finally(() => setLoadingIndices(prev => prev.filter(i => i !== index))),
@@ -604,16 +494,10 @@ export default function VideoLab() {
 
         toast.promise(
             (async () => {
-                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, results[index].prompt, promptEngine, 'start');
-
-                let endMockupUrl: string | null = null;
-                if (useEndFrame && promptEngine === 'kling' && mockupUrl) {
-                    endMockupUrl = await generateMockup(finalDescription, options, index, compressedImages, results[index].prompt, promptEngine, 'end', mockupUrl);
-                }
-
+                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, results[index].prompt);
                 setResults(prev => {
                     const updated = [...prev];
-                    updated[index] = { ...updated[index], mockupUrl, endMockupUrl };
+                    updated[index] = { ...updated[index], mockupUrl };
                     return updated;
                 });
             })().finally(() => setLoadingIndices(prev => prev.filter(i => i !== index))),
@@ -641,21 +525,10 @@ export default function VideoLab() {
         });
     };
 
-    const updateRefineMode = (index: number, mode: 'both' | 'prompt' | 'mockup') => {
-        setResults(prev => {
-            const updated = [...prev];
-            updated[index] = { ...updated[index], refineMode: mode };
-            return updated;
-        });
-    };
-
     const handleRegenerateWithFeedback = async (index: number) => {
         if (!analysis || loadingIndices.includes(index)) return;
         const currentDraft = results[index].prompt;
         const feedback = results[index].feedback;
-        const history = results[index].feedbackHistory || [];
-        const refineMode = results[index].refineMode || 'both';
-
         if (!feedback?.trim()) {
             toast.error('Escreva o que você não gostou para melhorar!');
             return;
@@ -670,47 +543,16 @@ export default function VideoLab() {
             ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
             : baseDescription) + hexInfo + hooksInfo;
 
-        const newHistory = [...history, feedback];
-
-        const feedbackContextText = history.length > 0
-            ? `PAST FEEDBACKS ALREADY APPLIED:\n${history.map((h, i) => `[Iteração ${i + 1}]: ${h}`).join('\n')}\n\nDIRECTOR'S NEW FEEDBACK (FIX THESE ISSUES IMMEDIATELY):\n${feedback}`
-            : `DIRECTOR'S FEEDBACK (FIX THESE ISSUES):\n${feedback}`;
-
-        const draftWithFeedback = `CURRENT PROMPT:\n${currentDraft}\n\n${feedbackContextText}`;
+        const draftWithFeedback = `CURRENT PROMPT:\n${currentDraft}\n\nDIRECTOR'S FEEDBACK (FIX THESE ISSUES):\n${feedback}`;
 
         toast.promise(
             (async () => {
-                let newPrompt = currentDraft;
-                let newMockupUrl = results[index].mockupUrl;
-                let newEndMockupUrl = results[index].endMockupUrl || null;
-
-                if (refineMode === 'both' || refineMode === 'prompt') {
-                    const newPrompts = await generatePrompts(finalDescription, options, undefined, analysis.colors, draftWithFeedback, promptEngine);
-                    newPrompt = newPrompts[0];
-                }
-
-                if (refineMode === 'both' || refineMode === 'mockup') {
-                    const finalMockupPrompt = (refineMode === 'mockup')
-                        ? `${newPrompt}\n\n[MOCKUP REFINEMENT FEEDBACK NOW APPLYING]: ${feedbackContextText}`
-                        : newPrompt;
-
-                    newMockupUrl = await generateMockup(finalDescription, options, index, compressedImages, finalMockupPrompt, promptEngine, 'start');
-
-                    if (useEndFrame && promptEngine === 'kling' && newMockupUrl) {
-                        newEndMockupUrl = await generateMockup(finalDescription, options, index, compressedImages, finalMockupPrompt, promptEngine, 'end', newMockupUrl);
-                    }
-                }
-
+                const newPrompts = await generatePrompts(finalDescription, options, undefined, analysis.colors, draftWithFeedback);
+                const newPrompt = newPrompts[0];
+                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, newPrompt);
                 setResults(prev => {
                     const updated = [...prev];
-                    updated[index] = {
-                        ...updated[index],
-                        prompt: newPrompt,
-                        mockupUrl: newMockupUrl,
-                        endMockupUrl: newEndMockupUrl,
-                        feedback: '',
-                        feedbackHistory: newHistory
-                    };
+                    updated[index] = { prompt: newPrompt, mockupUrl, feedback: '' };
                     return updated;
                 });
             })().finally(() => setLoadingIndices(prev => prev.filter(i => i !== index))),
@@ -862,6 +704,14 @@ export default function VideoLab() {
     };
 
     // === MOCKUP LIBRARY ===
+    const saveMockupToLibrary = (url: string, label: string) => {
+        const mock: SavedMockup = { id: Date.now().toString(), url, label, savedAt: new Date().toLocaleString('pt-BR') };
+        const updated = [mock, ...savedMockups].slice(0, 30); // max 30
+        setSavedMockups(updated);
+        try { localStorage.setItem('sora_mockup_library', JSON.stringify(updated)); } catch { }
+        toast.success('💾 Mockup salvo na biblioteca!');
+    };
+
     const deleteSavedMockup = (id: string) => {
         const updated = savedMockups.filter(m => m.id !== id);
         setSavedMockups(updated);
@@ -888,7 +738,7 @@ export default function VideoLab() {
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold tracking-tight text-white">River Sora Lab</h1>
-                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v14.2</span></p>
+                            <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-[0.2em]">Production Engine <span className="text-cyan-500">v17.8</span></p>
                         </div>
                     </div>
                 </div>
@@ -1169,17 +1019,6 @@ export default function VideoLab() {
                                                     </button>
                                                 ))}
                                             </div>
-
-                                            <div className="mt-6 pt-6 border-t border-white/5 space-y-3">
-                                                <label className="text-[9px] font-semibold text-zinc-500 uppercase tracking-[0.2em]">Ou descreva sua cena em poucas palavras</label>
-                                                <input
-                                                    value={options.customScenario}
-                                                    onChange={(e) => setOptions({ ...options, customScenario: e.target.value })}
-                                                    placeholder="Ex: mulher grávida no banheiro ao amanhecer, homem na piscina do resort, casal na praia ao pôr do sol..."
-                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-sm text-zinc-300 placeholder:text-zinc-600 outline-none focus:border-cyan-500/50 transition-colors"
-                                                />
-                                                <p className="text-[9px] text-zinc-600">A IA usa isso como prioridade. Selecione Lifestyle + gênero abaixo para cenas com pessoa.</p>
-                                            </div>
                                         </div>
                                     )}
 
@@ -1349,51 +1188,6 @@ export default function VideoLab() {
                                             </div>
                                         </div>
 
-                                        <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-5 space-y-4">
-                                            <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider block">
-                                                Engine de Prompt & Mockup
-                                            </label>
-                                            <div className="flex gap-3">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setPromptEngine('sora')}
-                                                    className={`flex-1 py-3 px-4 rounded-xl text-xs font-medium transition-all ${promptEngine === 'sora' ? 'bg-cyan-500/20 border border-cyan-500/50 text-cyan-400' : 'bg-white/5 border border-white/10 text-zinc-400 hover:border-white/20'}`}
-                                                >
-                                                    Sora 2 (10s Content)
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setPromptEngine('kling')}
-                                                    className={`flex-1 py-3 px-4 rounded-xl text-xs font-medium transition-all ${promptEngine === 'kling' ? 'bg-amber-500/20 border border-amber-500/50 text-amber-400' : 'bg-white/5 border border-white/10 text-zinc-400 hover:border-white/20'}`}
-                                                >
-                                                    Kling 3.0 (5s Ops)
-                                                </button>
-                                            </div>
-                                            <span className="text-[10px] text-zinc-500 block leading-tight">
-                                                {promptEngine === 'kling'
-                                                    ? 'Otimizado para Kling: Takes de 5s, prompts diretos e frames limpos para I2V.'
-                                                    : 'Otimizado para Sora: Takes de 10s, prompts detalhados e mockups em collage.'}
-                                            </span>
-
-                                            {promptEngine === 'kling' && (
-                                                <div
-                                                    onClick={() => setUseEndFrame(!useEndFrame)}
-                                                    className={`mt-4 p-4 rounded-xl border cursor-pointer transition-all ${useEndFrame ? 'bg-amber-500/10 border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.05)]' : 'bg-white/[0.02] border-white/5 opacity-60 hover:opacity-100'}`}
-                                                >
-                                                    <div className="flex items-start gap-3">
-                                                        <div className={`mt-0.5 w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center transition-colors ${useEndFrame ? 'bg-amber-500 border-amber-400' : 'border-zinc-600'}`}>
-                                                            {useEndFrame && <Check className="w-2.5 h-2.5 text-black" />}
-                                                        </div>
-                                                        <div>
-                                                            <span className="text-[11px] font-bold text-white block mb-0.5">Modo Sequencial (Start + End)</span>
-                                                            <span className="text-[9px] text-zinc-500 leading-tight block">Gera imagem de início e fim. Dobra o custo de mockup, mas guia o movimento.</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-
-
                                         <div
                                             onClick={() => setRenderAllOnInit(!renderAllOnInit)}
                                             className={`p-5 rounded-2xl border cursor-pointer transition-all ${!renderAllOnInit ? 'bg-emerald-500/5 border-emerald-500/30' : 'bg-white/[0.02] border-white/5 opacity-60'}`}
@@ -1408,55 +1202,6 @@ export default function VideoLab() {
                                                 </div>
                                             </div>
                                         </div>
-
-                                        <div
-                                            onClick={() => setGenerateVideoVeo(!generateVideoVeo)}
-                                            className={`p-5 rounded-2xl border cursor-pointer transition-all ${generateVideoVeo ? 'bg-amber-500/5 border-amber-500/30' : 'bg-white/[0.02] border-white/5'}`}
-                                        >
-                                            <div className="flex items-start gap-4">
-                                                <div className={`mt-0.5 w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center transition-colors ${generateVideoVeo ? 'bg-amber-500 border-amber-400' : 'border-zinc-600'}`}>
-                                                    {generateVideoVeo && <Check className="w-2.5 h-2.5 text-black" />}
-                                                </div>
-                                                <div>
-                                                    <span className="text-xs font-semibold text-white block mb-1 flex items-center gap-2"><Video className="w-3.5 h-3.5" /> Gerar vídeo (Veo ou Kling)</span>
-                                                    <span className="text-[10px] text-zinc-400 leading-normal block">Após o mockup, gera um vídeo da primeira cena. Escolha o provedor abaixo.</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {generateVideoVeo && (
-                                            <div className="p-5 rounded-2xl border border-white/10 bg-white/[0.02] space-y-4">
-                                                <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider block">Provedor de vídeo</span>
-                                                <div className="flex gap-3">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setVideoProvider('veo')}
-                                                        className={`flex-1 py-3 px-4 rounded-xl text-xs font-medium transition-all ${videoProvider === 'veo' ? 'bg-cyan-500/20 border border-cyan-500/50 text-cyan-400' : 'bg-white/5 border border-white/10 text-zinc-400 hover:border-white/20'}`}
-                                                    >
-                                                        Veo 3.1 (8s, ~2–5 min)
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setVideoProvider('kling')}
-                                                        className={`flex-1 py-3 px-4 rounded-xl text-xs font-medium transition-all ${videoProvider === 'kling' ? 'bg-amber-500/20 border border-amber-500/50 text-amber-400' : 'bg-white/5 border border-white/10 text-zinc-400 hover:border-white/20'}`}
-                                                    >
-                                                        Kling 3.0 (5s/10s, ~30s)
-                                                    </button>
-                                                </div>
-                                                {videoProvider === 'kling' && (
-                                                    <div>
-                                                        <label className="text-[10px] text-zinc-400 block mb-2">Chave API Kling</label>
-                                                        <input
-                                                            type="password"
-                                                            value={klingApiKey}
-                                                            onChange={(e) => setKlingApiKey(e.target.value)}
-                                                            placeholder="Cole sua chave da API Kling"
-                                                            className="w-full px-4 py-3 rounded-xl bg-black/30 border border-white/10 text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:border-amber-500/50"
-                                                        />
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
                                     </div>
 
                                     <div className="mt-12">
@@ -1477,7 +1222,7 @@ export default function VideoLab() {
                                     <h1 className="text-2xl font-light text-white tracking-tight flex items-center gap-3">
                                         Storyboard <span className="text-cyan-500 text-sm font-bold uppercase tracking-[0.3em]">Cinematic</span>
                                     </h1>
-                                    <p className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">DNA do Produto + Contexto de Marketing + Sora 2 Blueprint Engine</p>
+                                    <p className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">DNA do Produto + Contexto de Marketing + Sora 2 Blueprint Engine v17.8</p>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     {results.some(r => r.mockupUrl === null) && (
@@ -1523,9 +1268,9 @@ export default function VideoLab() {
                                 {results.map((res, i) => (
                                     <div key={i} className="bg-white/[0.02] border border-white/[0.05] backdrop-blur-3xl rounded-3xl overflow-hidden flex flex-col lg:flex-row shadow-2xl">
                                         {/* Image Section */}
-                                        <div className="w-full lg:w-[540px] aspect-video lg:aspect-auto bg-black/50 border-b lg:border-r lg:border-b-0 border-white/5 relative group min-h-[400px]">
+                                        <div className="w-full lg:w-[480px] aspect-square lg:aspect-auto bg-black/50 border-b lg:border-r lg:border-b-0 border-white/5 relative group cursor-pointer" onClick={() => res.mockupUrl && setLightboxUrl(res.mockupUrl)}>
                                             {loadingIndices.includes(i) ? (
-                                                <div className="flex flex-col items-center justify-center h-full gap-5 text-cyan-500/50 p-12 text-center bg-cyan-950/10 h-full">
+                                                <div className="flex flex-col items-center justify-center h-full gap-5 text-cyan-500/50 p-12 text-center bg-cyan-950/10">
                                                     <Loader2 className="w-10 h-10 animate-spin text-cyan-400" />
                                                     <div className="space-y-1">
                                                         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-400">Rendering Scene...</span>
@@ -1533,41 +1278,27 @@ export default function VideoLab() {
                                                     </div>
                                                 </div>
                                             ) : res.mockupUrl ? (
-                                                <div className={`grid ${res.endMockupUrl ? 'grid-cols-2' : 'grid-cols-1'} h-full`}>
-                                                    <div className="relative h-full overflow-hidden cursor-pointer group/start" onClick={() => setLightboxUrl(res.mockupUrl!)}>
-                                                        <img src={res.mockupUrl} alt={`Scene ${i + 1} Start`} className="w-full h-full object-cover transition-transform duration-700 group-hover/start:scale-105" />
-                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 pointer-events-none" />
-                                                        <span className="absolute top-4 left-4 bg-black/70 backdrop-blur-md text-[8px] font-bold text-white px-3 py-1.5 rounded-full border border-white/10 uppercase tracking-[0.2em] z-10 shadow-2xl">Start Frame</span>
-
-                                                        <div className="absolute top-4 right-4 flex gap-2 z-20">
-                                                            <button onClick={(e) => { e.stopPropagation(); copyMockupImage(res.mockupUrl!); }} className="w-8 h-8 bg-black/70 backdrop-blur-md rounded-full flex items-center justify-center text-white/60 hover:text-white hover:bg-cyan-500 hover:scale-110 shadow-lg border border-white/10 transition-all">
-                                                                <Copy className="w-3.5 h-3.5" />
-                                                            </button>
-                                                        </div>
+                                                <>
+                                                    <img src={res.mockupUrl} className="w-full h-full object-cover" alt="Result" />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
+                                                    <div className="absolute top-4 right-4 flex gap-2 z-10">
+                                                        <button onClick={(e) => { e.stopPropagation(); copyMockupImage(res.mockupUrl!); }} className="w-9 h-9 bg-black/70 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-cyan-500 hover:scale-110 shadow-lg border border-white/10 transition-all" title="Copiar mockup">
+                                                            <Copy className="w-4 h-4" />
+                                                        </button>
+                                                        <button onClick={(e) => { e.stopPropagation(); saveMockupToLibrary(res.mockupUrl!, `Cena ${i + 1}`); }} className="w-9 h-9 bg-black/70 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-purple-500 hover:scale-110 shadow-lg border border-white/10 transition-all" title="Salvar na galeria">
+                                                            <BookImage className="w-4 h-4" />
+                                                        </button>
+                                                        <a href={res.mockupUrl} download onClick={(e) => e.stopPropagation()} className="w-9 h-9 bg-black/70 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-cyan-500 hover:scale-110 shadow-lg border border-white/10 transition-all" title="Baixar mockup">
+                                                            <Download className="w-4 h-4" />
+                                                        </a>
                                                     </div>
-
-                                                    {res.endMockupUrl && (
-                                                        <div className="relative h-full overflow-hidden cursor-pointer border-l border-white/10 group/end shadow-[-20px_0_40px_rgba(0,0,0,0.5)]" onClick={() => setLightboxUrl(res.endMockupUrl!)}>
-                                                            <img src={res.endMockupUrl} alt={`Scene ${i + 1} End`} className="w-full h-full object-cover transition-transform duration-700 group-hover/end:scale-105" />
-                                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 pointer-events-none" />
-                                                            <span className="absolute top-4 left-4 bg-amber-500/80 backdrop-blur-md text-[8px] font-bold text-white px-3 py-1.5 rounded-full border border-white/10 uppercase tracking-[0.2em] z-10 shadow-xl shadow-amber-500/20">End Frame</span>
-
-                                                            <div className="absolute top-4 right-4 flex gap-2 z-20">
-                                                                <button onClick={(e) => { e.stopPropagation(); copyMockupImage(res.endMockupUrl!); }} className="w-8 h-8 bg-black/70 backdrop-blur-md rounded-full flex items-center justify-center text-white/60 hover:text-white hover:bg-amber-500 hover:scale-110 shadow-lg border border-white/10 transition-all">
-                                                                    <Copy className="w-3.5 h-3.5" />
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    {/* Centralized Global Actions for the whole Scene */}
-                                                    <div className="absolute bottom-6 left-6 flex gap-2 z-20 pointer-events-none">
+                                                    <div className="absolute bottom-6 left-6 flex gap-2 pointer-events-none">
                                                         <span className="bg-black/60 backdrop-blur-md text-[9px] font-semibold text-cyan-400 px-3 py-1.5 rounded-full border border-cyan-500/30 uppercase tracking-wider">AI Master Take</span>
-                                                        {res.endMockupUrl && <span className="bg-amber-500/20 backdrop-blur-md text-[9px] font-semibold text-amber-400 px-3 py-1.5 rounded-full border border-amber-500/30 uppercase tracking-wider">Sequence Mode API</span>}
+                                                        <span className="bg-black/60 backdrop-blur-md text-[9px] font-semibold text-zinc-300 px-3 py-1.5 rounded-full border border-white/10 uppercase tracking-wider">1K RAW</span>
                                                     </div>
-                                                </div>
+                                                </>
                                             ) : (
-                                                <div className="flex flex-col items-center justify-center gap-5 p-12 h-full">
+                                                <div className="flex flex-col items-center justify-center gap-5 p-12">
                                                     <div className="w-16 h-16 rounded-full bg-white/[0.03] border border-white/5 flex items-center justify-center mb-2">
                                                         <Camera className="w-8 h-8 text-zinc-700" />
                                                     </div>
@@ -1576,61 +1307,12 @@ export default function VideoLab() {
                                                         disabled={loadingIndices.includes(i)}
                                                         className="px-6 py-2.5 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(8,145,178,0.1)] hover:shadow-[0_0_30px_rgba(8,145,178,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
-                                                        {useEndFrame && promptEngine === 'kling' ? 'Renderizar Sequência' : 'Renderizar Mockup'}
+                                                        Renderizar Mockup
                                                     </button>
                                                     <p className="text-[9px] text-zinc-600 uppercase tracking-tight font-medium">Economia Ativa: Renderize apenas se gostar do prompt</p>
                                                 </div>
                                             )}
                                         </div>
-
-                                        {res.videoUrl ? (
-                                            <div className="w-full lg:w-[480px] p-4 bg-black/30 border-b lg:border-r lg:border-b-0 border-white/5 flex flex-col">
-                                                <div className="flex items-center gap-2 mb-3">
-                                                    <Video className={`w-4 h-4 ${videoProvider === 'kling' ? 'text-amber-400' : 'text-cyan-400'}`} />
-                                                    <span className={`text-[9px] font-bold uppercase tracking-wider ${videoProvider === 'kling' ? 'text-amber-400' : 'text-cyan-400'}`}>
-                                                        {videoProvider === 'kling' ? 'Vídeo Kling 3.0 (HD)' : 'Vídeo Veo 3.1 (Cinematic)'}
-                                                    </span>
-                                                </div>
-                                                <video src={res.videoUrl} controls className="w-full rounded-2xl border border-white/10 aspect-video shadow-2xl" playsInline />
-                                                <a href={res.videoUrl} download={`video_cena_${i + 1}.mp4`} className="mt-4 text-[10px] font-bold text-white/50 hover:text-white uppercase tracking-[0.2em] flex items-center justify-center gap-3 bg-white/5 py-3 rounded-xl border border-white/5 transition-all">
-                                                    <Download className="w-4 h-4" /> Download Final Master
-                                                </a>
-                                            </div>
-                                        ) : res.mockupUrl ? (
-                                            <div className="w-full lg:w-[480px] p-10 flex flex-col items-center justify-center bg-black/40 border-b lg:border-r lg:border-b-0 border-white/5 gap-6 text-center">
-                                                <div className="relative">
-                                                    <div className="w-16 h-16 rounded-3xl bg-amber-500/5 border border-amber-500/20 flex items-center justify-center">
-                                                        <Video className="w-8 h-8 text-amber-500/40" />
-                                                    </div>
-                                                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full border-2 border-black flex items-center justify-center">
-                                                        <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                                                    </div>
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500/80">Take Pronto para Animar</span>
-                                                    <p className="text-[11px] text-zinc-500 leading-relaxed font-light uppercase tracking-tight max-w-[200px]">
-                                                        A blueprint visual está pronta. Transforme este mockup em movimento cinematográfico.
-                                                    </p>
-                                                </div>
-                                                <button
-                                                    onClick={() => handleGenerateSceneVideo(i)}
-                                                    disabled={loadingIndices.includes(i)}
-                                                    className="w-full py-4 bg-amber-500 hover:bg-amber-400 text-black rounded-2xl text-[10px] font-bold uppercase tracking-[0.2em] transition-all shadow-xl shadow-amber-900/20 flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale"
-                                                >
-                                                    {loadingIndices.includes(i) ? (
-                                                        <>
-                                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                                            Gerando Cinema...
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Play className="w-4 h-4" />
-                                                            Gerar Vídeo {videoProvider === 'kling' ? 'Kling' : 'Veo'}
-                                                        </>
-                                                    )}
-                                                </button>
-                                            </div>
-                                        ) : null}
 
                                         {/* Prompt Section */}
                                         <div className="flex-1 p-8 lg:p-10 flex flex-col">
@@ -1698,42 +1380,21 @@ export default function VideoLab() {
                                             </div>
 
                                             {/* Feedback Section */}
-                                            <div className="mt-4 bg-black/40 border border-white/5 rounded-2xl p-4 focus-within:border-amber-500/30 transition-colors flex flex-col gap-3">
-                                                {res.feedbackHistory && res.feedbackHistory.length > 0 && (
-                                                    <div className="flex flex-col gap-1.5 p-3 rounded-xl bg-white/5 border border-white/5">
-                                                        <span className="text-[9px] font-semibold uppercase tracking-[0.1em] text-zinc-500">Histórico de Refinamento:</span>
-                                                        {res.feedbackHistory.map((h, hIdx) => (
-                                                            <div key={hIdx} className="text-[10px] text-zinc-400 italic font-mono flex items-start gap-2">
-                                                                <span className="text-amber-500/50 mt-0.5">[{hIdx + 1}]</span> {h}
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                )}
+                                            <div className="mt-4 bg-black/40 border border-white/5 rounded-2xl p-4 focus-within:border-amber-500/30 transition-colors">
                                                 <textarea
                                                     value={res.feedback || ''}
                                                     onChange={(e) => updateFeedback(i, e.target.value)}
                                                     placeholder="O que você não gostou? Ex: 'A logo tem que ser menor', 'Muda a cor de fundo'..."
                                                     className="w-full bg-transparent text-xs text-zinc-300 leading-relaxed font-mono resize-none outline-none min-h-[60px] custom-scrollbar"
                                                 />
-                                                <div className="flex items-center justify-between mt-2 pt-3 border-t border-white/5">
-                                                    <div className="flex gap-1 bg-white/5 p-1 rounded-full border border-white/5">
-                                                        {['both', 'mockup', 'prompt'].map((mode) => (
-                                                            <button
-                                                                key={mode}
-                                                                onClick={() => updateRefineMode(i, mode as any)}
-                                                                className={`px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-wider transition-all ${(!res.refineMode && mode === 'both') || res.refineMode === mode ? 'bg-amber-500 text-black shadow-md' : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'}`}
-                                                            >
-                                                                {mode === 'both' ? 'Ambos' : mode === 'mockup' ? 'Mockup' : 'Prompt'}
-                                                            </button>
-                                                        ))}
-                                                    </div>
+                                                <div className="flex justify-end mt-2">
                                                     <button
                                                         onClick={() => handleRegenerateWithFeedback(i)}
                                                         disabled={loadingIndices.includes(i) || !res.feedback?.trim()}
                                                         className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black text-[10px] font-bold uppercase tracking-widest rounded-full transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-amber-900/20"
                                                     >
                                                         {loadingIndices.includes(i) ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
-                                                        Refinar
+                                                        Refinar com Feedback
                                                     </button>
                                                 </div>
                                             </div>
