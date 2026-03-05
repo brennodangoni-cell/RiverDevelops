@@ -33,7 +33,10 @@ export async function initDb() {
         await pool.query(`CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT UNIQUE, password TEXT)`);
         await pool.query(`CREATE TABLE IF NOT EXISTS tasks (id SERIAL PRIMARY KEY, title TEXT, status TEXT, assigned_to INTEGER, created_by INTEGER, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
         await pool.query(`CREATE TABLE IF NOT EXISTS transactions (id SERIAL PRIMARY KEY, type TEXT, amount REAL, description TEXT, date TIMESTAMP, created_by INTEGER)`);
-        await pool.query(`CREATE TABLE IF NOT EXISTS clients (id SERIAL PRIMARY KEY, username TEXT UNIQUE, password TEXT)`);
+        await pool.query(`CREATE TABLE IF NOT EXISTS clients (id SERIAL PRIMARY KEY, username TEXT UNIQUE, password TEXT, password_raw TEXT, niche TEXT, avatar_url TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+        await pool.query(`ALTER TABLE clients ADD COLUMN IF NOT EXISTS password_raw TEXT`);
+        await pool.query(`ALTER TABLE clients ADD COLUMN IF NOT EXISTS niche TEXT`);
+        await pool.query(`ALTER TABLE clients ADD COLUMN IF NOT EXISTS avatar_url TEXT`);
 
         // RESET DE SENHA ADMIN (FORÇA BRUTA)
         const hash = bcrypt.hashSync('admin123', 10);

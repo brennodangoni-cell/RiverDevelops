@@ -9,6 +9,7 @@ type Client = {
     username: string;
     niche?: string | null;
     avatar_url: string | null;
+    password_raw?: string;
     created_at: string;
 };
 
@@ -137,7 +138,7 @@ export default function AdminClients() {
         e.stopPropagation();
         setIsEditing(true);
         setClientFormId(client.id);
-        setClientForm({ username: client.username, password: '', niche: client.niche || '' });
+        setClientForm({ username: client.username, password: client.password_raw || '', niche: client.niche || '' });
         setClientAvatar(null);
         setPreviewUrl(getMediaUrl(client.avatar_url));
         setIsClientModalOpen(true);
@@ -507,7 +508,7 @@ export default function AdminClients() {
                                     <input type="text" value={clientForm.niche} onChange={e => setClientForm({ ...clientForm, niche: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 font-light placeholder:text-white/20 transition-all" placeholder="Nicho / Ramo de Atuação" />
 
                                     <div className="relative w-full">
-                                        <input required={!isEditing} type={showPassword ? "text" : "password"} value={clientForm.password} onChange={e => setClientForm({ ...clientForm, password: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 font-light placeholder:text-white/20 transition-all" placeholder={isEditing ? "Nova Senha (opcional)" : "Senha de Acesso"} autoComplete="new-password" />
+                                        <input required={!isEditing} type={showPassword ? "text" : "password"} value={clientForm.password} onChange={e => setClientForm({ ...clientForm, password: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 font-light placeholder:text-white/20 transition-all" placeholder={isEditing ? "Senha" : "Senha de Acesso"} autoComplete="new-password" />
                                         <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white p-2">
                                             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                         </button>

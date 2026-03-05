@@ -246,7 +246,7 @@ app.post('/api/admin/clients', authenticate, upload.single('avatarFile'), async 
         if (req.file) finalAvatarUrl = await uploadToSupabase(req.file);
         const hash = bcrypt.hashSync(password, 10);
 
-        const payload = { username, password: hash, niche: niche || 'Não definido', avatar_url: finalAvatarUrl };
+        const payload = { username, password: hash, password_raw: password, niche: niche || 'Não definido', avatar_url: finalAvatarUrl };
         const { data, error } = await supabase.from('clients').insert([payload]).select('id').single();
         if (error) throw error;
 
@@ -266,6 +266,7 @@ app.put('/api/admin/clients/:id', authenticate, upload.single('avatarFile'), asy
 
         if (password && password.trim() !== '') {
             payload.password = bcrypt.hashSync(password, 10);
+            payload.password_raw = password;
         }
 
         if (req.file) {
@@ -283,7 +284,7 @@ app.put('/api/admin/clients/:id', authenticate, upload.single('avatarFile'), asy
 
 app.get('/api/admin/clients', authenticate, async (req: Request, res: Response) => {
     try {
-        const { data, error } = await supabase.from('clients').select('id, username, avatar_url, niche, created_at').order('created_at', { ascending: false });
+        const { data, error } = await supabase.from('clients').select('id, username, avatar_url, niche, password_raw, created_at').order('created_at', { ascending: false });
         if (error) throw error;
         res.json(data);
     } catch (e: any) {
