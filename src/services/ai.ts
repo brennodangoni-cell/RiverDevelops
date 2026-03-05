@@ -479,7 +479,9 @@ export async function generateMockup(
     promptIndex: number,
     productImages: string[],
     promptText?: string,
-    engine: PromptEngine = 'kling'
+    engine: PromptEngine = 'kling',
+    frameType: 'start' | 'end' = 'start',
+    previousFrame?: string | null
 ): Promise<string | null> {
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
@@ -527,9 +529,18 @@ DIGITAL TWIN PROTOCOL — MANDATORY FIDELITY RULES:
 - ONE PRODUCT ONLY: This is a commercial mockup for a single product model.
     `;
 
-    const klingImagePrompt = `KLING 3.0 REFERENCE FRAME (I2V INPUT)
+    const sequenceDraftingRules = frameType === 'end' ? `
+MOTION SEQUENCE BLUEPRINT (END FRAME):
+- VISUAL CONTINUITY: This is the FINAL frame of a 5-10 second video. 
+- CONSISTENCY: Use the 'PREVIOUS FRAME' (Reference 0) as the absolute anchor for colors, lighting, and product positioning. 
+- SEQUENTIAL MOTION: The product should have moved slightly compared to Reference 0 (e.g., rotated 15 degrees, or camera pushed in). 
+- DO NOT CHANGE THE PRODUCT DESIGN: The product must remain identical to Reference 0.
+    ` : '';
+
+    const klingImagePrompt = `KLING 3.0 REFERENCE FRAME (${frameType.toUpperCase()} FRAME)
 ${commonFidelityRules}
-TASK: Generate ONE SINGLE photorealistic frame that serves as the STARTING POINT for a video.
+${sequenceDraftingRules}
+TASK: Generate ONE SINGLE photorealistic frame that serves as the ${frameType === 'end' ? 'ENDING' : 'STARTING'} POINT for a video.
 COMPOSITION: ${klingSceneVariations[promptIndex] || klingSceneVariations[0]}
 Environment: ${options.environment} | Lighting: ${options.timeOfDay}
 ${options.mode === 'lifestyle' ? `- Person: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : '- Product-only'}
@@ -552,6 +563,14 @@ TECHNICAL: Professional lighting, crisp borders between panels, luxury commercia
     const imagePrompt = engine === 'kling' ? klingImagePrompt : soraImagePrompt;
 
     const contentParts: any[] = [];
+
+    // If ending frame, Reference 0 is the starting frame
+    if (frameType === 'end' && previousFrame) {
+        const { data, mimeType } = parseBase64(previousFrame);
+        contentParts.push({ text: `PREVIOUS STARTING FRAME (Reference 0): This is the beginning of the clip. Ensure the new END FRAME matches this exactly in style/lighting.` });
+        contentParts.push({ inlineData: { data, mimeType } });
+    }
+
     const selected = productImages.length <= 4
         ? productImages
         : [productImages[0], productImages[Math.floor(productImages.length / 3)], productImages[Math.floor(2 * productImages.length / 3)], productImages[productImages.length - 1]];
@@ -707,7 +726,7 @@ function getKlingApiKey(): string {
 export async function generateVideoKling(
     prompt: string,
     mockupImageBase64?: string | null,
-    options?: { aspectRatio?: string; durationSeconds?: number }
+    options?: { aspectRatio?: string; durationSeconds?: number; endMockupUrl?: string | null }
 ): Promise<string | null> {
     const apiKey = getKlingApiKey();
     if (!apiKey) throw new AIError("Chave API do Kling não configurada. Configure em Configuração.", "API_KEY_MISSING");
@@ -727,6 +746,11 @@ export async function generateVideoKling(
     if (mockupImageBase64) {
         const { data } = parseBase64(mockupImageBase64);
         body.image = `data:image/jpeg;base64,${data}`;
+    }
+
+    if (options?.endMockupUrl) {
+        const { data } = parseBase64(options.endMockupUrl);
+        body.image_tail = `data:image/jpeg;base64,${data}`;
     }
 
     const res = await fetch(`${KLING_BASE}${endpoint}`, {
