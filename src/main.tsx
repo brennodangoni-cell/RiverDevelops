@@ -15,8 +15,15 @@ import './index.css'
 import axios from 'axios'
 
 // Set globally the API base URL (Vercel Env or Localhost)
-// @ts-ignore
 axios.defaults.baseURL = 'https://riverdevelops.onrender.com';
+axios.defaults.timeout = 60000; // 60s for Render cold start
+
+// Add auth token to every request (set once at app load)
+axios.interceptors.request.use(config => {
+    const token = localStorage.getItem('rivertasks_token');
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
+});
 
 const router = createBrowserRouter([
     {

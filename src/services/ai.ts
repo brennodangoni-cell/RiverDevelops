@@ -44,9 +44,9 @@ export interface SceneryAnalysis {
 // =======================================================================
 // MODEL CONFIGURATION WITH FALLBACK CHAIN (Fix #4)
 // =======================================================================
-const BRAIN_MODELS = ["gemini-2.5-pro", "gemini-2.5-flash"];
-const ANALYSIS_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro"];
-const IMAGE_MODELS = ["gemini-3.1-flash-image-preview", "gemini-3-pro-image-preview"];
+const BRAIN_MODELS = ["gemini-2.0-pro-exp-02-05", "gemini-2.0-flash", "gemini-1.5-pro"];
+const ANALYSIS_MODELS = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.0-pro-exp-02-05"];
+const IMAGE_MODELS = ["gemini-2.0-flash", "gemini-1.5-flash-8b"];
 
 // =======================================================================
 // ERROR TYPES (Fix #2 - Specific error handling)
@@ -544,7 +544,7 @@ ${isScriptMode ? `Adapt this script into concise scene concepts:\n${options.scri
 
 Output must be JSON array of ${outputCount} string(s).`;
 
-    const models = engine === 'speed' ? ["gemini-2.5-flash", "gemini-2.5-pro"] : BRAIN_MODELS;
+    const models = engine === 'speed' ? ["gemini-2.0-flash", "gemini-1.5-flash"] : BRAIN_MODELS;
 
     const response = await generateWithFallback(ai, models, (model) => ({
         model,
@@ -734,7 +734,7 @@ Make it look like a high-end, cinematic agency pitch board. Perfect product clon
     contentParts.push({ text: imagePrompt });
 
     try {
-        const models = engine === 'speed' ? ["gemini-3.1-flash-image-preview"] : IMAGE_MODELS;
+        const models = engine === 'speed' ? ["gemini-2.0-flash"] : IMAGE_MODELS;
         const response = await generateWithFallback(ai, models, (model) => ({
             model,
             contents: { parts: contentParts },

@@ -75,11 +75,6 @@ export default function AdminClients() {
     const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
-        axios.interceptors.request.use(config => {
-            const token = localStorage.getItem('rivertasks_token');
-            if (token) config.headers.Authorization = `Bearer ${token}`;
-            return config;
-        });
         fetchClients();
     }, []);
 

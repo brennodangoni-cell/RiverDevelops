@@ -54,13 +54,6 @@ export default function Finance() {
     const userStr = localStorage.getItem('rivertasks_user');
     const currentUser: User = userStr ? JSON.parse(userStr) : null;
 
-    // Axios Authorization
-    axios.interceptors.request.use(config => {
-        const token = localStorage.getItem('rivertasks_token');
-        if (token) config.headers.Authorization = `Bearer ${token}`;
-        return config;
-    });
-
     const fetchData = async (silent = false) => {
         try {
             const txRes = await axios.get('/api/transactions');

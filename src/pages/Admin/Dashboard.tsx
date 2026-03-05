@@ -105,13 +105,6 @@ export default function Dashboard() {
         return user.id || 0;
     });
 
-    // Setup axios interceptor
-    axios.interceptors.request.use(config => {
-        const token = localStorage.getItem('rivertasks_token');
-        if (token) config.headers.Authorization = `Bearer ${token}`;
-        return config;
-    });
-
     const fetchData = async (silent = false) => {
         try {
             const [tasksRes, usersRes, txRes, demandsRes, clientsRes] = await Promise.all([
@@ -121,13 +114,16 @@ export default function Dashboard() {
                 axios.get('/api/demands'),
                 axios.get('/api/admin/clients')
             ]);
-            setTasks(tasksRes.data);
-            setUsers(usersRes.data);
-            setTransactions(txRes.data);
-            setDemands(demandsRes.data);
-            setClients(clientsRes.data);
+            setTasks(tasksRes.data ?? []);
+            setUsers(usersRes.data ?? []);
+            setTransactions(txRes.data ?? []);
+            setDemands(demandsRes.data ?? []);
+            setClients(clientsRes.data ?? []);
         } catch (error) {
-            if (!silent) toast.error('Erro ao buscar dados.');
+            const msg = axios.isAxiosError(error)
+                ? (error.response?.data?.error || `HTTP ${error.response?.status}` || error.message)
+                : String(error);
+            if (!silent) toast.error(`Erro ao buscar dados: ${msg}`);
             if (axios.isAxiosError(error) && error.response?.status === 401) {
                 handleLogout();
             }
