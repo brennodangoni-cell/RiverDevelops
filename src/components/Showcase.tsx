@@ -146,7 +146,7 @@ const Transformation = () => {
                 <motion.div
                     style={{ scale: videoCardScale }}
                     // w-full e h-full travados para nunca cortarem o texto. aspect-ratio dinâmico.
-                    className="relative w-full max-w-6xl h-full max-h-[65vh] md:max-h-[75vh] rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-2xl border border-white/10 bg-[#050505] z-20 flex flex-col items-center justify-center"
+                    className="relative w-full max-w-6xl h-full max-h-[65vh] md:max-h-[75vh] rounded-[2rem] md:rounded-[3rem] overflow-hidden  border border-white/10 bg-[#050505] z-20 flex flex-col items-center justify-center"
                 >
 
                     {/* LAYER 1: FOTO ESTÁTICA BASE */}
@@ -171,7 +171,7 @@ const Transformation = () => {
                         style={{ opacity: text1Opacity, y: text1Y }}
                         className="absolute inset-0 z-[16] flex flex-col items-center justify-center text-center p-6 md:p-12 pointer-events-none"
                     >
-                        <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-[5rem] leading-[1.05] font-display font-medium text-white mb-0 drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] tracking-tight">
+                        <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-[5rem] leading-[1.05] font-display font-medium text-white mb-0 drop--[0_4px_12px_rgba(0,0,0,0.9)] tracking-tight">
                             O conteúdo estático <br />
                             <span className="relative inline-block px-2 mt-2 md:mt-3">
                                 <span className="text-transparent bg-clip-text bg-gradient-to-l from-red-500 via-rose-500 to-pink-500 relative z-10">ficou no passado.</span>
@@ -179,8 +179,8 @@ const Transformation = () => {
                         </h2>
 
                         <div className="mt-8 md:mt-10 flex justify-center">
-                            <div className="inline-flex items-center gap-2 px-4 py-2 md:px-6 md:py-2.5 rounded-full bg-black/40 border border-white/10 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
-                                <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.8)] animate-pulse" />
+                            <div className="inline-flex items-center gap-2 px-4 py-2 md:px-6 md:py-2.5 rounded-full bg-black/40 border border-white/10 backdrop-blur-xl -[0_8px_32px_rgba(0,0,0,0.5)]">
+                                <div className="w-2 h-2 rounded-full bg-red-500 -[0_0_12px_rgba(239,68,68,0.8)] animate-pulse" />
                                 <span className="text-[10px] sm:text-xs font-mono tracking-[0.15em] text-red-50 font-bold uppercase opacity-90">Vamos transformar seu conteúdo</span>
                             </div>
                         </div>
@@ -208,7 +208,7 @@ const Transformation = () => {
 
                     {/* LAYER 4: A BARRA DO SCANNER */}
                     <motion.div
-                        className="absolute top-0 bottom-0 w-[2px] bg-cyan-400 z-30 shadow-[0_0_15px_rgba(34,211,238,0.6)] pointer-events-none"
+                        className="absolute top-0 bottom-0 w-[2px] bg-cyan-400 z-30 -[0_0_15px_rgba(34,211,238,0.6)] pointer-events-none"
                         style={{ left: scannerLeft, opacity: scannerOpacity }}
                     >
                         <div className="absolute top-1/2 -left-[3px] w-[8px] h-[60px] -translate-y-1/2 bg-white rounded-full blur-[1px]" />
@@ -226,17 +226,17 @@ const Transformation = () => {
                         style={{ opacity: text2Opacity, y: text2Y }}
                         className="absolute inset-0 z-[40] flex flex-col items-center justify-center text-center p-6 md:p-12 pointer-events-none"
                     >
-                        <div className="inline-flex items-center gap-2 px-4 py-2 md:px-6 md:py-2.5 rounded-full bg-white/10 border border-white/10 mb-4 md:mb-6 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
-                            <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.8)] animate-pulse" />
+                        <div className="inline-flex items-center gap-2 px-4 py-2 md:px-6 md:py-2.5 rounded-full bg-white/10 border border-white/10 mb-4 md:mb-6 backdrop-blur-xl -[0_8px_32px_rgba(0,0,0,0.5)]">
+                            <div className="w-2 h-2 rounded-full bg-cyan-400 -[0_0_12px_rgba(34,211,238,0.8)] animate-pulse" />
                             <span className="text-[10px] sm:text-xs font-mono tracking-[0.15em] text-cyan-50 font-bold uppercase">A Nova Era</span>
                         </div>
 
-                        <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-[5.5rem] leading-[1.05] font-display font-medium text-white mb-0 drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] tracking-tight">
+                        <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-[5.5rem] leading-[1.05] font-display font-medium text-white mb-0 drop--[0_4px_12px_rgba(0,0,0,0.9)] tracking-tight">
                             O futuro é <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-100 via-cyan-300 to-sky-500 animate-gradient-x relative z-10 drop-shadow-[0_0_15px_rgba(0,0,0,0.5)]">cinematográfico.</span>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-100 via-cyan-300 to-sky-500 animate-gradient-x relative z-10 drop--[0_0_15px_rgba(0,0,0,0.5)]">cinematográfico.</span>
                         </h2>
 
-                        <p className="text-blue-50/90 max-w-2xl mt-4 md:mt-6 font-light text-base sm:text-lg md:text-xl leading-relaxed drop-shadow-lg mx-auto">
+                        <p className="text-blue-50/90 max-w-2xl mt-4 md:mt-6 font-light text-base sm:text-lg md:text-xl leading-relaxed drop- mx-auto">
                             Transformamos ativos parados em experiências visuais que prendem, emocionam e dominam a atenção da sua audiência.
                         </p>
 
@@ -245,10 +245,10 @@ const Transformation = () => {
                             <a
                                 href="#pricing"
                                 onClick={scrollToPricing}
-                                className="group px-6 py-3.5 md:px-8 md:py-4 rounded-full text-white bg-white/10 border border-white/20 hover:bg-cyan-900/40 hover:border-cyan-400/50 backdrop-blur-2xl transition-all duration-500 font-medium tracking-wide active:scale-95 flex items-center justify-center gap-2 md:gap-3 shadow-[0_0_20px_rgba(0,0,0,0.5)] hover:shadow-[0_0_30px_rgba(34,211,238,0.4)] text-sm md:text-base"
+                                className="group px-6 py-3.5 md:px-8 md:py-4 rounded-full text-white bg-white/10 border border-white/20 hover:bg-cyan-900/40 hover:border-cyan-400/50 backdrop-blur-2xl   font-medium tracking-wide active:scale-95 flex items-center justify-center gap-2 md:gap-3 -[0_0_20px_rgba(0,0,0,0.5)] hover:-[0_0_30px_rgba(34,211,238,0.4)] text-sm md:text-base"
                             >
                                 Começar Agora!
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400 group-hover:translate-x-1.5 transition-transform duration-300"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400 group-hover:translate-x-1.5  "><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
                             </a>
                         </div>
                     </motion.div>

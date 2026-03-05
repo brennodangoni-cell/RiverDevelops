@@ -41,9 +41,9 @@ const Workflow = () => {
 
                     {steps.map((step, i) => (
                         <div key={i} className="relative z-10 group">
-                            <div className="glass-panel p-8 rounded-3xl hover:border-primary/50 transition-all duration-500 hover:-translate-y-2 group-hover:shadow-[0_0_30px_rgba(56,189,248,0.2)]">
-                                <div className="w-16 h-16 bg-surface rounded-2xl border border-white/10 flex items-center justify-center mb-6 text-white group-hover:bg-primary group-hover:text-black transition-all duration-300 shadow-lg relative overflow-hidden">
-                                    <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <div className="glass-panel p-8 rounded-3xl hover:border-primary/50   hover:-translate-y-2 group-hover:-[0_0_30px_rgba(56,189,248,0.2)]">
+                                <div className="w-16 h-16 bg-surface rounded-2xl border border-white/10 flex items-center justify-center mb-6 text-white group-hover:bg-primary group-hover:text-black    relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent opacity-0 group-hover:opacity-100 "></div>
                                     <step.icon size={28} className="relative z-10" />
                                 </div>
                                 <h3 className="text-xl font-bold text-white mb-3 tracking-tight font-display">{step.title}</h3>

@@ -131,7 +131,7 @@ const Hero = ({ onIntroComplete }: HeroProps) => {
 
             {/* ── Loading Screen ── */}
             <div
-                className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#020408] gap-8 transition-opacity duration-700 ease-out"
+                className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#020408] gap-8   "
                 style={{
                     opacity: isLoading ? 1 : 0,
                     pointerEvents: isLoading ? 'auto' : 'none',
@@ -147,7 +147,7 @@ const Hero = ({ onIntroComplete }: HeroProps) => {
                 <div className="flex flex-col items-center gap-2">
                     <div className="w-48 h-[2px] bg-white/5 rounded-full overflow-hidden">
                         <div
-                            className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all duration-200 ease-out"
+                            className="h-full bg-gradient-to-r from-cyan-400 to-blue-500   "
                             style={{ width: `${progress}%` }}
                         />
                     </div>
@@ -173,7 +173,7 @@ const Hero = ({ onIntroComplete }: HeroProps) => {
                     style={{
                         transform: phase === 'playing' || isRevealed ? 'scale(1.08)' : 'scale(1.0)',
                         filter: 'contrast(1.1) saturate(1.1)',
-                        transition: 'transform 3s ease-out'
+                        transition: 'transform 3s '
                     }}
                 >
                     <source src={videoSrc} type="video/mp4" />
@@ -199,7 +199,7 @@ const Hero = ({ onIntroComplete }: HeroProps) => {
 
             {/* ── Dark Fade Overlay ── */}
             <div
-                className="absolute inset-0 z-10 pointer-events-none transition-opacity duration-1000 ease-out"
+                className="absolute inset-0 z-10 pointer-events-none   "
                 style={{ opacity: isRevealed ? 1 : 0 }}
             >
                 <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-black/20" />
@@ -236,34 +236,34 @@ const Hero = ({ onIntroComplete }: HeroProps) => {
                 />
 
                 {/* Badge */}
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/40 border border-white/10 backdrop-blur-md mb-8 hover:bg-white/10 transition-colors duration-300">
-                    <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.8)] animate-pulse" />
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/40 border border-white/10 backdrop-blur-md mb-8 hover:bg-white/10  ">
+                    <div className="w-2 h-2 rounded-full bg-cyan-400 -[0_0_12px_rgba(34,211,238,0.8)] animate-pulse" />
                     <span className="text-xs font-mono tracking-widest text-cyan-100 font-bold uppercase">River Creative Lab</span>
                 </div>
 
                 {/* Title */}
                 <h1 className="text-4xl md:text-6xl lg:text-8xl font-display font-bold tracking-tighter leading-[0.85] md:leading-[0.8] mb-8 flex flex-col items-center">
-                    <span className="text-white drop-shadow-2xl">Fotos comuns viram</span>
+                    <span className="text-white drop-">Fotos comuns viram</span>
                     <span className="relative inline-block -mt-1 md:-mt-3">
                         {/* Dark Glow Behind replacing the Cyan Glow (Mobile GPU Friendly) */}
                         <span className="absolute inset-[10%] -z-10 rounded-[50%] scale-150 transform-gpu"
                             style={{ background: 'radial-gradient(circle, rgba(0,0,0,0.95) 20%, rgba(0,0,0,0.4) 70%, transparent 100%)' }}
                         />
                         {/* Main Text with Premium Gradient */}
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-100 via-cyan-300 to-sky-500 animate-gradient-x bg-[length:200%_auto] pb-2 relative z-10 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-100 via-cyan-300 to-sky-500 animate-gradient-x bg-[length:200%_auto] pb-2 relative z-10 drop--[0_2px_10px_rgba(0,0,0,0.8)]">
                             conteúdos que vendem
                         </span>
                     </span>
                 </h1>
 
                 {/* Subtitle */}
-                <p className="text-lg md:text-xl text-blue-100/90 font-sans font-light max-w-xl leading-relaxed mb-10 [text-shadow:_0_4px_10px_rgba(0,0,0,0.8)] px-4">
+                <p className="text-lg md:text-xl text-blue-100/90 font-sans font-light max-w-xl leading-relaxed mb-10 [text-:_0_4px_10px_rgba(0,0,0,0.8)] px-4">
                     Produções de alto padrão a partir do que você já tem. Transforme sua marca com a estética do futuro.
                 </p>
 
                 {/* Buttons */}
                 <div className="flex flex-col md:flex-row gap-4 md:gap-6 w-full md:w-auto items-center justify-center mt-6 md:mt-0">
-                    <a href="#work" className="px-8 py-4 rounded-full text-white bg-white/5 border border-white/20 hover:bg-white/10 backdrop-blur-md transition-all duration-300 font-medium tracking-wide w-full md:w-auto active:scale-95 text-center flex items-center justify-center shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+                    <a href="#work" className="px-8 py-4 rounded-full text-white bg-white/5 border border-white/20 hover:bg-white/10 backdrop-blur-md   font-medium tracking-wide w-full md:w-auto active:scale-95 text-center flex items-center justify-center -[0_0_30px_rgba(0,0,0,0.5)]">
                         Ver Portfólio
                     </a>
                 </div>

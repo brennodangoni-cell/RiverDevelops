@@ -33,7 +33,7 @@ function App() {
             <Hero onIntroComplete={handleIntroComplete} />
 
             <main
-                className={`relative transition-opacity duration-1000 ease-out will-change-opacity ${showNavbar ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                className={`relative    will-change-opacity ${showNavbar ? 'opacity-100' : 'opacity-0 pointer-events-none'
                     }`}
             >
                 <Suspense fallback={<div className="h-screen bg-black" />}>

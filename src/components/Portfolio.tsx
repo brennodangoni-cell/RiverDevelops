@@ -24,7 +24,7 @@ const Portfolio = () => {
 
                     <button className="btn-secondary group">
                         View Full Archive
-                        <span className="group-hover:translate-x-1 transition-transform">→</span>
+                        <span className="group-hover:translate-x-1 ">→</span>
                     </button>
                 </div>
 
@@ -41,11 +41,11 @@ const Portfolio = () => {
                             <img
                                 src={project.image}
                                 alt={project.title}
-                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                className="w-full h-full object-cover   group-hover:scale-105"
                             />
 
                             {/* Glass Overlay on Hover */}
-                            <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col justify-end translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                            <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col justify-end translate-y-4 group-hover:translate-y-0  ">
                                 <div className="glass-panel p-4 rounded-xl border border-white/10 backdrop-blur-md">
                                     <div className="flex justify-between items-center mb-2">
                                         <span className="text-primary text-xs font-mono font-bold tracking-widest uppercase">{project.category}</span>

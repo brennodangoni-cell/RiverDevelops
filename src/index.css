@@ -60,7 +60,7 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
+    @apply bg-white/10 rounded-full hover:bg-white/20;
   }
 
   /* Form Inputs (Number & Date) Resets for clean UI */
@@ -94,7 +94,7 @@
 
 @layer components {
   .glass-panel {
-    @apply backdrop-blur-xl bg-glass-surface border border-glass-border shadow-glass;
+    @apply backdrop-blur-xl bg-glass-surface border border-glass-border;
   }
 
   .text-gradient {
@@ -103,16 +103,11 @@
 
   /* Button System */
   .btn-base {
-    @apply relative inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full font-bold transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+    @apply relative inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full font-bold active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
   }
 
   .btn-primary {
     @apply btn-base bg-white text-black hover:bg-[#38BDF8] hover:text-black;
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-  }
-
-  .btn-primary:hover {
-    box-shadow: 0 0 30px rgba(56, 189, 248, 0.6);
   }
 
   .btn-secondary {

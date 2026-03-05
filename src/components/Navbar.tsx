@@ -52,11 +52,11 @@ const Navbar = ({ visible = false }: NavbarProps) => {
 
     return (
         <nav
-            className={`fixed top-0 left-0 right-0 z-50 py-6 transition-all duration-1000 cubic-bezier(0.16,1,0.3,1) ${visible ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-8 pointer-events-none'
+            className={`fixed top-0 left-0 right-0 z-50 py-6   cubic-bezier(0.16,1,0.3,1) ${visible ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-8 pointer-events-none'
                 }`}
         >
             <div className="max-w-7xl mx-auto px-6">
-                <div className="relative flex items-center justify-between pl-2 pr-6 py-2 rounded-full bg-white/5 backdrop-blur-md border border-white/5 shadow-2xl">
+                <div className="relative flex items-center justify-between pl-2 pr-6 py-2 rounded-full bg-white/5 backdrop-blur-md border border-white/5 ">
 
                     {/* Logo */}
                     <a
@@ -68,14 +68,14 @@ const Navbar = ({ visible = false }: NavbarProps) => {
                         className="flex items-center gap-4 cursor-pointer group"
                     >
                         <div className="relative">
-                            <div className="absolute -inset-2 bg-blue-500/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            <div className="absolute -inset-2 bg-blue-500/20 rounded-full blur-lg opacity-0 group-hover:opacity-100  " />
                             <img
                                 src="/logo.webp"
                                 alt="River Logo"
-                                className="relative h-12 w-12 object-contain rounded-full group-hover:scale-105 transition-transform duration-500"
+                                className="relative h-12 w-12 object-contain rounded-full group-hover:scale-105  "
                             />
                         </div>
-                        <span className="text-xl font-display font-bold text-white tracking-wide group-hover:text-cyan-100 transition-colors duration-500">RIVER</span>
+                        <span className="text-xl font-display font-bold text-white tracking-wide group-hover:text-cyan-100  ">RIVER</span>
                     </a>
 
                     {/* Desktop Links (Correctly uses navItems) */}
@@ -89,7 +89,7 @@ const Navbar = ({ visible = false }: NavbarProps) => {
                                         item.action(e);
                                     }
                                 }}
-                                className="px-5 py-2 rounded-full text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-all duration-300"
+                                className="px-5 py-2 rounded-full text-sm font-medium text-white/70 hover:text-white hover:bg-white/10  "
                             >
                                 {item.label}
                             </a>
@@ -100,7 +100,7 @@ const Navbar = ({ visible = false }: NavbarProps) => {
                     <div className="hidden md:flex items-center gap-4">
                         <a
                             href="/cliente/login"
-                            className="text-white/70 hover:text-white font-medium text-sm transition-colors duration-300"
+                            className="text-white/70 hover:text-white font-medium text-sm  "
                         >
                             Área do Cliente
                         </a>
@@ -108,15 +108,15 @@ const Navbar = ({ visible = false }: NavbarProps) => {
                             href="https://wa.me/5534992981424"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="bg-white/5 border border-white/20 text-white px-6 py-2 rounded-full font-medium text-sm hover:bg-white/10 hover:border-white/40 transition-all duration-300 flex items-center gap-2 group"
+                            className="bg-white/5 border border-white/20 text-white px-6 py-2 rounded-full font-medium text-sm hover:bg-white/10 hover:border-white/40   flex items-center gap-2 group"
                         >
-                            Iniciar Projeto <ArrowUpRight size={16} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                            Iniciar Projeto <ArrowUpRight size={16} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 " />
                         </a>
                     </div>
 
                     {/* Mobile Toggle */}
                     <button
-                        className="md:hidden p-2 text-white hover:bg-white/10 rounded-full transition-colors"
+                        className="md:hidden p-2 text-white hover:bg-white/10 rounded-full "
                         onClick={() => setIsOpen(!isOpen)}
                     >
                         {isOpen ? <X size={24} /> : <Menu size={24} />}
@@ -132,14 +132,14 @@ const Navbar = ({ visible = false }: NavbarProps) => {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: -20 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="absolute top-24 left-4 right-4 p-6 rounded-3xl bg-black/90 backdrop-blur-2xl border border-white/10 flex flex-col gap-2 shadow-[0_0_40px_rgba(0,0,0,0.8)] origin-top z-50 ring-1 ring-white/5"
+                        className="absolute top-24 left-4 right-4 p-6 rounded-3xl bg-black/90 backdrop-blur-2xl border border-white/10 flex flex-col gap-2 -[0_0_40px_rgba(0,0,0,0.8)] origin-top z-50 ring-1 ring-white/5"
                     >
                         {/* Mobile Links */}
                         {navItems.map((item) => (
                             <a
                                 key={item.label}
                                 href={item.href}
-                                className="text-xl font-display font-medium text-white/80 py-4 border-b border-white/5 last:border-0 hover:text-cyan-400 hover:pl-2 transition-all duration-300"
+                                className="text-xl font-display font-medium text-white/80 py-4 border-b border-white/5 last:border-0 hover:text-cyan-400 hover:pl-2  "
                                 onClick={(e) => {
                                     setIsOpen(false);
                                     if (item.action) {
@@ -157,9 +157,9 @@ const Navbar = ({ visible = false }: NavbarProps) => {
                             href="https://wa.me/5534992981424"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-full bg-white/5 text-white border border-white/20 font-medium py-4 rounded-full mt-2 hover:bg-white/10 hover:border-white/40 transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 group"
+                            className="w-full bg-white/5 text-white border border-white/20 font-medium py-4 rounded-full mt-2 hover:bg-white/10 hover:border-white/40   flex items-center justify-center gap-2 active:scale-95 group"
                         >
-                            Iniciar Projeto <ArrowUpRight size={18} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                            Iniciar Projeto <ArrowUpRight size={18} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 " />
                         </a>
                     </motion.div>
                 )}

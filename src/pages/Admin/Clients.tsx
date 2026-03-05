@@ -257,7 +257,7 @@ export default function AdminClients() {
                         {!selectedClient ? (
                             <>
                                 <div className="flex items-center gap-4 group">
-                                    <button onClick={() => navigate('/admin')} className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors shrink-0 text-white/50 hover:text-cyan-400">
+                                    <button onClick={() => navigate('/admin')} className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10  shrink-0 text-white/50 hover:text-cyan-400">
                                         <ArrowLeft className="w-5 h-5" />
                                     </button>
                                     <div className="hidden sm:flex w-10 h-10 rounded-full bg-cyan-500/10 items-center justify-center ring-1 ">
@@ -274,17 +274,17 @@ export default function AdminClients() {
                                         placeholder="Buscar cliente ou nicho..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full md:w-64 bg-black/40 border border-white/10 rounded-full px-5 py-2.5 text-white text-xs outline-none focus:border-cyan-400/50 focus:bg-white/10 transition-all font-light placeholder:text-white/30 truncate"
+                                        className="w-full md:w-64 bg-black/40 border border-white/10 rounded-full px-5 py-2.5 text-white text-xs outline-none focus:border-cyan-400/50 focus:bg-white/10  font-light placeholder:text-white/30 truncate"
                                     />
-                                    <button onClick={openCreateModal} className="bg-white/5 hover:bg-white/10 border border-white/20 text-white font-medium text-xs px-5 py-2.5 rounded-full flex items-center gap-2 transition-all group shrink-0">
-                                        <Plus className="w-4 h-4 opacity-70 group-hover:text-cyan-400 group-hover:rotate-90 transition-all duration-300" /> <span className="hidden sm:inline">Novo Cliente</span>
+                                    <button onClick={openCreateModal} className="bg-white/5 hover:bg-white/10 border border-white/20 text-white font-medium text-xs px-5 py-2.5 rounded-full flex items-center gap-2  group shrink-0">
+                                        <Plus className="w-4 h-4 opacity-70 group-hover:text-cyan-400 group-hover:rotate-90  " /> <span className="hidden sm:inline">Novo Cliente</span>
                                     </button>
                                 </div>
                             </>
                         ) : (
                             <>
                                 <div className="flex items-center gap-4 group">
-                                    <button onClick={() => setSelectedClient(null)} className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors shrink-0 text-white/50 hover:text-cyan-400">
+                                    <button onClick={() => setSelectedClient(null)} className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10  shrink-0 text-white/50 hover:text-cyan-400">
                                         <ArrowLeft className="w-5 h-5" />
                                     </button>
                                     <div className="flex items-center gap-3">
@@ -299,8 +299,8 @@ export default function AdminClients() {
                                         </div>
                                     </div>
                                 </div>
-                                <button onClick={() => setIsUploadModalOpen(true)} className="bg-white/5 hover:bg-white/10 border border-white/20 text-white px-5 py-2.5 rounded-full font-medium text-xs transition-all flex items-center gap-2 group shrink-0">
-                                    <Upload className="w-4 h-4 opacity-70 group-hover:text-cyan-400 transition-colors" /> <span className="hidden sm:inline">Enviar Entrega</span>
+                                <button onClick={() => setIsUploadModalOpen(true)} className="bg-white/5 hover:bg-white/10 border border-white/20 text-white px-5 py-2.5 rounded-full font-medium text-xs  flex items-center gap-2 group shrink-0">
+                                    <Upload className="w-4 h-4 opacity-70 group-hover:text-cyan-400 " /> <span className="hidden sm:inline">Enviar Entrega</span>
                                 </button>
                             </>
                         )}
@@ -321,10 +321,10 @@ export default function AdminClients() {
                         ) : (
                             <div className="w-full max-w-[1500px] grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
                                 {clients.filter(c => c.username.toLowerCase().includes(searchQuery.toLowerCase()) || c.niche?.toLowerCase().includes(searchQuery.toLowerCase())).map(client => (
-                                    <div key={client.id} className="relative group bg-white/5 border border-white/10 rounded-[2rem] p-6 hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer overflow-hidden " onClick={() => handleSelectClient(client)}>
+                                    <div key={client.id} className="relative group bg-white/5 border border-white/10 rounded-[2rem] p-6 hover:bg-white/10 hover:border-white/20  cursor-pointer overflow-hidden " onClick={() => handleSelectClient(client)}>
                                         <div className="flex flex-col h-full z-10 relative">
                                             <div className="flex items-start justify-between mb-6">
-                                                <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-white/10 flex items-center justify-center relative overflow-hidden group-hover:scale-105 transition-transform duration-300">
+                                                <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-white/10 flex items-center justify-center relative overflow-hidden group-hover:scale-105  ">
                                                     {client.avatar_url ? (
                                                         <img src={getMediaUrl(client.avatar_url)} alt="Profile" className="w-full h-full object-cover" style={{ imageRendering: 'high-quality' as any }} decoding="async" />
                                                     ) : (
@@ -332,10 +332,10 @@ export default function AdminClients() {
                                                     )}
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <button onClick={(e) => openEditModal(client, e)} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/50 hover:text-cyan-400 hover:bg-white/10 transition-colors">
+                                                    <button onClick={(e) => openEditModal(client, e)} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/50 hover:text-cyan-400 hover:bg-white/10 ">
                                                         <Pencil className="w-3.5 h-3.5" />
                                                     </button>
-                                                    <button onClick={(e) => { e.stopPropagation(); handleDeleteClient(client.id); }} className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500/50 hover:text-red-500 hover:bg-red-500/20 transition-colors">
+                                                    <button onClick={(e) => { e.stopPropagation(); handleDeleteClient(client.id); }} className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500/50 hover:text-red-500 hover:bg-red-500/20 ">
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
                                                 </div>
@@ -413,15 +413,15 @@ export default function AdminClients() {
                         ) : (
                             <div className="w-full max-w-[1500px] grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                                 {content.map(item => (
-                                    <div key={item.id} className="group relative bg-[#0A0A0A] border border-white/10 rounded-[2rem] overflow-hidden hover:border-white/20 transition-all hover: flex flex-col pb-4">
+                                    <div key={item.id} className="group relative bg-[#0A0A0A] border border-white/10 rounded-[2rem] overflow-hidden hover:border-white/20  hover: flex flex-col pb-4">
 
-                                        <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => handleDeleteContent(item.id)} className="w-8 h-8 rounded-full bg-red-500/80 flex items-center justify-center text-white hover:bg-red-500 hover:scale-110 transition-all">
+                                        <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 ">
+                                            <button onClick={() => handleDeleteContent(item.id)} className="w-8 h-8 rounded-full bg-red-500/80 flex items-center justify-center text-white hover:bg-red-500 hover:scale-110 ">
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
                                         </div>
 
-                                        <div className="aspect-[4/5] bg-white/5 relative flex items-center justify-center group-hover:scale-105 transition-transform duration-700">
+                                        <div className="aspect-[4/5] bg-white/5 relative flex items-center justify-center group-hover:scale-105  ">
                                             {item.media_type === 'video' ? (
                                                 <div className="w-full h-full relative">
                                                     <video src={getMediaUrl(item.media_url)} className="w-full h-full object-cover" muted loop playsInline onMouseEnter={e => e.currentTarget.play()} onMouseLeave={e => e.currentTarget.pause()} />
@@ -469,48 +469,48 @@ export default function AdminClients() {
                                     <div className="absolute inset-0 z-0">
                                         <img src={previewUrl} className="w-full h-full object-cover blur-xl opacity-40 scale-125" alt="blur-bg" />
                                     </div>
-                                    <div className="relative z-10 w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-cyan-400 my-4 group-hover: transition-all">
-                                        <img src={previewUrl} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500 cursor-crosshair" alt="preview" />
+                                    <div className="relative z-10 w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-cyan-400 my-4 group-hover: ">
+                                        <img src={previewUrl} className="w-full h-full object-cover hover:scale-110   cursor-crosshair" alt="preview" />
                                     </div>
                                     <div className="relative z-10 flex gap-3 justify-center pb-4 w-full px-4">
-                                        <label className="flex-1 text-center text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 hover:bg-cyan-500/20 py-2.5 rounded-full cursor-pointer transition-colors">
+                                        <label className="flex-1 text-center text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 hover:bg-cyan-500/20 py-2.5 rounded-full cursor-pointer ">
                                             Trocar Foto
                                             <input type="file" accept="image/*" onChange={e => {
                                                 const file = e.target.files?.[0];
                                                 if (file) { setClientAvatar(file); setPreviewUrl(URL.createObjectURL(file)); }
                                             }} className="hidden" />
                                         </label>
-                                        <button type="button" onClick={() => { setClientAvatar(null); setPreviewUrl(null); if (isEditing && clientFormId && selectedClient) { /* Opt: clear in backend too if needed, here just UI */ } }} className="flex-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-red-500 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 py-2.5 rounded-full transition-colors">
+                                        <button type="button" onClick={() => { setClientAvatar(null); setPreviewUrl(null); if (isEditing && clientFormId && selectedClient) { /* Opt: clear in backend too if needed, here just UI */ } }} className="flex-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-red-500 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 py-2.5 rounded-full ">
                                             Remover
                                         </button>
                                     </div>
                                 </div>
                             ) : (
-                                <label className="w-full bg-white/[0.02] border-2 border-dashed border-white/10 hover:border-cyan-400/50 rounded-[2rem] p-6 sm:p-8 flex flex-col items-center justify-center cursor-pointer transition-all group overflow-hidden relative">
+                                <label className="w-full bg-white/[0.02] border-2 border-dashed border-white/10 hover:border-cyan-400/50 rounded-[2rem] p-6 sm:p-8 flex flex-col items-center justify-center cursor-pointer  group overflow-hidden relative">
                                     <input type="file" accept="image/*" onChange={e => {
                                         const file = e.target.files?.[0];
                                         if (file) { setClientAvatar(file); setPreviewUrl(URL.createObjectURL(file)); }
                                     }} className="hidden" />
-                                    <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-3 group-hover:bg-cyan-500/10 group-hover:border-cyan-500/30 transition-all">
-                                        <ImageIcon className="w-5 h-5 text-white/30 group-hover:text-cyan-400 transition-colors" />
+                                    <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-3 group-hover:bg-cyan-500/10 group-hover:border-cyan-500/30 ">
+                                        <ImageIcon className="w-5 h-5 text-white/30 group-hover:text-cyan-400 " />
                                     </div>
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-white/50 group-hover:text-cyan-400 transition-colors">Subir Foto de Perfil</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-white/50 group-hover:text-cyan-400 ">Subir Foto de Perfil</span>
                                     <span className="text-[9px] text-white/30 mt-1 tracking-wider">Permitido dar zoom e enquadrar via CSS</span>
                                 </label>
                             )}
 
-                            <input required type="text" value={clientForm.username} onChange={e => setClientForm({ ...clientForm, username: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 transition-all font-light placeholder:text-white/20" placeholder="Nome do Cliente" />
+                            <input required type="text" value={clientForm.username} onChange={e => setClientForm({ ...clientForm, username: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10  font-light placeholder:text-white/20" placeholder="Nome do Cliente" />
 
-                            <input type="text" value={clientForm.niche} onChange={e => setClientForm({ ...clientForm, niche: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 transition-all font-light placeholder:text-white/20" placeholder="Nicho (ex: Clínico Geral)" />
+                            <input type="text" value={clientForm.niche} onChange={e => setClientForm({ ...clientForm, niche: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10  font-light placeholder:text-white/20" placeholder="Nicho (ex: Clínico Geral)" />
 
                             <div className="relative w-full">
-                                <input required={!isEditing} type={showPassword ? "text" : "password"} value={clientForm.password} onChange={e => setClientForm({ ...clientForm, password: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 transition-all font-light placeholder:text-white/20" placeholder={isEditing ? "Nova Senha (deixe em branco p/ manter)" : "Senha de Acesso"} autoComplete="new-password" />
-                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors p-2">
+                                <input required={!isEditing} type={showPassword ? "text" : "password"} value={clientForm.password} onChange={e => setClientForm({ ...clientForm, password: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10  font-light placeholder:text-white/20" placeholder={isEditing ? "Nova Senha (deixe em branco p/ manter)" : "Senha de Acesso"} autoComplete="new-password" />
+                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white  p-2">
                                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                 </button>
                             </div>
 
-                            <button type="submit" disabled={clientSaving} className="w-full mt-4 bg-cyan-500/10 ring-1 ring-inset  hover:bg-cyan-500/20 text-cyan-400 disabled:opacity-50 disabled:pointer-events-none font-bold uppercase tracking-widest text-[10px] py-4 rounded-xl transition-all flex justify-center items-center">
+                            <button type="submit" disabled={clientSaving} className="w-full mt-4 bg-cyan-500/10 ring-1 ring-inset  hover:bg-cyan-500/20 text-cyan-400 disabled:opacity-50 disabled:pointer-events-none font-bold uppercase tracking-widest text-[10px] py-4 rounded-xl  flex justify-center items-center">
                                 {clientSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : (isEditing ? 'Salvar Alterações' : 'Criar Acesso')}
                             </button>
                         </form>
@@ -532,13 +532,13 @@ export default function AdminClients() {
 
                         <form onSubmit={handleUploadContent} className="w-full flex flex-col gap-4 relative z-0">
                             <div className="flex gap-4">
-                                <input required type="text" value={uploadData.category} onChange={e => setUploadData({ ...uploadData, category: e.target.value })} className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white text-sm outline-none focus:border-emerald-400/50 transition-all font-light" placeholder="Categoria (ex: Feed, Reels)" />
-                                <input required type="text" value={uploadData.week_date} onChange={e => setUploadData({ ...uploadData, week_date: e.target.value })} className="w-1/3 bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white text-sm outline-none focus:border-emerald-400/50 transition-all font-light" placeholder="Semana/Data" />
+                                <input required type="text" value={uploadData.category} onChange={e => setUploadData({ ...uploadData, category: e.target.value })} className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white text-sm outline-none focus:border-emerald-400/50  font-light" placeholder="Categoria (ex: Feed, Reels)" />
+                                <input required type="text" value={uploadData.week_date} onChange={e => setUploadData({ ...uploadData, week_date: e.target.value })} className="w-1/3 bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white text-sm outline-none focus:border-emerald-400/50  font-light" placeholder="Semana/Data" />
                             </div>
-                            <input required type="text" value={uploadData.product} onChange={e => setUploadData({ ...uploadData, product: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white text-sm outline-none focus:border-emerald-400/50 transition-all font-light" placeholder="Produto Referente" />
-                            <input type="text" value={uploadData.title} onChange={e => setUploadData({ ...uploadData, title: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white text-sm outline-none focus:border-emerald-400/50 transition-all font-light" placeholder="Título (Opcional)" />
+                            <input required type="text" value={uploadData.product} onChange={e => setUploadData({ ...uploadData, product: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white text-sm outline-none focus:border-emerald-400/50  font-light" placeholder="Produto Referente" />
+                            <input type="text" value={uploadData.title} onChange={e => setUploadData({ ...uploadData, title: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white text-sm outline-none focus:border-emerald-400/50  font-light" placeholder="Título (Opcional)" />
 
-                            <label className="w-full mt-2 bg-white/[0.02] border-2 border-dashed border-white/10 hover:border-emerald-400/50 rounded-3xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all group">
+                            <label className="w-full mt-2 bg-white/[0.02] border-2 border-dashed border-white/10 hover:border-emerald-400/50 rounded-3xl p-8 flex flex-col items-center justify-center cursor-pointer  group">
                                 <input type="file" required accept="image/*,video/*" onChange={e => setUploadFile(e.target.files?.[0] || null)} className="hidden" />
                                 {uploadFile ? (
                                     <div className="flex flex-col items-center">
@@ -547,16 +547,16 @@ export default function AdminClients() {
                                     </div>
                                 ) : (
                                     <div className="flex flex-col items-center">
-                                        <div className="flex gap-4 mb-4 text-white/30 group-hover:text-emerald-400/70 transition-colors">
+                                        <div className="flex gap-4 mb-4 text-white/30 group-hover:text-emerald-400/70 ">
                                             <ImageIcon className="w-8 h-8" />
                                             <Video className="w-8 h-8" />
                                         </div>
-                                        <span className="text-xs font-bold uppercase tracking-widest text-white/50 group-hover:text-emerald-400 transition-colors">Selecionar Arquivo</span>
+                                        <span className="text-xs font-bold uppercase tracking-widest text-white/50 group-hover:text-emerald-400 ">Selecionar Arquivo</span>
                                     </div>
                                 )}
                             </label>
 
-                            <button type="submit" disabled={uploading} className="w-full mt-4 bg-emerald-500/10 ring-1 ring-inset ring-emerald-500/30 hover:bg-emerald-500/20 disabled:bg-emerald-900/10 disabled:opacity-50 text-emerald-400 font-bold uppercase tracking-widest text-[10px] py-4 rounded-xl transition-all flex justify-center items-center">
+                            <button type="submit" disabled={uploading} className="w-full mt-4 bg-emerald-500/10 ring-1 ring-inset ring-emerald-500/30 hover:bg-emerald-500/20 disabled:bg-emerald-900/10 disabled:opacity-50 text-emerald-400 font-bold uppercase tracking-widest text-[10px] py-4 rounded-xl  flex justify-center items-center">
                                 {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Começar Upload'}
                             </button>
                         </form>

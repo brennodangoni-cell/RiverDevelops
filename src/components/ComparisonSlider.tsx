@@ -24,7 +24,7 @@ const ComparisonSlider = () => {
 
                 <div
                     ref={containerRef}
-                    className="relative w-full aspect-video rounded-3xl overflow-hidden cursor-ew-resize border border-white/10 shadow-[0_0_50px_-10px_rgba(56,189,248,0.2)] group select-none"
+                    className="relative w-full aspect-video rounded-3xl overflow-hidden cursor-ew-resize border border-white/10 -[0_0_50px_-10px_rgba(56,189,248,0.2)] group select-none"
                     onMouseMove={handleDrag}
                     onTouchMove={handleDrag}
                 >
@@ -48,10 +48,10 @@ const ComparisonSlider = () => {
                     ></div>
 
                     <div
-                        className="absolute top-1/2 -mt-6 w-12 h-12 -ml-6 flex items-center justify-center z-30 group-active:scale-95 transition-transform"
+                        className="absolute top-1/2 -mt-6 w-12 h-12 -ml-6 flex items-center justify-center z-30 group-active:scale-95 "
                         style={{ left: `${sliderPosition}%` }}
                     >
-                        <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.5)]">
+                        <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center -[0_0_20px_rgba(255,255,255,0.5)]">
                             <div className="flex gap-[3px]">
                                 <div className="w-[1px] h-4 bg-black"></div>
                                 <div className="w-[1px] h-4 bg-black"></div>

@@ -20,26 +20,26 @@ const Footer = () => {
                     <div className="md:col-span-2">
                         <h4 className="text-white font-bold mb-6 font-mono text-xs uppercase tracking-widest text-[#38BDF8]">River</h4>
                         <ul className="space-y-4 text-muted text-sm font-light">
-                            <li><a href="#" className="hover:text-primary transition-colors">Features</a></li>
-                            <li><a href="#" className="hover:text-primary transition-colors">Pricing</a></li>
-                            <li><a href="#" className="hover:text-primary transition-colors">API Keys</a></li>
-                            <li><a href="#" className="hover:text-primary transition-colors">Showcase</a></li>
+                            <li><a href="#" className="hover:text-primary ">Features</a></li>
+                            <li><a href="#" className="hover:text-primary ">Pricing</a></li>
+                            <li><a href="#" className="hover:text-primary ">API Keys</a></li>
+                            <li><a href="#" className="hover:text-primary ">Showcase</a></li>
                         </ul>
                     </div>
                     <div className="md:col-span-2">
                         <h4 className="text-white font-bold mb-6 font-mono text-xs uppercase tracking-widest text-[#38BDF8]">Company</h4>
                         <ul className="space-y-4 text-muted text-sm font-light">
-                            <li><a href="#" className="hover:text-primary transition-colors">Manifesto</a></li>
-                            <li><a href="#" className="hover:text-primary transition-colors">Blog</a></li>
-                            <li><a href="#" className="hover:text-primary transition-colors">Careers</a></li>
+                            <li><a href="#" className="hover:text-primary ">Manifesto</a></li>
+                            <li><a href="#" className="hover:text-primary ">Blog</a></li>
+                            <li><a href="#" className="hover:text-primary ">Careers</a></li>
                         </ul>
                     </div>
                     <div className="md:col-span-2">
                         <h4 className="text-white font-bold mb-6 font-mono text-xs uppercase tracking-widest text-[#38BDF8]">Connect</h4>
                         <div className="flex gap-4">
-                            <Twitter className="w-5 h-5 text-muted hover:text-primary cursor-pointer transition-colors" />
-                            <Instagram className="w-5 h-5 text-muted hover:text-primary cursor-pointer transition-colors" />
-                            <Linkedin className="w-5 h-5 text-muted hover:text-primary cursor-pointer transition-colors" />
+                            <Twitter className="w-5 h-5 text-muted hover:text-primary cursor-pointer " />
+                            <Instagram className="w-5 h-5 text-muted hover:text-primary cursor-pointer " />
+                            <Linkedin className="w-5 h-5 text-muted hover:text-primary cursor-pointer " />
                         </div>
                     </div>
                 </div>

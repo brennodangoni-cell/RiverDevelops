@@ -150,7 +150,7 @@ const CallToAction = () => {
                     className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 w-full pointer-events-none transform-gpu will-change-transform"
                     style={{ opacity: teaseOpacity, y: teaseY }}
                 >
-                    <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-medium text-white tracking-tighter leading-[0.95] mb-4 max-w-5xl mx-auto drop-shadow-2xl">
+                    <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-medium text-white tracking-tighter leading-[0.95] mb-4 max-w-5xl mx-auto drop-">
                         Criamos realidades intangíveis. <br className="hidden lg:block" />
                         <span className="font-serif italic text-white/50 font-medium">O próximo grau do audiovisual.</span>
                     </h2>
@@ -188,26 +188,26 @@ const CallToAction = () => {
                             <div className="flex p-1.5 bg-white/[0.03] border border-white/10 rounded-full mb-8 backdrop-blur-md relative">
                                 <button
                                     onClick={() => setPricingCategory('pacotes')}
-                                    className={`relative z-10 px-8 py-2.5 rounded-full text-xs font-sans font-semibold transition-colors duration-300 ${pricingCategory === 'pacotes' ? 'text-black' : 'text-white/40 hover:text-white/70'}`}
+                                    className={`relative z-10 px-8 py-2.5 rounded-full text-xs font-sans font-semibold   ${pricingCategory === 'pacotes' ? 'text-black' : 'text-white/40 hover:text-white/70'}`}
                                 >
                                     Pacotes Avulsos
                                     {pricingCategory === 'pacotes' && (
                                         <motion.div
                                             layoutId="activeTab"
-                                            className="absolute inset-0 bg-white rounded-full -z-10 shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                                            className="absolute inset-0 bg-white rounded-full -z-10 -[0_0_20px_rgba(255,255,255,0.3)]"
                                             transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                         />
                                     )}
                                 </button>
                                 <button
                                     onClick={() => setPricingCategory('assinaturas')}
-                                    className={`relative z-10 px-8 py-2.5 rounded-full text-xs font-sans font-semibold transition-colors duration-300 ${pricingCategory === 'assinaturas' ? 'text-black' : 'text-white/40 hover:text-white/70'}`}
+                                    className={`relative z-10 px-8 py-2.5 rounded-full text-xs font-sans font-semibold   ${pricingCategory === 'assinaturas' ? 'text-black' : 'text-white/40 hover:text-white/70'}`}
                                 >
                                     Assinaturas
                                     {pricingCategory === 'assinaturas' && (
                                         <motion.div
                                             layoutId="activeTab"
-                                            className="absolute inset-0 bg-white rounded-full -z-10 shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                                            className="absolute inset-0 bg-white rounded-full -z-10 -[0_0_20px_rgba(255,255,255,0.3)]"
                                             transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                         />
                                     )}
@@ -216,7 +216,7 @@ const CallToAction = () => {
 
                             {/* Mobile Swipe Indicator */}
                             <motion.div
-                                className="flex md:hidden items-center gap-2 text-cyan-300 drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]"
+                                className="flex md:hidden items-center gap-2 text-cyan-300 drop--[0_0_10px_rgba(34,211,238,0.5)]"
                                 animate={{ opacity: [0.6, 1, 0.6] }}
                                 transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
                             >
@@ -240,10 +240,10 @@ const CallToAction = () => {
                                 {currentPlans.map((plan) => (
                                     <div
                                         key={`${pricingCategory}-${plan.name}`}
-                                        className={`snap-center shrink-0 w-[85vw] max-w-[340px] md:w-auto md:max-w-none relative group flex flex-col p-5 md:p-6 lg:p-7 rounded-[2rem] md:rounded-[2.5rem] text-left transition-all duration-300 overflow-hidden animate-slide-up-fade
+                                        className={`snap-center shrink-0 w-[85vw] max-w-[340px] md:w-auto md:max-w-none relative group flex flex-col p-5 md:p-6 lg:p-7 rounded-[2rem] md:rounded-[2.5rem] text-left   overflow-hidden animate-slide-up-fade
                                             ${plan.glow
-                                                ? 'bg-white/[0.04] ring-1 ring-white/10 hover:bg-white/[0.06] hover:ring-white/20 shadow-2xl shadow-cyan-900/20'
-                                                : 'bg-white/[0.015] ring-1 ring-white/5 hover:bg-white/[0.03] hover:ring-white/10 shadow-lg shadow-black/50'
+                                                ? 'bg-white/[0.04] ring-1 ring-white/10 hover:bg-white/[0.06] hover:ring-white/20  '
+                                                : 'bg-white/[0.015] ring-1 ring-white/5 hover:bg-white/[0.03] hover:ring-white/10  '
                                             }`}
                                     >
                                         {/* Pure Transparent Overlay - No Blur */}
@@ -255,7 +255,7 @@ const CallToAction = () => {
                                                 <h3 className="text-xl font-display font-medium text-white tracking-wide">{plan.name}</h3>
                                             </div>
                                             {plan.glow && (
-                                                <span className="px-3 py-1 bg-white inline-block rounded-full text-[9px] uppercase font-bold text-black shrink-0 shadow-xl">
+                                                <span className="px-3 py-1 bg-white inline-block rounded-full text-[9px] uppercase font-bold text-black shrink-0 ">
                                                     Mais Escolhido
                                                 </span>
                                             )}
@@ -289,14 +289,14 @@ const CallToAction = () => {
                                             href={plan.whatsappLink}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className={`relative w-full flex items-center justify-center gap-2 py-3 md:py-3.5 rounded-full font-sans text-[11px] md:text-xs font-bold transition-all duration-300 group/btn
+                                            className={`relative w-full flex items-center justify-center gap-2 py-3 md:py-3.5 rounded-full font-sans text-[11px] md:text-xs font-bold   group/btn
                                                 ${plan.glow
-                                                    ? 'bg-white text-black hover:bg-white/90 hover:scale-[1.02] shadow-[0_4px_20px_rgba(255,255,255,0.15)]'
+                                                    ? 'bg-white text-black hover:bg-white/90 hover:scale-[1.02] -[0_4px_20px_rgba(255,255,255,0.15)]'
                                                     : 'bg-white/5 ring-1 ring-white/10 text-white hover:bg-white/10 hover:ring-white/20'
                                                 }`}
                                         >
                                             <span>{plan.buttonText}</span>
-                                            <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                                            <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 " />
                                         </a>
                                     </div>
                                 ))}

@@ -47,7 +47,7 @@ export default function Login() {
                             type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400/50 focus:border-cyan-400/50 transition-all font-light"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400/50 focus:border-cyan-400/50  font-light"
                             required
                         />
                     </div>
@@ -57,7 +57,7 @@ export default function Login() {
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400/50 focus:border-cyan-400/50 transition-all font-light placeholder:text-white/20"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400/50 focus:border-cyan-400/50  font-light placeholder:text-white/20"
                             placeholder="••••••••"
                             required
                         />
@@ -65,12 +65,12 @@ export default function Login() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full mt-8 bg-cyan-500/10 ring-1 ring-inset ring-white/10 text-cyan-400 hover:bg-cyan-500/20 hover:text-cyan-300 font-bold uppercase tracking-widest text-[10px] py-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 hover:ring-white/30 group/btn select-none"
+                        className="w-full mt-8 bg-cyan-500/10 ring-1 ring-inset ring-white/10 text-cyan-400 hover:bg-cyan-500/20 hover:text-cyan-300 font-bold uppercase tracking-widest text-[10px] py-4 rounded-xl   flex items-center justify-center gap-3 hover:ring-white/30 group/btn select-none"
                     >
                         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                             <>
                                 Acessar Plataforma
-                                <ArrowRight className="w-4 h-4 opacity-70 group-hover/btn:translate-x-1 transition-transform" />
+                                <ArrowRight className="w-4 h-4 opacity-70 group-hover/btn:translate-x-1 " />
                             </>
                         )}
                     </button>

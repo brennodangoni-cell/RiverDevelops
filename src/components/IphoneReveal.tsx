@@ -172,22 +172,22 @@ const IphoneReveal = () => {
                         </motion.div>
 
                         {/* ── Custom Editorial Navigator ── */}
-                        <div className="flex items-center gap-4 md:gap-8 mt-6 md:mt-8 bg-white/[0.02] border border-white/5 rounded-full px-4 md:px-6 py-3 md:py-4 backdrop-blur-md shadow-2xl mx-auto md:mx-0 w-max max-w-full">
+                        <div className="flex items-center gap-4 md:gap-8 mt-6 md:mt-8 bg-white/[0.02] border border-white/5 rounded-full px-4 md:px-6 py-3 md:py-4 backdrop-blur-md  mx-auto md:mx-0 w-max max-w-full">
                             {/* Navigation Arrows */}
                             <div className="flex items-center gap-1 md:gap-2">
                                 <button
                                     onClick={handlePrev}
-                                    className="group flex flex-col items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/10 hover:border-white/40 bg-white/5 hover:bg-white/10 transition-all duration-300 active:scale-95 touch-manipulation"
+                                    className="group flex flex-col items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/10 hover:border-white/40 bg-white/5 hover:bg-white/10   active:scale-95 touch-manipulation"
                                     aria-label="Projeto Anterior"
                                 >
-                                    <ChevronLeft className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" strokeWidth={2} />
+                                    <ChevronLeft className="w-4 h-4 text-white/50 group-hover:text-white " strokeWidth={2} />
                                 </button>
                                 <button
                                     onClick={handleNext}
-                                    className="group flex flex-col items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/10 hover:border-white/40 bg-white/5 hover:bg-white/10 transition-all duration-300 active:scale-95 touch-manipulation"
+                                    className="group flex flex-col items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/10 hover:border-white/40 bg-white/5 hover:bg-white/10   active:scale-95 touch-manipulation"
                                     aria-label="Próximo Projeto"
                                 >
-                                    <ChevronRight className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" strokeWidth={2} />
+                                    <ChevronRight className="w-4 h-4 text-white/50 group-hover:text-white " strokeWidth={2} />
                                 </button>
                             </div>
 
@@ -203,7 +203,7 @@ const IphoneReveal = () => {
                                             alt={currentProject.client}
                                             loading="lazy"
                                             decoding="async"
-                                            className="h-full w-auto max-w-[150px] md:max-w-[220px] object-contain brightness-0 invert opacity-100 drop-shadow-md"
+                                            className="h-full w-auto max-w-[150px] md:max-w-[220px] object-contain brightness-0 invert opacity-100 drop-"
                                         />
                                     </div>
                                     <span key={`niche-${currentProject.id}`} className="text-[9px] md:text-xs font-semibold tracking-wider text-white/40 uppercase truncate w-full px-2">
@@ -223,9 +223,9 @@ const IphoneReveal = () => {
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[87%] md:h-[93%] w-auto aspect-[9/19.5] z-20 pointer-events-none">
                                 <motion.div
                                     style={{ rotateY: tiltX, x: "-38%", y: "-3%", scale: 1, opacity: opacity }}
-                                    className="w-full h-full rounded-[2vh] md:rounded-[40px] border border-white/10 bg-[#0a0a0a] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] group/back pointer-events-auto transition-all duration-300 ease-out"
+                                    className="w-full h-full rounded-[2vh] md:rounded-[40px] border border-white/10 bg-[#0a0a0a] overflow-hidden -[0_20px_50px_rgba(0,0,0,0.8)] group/back pointer-events-auto   "
                                 >
-                                    <div className="absolute inset-0 bg-black/40 group-hover/back:bg-black/0 transition-colors duration-300 z-50 pointer-events-none"></div>
+                                    <div className="absolute inset-0 bg-black/40 group-hover/back:bg-black/0   z-50 pointer-events-none"></div>
 
                                     <div className="absolute top-2 left-1/2 -translate-x-1/2 w-[35%] h-[4%] bg-black rounded-full z-40"></div>
                                     <div className="w-full h-full p-[6px] relative overflow-hidden rounded-[2.5vh] md:rounded-[40px]">
@@ -248,10 +248,10 @@ const IphoneReveal = () => {
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[92%] md:h-[98%] w-auto aspect-[9/19.5] z-30 pointer-events-none">
                                 <motion.div
                                     style={{ rotateY: tiltX, x: "32%", y: "2%", scale: scale, opacity: opacity }}
-                                    className="w-full h-full rounded-[3vh] md:rounded-[46px] border-[2px] border-white/10 bg-[#0a0a0a] overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.95)] pointer-events-auto"
+                                    className="w-full h-full rounded-[3vh] md:rounded-[46px] border-[2px] border-white/10 bg-[#0a0a0a] overflow-hidden -[0_40px_100px_rgba(0,0,0,0.95)] pointer-events-auto"
                                 >
                                     <div className="absolute inset-0 rounded-[3vh] md:rounded-[46px] border border-white/5 pointer-events-none z-50" />
-                                    <div className="absolute top-3 left-1/2 -translate-x-1/2 w-[35%] h-[3.5%] bg-black rounded-full z-50 shadow-[0_2px_10px_rgba(0,0,0,0.5)]" />
+                                    <div className="absolute top-3 left-1/2 -translate-x-1/2 w-[35%] h-[3.5%] bg-black rounded-full z-50 -[0_2px_10px_rgba(0,0,0,0.5)]" />
 
                                     <div className="w-full h-full p-[8px] sm:p-[10px] relative overflow-hidden rounded-[3vh] md:rounded-[46px]">
                                         <div className="absolute inset-0 w-full h-full bg-black">
@@ -285,7 +285,7 @@ const IphoneReveal = () => {
                                                             ref={isActive ? videoRef : null}
                                                             src={videoUrl}
                                                             poster={posterUrl}
-                                                            className="w-full h-full object-cover shadow-inner"
+                                                            className="w-full h-full object-cover "
                                                             playsInline
                                                             loop
                                                             muted
@@ -306,9 +306,9 @@ const IphoneReveal = () => {
                                                 <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-black/60 border border-white/20 overflow-hidden flex items-center justify-center backdrop-blur-md">
                                                     <img width="24" height="24" src="/logo.webp" alt="River" className="w-[60%] h-auto object-contain brightness-0 invert" />
                                                 </div>
-                                                <span className="text-white text-[10px] md:text-xs font-semibold drop-shadow-lg tracking-wide">@riverdevelops</span>
+                                                <span className="text-white text-[10px] md:text-xs font-semibold drop- tracking-wide">@riverdevelops</span>
                                             </div>
-                                            <p className="text-white/80 text-[9px] md:text-[11px] leading-tight md:leading-snug font-extralight drop-shadow-md pr-2 md:pr-4">
+                                            <p className="text-white/80 text-[9px] md:text-[11px] leading-tight md:leading-snug font-extralight drop- pr-2 md:pr-4">
                                                 {currentProject.caption || "Transformação visual focada em reter e converter."} <br className="hidden md:block" />
                                                 <span className="font-light text-white/50 tracking-wider text-[8px] md:text-[9px] mt-1 block">#resultado #produção</span>
                                             </p>
@@ -316,10 +316,10 @@ const IphoneReveal = () => {
 
                                         {/* Play Button Overlay */}
                                         <div
-                                            className={`absolute inset-0 flex items-center justify-center z-50 cursor-pointer transition-all duration-150 ${isPlaying ? 'opacity-0 scale-125 pointer-events-none' : 'opacity-100 scale-100'}`}
+                                            className={`absolute inset-0 flex items-center justify-center z-50 cursor-pointer   ${isPlaying ? 'opacity-0 scale-125 pointer-events-none' : 'opacity-100 scale-100'}`}
                                             onClick={handleVideoToggle}
                                         >
-                                            <div className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-black/40 border border-white/20 flex items-center justify-center backdrop-blur-md shadow-2xl hover:scale-110 active:scale-95 transition-transform duration-300">
+                                            <div className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-black/40 border border-white/20 flex items-center justify-center backdrop-blur-md  hover:scale-110 active:scale-95  ">
                                                 <Play size={32} className="text-white fill-white ml-1.5" />
                                             </div>
                                         </div>

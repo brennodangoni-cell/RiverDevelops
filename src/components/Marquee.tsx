@@ -17,7 +17,7 @@ const Marquee = () => {
                     {[...Array(4)].map((_, i) => (
                         <div key={i} className="flex gap-20 items-center">
                             {['NIKE', 'ADIDAS', 'SAMSUNG', 'SONY', 'TESLA', 'APPLE', 'SPOTIFY', 'NETFLIX'].map((brand) => (
-                                <span key={brand} className="text-2xl font-display font-bold text-white/20 hover:text-white/80 transition-colors cursor-default select-none">{brand}</span>
+                                <span key={brand} className="text-2xl font-display font-bold text-white/20 hover:text-white/80  cursor-default select-none">{brand}</span>
                             ))}
                         </div>
                     ))}

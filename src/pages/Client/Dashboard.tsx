@@ -77,11 +77,11 @@ export default function ClientDashboard() {
                         {/* Logo & Welcome */}
                         <div className="flex items-center gap-4 group cursor-default">
                             <div className="relative">
-                                <div className="absolute -inset-2 bg-cyan-500/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                <div className="absolute -inset-2 bg-cyan-500/20 rounded-full blur-lg opacity-0 group-hover:opacity-100  " />
                                 {clientUser?.avatar_url ? (
-                                    <img src={getMediaUrl(clientUser.avatar_url)} alt="Profile" className="relative h-10 w-10 object-cover rounded-full border border-white/10 group-hover:scale-105 transition-transform" />
+                                    <img src={getMediaUrl(clientUser.avatar_url)} alt="Profile" className="relative h-10 w-10 object-cover rounded-full border border-white/10 group-hover:scale-105 " />
                                 ) : (
-                                    <div className="relative h-10 w-10 rounded-full bg-black border border-white/20 flex items-center justify-center group-hover:scale-105 transition-transform">
+                                    <div className="relative h-10 w-10 rounded-full bg-black border border-white/20 flex items-center justify-center group-hover:scale-105 ">
                                         <span className="text-lg font-display font-medium text-white tracking-widest uppercase">{clientUser?.username?.charAt(0) || 'C'}</span>
                                     </div>
                                 )}
@@ -98,7 +98,7 @@ export default function ClientDashboard() {
                                 <button
                                     key={cat}
                                     onClick={() => setSelectedCategory(cat)}
-                                    className={`px-5 py-2 rounded-full text-xs font-bold tracking-widest uppercase transition-all duration-300 ${selectedCategory === cat ? 'bg-white text-black' : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white'}`}
+                                    className={`px-5 py-2 rounded-full text-xs font-bold tracking-widest uppercase   ${selectedCategory === cat ? 'bg-white text-black' : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white'}`}
                                 >
                                     {cat}
                                 </button>
@@ -108,7 +108,7 @@ export default function ClientDashboard() {
                         {/* Logout */}
                         <button
                             onClick={handleLogout}
-                            className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 hover:bg-red-500/20 hover:border-red-500 hover:text-red-400 transition-all group shrink-0"
+                            className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 hover:bg-red-500/20 hover:border-red-500 hover:text-red-400  group shrink-0"
                             title="Desconectar"
                         >
                             <LogOut className="w-4 h-4 ml-0.5 opacity-80 group-hover:opacity-100" />
@@ -124,7 +124,7 @@ export default function ClientDashboard() {
                         <button
                             key={cat}
                             onClick={() => setSelectedCategory(cat)}
-                            className={`whitespace-nowrap px-6 py-3 rounded-full text-xs font-bold tracking-widest uppercase transition-all duration-300 ${selectedCategory === cat ? 'bg-white text-black' : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white'}`}
+                            className={`whitespace-nowrap px-6 py-3 rounded-full text-xs font-bold tracking-widest uppercase   ${selectedCategory === cat ? 'bg-white text-black' : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white'}`}
                         >
                             {cat}
                         </button>
@@ -140,21 +140,21 @@ export default function ClientDashboard() {
                 ) : (
                     <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
                         {filteredContent.map(item => (
-                            <div key={item.id} className="relative group bg-[#080808] border border-white/10 rounded-[2.5rem] overflow-hidden hover:border-white/20 transition-all duration-500 hover: break-inside-avoid">
+                            <div key={item.id} className="relative group bg-[#080808] border border-white/10 rounded-[2.5rem] overflow-hidden hover:border-white/20   hover: break-inside-avoid">
                                 {/* Media Container */}
                                 <div className="relative w-full overflow-hidden bg-black flex items-center justify-center">
                                     {item.media_type === 'video' ? (
                                         <div className="w-full relative aspect-[9/16]">
                                             <video src={getMediaUrl(item.media_url)} className="w-full h-full object-cover" muted loop playsInline onMouseEnter={e => e.currentTarget.play()} onMouseLeave={e => e.currentTarget.pause()} />
-                                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-black/10 group-hover:bg-transparent transition-colors">
-                                                <div className="w-16 h-16 rounded-full bg-black/40 border border-white/20 flex items-center justify-center scale-100 group-hover:scale-110 transition-transform">
+                                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-black/10 group-hover:bg-transparent ">
+                                                <div className="w-16 h-16 rounded-full bg-black/40 border border-white/20 flex items-center justify-center scale-100 group-hover:scale-110 ">
                                                     <PlayCircle className="w-8 h-8 text-white" />
                                                 </div>
                                             </div>
                                         </div>
                                     ) : (
                                         <div className="w-full relative">
-                                            <img src={getMediaUrl(item.media_url)} alt={item.title} className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]" />
+                                            <img src={getMediaUrl(item.media_url)} alt={item.title} className="w-full h-auto object-cover group-hover:scale-105   ease-[cubic-bezier(0.16,1,0.3,1)]" />
                                         </div>
                                     )}
 
@@ -167,8 +167,8 @@ export default function ClientDashboard() {
                                     </div>
 
                                     {/* Action Hover */}
-                                    <div className="absolute bottom-4 right-4 z-20 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-100">
-                                        <a href={getMediaUrl(item.media_url)} download target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
+                                    <div className="absolute bottom-4 right-4 z-20 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0   ">
+                                        <a href={getMediaUrl(item.media_url)} download target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center hover:scale-110 active:scale-95 ">
                                             <Download className="w-5 h-5" />
                                         </a>
                                     </div>

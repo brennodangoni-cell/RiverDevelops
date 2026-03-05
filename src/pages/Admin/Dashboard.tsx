@@ -271,21 +271,21 @@ export default function Dashboard() {
                         <div className="flex items-center justify-between w-full md:w-auto">
                             <div className="flex items-center gap-4 group">
                                 <div className="relative">
-                                    <div className="absolute -inset-2 bg-blue-500/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                    <div className="absolute -inset-2 bg-blue-500/20 rounded-full blur-lg opacity-0 group-hover:opacity-100  " />
                                     <img
                                         src="/logo.webp"
                                         alt="River Logo"
-                                        className="relative h-10 w-10 object-contain rounded-full group-hover:scale-105 transition-transform duration-500"
+                                        className="relative h-10 w-10 object-contain rounded-full group-hover:scale-105  "
                                     />
                                 </div>
-                                <span className="text-lg font-display font-bold text-white tracking-widest hidden sm:block group-hover:text-cyan-100 transition-colors duration-500 uppercase pb-0.5">RIVER TASKS</span>
+                                <span className="text-lg font-display font-bold text-white tracking-widest hidden sm:block group-hover:text-cyan-100   uppercase pb-0.5">RIVER TASKS</span>
                             </div>
 
                             {/* Mobile CTA + User Area (Hidden on Desktop) */}
                             <div className="flex items-center gap-3 md:hidden">
                                 <Link
                                     to="/admin/financeiro"
-                                    className="h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center px-4 hover:bg-emerald-500/20 hover:border-emerald-500 transition-all duration-300 shrink-0 gap-2"
+                                    className="h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center px-4 hover:bg-emerald-500/20 hover:border-emerald-500   shrink-0 gap-2"
                                     title="Caixa da Empresa"
                                 >
                                     <DollarSign className="w-4 h-4" />
@@ -293,31 +293,31 @@ export default function Dashboard() {
                                 </Link>
                                 <Link
                                     to="/admin/laboratorio"
-                                    className="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center hover:bg-cyan-500/20 hover:border-cyan-500 transition-all duration-300 shrink-0"
+                                    className="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center hover:bg-cyan-500/20 hover:border-cyan-500   shrink-0"
                                     title="Laboratório IA"
                                 >
                                     <Sparkles className="w-4 h-4" />
                                 </Link>
                                 <Link
                                     to="/admin/clientes"
-                                    className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center hover:bg-emerald-500/20 hover:border-emerald-500 transition-all duration-300 shrink-0"
+                                    className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center hover:bg-emerald-500/20 hover:border-emerald-500   shrink-0"
                                     title="Gestão de Clientes"
                                 >
                                     <Users className="w-4 h-4" />
                                 </Link>
                                 <button
                                     onClick={() => setIsHistoryModalOpen(true)}
-                                    className="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center hover:bg-cyan-500/20 hover:border-cyan-500 transition-all duration-300 shrink-0"
+                                    className="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center hover:bg-cyan-500/20 hover:border-cyan-500   shrink-0"
                                     title="Histórico de Tarefas"
                                 >
                                     <Clock className="w-4 h-4" />
                                 </button>
                                 <button
                                     onClick={() => setIsModalOpen(true)}
-                                    className="w-10 h-10 rounded-full bg-white/5 border border-white/20 text-white flex items-center justify-center hover:bg-white/10 transition-all duration-300 relative group/btn shrink-0"
+                                    className="w-10 h-10 rounded-full bg-white/5 border border-white/20 text-white flex items-center justify-center hover:bg-white/10   relative group/btn shrink-0"
                                     title="Nova Tarefa"
                                 >
-                                    <Plus className="w-5 h-5 opacity-80 group-hover/btn:rotate-90 transition-transform duration-300" />
+                                    <Plus className="w-5 h-5 opacity-80 group-hover/btn:rotate-90  " />
                                 </button>
 
                                 <div className="h-6 w-px bg-white/10 mx-1" />
@@ -330,7 +330,7 @@ export default function Dashboard() {
                                 />
                                 <button
                                     onClick={handleLogout}
-                                    className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/40 flex items-center justify-center text-red-500 hover:bg-red-500/20 hover:border-red-500 transition-all duration-300 shrink-0"
+                                    className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/40 flex items-center justify-center text-red-500 hover:bg-red-500/20 hover:border-red-500   shrink-0"
                                     title="Sair"
                                 >
                                     <LogOut className="w-4 h-4 ml-0.5" />
@@ -350,7 +350,7 @@ export default function Dashboard() {
                                     <button
                                         key={u.id}
                                         onClick={() => setViewingUserId(u.id)}
-                                        className={`px-4 py-1.5 rounded-full text-[9px] font-bold tracking-widest uppercase transition-all duration-300 shrink-0 ${viewingUserId === u.id ? 'bg-white/10 text-white border border-white/10' : 'text-white/30 hover:text-white/70 border border-transparent'}`}
+                                        className={`px-4 py-1.5 rounded-full text-[9px] font-bold tracking-widest uppercase   shrink-0 ${viewingUserId === u.id ? 'bg-white/10 text-white border border-white/10' : 'text-white/30 hover:text-white/70 border border-transparent'}`}
                                     >
                                         {isCurrentUser ? 'VOCÊ' : u.username.split(' ')[0]}
                                     </button>
@@ -362,7 +362,7 @@ export default function Dashboard() {
                         <div className="hidden md:flex items-center gap-4 shrink-0">
                             <Link
                                 to="/admin/financeiro"
-                                className="h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center px-4 hover:bg-emerald-500/20 hover:border-emerald-500 transition-all duration-300 shrink-0 gap-2"
+                                className="h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center px-4 hover:bg-emerald-500/20 hover:border-emerald-500   shrink-0 gap-2"
                                 title="Caixa da Empresa"
                             >
                                 <DollarSign className="w-4 h-4" />
@@ -370,21 +370,21 @@ export default function Dashboard() {
                             </Link>
                             <Link
                                 to="/admin/laboratorio"
-                                className="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center hover:bg-cyan-500/20 hover:border-cyan-500 transition-all duration-300 shrink-0"
+                                className="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center hover:bg-cyan-500/20 hover:border-cyan-500   shrink-0"
                                 title="Laboratório IA"
                             >
                                 <Sparkles className="w-4 h-4" />
                             </Link>
                             <Link
                                 to="/admin/clientes"
-                                className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center hover:bg-emerald-500/20 hover:border-emerald-500 transition-all duration-300 shrink-0"
+                                className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center hover:bg-emerald-500/20 hover:border-emerald-500   shrink-0"
                                 title="Gestão de Clientes"
                             >
                                 <Users className="w-4 h-4" />
                             </Link>
                             <button
                                 onClick={() => setIsHistoryModalOpen(true)}
-                                className="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center hover:bg-cyan-500/20 hover:border-cyan-500 transition-all duration-300 shrink-0"
+                                className="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center hover:bg-cyan-500/20 hover:border-cyan-500   shrink-0"
                                 title="Histórico de Tarefas"
                             >
                                 <Clock className="w-4 h-4" />
@@ -392,10 +392,10 @@ export default function Dashboard() {
 
                             <button
                                 onClick={() => setIsModalOpen(true)}
-                                className="bg-white/5 border border-white/20 text-white pl-4 pr-5 py-2.5 rounded-full font-medium text-xs hover:bg-white/10 hover:border-white/40 hover:text-cyan-50 transition-all duration-300 flex items-center gap-2 group/btn shrink-0"
+                                className="bg-white/5 border border-white/20 text-white pl-4 pr-5 py-2.5 rounded-full font-medium text-xs hover:bg-white/10 hover:border-white/40 hover:text-cyan-50   flex items-center gap-2 group/btn shrink-0"
                                 title="Nova Tarefa"
                             >
-                                <Plus className="w-4 h-4 opacity-70 group-hover/btn:rotate-90 transition-transform duration-300" />
+                                <Plus className="w-4 h-4 opacity-70 group-hover/btn:rotate-90  " />
                                 <span>Nova Tarefa</span>
                             </button>
 
@@ -410,7 +410,7 @@ export default function Dashboard() {
                                 />
                                 <button
                                     onClick={handleLogout}
-                                    className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/40 flex items-center justify-center text-red-500 hover:bg-red-500/20 hover:border-red-500 transition-all duration-300 group shrink-0"
+                                    className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/40 flex items-center justify-center text-red-500 hover:bg-red-500/20 hover:border-red-500   group shrink-0"
                                     title="Finalizar Sessão"
                                 >
                                     <LogOut className="w-4 h-4 ml-0.5 opacity-80 group-hover:opacity-100" />
@@ -424,10 +424,10 @@ export default function Dashboard() {
             {/* Top Toggle Demands vs Tasks */}
             <div className="max-w-[1600px] mx-auto px-4 sm:px-6 md:px-10 pt-[120px] lg:pt-[130px] relative z-20 flex justify-center mb-10 lg:mb-12">
                 <div className="bg-[#141414] rounded-full border border-white/5 p-1 flex items-center gap-1">
-                    <button onClick={() => setActiveTab('tasks')} className={`px-5 py-2 sm:px-8 sm:py-2.5 rounded-full text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-all duration-300 ${activeTab === 'tasks' ? 'bg-cyan-500 text-black' : 'text-white/50 hover:text-white hover:bg-white/5'}`}>
+                    <button onClick={() => setActiveTab('tasks')} className={`px-5 py-2 sm:px-8 sm:py-2.5 rounded-full text-[10px] sm:text-xs font-bold tracking-widest uppercase   ${activeTab === 'tasks' ? 'bg-cyan-500 text-black' : 'text-white/50 hover:text-white hover:bg-white/5'}`}>
                         Tarefas Ativas
                     </button>
-                    <button onClick={() => setActiveTab('demands')} className={`px-5 py-2 sm:px-8 sm:py-2.5 rounded-full text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-all duration-300 ${activeTab === 'demands' ? 'bg-emerald-500 text-black' : 'text-white/50 hover:text-white hover:bg-white/5'}`}>
+                    <button onClick={() => setActiveTab('demands')} className={`px-5 py-2 sm:px-8 sm:py-2.5 rounded-full text-[10px] sm:text-xs font-bold tracking-widest uppercase   ${activeTab === 'demands' ? 'bg-emerald-500 text-black' : 'text-white/50 hover:text-white hover:bg-white/5'}`}>
                         Mural de Demandas
                     </button>
                 </div>
@@ -455,31 +455,31 @@ export default function Dashboard() {
                             {/* Task List */}
                             <div className="flex flex-col pb-8 space-y-4">
                                 {tasks.filter(t => t.status === section.status && t.assigned_to === viewingUserId && !(t.status === 'DONE' && isOlderThanToday(t.updated_at || t.created_at))).map(task => (
-                                    <div key={task.id} className="group relative flex flex-col rounded-[2rem] p-6 transition-all duration-300 cursor-default isolate">
-                                        <div className="absolute inset-0 bg-white/5 ring-1 ring-inset ring-white/10 group-hover:bg-white/10 group-hover:ring-white/20 rounded-[2rem] transition-all duration-300 -z-10 overflow-hidden pointer-events-none" />
+                                    <div key={task.id} className="group relative flex flex-col rounded-[2rem] p-6   cursor-default isolate">
+                                        <div className="absolute inset-0 bg-white/5 ring-1 ring-inset ring-white/10 group-hover:bg-white/10 group-hover:ring-white/20 rounded-[2rem]   -z-10 overflow-hidden pointer-events-none" />
 
                                         {/* Action Buttons (Floating pill inside card - restricted to assignee) */}
                                         {task.assigned_to === currentUser.id && (
-                                            <div className="absolute top-5 right-5 z-10 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 flex gap-1 bg-black/80 rounded-full border border-white/10 p-1.5">
+                                            <div className="absolute top-5 right-5 z-10 opacity-0 group-hover:opacity-100  translate-y-2 group-hover:translate-y-0 flex gap-1 bg-black/80 rounded-full border border-white/10 p-1.5">
                                                 {task.status !== 'TODO' && (
-                                                    <button onClick={() => handleUpdateStatus(task.id, 'TODO')} className="p-2 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-colors" title="Mover para Por Fazer"><CircleDashed className="w-4 h-4" /></button>
+                                                    <button onClick={() => handleUpdateStatus(task.id, 'TODO')} className="p-2 text-white/40 hover:text-white hover:bg-white/10 rounded-full " title="Mover para Por Fazer"><CircleDashed className="w-4 h-4" /></button>
                                                 )}
                                                 {task.status !== 'IN_PROGRESS' && (
-                                                    <button onClick={() => handleUpdateStatus(task.id, 'IN_PROGRESS')} className="p-2 text-white/40 hover:text-cyan-400 hover:bg-cyan-400/10 rounded-full transition-colors" title="Mover para Andamento"><Clock className="w-4 h-4" /></button>
+                                                    <button onClick={() => handleUpdateStatus(task.id, 'IN_PROGRESS')} className="p-2 text-white/40 hover:text-cyan-400 hover:bg-cyan-400/10 rounded-full " title="Mover para Andamento"><Clock className="w-4 h-4" /></button>
                                                 )}
                                                 {task.status !== 'DONE' && (
-                                                    <button onClick={() => handleUpdateStatus(task.id, 'DONE')} className="p-2 text-white/40 hover:text-green-400 hover:bg-green-400/10 rounded-full transition-colors" title="Mover para Concluído"><Check className="w-4 h-4" /></button>
+                                                    <button onClick={() => handleUpdateStatus(task.id, 'DONE')} className="p-2 text-white/40 hover:text-green-400 hover:bg-green-400/10 rounded-full " title="Mover para Concluído"><Check className="w-4 h-4" /></button>
                                                 )}
                                                 {task.status !== 'DONE' && (
                                                     <button onClick={() => {
                                                         setEditingTaskId(task.id);
                                                         setEditingTaskData({ title: task.title, description: task.description || '' });
-                                                    }} className="p-2 text-white/40 hover:text-blue-400 hover:bg-blue-400/10 rounded-full transition-colors" title="Editar Tarefa">
+                                                    }} className="p-2 text-white/40 hover:text-blue-400 hover:bg-blue-400/10 rounded-full " title="Editar Tarefa">
                                                         <Edit2 className="w-4 h-4" />
                                                     </button>
                                                 )}
                                                 <div className="w-px h-6 bg-white/10 mx-0.5 my-auto" />
-                                                <button onClick={() => { setTaskToDelete(task.id); setIsDeleteModalOpen(true); }} className="p-2 text-white/40 hover:text-red-400 hover:bg-red-400/10 rounded-full transition-colors" title="Excluir"><Trash2 className="w-4 h-4" /></button>
+                                                <button onClick={() => { setTaskToDelete(task.id); setIsDeleteModalOpen(true); }} className="p-2 text-white/40 hover:text-red-400 hover:bg-red-400/10 rounded-full " title="Excluir"><Trash2 className="w-4 h-4" /></button>
                                             </div>
                                         )}
 
@@ -530,7 +530,7 @@ export default function Dashboard() {
                             <h1 className="text-xl font-display font-medium text-white tracking-widest uppercase">Demandas em Aberto</h1>
                             <p className="text-xs text-white/40 tracking-wider">Gerencie a fila de projetos pendentes de clientes.</p>
                         </div>
-                        <button onClick={() => setIsDemandModalOpen(true)} className="bg-emerald-500/10 hover:bg-emerald-500/20 ring-1 ring-inset ring-emerald-500/30 text-emerald-400 font-bold tracking-widest uppercase text-[10px] px-6 py-3 rounded-full flex items-center gap-2 transition-all">
+                        <button onClick={() => setIsDemandModalOpen(true)} className="bg-emerald-500/10 hover:bg-emerald-500/20 ring-1 ring-inset ring-emerald-500/30 text-emerald-400 font-bold tracking-widest uppercase text-[10px] px-6 py-3 rounded-full flex items-center gap-2 ">
                             <Plus className="w-4 h-4" /> Nova Demanda
                         </button>
                     </div>
@@ -542,10 +542,10 @@ export default function Dashboard() {
                     ) : (
                         <div className="w-full max-w-7xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-0">
                             {demands.map(demand => (
-                                <div key={demand.id} className="bg-[#0A0A0A] border border-white/10 rounded-[2rem] p-6 flex flex-col relative group transition-all hover:border-white/20">
+                                <div key={demand.id} className="bg-[#0A0A0A] border border-white/10 rounded-[2rem] p-6 flex flex-col relative group  hover:border-white/20">
                                     <div className="flex justify-between items-start mb-4">
                                         <h3 className="text-lg font-bold text-white tracking-wider truncate uppercase">{demand.client_name}</h3>
-                                        <button onClick={() => handleDeleteDemand(demand.id)} className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500/50 hover:text-red-500 hover:bg-red-500/20 transition-colors shrink-0">
+                                        <button onClick={() => handleDeleteDemand(demand.id)} className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500/50 hover:text-red-500 hover:bg-red-500/20  shrink-0">
                                             <Trash2 className="w-4 h-4" />
                                         </button>
                                     </div>
@@ -570,7 +570,7 @@ export default function Dashboard() {
                                         </span>
 
                                         {demand.status !== 'completed' && (
-                                            <button onClick={() => { setAllocateData({ ...allocateData, demand_id: demand.id, videos_count: String(demand.total_videos - demand.assigned_videos) }); setIsAllocateModalOpen(true); }} className="text-[10px] font-bold uppercase tracking-widest text-black bg-cyan-400 hover:bg-cyan-300 px-5 py-2.5 rounded-full transition-all hover:scale-105">
+                                            <button onClick={() => { setAllocateData({ ...allocateData, demand_id: demand.id, videos_count: String(demand.total_videos - demand.assigned_videos) }); setIsAllocateModalOpen(true); }} className="text-[10px] font-bold uppercase tracking-widest text-black bg-cyan-400 hover:bg-cyan-300 px-5 py-2.5 rounded-full  hover:scale-105">
                                                 Pegar Demanda
                                             </button>
                                         )}
@@ -587,8 +587,8 @@ export default function Dashboard() {
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => setIsModalOpen(false)} />
 
-                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform transition-all flex flex-col mx-auto my-auto ring-1 ring-white/5 font-sans overflow-hidden">
-                        <button type="button" onClick={() => setIsModalOpen(false)} className="absolute top-5 right-5 z-20 text-white/30 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-3 rounded-full border border-transparent hover:border-white/10">
+                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform  flex flex-col mx-auto my-auto ring-1 ring-white/5 font-sans overflow-hidden">
+                        <button type="button" onClick={() => setIsModalOpen(false)} className="absolute top-5 right-5 z-20 text-white/30 hover:text-white  bg-white/5 hover:bg-white/10 p-3 rounded-full border border-transparent hover:border-white/10">
                             <X className="w-5 h-5" />
                         </button>
 
@@ -601,7 +601,7 @@ export default function Dashboard() {
 
                             <div className="w-full flex flex-col gap-[clamp(0.75rem,2vh,1rem)] shrink-0">
                                 <input required type="text" value={newTask.title} onChange={e => setNewTask({ ...newTask, title: e.target.value })}
-                                    className="w-full bg-white/[0.03] border border-white/10 rounded-[1.5rem] px-6 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-center text-base outline-none focus:outline-none focus:ring-0 focus:border-cyan-400/50 focus:bg-white/[0.05] transition-all font-medium placeholder:text-white/20 focus:placeholder-transparent placeholder:font-light caret-cyan-400"
+                                    className="w-full bg-white/[0.03] border border-white/10 rounded-[1.5rem] px-6 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-center text-base outline-none focus:outline-none focus:ring-0 focus:border-cyan-400/50 focus:bg-white/[0.05]  font-medium placeholder:text-white/20 focus:placeholder-transparent placeholder:font-light caret-cyan-400"
                                     style={{ WebkitTapHighlightColor: 'transparent' }}
                                     placeholder="Qual a missão?" autoFocus />
 
@@ -610,7 +610,7 @@ export default function Dashboard() {
                                     e.target.style.height = 'auto';
                                     e.target.style.height = `${e.target.scrollHeight}px`;
                                 }}
-                                    className="w-full bg-white/[0.03] border border-white/10 rounded-[1.5rem] px-6 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-center text-sm outline-none focus:outline-none focus:ring-0 focus:border-cyan-400/50 focus:bg-white/[0.05] transition-all font-light placeholder:text-white/20 focus:placeholder-transparent resize-none overflow-hidden caret-cyan-400 leading-relaxed block max-h-[120px] custom-scrollbar"
+                                    className="w-full bg-white/[0.03] border border-white/10 rounded-[1.5rem] px-6 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-center text-sm outline-none focus:outline-none focus:ring-0 focus:border-cyan-400/50 focus:bg-white/[0.05]  font-light placeholder:text-white/20 focus:placeholder-transparent resize-none overflow-hidden caret-cyan-400 leading-relaxed block max-h-[120px] custom-scrollbar"
                                     style={{ WebkitTapHighlightColor: 'transparent', minHeight: '52px' }}
                                     placeholder="Mais detalhes (Opcional)" />
                             </div>
@@ -627,7 +627,7 @@ export default function Dashboard() {
                                             key={opt.value}
                                             type="button"
                                             onClick={() => setNewTask({ ...newTask, urgency: opt.value })}
-                                            className={`px-6 py-2.5 rounded-[1.5rem] text-[10px] font-bold uppercase tracking-widest transition-all duration-300 ${newTask.urgency === opt.value ? opt.active : opt.baseClass}`}
+                                            className={`px-6 py-2.5 rounded-[1.5rem] text-[10px] font-bold uppercase tracking-widest   ${newTask.urgency === opt.value ? opt.active : opt.baseClass}`}
                                         >
                                             {opt.label}
                                         </button>
@@ -642,10 +642,10 @@ export default function Dashboard() {
                                         onClick={() => setNewTask({ ...newTask, assigned_to: '' })}
                                         className="flex flex-col items-center gap-2 cursor-pointer group"
                                     >
-                                        <div className={`w-[clamp(2.5rem,6.5vh,3.5rem)] h-[clamp(2.5rem,6.5vh,3.5rem)] rounded-full overflow-hidden flex items-center justify-center transition-all duration-300 ${!newTask.assigned_to ? 'ring-2 ring-cyan-400 ring-offset-4 ring-offset-[#080808] grayscale-0 opacity-100 scale-110' : 'ring-1 ring-white/10 grayscale opacity-40 group-hover:opacity-80 group-hover:grayscale-[20%] group-hover:scale-110'}`}>
+                                        <div className={`w-[clamp(2.5rem,6.5vh,3.5rem)] h-[clamp(2.5rem,6.5vh,3.5rem)] rounded-full overflow-hidden flex items-center justify-center   ${!newTask.assigned_to ? 'ring-2 ring-cyan-400 ring-offset-4 ring-offset-[#080808] grayscale-0 opacity-100 scale-110' : 'ring-1 ring-white/10 grayscale opacity-40 group-hover:opacity-80 group-hover:grayscale-[20%] group-hover:scale-110'}`}>
                                             <img src={`/${currentUser.username?.toLowerCase() || 'default'}.webp`} alt="Eu" className="w-full h-full object-cover object-center" onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${currentUser.username}&background=0D8ABC&color=fff`; }} />
                                         </div>
-                                        <span className={`text-[9px] font-bold uppercase tracking-widest transition-all duration-300 ${!newTask.assigned_to ? 'text-cyan-400 scale-110 translate-y-1' : 'text-white/40 group-hover:text-white/70 group-hover:translate-y-0.5 group-hover:scale-110'}`}>Você</span>
+                                        <span className={`text-[9px] font-bold uppercase tracking-widest   ${!newTask.assigned_to ? 'text-cyan-400 scale-110 translate-y-1' : 'text-white/40 group-hover:text-white/70 group-hover:translate-y-0.5 group-hover:scale-110'}`}>Você</span>
                                     </div>
 
                                     {users.filter(u => u.id !== currentUser.id).map(u => (
@@ -654,19 +654,19 @@ export default function Dashboard() {
                                             onClick={() => setNewTask({ ...newTask, assigned_to: u.id.toString() })}
                                             className="flex flex-col items-center gap-2 cursor-pointer group"
                                         >
-                                            <div className={`w-[clamp(2.5rem,6.5vh,3.5rem)] h-[clamp(2.5rem,6.5vh,3.5rem)] rounded-full overflow-hidden flex items-center justify-center transition-all duration-300 ${newTask.assigned_to === u.id.toString() ? 'ring-2 ring-cyan-400 ring-offset-4 ring-offset-[#080808] grayscale-0 opacity-100 scale-110' : 'ring-1 ring-white/10 grayscale opacity-40 group-hover:opacity-80 group-hover:grayscale-[20%] group-hover:scale-110'}`}>
+                                            <div className={`w-[clamp(2.5rem,6.5vh,3.5rem)] h-[clamp(2.5rem,6.5vh,3.5rem)] rounded-full overflow-hidden flex items-center justify-center   ${newTask.assigned_to === u.id.toString() ? 'ring-2 ring-cyan-400 ring-offset-4 ring-offset-[#080808] grayscale-0 opacity-100 scale-110' : 'ring-1 ring-white/10 grayscale opacity-40 group-hover:opacity-80 group-hover:grayscale-[20%] group-hover:scale-110'}`}>
                                                 <img src={`/${u.username.toLowerCase()}.webp`} alt={u.username} className="w-full h-full object-cover object-center" onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${u.username}&background=111&color=fff`; }} />
                                             </div>
-                                            <span className={`text-[9px] font-bold uppercase tracking-widest transition-all duration-300 ${newTask.assigned_to === u.id.toString() ? 'text-cyan-400 scale-110 translate-y-1' : 'text-white/40 group-hover:text-white/70 group-hover:translate-y-0.5 group-hover:scale-110'}`}>{u.username.split(' ')[0]}</span>
+                                            <span className={`text-[9px] font-bold uppercase tracking-widest   ${newTask.assigned_to === u.id.toString() ? 'text-cyan-400 scale-110 translate-y-1' : 'text-white/40 group-hover:text-white/70 group-hover:translate-y-0.5 group-hover:scale-110'}`}>{u.username.split(' ')[0]}</span>
                                         </div>
                                     ))}
                                 </div>
                             </div>
 
                             <div className="w-full pt-[clamp(0.2rem,1vh,1rem)] shrink-0">
-                                <button type="submit" className="w-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-widest text-[clamp(0.6rem,1.5vh,0.75rem)] py-[clamp(1rem,2.8vh,1.25rem)] rounded-[2rem] transition-all duration-300 flex items-center justify-center gap-3 group/submit">
+                                <button type="submit" className="w-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-widest text-[clamp(0.6rem,1.5vh,0.75rem)] py-[clamp(1rem,2.8vh,1.25rem)] rounded-[2rem]   flex items-center justify-center gap-3 group/submit">
                                     Adicionar Missão
-                                    <Plus className="w-4 h-4 group-hover/submit:scale-125 transition-transform" />
+                                    <Plus className="w-4 h-4 group-hover/submit:scale-125 " />
                                 </button>
                             </div>
                         </form>
@@ -679,8 +679,8 @@ export default function Dashboard() {
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => setEditingTaskId(null)} />
 
-                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform transition-all flex flex-col mx-auto my-auto ring-1 ring-white/5 font-sans overflow-hidden">
-                        <button type="button" onClick={() => setEditingTaskId(null)} className="absolute top-5 right-5 z-20 text-white/30 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-3 rounded-full border border-transparent hover:border-white/10">
+                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform  flex flex-col mx-auto my-auto ring-1 ring-white/5 font-sans overflow-hidden">
+                        <button type="button" onClick={() => setEditingTaskId(null)} className="absolute top-5 right-5 z-20 text-white/30 hover:text-white  bg-white/5 hover:bg-white/10 p-3 rounded-full border border-transparent hover:border-white/10">
                             <X className="w-5 h-5" />
                         </button>
 
@@ -693,7 +693,7 @@ export default function Dashboard() {
 
                             <div className="w-full flex flex-col gap-[clamp(0.75rem,2vh,1rem)] shrink-0">
                                 <input required type="text" value={editingTaskData.title} onChange={e => setEditingTaskData({ ...editingTaskData, title: e.target.value })}
-                                    className="w-full bg-white/[0.03] border border-white/10 rounded-[1.5rem] px-6 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-center text-base outline-none focus:outline-none focus:ring-0 focus:border-cyan-400/50 focus:bg-white/[0.05] transition-all font-medium placeholder:text-white/20 focus:placeholder-transparent placeholder:font-light caret-cyan-400"
+                                    className="w-full bg-white/[0.03] border border-white/10 rounded-[1.5rem] px-6 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-center text-base outline-none focus:outline-none focus:ring-0 focus:border-cyan-400/50 focus:bg-white/[0.05]  font-medium placeholder:text-white/20 focus:placeholder-transparent placeholder:font-light caret-cyan-400"
                                     style={{ WebkitTapHighlightColor: 'transparent' }}
                                     placeholder="Qual a missão?" autoFocus />
 
@@ -702,15 +702,15 @@ export default function Dashboard() {
                                     e.target.style.height = 'auto';
                                     e.target.style.height = `${e.target.scrollHeight}px`;
                                 }}
-                                    className="w-full bg-white/[0.03] border border-white/10 rounded-[1.5rem] px-6 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-center text-sm outline-none focus:outline-none focus:ring-0 focus:border-cyan-400/50 focus:bg-white/[0.05] transition-all font-light placeholder:text-white/20 focus:placeholder-transparent resize-none overflow-hidden caret-cyan-400 leading-relaxed block max-h-[120px] custom-scrollbar"
+                                    className="w-full bg-white/[0.03] border border-white/10 rounded-[1.5rem] px-6 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-center text-sm outline-none focus:outline-none focus:ring-0 focus:border-cyan-400/50 focus:bg-white/[0.05]  font-light placeholder:text-white/20 focus:placeholder-transparent resize-none overflow-hidden caret-cyan-400 leading-relaxed block max-h-[120px] custom-scrollbar"
                                     style={{ WebkitTapHighlightColor: 'transparent', minHeight: '52px' }}
                                     placeholder="Mais detalhes (Opcional)" />
                             </div>
 
                             <div className="w-full pt-[clamp(0.2rem,1vh,1rem)] shrink-0">
-                                <button type="submit" className="w-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-widest text-[clamp(0.6rem,1.5vh,0.75rem)] py-[clamp(1rem,2.8vh,1.25rem)] rounded-[2rem] transition-all duration-300 flex items-center justify-center gap-3 group/submit">
+                                <button type="submit" className="w-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-widest text-[clamp(0.6rem,1.5vh,0.75rem)] py-[clamp(1rem,2.8vh,1.25rem)] rounded-[2rem]   flex items-center justify-center gap-3 group/submit">
                                     Salvar Alterações
-                                    <Check className="w-4 h-4 group-hover/submit:scale-125 transition-transform" />
+                                    <Check className="w-4 h-4 group-hover/submit:scale-125 " />
                                 </button>
                             </div>
                         </form>
@@ -723,8 +723,8 @@ export default function Dashboard() {
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => setIsHistoryModalOpen(false)} />
 
-                    <div className="relative bg-[#060606]/40 ring-1 ring-inset ring-white/10 rounded-[2.5rem] w-full max-w-2xl transform transition-all flex flex-col mx-auto my-auto h-[80vh] overflow-hidden">
-                        <button type="button" onClick={() => setIsHistoryModalOpen(false)} className="absolute top-6 right-6 z-10 text-white/40 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2.5 rounded-full border border-transparent hover:border-white/10">
+                    <div className="relative bg-[#060606]/40 ring-1 ring-inset ring-white/10 rounded-[2.5rem] w-full max-w-2xl transform  flex flex-col mx-auto my-auto h-[80vh] overflow-hidden">
+                        <button type="button" onClick={() => setIsHistoryModalOpen(false)} className="absolute top-6 right-6 z-10 text-white/40 hover:text-white  bg-white/5 hover:bg-white/10 p-2.5 rounded-full border border-transparent hover:border-white/10">
                             <X className="w-4 h-4" />
                         </button>
 
@@ -765,7 +765,7 @@ export default function Dashboard() {
                                                     </div>
                                                     <button
                                                         onClick={() => { setTaskToDelete(task.id); setIsDeleteModalOpen(true); }}
-                                                        className="ml-2 w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500/50 hover:text-red-500 hover:bg-red-500/20 transition-all"
+                                                        className="ml-2 w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500/50 hover:text-red-500 hover:bg-red-500/20 "
                                                         title="Excluir Definitivamente"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
@@ -784,7 +784,7 @@ export default function Dashboard() {
             {isDeleteModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => setIsDeleteModalOpen(false)} />
-                    <div className="relative bg-[#060606]/40 ring-1 ring-inset ring-white/10 rounded-[2.5rem] w-full max-w-sm transform transition-all flex flex-col mx-auto my-auto overflow-hidden">
+                    <div className="relative bg-[#060606]/40 ring-1 ring-inset ring-white/10 rounded-[2.5rem] w-full max-w-sm transform  flex flex-col mx-auto my-auto overflow-hidden">
                         <div className="p-8 flex flex-col items-center text-center">
                             <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6 ring-1 ring-red-500/20">
                                 <Trash2 className="w-8 h-8 text-red-500" />
@@ -796,13 +796,13 @@ export default function Dashboard() {
                             <div className="flex gap-4 w-full">
                                 <button
                                     onClick={() => setIsDeleteModalOpen(false)}
-                                    className="flex-1 py-3.5 rounded-full text-xs font-bold uppercase tracking-widest text-white bg-white/5 hover:bg-white/10 transition-all"
+                                    className="flex-1 py-3.5 rounded-full text-xs font-bold uppercase tracking-widest text-white bg-white/5 hover:bg-white/10 "
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     onClick={handleDelete}
-                                    className="flex-1 py-3.5 rounded-full text-xs font-bold uppercase tracking-widest text-white bg-red-500 hover:bg-red-600 transition-all"
+                                    className="flex-1 py-3.5 rounded-full text-xs font-bold uppercase tracking-widest text-white bg-red-500 hover:bg-red-600 "
                                 >
                                     Excluir
                                 </button>
@@ -815,8 +815,8 @@ export default function Dashboard() {
             {isDemandModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => setIsDemandModalOpen(false)} />
-                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform transition-all flex flex-col ring-1 ring-white/5 p-8 sm:p-10">
-                        <button type="button" onClick={() => setIsDemandModalOpen(false)} className="absolute top-6 right-6 z-20 text-white/30 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2.5 rounded-full">
+                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform  flex flex-col ring-1 ring-white/5 p-8 sm:p-10">
+                        <button type="button" onClick={() => setIsDemandModalOpen(false)} className="absolute top-6 right-6 z-20 text-white/30 hover:text-white  bg-white/5 hover:bg-white/10 p-2.5 rounded-full">
                             <X className="w-5 h-5" />
                         </button>
 
@@ -826,15 +826,15 @@ export default function Dashboard() {
                         </div>
 
                         <form onSubmit={handleCreateDemand} className="flex flex-col gap-4">
-                            <input required type="text" value={newDemand.client_name} onChange={e => setNewDemand({ ...newDemand, client_name: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50 transition-all font-light" placeholder="Nome do Cliente" />
+                            <input required type="text" value={newDemand.client_name} onChange={e => setNewDemand({ ...newDemand, client_name: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50  font-light" placeholder="Nome do Cliente" />
 
                             <div className="flex flex-col sm:flex-row gap-4">
-                                <input required type="number" min="1" value={newDemand.total_videos} onChange={e => setNewDemand({ ...newDemand, total_videos: e.target.value })} className="w-full sm:w-1/3 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50 transition-all font-bold placeholder:font-light hide-number-spin" placeholder="Total de Vídeos" />
-                                <input required type="text" value={newDemand.duration_seconds} onChange={e => setNewDemand({ ...newDemand, duration_seconds: e.target.value })} className="w-full sm:w-2/3 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50 transition-all font-light" placeholder="Ex: 5 de 30s, 2 de 60s" />
+                                <input required type="number" min="1" value={newDemand.total_videos} onChange={e => setNewDemand({ ...newDemand, total_videos: e.target.value })} className="w-full sm:w-1/3 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50  font-bold placeholder:font-light hide-number-spin" placeholder="Total de Vídeos" />
+                                <input required type="text" value={newDemand.duration_seconds} onChange={e => setNewDemand({ ...newDemand, duration_seconds: e.target.value })} className="w-full sm:w-2/3 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50  font-light" placeholder="Ex: 5 de 30s, 2 de 60s" />
                             </div>
 
                             <label className="flex items-center gap-3 cursor-pointer mt-2 mb-1 px-2">
-                                <div className={`w-5 h-5 rounded flex items-center justify-center transition-colors border ${newDemand.has_material ? 'bg-emerald-500 border-emerald-500' : 'bg-transparent border-white/20'}`}>
+                                <div className={`w-5 h-5 rounded flex items-center justify-center  border ${newDemand.has_material ? 'bg-emerald-500 border-emerald-500' : 'bg-transparent border-white/20'}`}>
                                     {newDemand.has_material && <Check className="w-3.5 h-3.5 text-black" />}
                                 </div>
                                 <span className="text-xs font-bold text-white/70 tracking-widest uppercase">Possui material de apoio?</span>
@@ -842,12 +842,12 @@ export default function Dashboard() {
                             </label>
 
                             {newDemand.has_material && (
-                                <input required type="url" value={newDemand.material_link} onChange={e => setNewDemand({ ...newDemand, material_link: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50 transition-all font-light" placeholder="Link do Google Drive / Dropbox" />
+                                <input required type="url" value={newDemand.material_link} onChange={e => setNewDemand({ ...newDemand, material_link: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50  font-light" placeholder="Link do Google Drive / Dropbox" />
                             )}
 
-                            <textarea rows={2} value={newDemand.description} onChange={e => setNewDemand({ ...newDemand, description: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50 transition-all font-light resize-none mt-2" placeholder="Instruções ou Descrição Extra" />
+                            <textarea rows={2} value={newDemand.description} onChange={e => setNewDemand({ ...newDemand, description: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50  font-light resize-none mt-2" placeholder="Instruções ou Descrição Extra" />
 
-                            <button type="submit" className="w-full mt-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400 hover:text-emerald-300 font-bold uppercase tracking-widest text-xs py-4 rounded-full transition-all flex justify-center items-center">
+                            <button type="submit" className="w-full mt-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400 hover:text-emerald-300 font-bold uppercase tracking-widest text-xs py-4 rounded-full  flex justify-center items-center">
                                 Registrar Demanda
                             </button>
                         </form>
@@ -859,8 +859,8 @@ export default function Dashboard() {
             {isAllocateModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => setIsAllocateModalOpen(false)} />
-                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform transition-all flex flex-col ring-1 ring-white/5 p-8 sm:p-10">
-                        <button type="button" onClick={() => setIsAllocateModalOpen(false)} className="absolute top-6 right-6 z-20 text-white/30 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2.5 rounded-full">
+                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform  flex flex-col ring-1 ring-white/5 p-8 sm:p-10">
+                        <button type="button" onClick={() => setIsAllocateModalOpen(false)} className="absolute top-6 right-6 z-20 text-white/30 hover:text-white  bg-white/5 hover:bg-white/10 p-2.5 rounded-full">
                             <X className="w-5 h-5" />
                         </button>
 
@@ -871,7 +871,7 @@ export default function Dashboard() {
 
                         <form onSubmit={handleAllocateDemand} className="flex flex-col gap-4">
                             <div className="flex gap-4 w-full">
-                                <div className="flex-1 dropdown-container relative bg-white/5 border border-white/10 rounded-2xl px-5 py-1 flex items-center cursor-pointer hover:bg-white/10 hover:border-cyan-400/50 transition-all">
+                                <div className="flex-1 dropdown-container relative bg-white/5 border border-white/10 rounded-2xl px-5 py-1 flex items-center cursor-pointer hover:bg-white/10 hover:border-cyan-400/50 ">
                                     <select required value={allocateData.assigned_to} onChange={e => setAllocateData({ ...allocateData, assigned_to: e.target.value })} className="w-full bg-transparent text-white outline-none cursor-pointer appearance-none text-center font-bold tracking-widest text-sm uppercase">
                                         <option value="" disabled className="text-black bg-white">Membro (Equipe)</option>
                                         <option value={currentUser.id} className="text-black bg-white">VOCÊ</option>
@@ -881,19 +881,19 @@ export default function Dashboard() {
                                     </select>
                                 </div>
                                 <div className="w-1/3">
-                                    <input required type="number" min="1" max={allocateData.videos_count} value={allocateData.videos_count} onChange={e => setAllocateData({ ...allocateData, videos_count: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 transition-all font-bold placeholder:text-white/20" placeholder="Qtd. Vds" />
+                                    <input required type="number" min="1" max={allocateData.videos_count} value={allocateData.videos_count} onChange={e => setAllocateData({ ...allocateData, videos_count: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50  font-bold placeholder:text-white/20" placeholder="Qtd. Vds" />
                                 </div>
                             </div>
 
                             <div className="flex bg-white/5 rounded-full overflow-hidden p-1 border border-white/10 w-full mt-2">
-                                <button type="button" onClick={() => setAllocateData({ ...allocateData, urgency: 'LOW' })} className={`flex-1 py-3 text-[9px] font-bold uppercase tracking-widest rounded-full transition-all ${allocateData.urgency === 'LOW' ? 'bg-emerald-400 text-black' : 'text-emerald-400 hover:bg-white/10'}`}>Baixa Urgência</button>
-                                <button type="button" onClick={() => setAllocateData({ ...allocateData, urgency: 'MEDIUM' })} className={`flex-1 py-3 text-[9px] font-bold uppercase tracking-widest rounded-full transition-all ${allocateData.urgency === 'MEDIUM' ? 'bg-yellow-400 text-black' : 'text-yellow-400 hover:bg-white/10'}`}>Normal</button>
-                                <button type="button" onClick={() => setAllocateData({ ...allocateData, urgency: 'HIGH' })} className={`flex-1 py-3 text-[9px] font-bold uppercase tracking-widest rounded-full transition-all ${allocateData.urgency === 'HIGH' ? 'bg-red-500 text-black' : 'text-red-500 hover:bg-white/10'}`}>Urgente</button>
+                                <button type="button" onClick={() => setAllocateData({ ...allocateData, urgency: 'LOW' })} className={`flex-1 py-3 text-[9px] font-bold uppercase tracking-widest rounded-full  ${allocateData.urgency === 'LOW' ? 'bg-emerald-400 text-black' : 'text-emerald-400 hover:bg-white/10'}`}>Baixa Urgência</button>
+                                <button type="button" onClick={() => setAllocateData({ ...allocateData, urgency: 'MEDIUM' })} className={`flex-1 py-3 text-[9px] font-bold uppercase tracking-widest rounded-full  ${allocateData.urgency === 'MEDIUM' ? 'bg-yellow-400 text-black' : 'text-yellow-400 hover:bg-white/10'}`}>Normal</button>
+                                <button type="button" onClick={() => setAllocateData({ ...allocateData, urgency: 'HIGH' })} className={`flex-1 py-3 text-[9px] font-bold uppercase tracking-widest rounded-full  ${allocateData.urgency === 'HIGH' ? 'bg-red-500 text-black' : 'text-red-500 hover:bg-white/10'}`}>Urgente</button>
                             </div>
 
-                            <textarea rows={2} value={allocateData.notes} onChange={e => setAllocateData({ ...allocateData, notes: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-cyan-400/50 transition-all font-light resize-none mt-2" placeholder="Notas/Anotações Rápidas (Opcional)" />
+                            <textarea rows={2} value={allocateData.notes} onChange={e => setAllocateData({ ...allocateData, notes: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-cyan-400/50  font-light resize-none mt-2" placeholder="Notas/Anotações Rápidas (Opcional)" />
 
-                            <button type="submit" className="w-full mt-4 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-widest text-xs py-4 rounded-full transition-all flex justify-center items-center">
+                            <button type="submit" className="w-full mt-4 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-widest text-xs py-4 rounded-full  flex justify-center items-center">
                                 Confirmar e Criar Tarefa
                             </button>
                         </form>
