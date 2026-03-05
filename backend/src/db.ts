@@ -7,109 +7,51 @@ import dns from 'dns';
 dns.setDefaultResultOrder('ipv4first');
 dotenv.config();
 
-// Configuração Supavisor (Pooler IPv4)
+/**
+ * CONEXÃO DIRETA (Sem passar pelo Pooler do Supabase)
+ * Isso evita o erro "Tenant not found"
+ */
 const pool = new Pool({
-    user: 'postgres.tctzbsjmuariwylrfbuy',
-    host: 'aws-0-sa-east-1.pooler.supabase.com',
+    user: 'postgres',
+    host: 'db.tctzbsjmuariwylrfbuy.supabase.co',
     database: 'postgres',
     password: 'Gameroficial2*',
-    port: 5432, // Session Mode (mais estável)
+    port: 5432,
     ssl: { rejectUnauthorized: false },
-    max: 10,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 15000,
+    connectionTimeoutMillis: 20000,
 });
 
 export async function initDb() {
-    const queries = [
-        `CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
-            username TEXT UNIQUE,
-            password TEXT
-        )`,
-        `CREATE TABLE IF NOT EXISTS tasks (
-            id SERIAL PRIMARY KEY,
-            title TEXT NOT NULL,
-            description TEXT,
-            urgency TEXT, 
-            status TEXT, 
-            assigned_to INTEGER,
-            created_by INTEGER,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(assigned_to) REFERENCES users(id),
-            FOREIGN KEY(created_by) REFERENCES users(id)
-        )`,
-        `CREATE TABLE IF NOT EXISTS transactions (
-            id SERIAL PRIMARY KEY,
-            type TEXT NOT NULL,
-            amount REAL NOT NULL,
-            description TEXT,
-            date TIMESTAMP NOT NULL,
-            created_by INTEGER,
-            client_name TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(created_by) REFERENCES users(id)
-        )`,
-        `CREATE TABLE IF NOT EXISTS clients (
-            id SERIAL PRIMARY KEY,
-            username TEXT UNIQUE,
-            password TEXT,
-            avatar_url TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )`,
-        `CREATE TABLE IF NOT EXISTS client_content (
-            id SERIAL PRIMARY KEY,
-            client_id INTEGER,
-            title TEXT,
-            category TEXT,
-            product TEXT,
-            week_date TEXT,
-            media_url TEXT,
-            media_type TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(client_id) REFERENCES clients(id)
-        )`,
-        `CREATE TABLE IF NOT EXISTS demands (
-            id SERIAL PRIMARY KEY,
-            client_name TEXT NOT NULL,
-            total_videos INTEGER NOT NULL,
-            duration_seconds TEXT,
-            has_material INTEGER DEFAULT 0,
-            material_link TEXT,
-            description TEXT,
-            assigned_videos INTEGER DEFAULT 0,
-            status TEXT DEFAULT 'pending',
-            created_by INTEGER,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(created_by) REFERENCES users(id)
-        )`
-    ];
-
-    for (const q of queries) {
-        try {
-            await pool.query(q);
-        } catch (e: any) {
-            console.error(`Erro ao criar tabela: ${e.message}`);
-        }
-    }
-
+    console.log("--- [DEBUG] INICIANDO SETUP DIRETO SUPABASE ---");
     try {
-        console.log("Iniciando verificação de usuários no Supabase...");
+        // 1. Verificar conexão básica
+        const now = await pool.query('SELECT NOW()');
+        console.log("--- [DEBUG] CONEXÃO ESTABELECIDA EM: " + now.rows[0].now);
 
-        // Garante que o usuário Brenno e admin existam com a senha admin123
-        await pool.query('DELETE FROM users WHERE username IN ($1, $2, $3, $4)', ['Turbalada', 'Floripa', 'Brenno', 'admin']);
+        // 2. Garantir Tabelas
+        await pool.query(`CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT UNIQUE, password TEXT)`);
+        await pool.query(`CREATE TABLE IF NOT EXISTS tasks (id SERIAL PRIMARY KEY, title TEXT, description TEXT, urgency TEXT, status TEXT, assigned_to INTEGER, created_by INTEGER, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+        await pool.query(`CREATE TABLE IF NOT EXISTS transactions (id SERIAL PRIMARY KEY, type TEXT, amount REAL, description TEXT, date TIMESTAMP, created_by INTEGER, client_name TEXT)`);
+        await pool.query(`CREATE TABLE IF NOT EXISTS clients (id SERIAL PRIMARY KEY, username TEXT UNIQUE, password TEXT, avatar_url TEXT)`);
+        await pool.query(`CREATE TABLE IF NOT EXISTS client_content (id SERIAL PRIMARY KEY, client_id INTEGER, title TEXT, category TEXT, product TEXT, media_url TEXT, media_type TEXT)`);
+        await pool.query(`CREATE TABLE IF NOT EXISTS demands (id SERIAL PRIMARY KEY, client_name TEXT, total_videos INTEGER, status TEXT DEFAULT 'pending', created_by INTEGER)`);
 
+        console.log("--- [DEBUG] TABELAS PRONTAS.");
+
+        // 3. SEED FORÇADO (Limpa e Re-cria o Brenno)
         const hash = bcrypt.hashSync('admin123', 10);
-        await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', ['Turbalada', hash]);
-        await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', ['Floripa', hash]);
+        await pool.query('DELETE FROM users WHERE username = $1', ['Brenno']);
+        await pool.query('DELETE FROM users WHERE username = $1', ['admin']);
+
         await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', ['Brenno', hash]);
         await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', ['admin', hash]);
 
-        const countRes = await pool.query('SELECT COUNT(*) FROM users');
-        console.log(`SISTEMA: Usuários prontos. Total: ${countRes.rows[0].count}`);
+        console.log("--- [DEBUG] USUÁRIOS 'Brenno' E 'admin' CRIADOS NO SUPABASE.");
+
     } catch (err: any) {
-        console.error("Erro no Seed do Supabase:", err.message);
+        console.error("!!! [ERRO-DB] !!!");
+        console.error("MENSAGEM: ", err.message);
+        console.error("CÓDIGO: ", err.code);
     }
 }
 
