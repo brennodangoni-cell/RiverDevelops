@@ -7,29 +7,7 @@ export interface ProductAnalysis {
     suggestedSceneriesLifestyle: string[];
     colors?: string[]; // Unique colors seen in images
     sellingPoints?: string[]; // Top 3 marketing hooks/advantages
-    dominantColors?: string[]; // Natural language colors using Material Metaphors (no hex)
-    productDNA?: ProductDNA;
-    branding?: {
-        text?: string;
-        position?: string;
-        orientation?: string;
-    };
-    rawThinking?: string; // Chain of thought captured
-}
-
-export interface ProductDNA {
-    category: string;
-    quantity: string;
-    upperMaterial: string;
-    soleMaterial: string;
-    soleShape: string;
-    logoPosition: string;
-    logoType: string;
-    textureScale: string;
-    rigidity: {
-        upper: string;
-        sole: string;
-    };
+    dominantHexColors?: string[]; // Precise hex codes extracted from photos
 }
 
 export interface SceneryAnalysis {
@@ -44,9 +22,9 @@ export interface SceneryAnalysis {
 // =======================================================================
 // MODEL CONFIGURATION WITH FALLBACK CHAIN (Fix #4)
 // =======================================================================
-const BRAIN_MODELS = ["gemini-2.0-pro-exp-02-05", "gemini-2.0-flash", "gemini-1.5-pro"];
-const ANALYSIS_MODELS = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.0-pro-exp-02-05"];
-const IMAGE_MODELS = ["gemini-2.0-flash", "gemini-1.5-flash-8b"];
+const BRAIN_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.1-pro-preview"];
+const ANALYSIS_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro"];
+const IMAGE_MODELS = ["gemini-3.1-flash-image-preview", "gemini-3-pro-image-preview"];
 
 // =======================================================================
 // ERROR TYPES (Fix #2 - Specific error handling)
@@ -110,117 +88,6 @@ function parseBase64(base64: string): { data: string; mimeType: string } {
     return { data: base64, mimeType: 'image/jpeg' };
 }
 
-function safeParseJson(text: string, fallback: any) {
-    try {
-        return JSON.parse(text || "");
-    } catch {
-        try {
-            const cleaned = (text || "")
-                .replace(/```json/gi, "")
-                .replace(/```/g, "")
-                .trim();
-            const start = Math.min(
-                ...["{", "["]
-                    .map((c) => cleaned.indexOf(c))
-                    .filter((i) => i >= 0)
-            );
-            const endCurly = cleaned.lastIndexOf("}");
-            const endSquare = cleaned.lastIndexOf("]");
-            const end = Math.max(endCurly, endSquare);
-            if (start >= 0 && end > start) {
-                return JSON.parse(cleaned.slice(start, end + 1));
-            }
-        } catch {
-            // fall through
-        }
-    }
-    return fallback;
-}
-
-function normalizeStringList(value: any, fallback: string[] = []): string[] {
-    if (!Array.isArray(value)) return fallback;
-    const cleaned = value
-        .map((v) => String(v || "").trim())
-        .filter(Boolean);
-    return cleaned.length ? cleaned : fallback;
-}
-
-function normalizeProductAnalysis(value: any): ProductAnalysis {
-    const fallbackProductOnly = [
-        "Estúdio premium com fundo infinito e luz suave lateral",
-        "Superfície técnica minimalista com sombras controladas",
-        "Set clean comercial com destaque absoluto para materiais",
-        "Composição editorial de produto com contraste elegante"
-    ];
-    const fallbackLifestyle = [
-        "Ambiente urbano sofisticado com uso natural do produto",
-        "Interior contemporâneo com luz de janela cinematográfica",
-        "Cena externa ao entardecer com interação realista",
-        "Lifestyle premium com foco no benefício em ação"
-    ];
-    const normalized: ProductAnalysis = {
-        description: String(value?.description || ""),
-        productType: String(value?.productType || "Produto"),
-        suggestedSceneriesProductOnly: normalizeStringList(value?.suggestedSceneriesProductOnly, fallbackProductOnly).slice(0, 4),
-        suggestedSceneriesLifestyle: normalizeStringList(value?.suggestedSceneriesLifestyle, fallbackLifestyle).slice(0, 4),
-        colors: normalizeStringList(value?.colors).slice(0, 12),
-        sellingPoints: normalizeStringList(value?.sellingPoints).slice(0, 6),
-        dominantColors: normalizeStringList(value?.dominantColors).slice(0, 6),
-        rawThinking: String(value?.thinking || "")
-    };
-
-    if (value?.productDNA && typeof value.productDNA === "object") {
-        normalized.productDNA = {
-            category: String(value.productDNA.category || ""),
-            quantity: String(value.productDNA.quantity || ""),
-            upperMaterial: String(value.productDNA.upperMaterial || ""),
-            soleMaterial: String(value.productDNA.soleMaterial || ""),
-            soleShape: String(value.productDNA.soleShape || ""),
-            logoPosition: String(value.productDNA.logoPosition || ""),
-            logoType: String(value.productDNA.logoType || ""),
-            textureScale: String(value.productDNA.textureScale || ""),
-            rigidity: {
-                upper: String(value.productDNA.rigidity?.upper || ""),
-                sole: String(value.productDNA.rigidity?.sole || "")
-            }
-        };
-    }
-
-    if (value?.branding && typeof value.branding === "object") {
-        normalized.branding = {
-            text: String(value.branding.text || ""),
-            position: String(value.branding.position || ""),
-            orientation: String(value.branding.orientation || "")
-        };
-    }
-
-    return normalized;
-}
-
-async function ensureModelCompatibleImage(base64: string): Promise<string> {
-    const { mimeType } = parseBase64(base64);
-    if (mimeType !== "image/webp") return base64;
-
-    return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => {
-            try {
-                const canvas = document.createElement("canvas");
-                canvas.width = img.width;
-                canvas.height = img.height;
-                const ctx = canvas.getContext("2d");
-                if (!ctx) return resolve(base64);
-                ctx.drawImage(img, 0, 0);
-                resolve(canvas.toDataURL("image/jpeg", 0.94));
-            } catch {
-                resolve(base64);
-            }
-        };
-        img.onerror = () => resolve(base64);
-        img.src = base64;
-    });
-}
-
 // =======================================================================
 // IMAGE COMPRESSION (Fix #6)
 // =======================================================================
@@ -228,12 +95,6 @@ function compressImage(base64: string, maxSize = 1024): Promise<string> {
     return new Promise((resolve) => {
         const img = new Image();
         img.onload = () => {
-            // Keep originals when already lightweight to preserve logo/texture micro-detail.
-            const estimatedBytes = Math.floor((base64.length * 3) / 4);
-            if (estimatedBytes < 1_000_000 && img.width <= 1600 && img.height <= 1600) {
-                resolve(base64);
-                return;
-            }
             const canvas = document.createElement('canvas');
             let { width, height } = img;
 
@@ -284,12 +145,6 @@ async function generateWithFallback(
                 if (classified.type === 'SAFETY_FILTER') throw classified;
                 if (!classified.retryable) throw classified;
 
-                if (classified.type === 'RATE_LIMIT') {
-                    // Wait a little and move to the next model to reduce repeated throttling.
-                    await new Promise(r => setTimeout(r, 3500));
-                    break;
-                }
-
                 // Wait before retry (exponential backoff)
                 if (attempt < maxRetries) {
                     await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
@@ -304,21 +159,18 @@ async function generateWithFallback(
 // =======================================================================
 // 1. ANALYZE PRODUCT
 // =======================================================================
-export async function analyzeProduct(imagesBase64: string[], marketingContext?: string, engine: 'ultra' | 'speed' = 'ultra'): Promise<ProductAnalysis> {
+export async function analyzeProduct(imagesBase64: string[], marketingContext?: string): Promise<ProductAnalysis> {
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
 
     const ai = new GoogleGenAI({ apiKey });
 
-    const preparedImages = await Promise.all(imagesBase64.map(ensureModelCompatibleImage));
-    const parts = preparedImages.map(b64 => {
+    const parts = imagesBase64.map(b64 => {
         const { data, mimeType } = parseBase64(b64);
         return { inlineData: { data, mimeType } };
     });
 
-    const models = engine === 'speed' ? ["gemini-2.5-flash"] : ANALYSIS_MODELS;
-
-    const response = await generateWithFallback(ai, models, (model) => ({
+    const response = await generateWithFallback(ai, ANALYSIS_MODELS, (model) => ({
         model,
         contents: {
             parts: [
@@ -337,11 +189,11 @@ Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. '
 
 1. "description" (ENGLISH, ultra-detailed):
     - Exact physical traits: shape, silhouette, weight distribution
-    - MICRO-PHYSICS: Describe EXACTLY how the materials react to pressure in millimeters (e.g., "visibly compresses by 1.5mm and rebounds in 0.2s"). MANDATORY.
+    - MICRO-PHYSICS: How the materials react to touch and pressure (e.g., "memory foam compression", "rigid plastic", "liquid viscosity")
     - Textures & Finishes: (matte, glossy, brushed, rubberized, porous)
-    - Colors: Verbal description + precise material metaphors ONLY (e.g., "matte emerald green"). DO NOT use Hex codes (#).
+    - Colors: Verbal description + precise HEX codes (e.g., "Emerald Green #50C878")
     - QUANTITY: Exactly how many items (pair/set/single)?
-    - Branding & Logos: Exact placement, spelling, and physical nature (3D, printed, embossed).
+    - Branding: Exact placement and legibility of all logos/text.
 
 2. "productType" (PORTUGUESE): Short category name
 
@@ -349,31 +201,11 @@ Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. '
 
 4. "suggestedSceneriesLifestyle" (PORTUGUESE): 4 REAL COMMERCIAL VIDEO SCENARIOS with people. Focus on physical interaction with the product.
 
-5. "colors" (ENGLISH): List of all unique colors/variations detected with material metaphors.
+5. "colors" (ENGLISH): List of all unique colors/variations detected with HEX.
 
 6. "sellingPoints" (PORTUGUESE): TOP 3 technical/visual advantages.
 
-7. "dominantColors": List the 3 most important colors using material metaphors. DO NOT output hex codes.
-
-8. "productDNA" (ENGLISH object):
-{
-  "category": string,
-  "quantity": string,
-  "upperMaterial": string,
-  "soleMaterial": string,
-  "soleShape": string,
-  "logoPosition": string,
-  "logoType": string,
-  "textureScale": string,
-  "rigidity": { "upper": string, "sole": string }
-}
-
-9. "branding" (ENGLISH object):
-{
-  "text": string,
-  "position": string,
-  "orientation": string
-}` }
+7. "dominantHexColors": List the 3 most important HEX CODES detected.` }
             ]
         },
         config: {
@@ -381,7 +213,6 @@ Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. '
             responseSchema: {
                 type: Type.OBJECT,
                 properties: {
-                    thinking: { type: Type.STRING, description: "Your internal reasoning. Analyze the physics, materials, lighting interaction, and precise logo placement BEFORE generating the rest of the fields. Be highly analytical." },
                     description: { type: Type.STRING, description: "Ultra-precise English description including shape, colors (hex), materials, textures, branding, text, logos, QUANTITY (pair/single/set), display convention, and all unique visual features." },
                     productType: { type: Type.STRING, description: "A short category name in Portuguese (e.g., 'Tênis', 'Garrafa de Skincare', 'Eletrônico')." },
                     suggestedSceneriesProductOnly: {
@@ -404,64 +235,38 @@ Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. '
                         items: { type: Type.STRING },
                         description: "Top 3 marketing hooks/technical advantages in Portuguese."
                     },
-                    dominantColors: {
+                    dominantHexColors: {
                         type: Type.ARRAY,
                         items: { type: Type.STRING },
-                        description: "List of precise material colors extracted (e.g. ['matte pure white'])."
-                    },
-                    productDNA: {
-                        type: Type.OBJECT,
-                        properties: {
-                            category: { type: Type.STRING },
-                            quantity: { type: Type.STRING },
-                            upperMaterial: { type: Type.STRING },
-                            soleMaterial: { type: Type.STRING },
-                            soleShape: { type: Type.STRING },
-                            logoPosition: { type: Type.STRING },
-                            logoType: { type: Type.STRING },
-                            textureScale: { type: Type.STRING },
-                            rigidity: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    upper: { type: Type.STRING },
-                                    sole: { type: Type.STRING }
-                                }
-                            }
-                        }
-                    },
-                    branding: {
-                        type: Type.OBJECT,
-                        properties: {
-                            text: { type: Type.STRING },
-                            position: { type: Type.STRING },
-                            orientation: { type: Type.STRING }
-                        }
+                        description: "List of precise hex codes extracted (e.g. ['#FFFFFF'])."
                     }
                 },
-                required: ["thinking", "description", "productType", "suggestedSceneriesProductOnly", "suggestedSceneriesLifestyle", "colors", "sellingPoints", "dominantColors"]
+                required: ["description", "productType", "suggestedSceneriesProductOnly", "suggestedSceneriesLifestyle", "colors", "sellingPoints", "dominantHexColors"]
             }
         }
     }));
 
-    return normalizeProductAnalysis(safeParseJson(response.text || "", {}));
+    try {
+        return JSON.parse(response.text || "{}");
+    } catch (e) {
+        console.error("Failed to parse analysis", e);
+        return { description: "", productType: "Produto", suggestedSceneriesProductOnly: [], suggestedSceneriesLifestyle: [] };
+    }
 }
 
 // =======================================================================
 // 1B. ANALYZE SCENERY (Scene Mode)
 // =======================================================================
-export async function analyzeScenery(imagesBase64: string[], marketingContext?: string, engine: 'ultra' | 'speed' = 'ultra'): Promise<SceneryAnalysis> {
+export async function analyzeScenery(imagesBase64: string[], marketingContext?: string): Promise<SceneryAnalysis> {
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
     const ai = new GoogleGenAI({ apiKey });
-    const preparedImages = await Promise.all(imagesBase64.map(ensureModelCompatibleImage));
-    const parts = preparedImages.map(b64 => {
+    const parts = imagesBase64.map(b64 => {
         const { data, mimeType } = parseBase64(b64);
         return { inlineData: { data, mimeType } };
     });
 
-    const models = engine === 'speed' ? ["gemini-2.5-flash"] : ANALYSIS_MODELS;
-
-    const response = await generateWithFallback(ai, models, (model) => ({
+    const response = await generateWithFallback(ai, ANALYSIS_MODELS, (model) => ({
         model,
         contents: {
             parts: [
@@ -504,49 +309,162 @@ RETURN a JSON:
         }
     }));
 
-    try { return safeParseJson(response.text || "", { description: "", locationType: "Local", mood: "", suggestedActions: [], suggestedCameraAngles: [], suggestedAudio: [] }); }
+    try { return JSON.parse(response.text || "{}"); }
     catch { return { description: "", locationType: "Local", mood: "", suggestedActions: [], suggestedCameraAngles: [], suggestedAudio: [] }; }
 }
 
 // =======================================================================
 // 2. GENERATE PROMPTS
 // =======================================================================
-export async function generateSceneConcepts(
+export async function generatePrompts(
     productDescription: string,
     options: any,
-    engine: 'ultra' | 'speed' = 'ultra'
+    previousPrompts?: string[],
+    detectedColors?: string[],
+    sceneDraft?: string // Specific scene draft to polish
 ): Promise<string[]> {
+    // Define DNA injection
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
 
     const ai = new GoogleGenAI({ apiKey });
 
-    const outputCount = 3;
-    const userIntent = options.supportingDescription || '';
+    // Initialize DNA injection
+    const hexInfo = detectedColors?.length ? `\nADOPT THESE EXACT HEX COLORS FOR PRODUCT MATERIALS: ${detectedColors.join(', ')}` : '';
+    const visualAnchor = previousPrompts && previousPrompts.length > 0
+        ? `\nVISUAL ANCHOR (FOR CONTINUITY): Match the lighting, camera kit, and atmosphere of the previous blueprint: "${previousPrompts[previousPrompts.length - 1]}"`
+        : '';
+
+    let taskDescription = `
+    [PRODUCT IDENTITY & DNA]
+    ${productDescription}
+    ${hexInfo}
+    ${visualAnchor}
+
+    ${sceneDraft ? `
+    ACT AS AN ELITE AI VIDEO DIRECTOR & SORA 2 NARRATIVE ARCHITECT.
+    
+    [USER SCENE DRAFT]
+    "${sceneDraft}"
+    
+    TASK: TRANSFORM THIS DRAFT INTO A MASTER SORA 2 BLUEPRINT (999,999% IMPROVEMENT).
+    - GOAL: Extreme visual consistency for the product, but ABSOLUTE CREATIVE FREEDOM for the environment.
+    - SURREALISM MANDATE: If the user draft contains impossible or fantastical elements (e.g., walking on clouds, flying, portals), DO NOT RATIONALIZE. Do not turn clouds into "white sand". Provide the LITERAL surrealist interpretation that Sora 2 excels at.
+    - STRATEGY: Use the 5-LAYER CINEMATIC PROTOCOL:
+      0. MARKETING ALIGNMENT & EMOTION: Evoke the EMOTION described. If the user says "stepping on clouds", describe the ethereal lightness and the model's divine comfort.
+      1. TECHNICAL SETTING: Specify lens (e.g., 35mm), movement (e.g., slow-motion tracking), and framing.
+      2. PHYSICS & WEIGHT: The PRODUCT must be structurally rigid and feel solid. The WORLD can ignore gravity, time, and logic if requested.
+      3. PRODUCT FIDELITY: Meticulously describe materials (matte rubber, brushed aluminum), logo placement, and light reflection.
+      4. ATMOSPHERIC GRADE & VFX: Ethereal lighting, volumetric mist, glow effects, or dream-state color grading.
+    
+    - FORMAT: Natural, ultra-technical prose. No technical labels. Length: ~150-250 words.
+    - Generate ONLY THIS ONE MASTER SCENE.
+    ` : (detectedColors && detectedColors.length > 1 ? `
+    DETECTION: We found ${detectedColors.length} unique color variants.
+    GOAL: Generate a 3-scene sequence showcasing the VARIETY while maintaining a STRIKING stylistic consistency.
+    Scene 1 — Reveal: Highlighting one version with a dramatic orbit shot.
+    Scene 2 — Interaction: Another variant being used/worn in close-up.
+    Scene 3 — Details: Macro shots of multiple variants in a premium layout.
+    ` : `
+    GOAL: Create 3 cinematic video scenes (10 seconds each) for a high-end commercial:
+    Scene 1 — THE HOOK: Wide establishing shot. Reveal the product in a majestic environment.
+    Scene 2 — THE STORY: Medium tracking shot. Show the core benefit and product DNA in action.
+    Scene 3 — THE DETAILS: Extreme macro. Focus on the sharpest textures and perfectly legible branding.
+    `)}
+    `;
+
     const isScriptMode = options.mode === 'script' && !!options.script;
 
-    const promptContext = `You are a creative art director.
-Generate ${outputCount} short scene concepts (1-2 sentences each). 
-These are NOT video prompts, but concepts for a static image generation.
+    if (sceneDraft) {
+        // Task description for "Magic" expansion is already set above
+    } else if (isScriptMode) {
+        taskDescription = `
+    ACT AS A STRICT SCRIPT-TO-VISUAL ADAPTER.
+    
+    RAW SCRIPT:
+    """
+    ${options.script}
+    """
+    
+    TASK: BREAK DOWN THE SCRIPT INTO A COMPLETE STORYBOARD.
+    - Map every action and emotional beat to a professional Sora 2 blueprint.
+    - FORCE visual continuity across all scenes (same lighting, same color grade, same product DNA).
+    - Describe the specific benefits mentioned through visual narrative.
+        `;
+    } else if (previousPrompts && previousPrompts.length > 0) {
+        taskDescription = `
+    SCENE EXPANSION PROTOCOL: 
+    Continue the commercial. CURRENT SEQUENCE:
+    ${previousPrompts.map((p, i) => `Scene ${i + 1}: ${p}`).join('\n')}
 
-PROJECT SETTINGS
-- Mode: ${options.mode === 'lifestyle' ? 'Lifestyle' : 'Product only'}
-- Environment: ${options.environment || 'Studio'}
-- Lighting: ${options.timeOfDay || 'Controlled'}
-- Style: ${options.style || 'Commercial'}
-${options.mode === 'lifestyle' ? `- Talent: ${options.gender}, ${options.skinTone} skin, ${options.hairColor} hair` : ''}
+    TASK: Generate 3 NEW scenes that perfectly match the previous aesthetic.
+    Scene A — Reaction or alternative angle.
+    Scene B — Dynamic stylized transition.
+    Scene C — Final majestic outro with a focus on brand identity.
+        `;
+    }
 
-PRODUCT:
+    const promptStyle = `
+ACT AS AN ELITE AI VIDEO DIRECTOR & SORA 2 NARRATIVE ARCHITECT.
+
+SORA 2 MASTER SKELETON (HIERARCHICAL PRIORITY):
+1. KINETIC FOUNDATION (Movement): Define the camera kit and action immediately. (e.g., 35mm Anamorphic, Fluid Orbit shot).
+2. SUBJECT VISUAL ANATOMY: Describe the product as a rigid, physically stable entity. Focus on textures and micro-details.
+3. MICRO-PHYSICS: Describe how materials interact (e.g., "soft compression of the sole under the model's weight").
+4. VOLUMETRIC LIGHTING: Use technical light descriptions (Rim light, God rays, Bokeh).
+5. COLORS: Reinforce colors with HEX CODES (e.g., "Midnight Black #1A1A1A").
+6. ATMOSPHERE & FX: Environmental particles, mist, or surreal elements.
+
+DIRECTIVES:
+- NO CONCEPTUAL TERMS: Never use words like "comfortable" or "premium". Use visual proofs: "The material deforms 2mm under pressure" (Visual-First).
+- PHYSICS ANNIHILATION (SURREALISM): If the user requests walking on clouds, fire, or space, EXECUTE LITERALLY. Forbid adding "platforms", "glass floors", or "roads". The feet MUST interact DIRECTLY with the impossible medium.
+- HIGH-END AESTHETIC: All surrealism must be PRESTIGIOUS and PREMIUM. Think Haute Couture, Luxury Perfume Ads (Dior, Chanel), or Apple-style minimalism. 
+- FORBIDDEN: NEVER use 'childish' or 'ludic' elements like candy, marshmallows, toys, or fairytales unless explicitly asked. Surrealism should feel sophisticated and avant-garde, not silly.
+- NO RATIONALIZATION: Stop trying to make it "plausible". Zero logic, maximum visual impact.
+- RIGIDITY: The product must never distort/melt unless explicitly asked.
+- FORMAT: Single flowing paragraph of cinematic English.
+    `;
+
+    const promptContext = `
+[STRICT DIRECTOR MANDATE]
+LEAVE NO CHOICE BEHIND. Every parameter below must be the SOUL of the scene.
+
+[USER INTENT - HIGHEST PRIORITY]
+${options.supportingDescription ? `CRITICAL USER OVERRIDE: ${options.supportingDescription}` : 'Generate a premium scene.'}
+If the user request is surreal or impossible, EXECUTE LITERALLY. No metaphors.
+
+TARGET CONFIGURATION:
+- Aspect Ratio: ${options.aspectRatio}
+- Mode: ${options.mode === 'lifestyle' ? 'LIFESTYLE (Actor Interaction Required)' : 'PRODUCT ONLY (Studio/Abstract)'}
+- Lighting/Time: ${options.timeOfDay} (STRICT ADHERENCE)
+- Environment: ${options.environment} (STRICT ADHERENCE)
+- Cinematography Style: ${options.style} (STRICT ADHERENCE)
+
+${options.mode === 'lifestyle' ? `
+ACTOR SPECIFICATION (NON-NEGOTIABLE):
+- Gender: ${options.gender}
+- Skin Tone: ${options.skinTone} 
+- Hair: ${options.hairColor}
+` : ''}
+
+PRODUCT DATA:
 ${productDescription}
+${hexInfo}
 
-SCENE BRIEF
-${isScriptMode ? `Adapt this script into concise scene concepts:\n${options.script}` : (userIntent ? userIntent : 'Build a premium product reveal sequence with clear progression: reveal, interaction, detail.')}
+SCENE TYPE: ${sceneDraft ? 'POLISH THIS SPECIFIC DRAFT:' : 'CREATE NEW SCENE:'}
+${sceneDraft || 'Based on the above settings, generate a 10-second high-impact cinematic sequence.'}
 
-Output must be JSON array of ${outputCount} string(s).`;
+[SCENE TASK & STRATEGY]
+${taskDescription}
 
-    const models = engine === 'speed' ? ["gemini-2.0-flash", "gemini-1.5-flash"] : BRAIN_MODELS;
+[DIRECTOR BLUEPRINT]
+${promptStyle}
 
-    const response = await generateWithFallback(ai, models, (model) => ({
+CRITICAL: The output MUST be a SINGLE paragraph in ENGLISH, adhering to the SORA 2 MASTER SKELETON. No labels, no bullet points.
+    `;
+
+
+    const response = await generateWithFallback(ai, BRAIN_MODELS, (model) => ({
         model,
         contents: {
             parts: [{ text: promptContext }]
@@ -564,12 +482,7 @@ Output must be JSON array of ${outputCount} string(s).`;
     }));
 
     try {
-        const parsed = JSON.parse(response.text || "[]");
-        if (!Array.isArray(parsed)) return [];
-        return parsed
-            .map((p) => typeof p === 'string' ? p.trim() : '')
-            .filter((p) => p.length > 0)
-            .slice(0, outputCount);
+        return JSON.parse(response.text || "[]");
     } catch (e) {
         console.error("Failed to parse prompts", e);
         return [];
@@ -577,98 +490,14 @@ Output must be JSON array of ${outputCount} string(s).`;
 }
 
 // =======================================================================
-// 4. GENERATE BLUEPRINT FROM MOCKUP (THE MASTER REVERSE PIPELINE)
+// 3. GENERATE MOCKUP (Fix #1 — Now receives original product images!)
 // =======================================================================
-export async function generateBlueprintFromMockup(
-    mockupBase64: string,
-    originalImages: string[],
-    productDescription: string,
-    _options: any,
-    sceneConcept: string,
-    engine: 'ultra' | 'speed' = 'ultra'
-): Promise<string> {
-    const apiKey = getApiKey();
-    if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
-
-    const ai = new GoogleGenAI({ apiKey });
-
-    // Ensure format is clean for vision
-    const cleanB64 = mockupBase64.replace(/^data:image\/\w+;base64,/, "");
-
-    const productLockLine = "Use the uploaded image(s) as the exact product reference.";
-
-    const promptContext = `You are a Lead Sora 2 Technical Director. Sora 2 requires extreme physical and cinematic precision to prevent geometry drift. You will generate a prompt using a 4-LAYER TECHNICAL ARCHITECTURE.
-
-[ATTACHMENTS INFO]
-- FIRST IMAGES: Ground-truth product photos (look at logos, materials, exact silhouette).
-- LAST IMAGE: Agency Mockup (the visual target for the scene).
-
-YOUR TASK: Write a 250-400 word prompt with these layers IN ORDER:
-
-LAYER 1: GEOMETRIC FIDELITY LOCK (The anchor)
-- Start EXACTLY with: "${productLockLine}"
-- Describe the item's silhouette and geometry with 100% accuracy using the ground-truth photos.
-- Specify: "Preserve exact logo placement, material textures, and physical proportions."
-- Describe logos as 3D physical elements (e.g., "3D molded rubber logo", "embossed leather text").
-
-LAYER 2: MICRO-PHYSICS & TACTILE RESILIENCY (The material truth)
-- Describe how the materials react to physics in millimeters.
-- Use the user's signature style: "The [material] visibly compresses by 1-2mm under [pressure/movement] and resiliently rebounds to its original form."
-- Mention "memory foam-like adaptability", "fine-ribbed texture", "anatomical grooves".
-- Describe textures as surviving the motion (e.g., "knit pattern expands and contracts without losing its grid").
-
-LAYER 3: NARRATIVE WORLD & AESTHETIC (The scene)
-- Describe the environment from the mockup's MAIN HERO SHOT.
-- Use "Material Metaphors" for ALL colors (e.g., "matte obsidian", "brushed titanium", "liquid mercury clouds").
-- Describe lighting with high-end terminology: "Diffused Golden Hour light", "Subtle caustics dancing across surfaces", "God rays piercing through atmospheric depth".
-- Actions must be technical: "slow stride", "ankle flex", "gentle compression".
-
-LAYER 4: TECHNICAL CINEMATOGRAPHY (The rig)
-- Be hyper-specific about the lens and movement.
-- Use professional rig commands: "35mm Anamorphic orbit", "50mm macro tracking shot", "micro-macro glide shot with a shallow depth of field".
-- End with: "Style: premium commercial, ultra-photorealistic, 10-second duration, smooth cinematic motion, zero-drift geometry."
-
-[MANDATORY RULES]
-- NO HEX CODES (e.g. #000000). Use only verbal material metaphors.
-- NO "LUDIC" or "TOY" metaphors. Only High-Fashion/Luxury Commercial tone.
-- NO mentions of "collage", "panels", or "mockup". Act as if the hero shot is the real world.
-- NARRATIVE CHRONOLOGY: Start with the product, move to the interaction, end with the lighting.
-
-CONTEXT: ${sceneConcept}
-DATA: ${productDescription}`;
-
-    const models = engine === 'speed' ? ["gemini-2.5-flash"] : BRAIN_MODELS; // We use brain models capable of vision
-
-    const imageParts = originalImages.map(img => {
-        const base64Data = img.replace(/^data:image\/\w+;base64,/, "");
-        return { inlineData: { data: base64Data, mimeType: "image/jpeg" } };
-    });
-
-    const response = await generateWithFallback(ai, models, (model) => ({
-        model,
-        contents: {
-            parts: [
-                ...imageParts, // Uploaded photos as support
-                { inlineData: { data: cleanB64, mimeType: "image/jpeg" } }, // The mockup is the main guide (LAST image)
-                { text: promptContext }
-            ]
-        }
-    }));
-
-    let result = response.text?.trim() || "";
-    if (!result.toLowerCase().startsWith("use the uploaded")) {
-        result = `${productLockLine} ${result}`;
-    }
-
-    return result;
-}
 export async function generateMockup(
     productDescription: string,
     options: any,
     promptIndex: number,
     productImages: string[],
-    promptText?: string, // Optional: use the actual prompt text for the mockup
-    engine: 'ultra' | 'speed' = 'ultra'
+    promptText?: string // Optional: use the actual prompt text for the mockup
 ): Promise<string | null> {
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
@@ -688,30 +517,27 @@ export async function generateMockup(
         "Product focus. Logo prominently displayed."
     ];
 
-    const imagePrompt = `TASK: 1:1 PRODUCT REPLICATION & COMMERCIAL STORYBOARD COLLAGE (16:9).
-GOAL: Create an ultra-photorealistic storyboard board that perfectly matches the BLUEPRINT while cloning the uploaded product photos pixel-by-pixel.
+    const imagePrompt = `TASK: TECHNICAL PRODUCT RECONSTRUCTION (COLLAGE).
+GOAL: Create a professional commercial concept sheet (16:9 Collage).
 
-[CRITICAL - SOURCE OF TRUTH & LOGO FIDELITY]
-THE ATTACHED PHOTOS LABELED "[SOURCE PRODUCT IMAGE]" ARE THE ABSOLUTE TRUTH FOR THE PRODUCT'S APPEARANCE. YOU MUST CLONE THIS EXACT PRODUCT (SHAPE, MATERIAL, LOGOS) INTO THE SCENE.
-1. ABSOLUTE TYPOGRAPHY LOCK: You must replicate the exact letters, font, and spelling of any logo or text seen on the product in the photos. Do not misspell, scramble, or alter the characters. The text MUST be perfectly readable in both the hero shot and the macro panels.
-2. DO NOT change the materials, stitching, geometry, or colors.
-3. The environment, camera angle, and action MUST visually match the BLUEPRINT text below.
-WARNING: Even if the blueprint describes complex action, YOUR FIRST PRIORITY is to render the product and its logos flawlessly. Action/movement is secondary.
+[CRITICAL - SOURCE OF TRUTH]
+THE ATTACHED PHOTOS ARE THE ONLY REFERENCE FOR PRODUCT SHAPE, COLORS, AND BRANDING. 
+- CLONE MODE: Absolute adherence to reference photos. 
+- ZERO HALLUCINATION: Do not add details, textures, or features not present in the photos.
+- IDENTITY LOCK: The product must be a pixel-perfect reconstruction of the references.
 
-BLUEPRINT TO VISUALIZE:
-"${promptText || productDescription}"
+[SCENE CONTEXT - FOR ENVIRONMENT ONLY]
+ENVIRONMENT: ${options.environment}
+LIGHTING: ${options.timeOfDay}
+STYLE: ${options.style}
+${options.mode === 'lifestyle' ? `- TALENT: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
+${promptText || productDescription ? `BLUEPRINT: "${promptText || productDescription}"` : ''}
 
-ENVIRONMENT & AESTHETICS:
-- Environment: ${options.environment}
-- Lighting: ${options.timeOfDay}
-- Style: ${options.style}
-${options.mode === 'lifestyle' ? `- Talent: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
+[LAYOUT]
+- MAIN HERO SHOT (LEFT, 60%): ${focusInstructions[promptIndex] || "Hero product focus."}
+- DETAIL ANGLES (RIGHT STACK, 40%): 3 microscopic views focusing strictly on the materials and branding found in the photos.
 
-[LAYOUT - MUST BE A COLLAGE]
-- MAIN HERO SHOT (LEFT, 70%): The main cinematic shot exactly as described in the BLUEPRINT. Focus: ${focusInstructions[promptIndex] || "Hero product focus."}
-- DETAIL MACROS (RIGHT STACK, 30%): 2 or 3 extreme close-up panels showing the precise materials, textures, and the logo/branding text from the reference photos to prove material fidelity.
-
-Make it look like a high-end, cinematic agency pitch board. Perfect product clone. ZERO HALLUCINATION.`;
+CRITICAL: Perfect symmetry, cinematic grade. The product MUST be identical to the photos.`;
 
     // Build content parts: reference images (if available) + text prompt
     const contentParts: any[] = [];
@@ -721,21 +547,16 @@ Make it look like a high-end, cinematic agency pitch board. Perfect product clon
         const selected = productImages.length <= 3
             ? productImages
             : [productImages[0], productImages[Math.floor(productImages.length / 2)], productImages[productImages.length - 1]];
-        const prepared = await Promise.all(selected.map(ensureModelCompatibleImage));
-        let imgIndex = 1;
-        for (const img of prepared) {
+        for (const img of selected) {
             const { data, mimeType } = parseBase64(img);
-            contentParts.push({ text: `[SOURCE PRODUCT IMAGE ${imgIndex} - REPLICATE 1:1 IN MOCKUP]` });
             contentParts.push({ inlineData: { data, mimeType } });
-            imgIndex++;
         }
     }
 
     contentParts.push({ text: imagePrompt });
 
     try {
-        const models = engine === 'speed' ? ["gemini-2.0-flash"] : IMAGE_MODELS;
-        const response = await generateWithFallback(ai, models, (model) => ({
+        const response = await generateWithFallback(ai, IMAGE_MODELS, (model) => ({
             model,
             contents: { parts: contentParts },
             config: {
