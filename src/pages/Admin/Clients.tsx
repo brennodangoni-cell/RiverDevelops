@@ -455,38 +455,34 @@ export default function AdminClients() {
                                 <p className="text-xs text-white/30 max-w-md leading-relaxed">Nenhum conteúdo foi entregue para este cliente ainda. Clique em "Enviar Entrega" para organizar os arquivos gerados.</p>
                             </div>
                         ) : (
-                            <div className="w-full max-w-[1500px] grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                            <div className="w-full max-w-[1500px] grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
                                 {content.map(item => (
-                                    <div key={item.id} className="group relative bg-[#0A0A0A] border border-white/10 rounded-[2rem] overflow-hidden hover:border-white/20  hover: flex flex-col pb-4">
+                                    <div key={item.id} className="group relative bg-[#0A0A0A] border border-white/10 rounded-xl overflow-hidden hover:border-white/20 flex flex-col">
 
-                                        <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 ">
-                                            <button onClick={() => handleDeleteContent(item.id)} className="w-8 h-8 rounded-full bg-red-500/80 flex items-center justify-center text-white hover:bg-red-500 hover:scale-110 ">
-                                                <Trash2 className="w-4 h-4" />
+                                        <div className="absolute top-1.5 right-1.5 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button onClick={() => handleDeleteContent(item.id)} className="w-6 h-6 rounded-full bg-red-500/90 flex items-center justify-center text-white hover:bg-red-500" title="Excluir">
+                                                <Trash2 className="w-3 h-3" />
                                             </button>
                                         </div>
 
-                                        <div className="aspect-[4/5] bg-white/5 relative flex items-center justify-center group-hover:scale-105  ">
+                                        <div className="aspect-square bg-white/5 relative flex items-center justify-center overflow-hidden">
                                             {item.media_type === 'video' ? (
-                                                <div className="w-full h-full relative">
-                                                    <video src={getMediaUrl(item.media_url)} className="w-full h-full object-cover" muted loop playsInline onMouseEnter={e => e.currentTarget.play()} onMouseLeave={e => e.currentTarget.pause()} />
-                                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                                        <div className="w-12 h-12 rounded-full bg-black/40 border border-white/20 flex items-center justify-center">
-                                                            <Video className="w-5 h-5 text-white/80" />
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                <video src={getMediaUrl(item.media_url)} className="w-full h-full object-cover" muted loop playsInline onMouseEnter={e => e.currentTarget.play()} onMouseLeave={e => e.currentTarget.pause()} />
                                             ) : (
                                                 <img src={getMediaUrl(item.media_url)} alt={item.title} className="w-full h-full object-cover" />
                                             )}
+                                            {item.media_type === 'video' && (
+                                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                    <div className="w-6 h-6 rounded-full bg-black/50 flex items-center justify-center">
+                                                        <Video className="w-3 h-3 text-white/90" />
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
 
-                                        <div className="px-5 pt-5 flex flex-col z-10 bg-[#0A0A0A]">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <span className="text-[9px] font-bold text-cyan-400 bg-cyan-400/10 px-2 py-1 rounded-full uppercase tracking-wider">{item.category}</span>
-                                                <span className="text-[9px] font-bold text-white/50 bg-white/10 px-2 py-1 rounded-full uppercase tracking-wider flex items-center gap-1"><Calendar className="w-3 h-3" /> {item.week_date}</span>
-                                            </div>
-                                            <h4 className="text-white font-medium text-sm truncate tracking-wide">{item.title || 'Sem título'}</h4>
-                                            <p className="text-[10px] text-white/40 uppercase tracking-widest mt-1">Prod: {item.product || 'N/A'}</p>
+                                        <div className="px-2 py-2 flex flex-col z-10 bg-[#0A0A0A] min-w-0">
+                                            <h4 className="text-white font-medium text-[10px] truncate tracking-wide">{item.title || 'Sem título'}</h4>
+                                            {item.week_date && <span className="text-[9px] text-white/40 flex items-center gap-1 mt-0.5"><Calendar className="w-2.5 h-2.5" /> {item.week_date}</span>}
                                         </div>
                                     </div>
                                 ))}

@@ -10,7 +10,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import axios from 'axios';
-import { analyzeProduct, analyzeScenery, generatePrompts, generateMockup, generateVideo, AIError, ProductAnalysis, SceneryAnalysis } from '../../services/ai';
+import { analyzeProduct, analyzeScenery, generatePrompts, generateMockup, generateVideo, generateVideoKling, AIError, ProductAnalysis, SceneryAnalysis } from '../../services/ai';
 
 interface Result {
     prompt: string;
@@ -132,6 +132,8 @@ export default function VideoLab() {
     const [savedMockups, setSavedMockups] = useState<SavedMockup[]>([]);
     const [renderAllOnInit, setRenderAllOnInit] = useState(false);
     const [generateVideoVeo, setGenerateVideoVeo] = useState(false);
+    const [videoProvider, setVideoProvider] = useState<'veo' | 'kling'>(() => (localStorage.getItem('video_provider') as 'veo' | 'kling') || 'kling');
+    const [klingApiKey, setKlingApiKey] = useState(() => localStorage.getItem('kling_api_key') || '');
     const [sceneryData, setSceneryData] = useState<SceneryAnalysis | null>(null);
     const [loadingIndices, setLoadingIndices] = useState<number[]>([]);
     const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
@@ -158,6 +160,14 @@ export default function VideoLab() {
             if (envKey) localStorage.setItem('gemini_api_key', envKey);
         }
     }, []);
+
+    useEffect(() => {
+        if (klingApiKey) localStorage.setItem('kling_api_key', klingApiKey);
+    }, [klingApiKey]);
+
+    useEffect(() => {
+        localStorage.setItem('video_provider', videoProvider);
+    }, [videoProvider]);
 
     useEffect(() => {
         const fetchBalance = async () => {
@@ -313,6 +323,10 @@ export default function VideoLab() {
 
     const handleGenerate = async () => {
         if (!analysis) return;
+        if (generateVideoVeo && videoProvider === 'kling' && !klingApiKey.trim()) {
+            toast.error('Configure a chave da API Kling para gerar vídeos.');
+            return;
+        }
         setIsGenerating(true);
         setStep(3);
         setResults([]);
@@ -353,20 +367,21 @@ export default function VideoLab() {
                     return updated;
                 });
 
-                // Gerar vídeo Veo 3.1 para a primeira cena (se habilitado)
+                // Gerar vídeo para a primeira cena (se habilitado)
                 if (generateVideoVeo && i === 0 && mockupUrl && prompts[i]) {
-                    setProgressText('Gerando vídeo Veo 3.1 (pode levar 2-5 min)...');
+                    const genVideo = videoProvider === 'kling' ? generateVideoKling : generateVideo;
+                    setProgressText(videoProvider === 'kling' ? 'Gerando vídeo Kling 2.6 (~30s)...' : 'Gerando vídeo Veo (pode levar 2-5 min)...');
                     try {
-                        const videoUrl = await generateVideo(prompts[i], mockupUrl, { aspectRatio: options.aspectRatio, durationSeconds: 8 });
+                        const videoUrl = await genVideo(prompts[i], mockupUrl, { aspectRatio: options.aspectRatio, durationSeconds: videoProvider === 'kling' ? 5 : 8 });
                         setResults(prev => {
                             const updated = [...prev];
                             if (updated[0]) updated[0] = { ...updated[0], videoUrl: videoUrl ?? undefined };
                             return updated;
                         });
-                        if (videoUrl) toast.success('Vídeo Veo 3.1 gerado!');
+                        if (videoUrl) toast.success(`Vídeo ${videoProvider === 'kling' ? 'Kling' : 'Veo'} gerado!`);
                     } catch (e: any) {
                         console.warn('Video generation failed:', e);
-                        toast.error(e instanceof AIError ? e.message : 'Erro ao gerar vídeo Veo.');
+                        toast.error(e instanceof AIError ? e.message : 'Erro ao gerar vídeo.');
                     }
                 }
 
@@ -1281,11 +1296,45 @@ export default function VideoLab() {
                                                     {generateVideoVeo && <Check className="w-2.5 h-2.5 text-black" />}
                                                 </div>
                                                 <div>
-                                                    <span className="text-xs font-semibold text-white block mb-1 flex items-center gap-2"><Video className="w-3.5 h-3.5" /> Gerar vídeo Veo 3.1 (8s)</span>
-                                                    <span className="text-[10px] text-zinc-400 leading-normal block">Após o mockup, gera um vídeo de 8 segundos com a cena. Usa o prompt + mockup como referência. Pode levar alguns minutos.</span>
+                                                    <span className="text-xs font-semibold text-white block mb-1 flex items-center gap-2"><Video className="w-3.5 h-3.5" /> Gerar vídeo (Veo ou Kling)</span>
+                                                    <span className="text-[10px] text-zinc-400 leading-normal block">Após o mockup, gera um vídeo da primeira cena. Escolha o provedor abaixo.</span>
                                                 </div>
                                             </div>
                                         </div>
+
+                                        {generateVideoVeo && (
+                                            <div className="p-5 rounded-2xl border border-white/10 bg-white/[0.02] space-y-4">
+                                                <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider block">Provedor de vídeo</span>
+                                                <div className="flex gap-3">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setVideoProvider('veo')}
+                                                        className={`flex-1 py-3 px-4 rounded-xl text-xs font-medium transition-all ${videoProvider === 'veo' ? 'bg-cyan-500/20 border border-cyan-500/50 text-cyan-400' : 'bg-white/5 border border-white/10 text-zinc-400 hover:border-white/20'}`}
+                                                    >
+                                                        Veo 3.1 (8s, ~2–5 min)
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setVideoProvider('kling')}
+                                                        className={`flex-1 py-3 px-4 rounded-xl text-xs font-medium transition-all ${videoProvider === 'kling' ? 'bg-amber-500/20 border border-amber-500/50 text-amber-400' : 'bg-white/5 border border-white/10 text-zinc-400 hover:border-white/20'}`}
+                                                    >
+                                                        Kling 2.6 (5s, ~30s)
+                                                    </button>
+                                                </div>
+                                                {videoProvider === 'kling' && (
+                                                    <div>
+                                                        <label className="text-[10px] text-zinc-400 block mb-2">Chave API Kling</label>
+                                                        <input
+                                                            type="password"
+                                                            value={klingApiKey}
+                                                            onChange={(e) => setKlingApiKey(e.target.value)}
+                                                            placeholder="Cole sua chave da API Kling"
+                                                            className="w-full px-4 py-3 rounded-xl bg-black/30 border border-white/10 text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:border-amber-500/50"
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="mt-12">

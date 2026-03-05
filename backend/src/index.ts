@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import { Readable } from 'node:stream';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import { authenticate, generateToken } from './auth';
@@ -295,6 +296,38 @@ app.post('/api/transactions', authenticate, async (req: Request, res: Response) 
         const { data, error } = await supabase.from('transactions').insert([payload]).select('id').single();
         if (error) throw error;
         res.json({ id: data.id, success: true });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.get('/api/client/content', authenticate, async (req: Request, res: Response) => {
+    const user = (req as any).user;
+    if (user?.role !== 'client') return res.status(403).json({ error: 'Acesso negado' });
+    try {
+        const { data, error } = await supabase.from('client_content').select('*').eq('client_id', user.id).order('created_at', { ascending: false });
+        if (error) throw error;
+        res.json(data || []);
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.get('/api/client/download/:contentId', authenticate, async (req: Request, res: Response) => {
+    const user = (req as any).user;
+    if (user?.role !== 'client') return res.status(403).json({ error: 'Acesso negado' });
+    const { contentId } = req.params;
+    try {
+        const { data, error } = await supabase.from('client_content').select('media_url, media_type, title').eq('id', parseInt(contentId)).eq('client_id', user.id).single();
+        if (error || !data?.media_url) return res.status(404).json({ error: 'Arquivo não encontrado' });
+        const ext = data.media_type === 'video' ? 'mp4' : 'jpg';
+        const filename = `${(data.title || 'arquivo').replace(/\s+/g, '-')}.${ext}`;
+        const fetchRes = await fetch(data.media_url);
+        if (!fetchRes.ok) return res.status(502).json({ error: 'Erro ao obter arquivo' });
+        const contentType = fetchRes.headers.get('content-type') || (data.media_type === 'video' ? 'video/mp4' : 'image/jpeg');
+        res.setHeader('Content-Type', contentType);
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        if (fetchRes.body) Readable.fromWeb(fetchRes.body as any).pipe(res);
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }

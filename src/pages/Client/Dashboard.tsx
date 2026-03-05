@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Loader2, LogOut, Download, PlayCircle, Image as ImageIcon, Calendar, Layers, Video } from 'lucide-react';
+import { Loader2, LogOut, Download, PlayCircle, Calendar, Layers, X } from 'lucide-react';
 
 type Content = {
     id: number;
@@ -24,7 +24,14 @@ export default function ClientDashboard() {
     const [content, setContent] = useState<Content[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedCategory, setSelectedCategory] = useState<string>('Tudo');
+    const [lightboxItem, setLightboxItem] = useState<Content | null>(null);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const onEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') setLightboxItem(null); };
+        window.addEventListener('keydown', onEsc);
+        return () => window.removeEventListener('keydown', onEsc);
+    }, []);
 
     const clientDataStr = localStorage.getItem('rivertasks_client_user');
     const clientUser = clientDataStr ? JSON.parse(clientDataStr) : null;
@@ -60,12 +67,34 @@ export default function ClientDashboard() {
         navigate('/cliente/login');
     };
 
+    const handleDownload = async (contentId: number, filename: string) => {
+        const token = localStorage.getItem('rivertasks_client_token');
+        if (!token) return;
+        try {
+            const base = axios.defaults.baseURL || '';
+            const res = await fetch(`${base}/api/client/download/${contentId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('Erro ao baixar');
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        } catch {
+            toast.error('Erro ao baixar. Tente novamente.');
+        }
+    };
+
     if (loading) {
         return <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a]"><Loader2 className="w-8 h-8 animate-spin text-cyan-400" /></div>;
     }
 
     const categories = ['Tudo', ...Array.from(new Set(content.map(c => c.category).filter(Boolean)))];
     const filteredContent = selectedCategory === 'Tudo' ? content : content.filter(c => c.category === selectedCategory);
+    const showCategories = categories.length > 1;
 
     return (
         <div className="min-h-screen font-sans text-white bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a] selection:bg-cyan-500/30">
@@ -93,6 +122,7 @@ export default function ClientDashboard() {
                         </div>
 
                         {/* Centered Categories (Desktop) */}
+                        {showCategories && (
                         <div className="hidden md:flex items-center gap-2 overflow-x-auto custom-scrollbar">
                             {categories.map(cat => (
                                 <button
@@ -104,6 +134,7 @@ export default function ClientDashboard() {
                                 </button>
                             ))}
                         </div>
+                        )}
 
                         {/* Logout */}
                         <button
@@ -119,6 +150,7 @@ export default function ClientDashboard() {
 
             <main className="max-w-[1600px] mx-auto px-6 lg:px-12 pt-[140px] md:pt-[160px] min-h-[100dvh] relative z-10 pb-20">
                 {/* Mobile Categories (if many, scrollable) */}
+                {showCategories && (
                 <div className="flex md:hidden items-center gap-2 overflow-x-auto custom-scrollbar mb-8 pb-4">
                     {categories.map(cat => (
                         <button
@@ -130,6 +162,7 @@ export default function ClientDashboard() {
                         </button>
                     ))}
                 </div>
+                )}
 
                 {filteredContent.length === 0 ? (
                     <div className="bg-white/5 border border-white/10 border-dashed rounded-[3rem] w-full py-32 flex flex-col items-center justify-center text-center mt-10">
@@ -138,70 +171,69 @@ export default function ClientDashboard() {
                         <p className="text-sm text-white/40 max-w-md leading-relaxed font-light">Nenhum conteúdo disponível nesta categoria no momento.</p>
                     </div>
                 ) : (
-                    <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
-                        {filteredContent.map(item => (
-                            <div key={item.id} className="relative group bg-[#080808] border border-white/10 rounded-[2.5rem] overflow-hidden hover:border-white/20   hover: break-inside-avoid">
-                                {/* Media Container */}
-                                <div className="relative w-full overflow-hidden bg-black flex items-center justify-center">
-                                    {item.media_type === 'video' ? (
-                                        <div className="w-full relative aspect-[9/16]">
-                                            <video src={getMediaUrl(item.media_url)} className="w-full h-full object-cover" muted loop playsInline onMouseEnter={e => e.currentTarget.play()} onMouseLeave={e => e.currentTarget.pause()} />
-                                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-black/10 group-hover:bg-transparent ">
-                                                <div className="w-16 h-16 rounded-full bg-black/40 border border-white/20 flex items-center justify-center scale-100 group-hover:scale-110 ">
-                                                    <PlayCircle className="w-8 h-8 text-white" />
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                        {filteredContent.map(item => {
+                            const url = getMediaUrl(item.media_url);
+                            const ext = item.media_type === 'video' ? 'mp4' : 'jpg';
+                            const filename = `${(item.title || 'arquivo').replace(/\s+/g, '-')}.${ext}`;
+                            return (
+                                <div key={item.id} className="relative group bg-[#080808] border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 break-inside-avoid">
+                                    {/* Media - clicável para abrir modal */}
+                                    <div className="relative aspect-square overflow-hidden bg-black cursor-pointer" onClick={() => setLightboxItem(item)}>
+                                        {item.media_type === 'video' ? (
+                                            <>
+                                                <video src={url} className="w-full h-full object-cover" muted loop playsInline onMouseEnter={e => e.currentTarget.play()} onMouseLeave={e => e.currentTarget.pause()} />
+                                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                    <div className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center">
+                                                        <PlayCircle className="w-5 h-5 text-white" />
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="w-full relative">
-                                            <img src={getMediaUrl(item.media_url)} alt={item.title} className="w-full h-auto object-cover group-hover:scale-105   ease-[cubic-bezier(0.16,1,0.3,1)]" />
-                                        </div>
-                                    )}
+                                            </>
+                                        ) : (
+                                            <img src={url} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                        )}
 
-                                    {/* Format Badge */}
-                                    <div className="absolute top-4 left-4 z-10">
-                                        <div className="bg-black/60 px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-2">
-                                            {item.media_type === 'video' ? <Video className="w-3.5 h-3.5 text-cyan-400" /> : <ImageIcon className="w-3.5 h-3.5 text-emerald-400" />}
-                                            <span className="text-[9px] font-bold text-white uppercase tracking-widest">{item.media_type}</span>
-                                        </div>
+                                        {/* Download - stopPropagation para não abrir modal */}
+                                        <button type="button" onClick={(e) => { e.stopPropagation(); handleDownload(item.id, filename); }} className="absolute bottom-2 right-2 z-20 w-9 h-9 rounded-full bg-white text-black flex items-center justify-center hover:scale-110 active:scale-95 shadow-lg transition-transform" title="Baixar">
+                                            <Download className="w-4 h-4" />
+                                        </button>
                                     </div>
 
-                                    {/* Action Hover */}
-                                    <div className="absolute bottom-4 right-4 z-20 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0   ">
-                                        <a href={getMediaUrl(item.media_url)} download target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center hover:scale-110 active:scale-95 ">
-                                            <Download className="w-5 h-5" />
-                                        </a>
+                                    {/* Info */}
+                                    <div className="p-3 bg-[#080808]">
+                                        <h3 className="text-sm font-medium text-white truncate">{item.title || 'Mídia'}</h3>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            {item.week_date && <span className="text-[9px] text-white/50 flex items-center gap-1"><Calendar className="w-3 h-3" /> {item.week_date}</span>}
+                                        </div>
                                     </div>
                                 </div>
-
-                                {/* Content Details */}
-                                <div className="p-6 relative z-10 bg-gradient-to-t from-[#080808] to-transparent">
-                                    <div className="flex items-center justify-between mb-3 w-full pr-12">
-                                        <div className="flex items-center gap-2 truncate flex-1 flex-wrap">
-                                            {item.product && (
-                                                <span className="text-[9px] font-bold text-cyan-400 bg-cyan-400/10 border border-cyan-400/20 px-2.5 py-1 rounded-full uppercase tracking-wider truncate max-w-[120px]">
-                                                    {item.product}
-                                                </span>
-                                            )}
-                                            {item.week_date && (
-                                                <span className="text-[9px] font-bold text-white/50 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 shrink-0">
-                                                    <Calendar className="w-3 h-3" /> {item.week_date}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <h3 className="text-lg font-display font-medium text-white tracking-wide truncate">{item.title || 'Mídia Sem Título'}</h3>
-
-                                    <p className="text-[10px] text-white/30 tracking-widest uppercase mt-4">
-                                        Adicionado {new Date(item.created_at).toLocaleDateString('pt-BR')}
-                                    </p>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </main>
+
+            {/* Modal de visualização */}
+            {lightboxItem && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm" onClick={() => setLightboxItem(null)}>
+                    <button type="button" onClick={() => setLightboxItem(null)} className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white" aria-label="Fechar">
+                        <X className="w-5 h-5" />
+                    </button>
+                    <div className="relative max-w-[95vw] max-h-[90vh] flex items-center justify-center" onClick={e => e.stopPropagation()}>
+                        {lightboxItem.media_type === 'video' ? (
+                            <video src={getMediaUrl(lightboxItem.media_url)} className="max-w-full max-h-[85vh] rounded-xl object-contain" controls autoPlay playsInline />
+                        ) : (
+                            <img src={getMediaUrl(lightboxItem.media_url)} alt={lightboxItem.title} className="max-w-full max-h-[85vh] rounded-xl object-contain" />
+                        )}
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/70 rounded-full px-5 py-2.5">
+                            <span className="text-sm text-white truncate max-w-[200px]">{lightboxItem.title || 'Mídia'}</span>
+                            <button type="button" onClick={() => handleDownload(lightboxItem.id, `${(lightboxItem.title || 'arquivo').replace(/\s+/g, '-')}.${lightboxItem.media_type === 'video' ? 'mp4' : 'jpg'}`)} className="w-9 h-9 rounded-full bg-white text-black flex items-center justify-center hover:scale-110 transition-transform" title="Baixar">
+                                <Download className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -643,3 +643,82 @@ export async function generateVideo(
     }
     return null;
 }
+
+// =======================================================================
+// 5. GENERATE VIDEO (Kling 2.6) — alternativa ao Veo, menos rate limit
+// =======================================================================
+const KLING_BASE = "https://api.klingapi.com";
+const KLING_POLL_MS = 5000;
+const KLING_MAX_POLL_MINUTES = 5;
+
+function getKlingApiKey(): string {
+    const local = localStorage.getItem('kling_api_key');
+    if (local && local.trim().length > 10) return local.trim();
+    const env = (import.meta as any).env?.VITE_KLING_API_KEY;
+    if (env && env.trim().length > 10) return env.trim();
+    return "";
+}
+
+export async function generateVideoKling(
+    prompt: string,
+    mockupImageBase64?: string | null,
+    options?: { aspectRatio?: string; durationSeconds?: number }
+): Promise<string | null> {
+    const apiKey = getKlingApiKey();
+    if (!apiKey) throw new AIError("Chave API do Kling não configurada. Configure em Configuração.", "API_KEY_MISSING");
+
+    const duration = Math.min(10, Math.max(5, options?.durationSeconds ?? 5)); // Kling: 5 ou 10s
+    const aspectRatio = options?.aspectRatio ?? "16:9";
+
+    const endpoint = mockupImageBase64 ? "/v1/videos/image2video" : "/v1/videos/text2video";
+    const body: Record<string, unknown> = {
+        model: "kling-v2.6-std",
+        prompt,
+        duration,
+        aspect_ratio: aspectRatio,
+        mode: "standard"
+    };
+
+    if (mockupImageBase64) {
+        const { data } = parseBase64(mockupImageBase64);
+        body.image = `data:image/jpeg;base64,${data}`;
+    }
+
+    const res = await fetch(`${KLING_BASE}${endpoint}`, {
+        method: "POST",
+        headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+    });
+
+    if (!res.ok) {
+        const errText = await res.text();
+        if (res.status === 429) throw new AIError("Kling: limite de requisições. Aguarde e tente novamente.", "RATE_LIMIT", true);
+        throw new AIError(errText.slice(0, 150) || `Kling API erro ${res.status}`, "UNKNOWN", true);
+    }
+
+    const data = await res.json();
+    const taskId = data.task_id || data.data?.task_id;
+    if (!taskId) throw new AIError("Kling não retornou task_id.", "UNKNOWN", false);
+
+    const start = Date.now();
+    while (Date.now() - start < KLING_MAX_POLL_MINUTES * 60 * 1000) {
+        await new Promise(r => setTimeout(r, KLING_POLL_MS));
+        const statusRes = await fetch(`${KLING_BASE}/v1/videos/${taskId}`, {
+            headers: { "Authorization": `Bearer ${apiKey}` }
+        });
+        if (!statusRes.ok) continue;
+        const statusData = await statusRes.json();
+        const state = statusData.task_status ?? statusData.data?.task_status ?? statusData.status;
+        if (state === "succeed" || state === "completed" || state === "success") {
+            const url = statusData.task_result?.video_url ?? statusData.data?.video_url ?? statusData.video_url;
+            if (url) return url;
+        }
+        if (state === "failed" || state === "error") {
+            throw new AIError(statusData.task_result?.message ?? statusData.message ?? "Kling falhou.", "UNKNOWN", false);
+        }
+    }
+    throw new AIError("Timeout: Kling excedeu o tempo limite.", "TIMEOUT", false);
+}
