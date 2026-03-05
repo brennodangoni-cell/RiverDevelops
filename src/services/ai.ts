@@ -25,7 +25,7 @@ export interface SceneryAnalysis {
 // =======================================================================
 const BRAIN_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.1-pro-preview"];
 const ANALYSIS_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro"];
-const IMAGE_MODELS = ["gemini-3-pro-image-preview", "gemini-2.5-flash-image", "gemini-2.0-flash-preview-image-generation"];
+const IMAGE_MODELS = ["gemini-2.5-flash-image", "gemini-2.0-flash-preview-image-generation"];
 
 // =======================================================================
 // ERROR TYPES (Fix #2 - Specific error handling)
