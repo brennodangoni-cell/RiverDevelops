@@ -75,8 +75,14 @@ export default function ClientDashboard() {
                         {/* Logo & Welcome */}
                         <div className="flex items-center gap-4 group cursor-default">
                             <div className="relative">
-                                <div className="absolute -inset-2 bg-purple-500/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                <img src="/logo.webp" alt="River" className="relative h-10 w-10 object-contain rounded-full shadow-lg" />
+                                <div className="absolute -inset-2 bg-cyan-500/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                {clientUser?.avatar_url ? (
+                                    <img src={(axios.defaults.baseURL || '') + clientUser.avatar_url} alt="Profile" className="relative h-10 w-10 object-cover rounded-full shadow-lg border border-white/10 group-hover:scale-105 transition-transform" />
+                                ) : (
+                                    <div className="relative h-10 w-10 rounded-full shadow-lg bg-black border border-white/20 flex items-center justify-center group-hover:scale-105 transition-transform">
+                                        <span className="text-lg font-display font-medium text-white tracking-widest uppercase">{clientUser?.username?.charAt(0) || 'C'}</span>
+                                    </div>
+                                )}
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-[10px] font-bold text-white/40 tracking-widest uppercase">Bem-vindo</span>
@@ -153,7 +159,7 @@ export default function ClientDashboard() {
                                     {/* Format Badge */}
                                     <div className="absolute top-4 left-4 z-10">
                                         <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-2">
-                                            {item.media_type === 'video' ? <Video className="w-3.5 h-3.5 text-cyan-400" /> : <ImageIcon className="w-3.5 h-3.5 text-purple-400" />}
+                                            {item.media_type === 'video' ? <Video className="w-3.5 h-3.5 text-cyan-400" /> : <ImageIcon className="w-3.5 h-3.5 text-emerald-400" />}
                                             <span className="text-[9px] font-bold text-white uppercase tracking-widest">{item.media_type}</span>
                                         </div>
                                     </div>
@@ -171,7 +177,7 @@ export default function ClientDashboard() {
                                     <div className="flex items-center justify-between mb-3 w-full pr-12">
                                         <div className="flex items-center gap-2 truncate flex-1 flex-wrap">
                                             {item.product && (
-                                                <span className="text-[9px] font-bold text-purple-400 bg-purple-400/10 border border-purple-400/20 px-2.5 py-1 rounded-full uppercase tracking-wider truncate max-w-[120px]">
+                                                <span className="text-[9px] font-bold text-cyan-400 bg-cyan-400/10 border border-cyan-400/20 px-2.5 py-1 rounded-full uppercase tracking-wider truncate max-w-[120px]">
                                                     {item.product}
                                                 </span>
                                             )}

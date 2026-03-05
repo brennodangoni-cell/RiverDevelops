@@ -40,6 +40,7 @@ export function initDb() {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE,
             password TEXT,
+            avatar_url TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
         CREATE TABLE IF NOT EXISTS client_content (
@@ -54,11 +55,32 @@ export function initDb() {
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(client_id) REFERENCES clients(id)
         );
+        CREATE TABLE IF NOT EXISTS demands (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            client_name TEXT NOT NULL,
+            total_videos INTEGER NOT NULL,
+            duration_seconds INTEGER,
+            has_material BOOLEAN DEFAULT 0,
+            material_link TEXT,
+            description TEXT,
+            assigned_videos INTEGER DEFAULT 0,
+            status TEXT DEFAULT 'pending',
+            created_by INTEGER,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(created_by) REFERENCES users(id)
+        );
     `);
 
     // Migration for existing databases
     try {
         db.exec(`ALTER TABLE transactions ADD COLUMN client_name TEXT;`);
+    } catch (e) {
+        // column probably already exists
+    }
+
+    // Migration for clients table avatar
+    try {
+        db.exec(`ALTER TABLE clients ADD COLUMN avatar_url TEXT;`);
     } catch (e) {
         // column probably already exists
     }

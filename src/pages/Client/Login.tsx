@@ -2,7 +2,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { ArrowLeft, KeyRound, Loader2, User } from 'lucide-react';
+import { Loader2, ArrowRight } from 'lucide-react';
 
 export default function ClientLogin() {
     const [username, setUsername] = useState('');
@@ -19,6 +19,7 @@ export default function ClientLogin() {
             if (res.data.token) {
                 localStorage.setItem('rivertasks_client_token', res.data.token);
                 localStorage.setItem('rivertasks_client_user', JSON.stringify(res.data.client));
+                toast.success('Acesso liberado!');
                 navigate('/cliente');
             }
         } catch (error: any) {
@@ -29,68 +30,70 @@ export default function ClientLogin() {
     };
 
     return (
-        <div className="min-h-screen bg-[#030303] flex flex-col items-center justify-center p-4 text-white font-sans relative overflow-hidden">
-            {/* Background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-black to-cyan-500/10 pointer-events-none" />
-            <div className="absolute top-1/4 -left-64 w-96 h-96 bg-purple-500/20 rounded-full blur-[100px] pointer-events-none" />
-            <div className="absolute bottom-1/4 -right-64 w-96 h-96 bg-cyan-500/20 rounded-full blur-[100px] pointer-events-none" />
+        <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans text-white bg-black" style={{ backgroundImage: 'url(/bgtasks.webp)', backgroundSize: 'cover', backgroundAttachment: 'fixed', backgroundPosition: 'center' }}>
 
-            <button onClick={() => navigate('/')} className="absolute top-8 left-8 text-white/40 hover:text-white transition-colors bg-white/5 p-3 rounded-full hover:bg-white/10 z-10 flex items-center gap-2 text-xs font-bold uppercase tracking-widest group">
-                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                <span className="hidden sm:inline">Voltar ao Início</span>
+            {/* Dark overlay for readability, no blur */}
+            <div className="absolute inset-0 bg-black/70 pointer-events-none" />
+
+            {/* Go Back button */}
+            <button onClick={() => navigate('/')} className="absolute top-8 left-8 text-white/40 hover:text-white transition-colors bg-white/5 p-3 rounded-full hover:bg-white/10 z-20 flex items-center gap-2 text-xs font-bold uppercase tracking-widest group">
+                <ArrowRight className="w-4 h-4 rotate-180 group-hover:-translate-x-1 transition-transform" />
+                <span className="hidden sm:inline">Voltar</span>
             </button>
 
-            <div className="w-full max-w-md bg-white/[0.02] backdrop-blur-2xl border border-white/10 p-10 sm:p-12 rounded-[3.5rem] shadow-[0_0_50px_rgba(0,0,0,0.8)] relative z-10 flex flex-col items-center">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-500 to-cyan-500 flex items-center justify-center mb-8 shadow-[0_0_20px_rgba(168,85,247,0.4)]">
-                    <img src="/logo.webp" alt="River" className="w-10 h-10 object-contain rounded-full" />
+            {/* Login Glass Card */}
+            <div className="z-10 w-full max-w-[420px] bg-black/40 border border-white/10 p-10 sm:p-12 rounded-3xl backdrop-blur-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] relative group">
+                {/* Top thin luminous line */}
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent" />
+
+                <div className="text-center mb-10 select-none flex flex-col items-center">
+                    <div className="w-16 h-16 rounded-full bg-black border border-white/20 flex items-center justify-center mb-6 shadow-xl relative overflow-hidden">
+                        <div className="absolute inset-0 bg-cyan-500/10" />
+                        <img src="/logo.webp" alt="River Logo" className="w-10 h-10 object-contain relative z-10" />
+                    </div>
+                    <h1 className="text-2xl font-semibold text-white tracking-tight mb-2 uppercase">Área do Cliente</h1>
+                    <p className="text-white/40 text-sm font-light">Acesse suas entregas e materiais</p>
                 </div>
 
-                <div className="text-center mb-10 w-full">
-                    <h1 className="text-2xl font-display font-medium text-white tracking-widest uppercase mb-2">Área do Cliente</h1>
-                    <p className="text-xs text-white/40 tracking-wider font-light">Acesse seu conteúdo exclusivo.</p>
-                </div>
-
-                <form onSubmit={handleLogin} className="w-full flex flex-col gap-5">
-                    <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-white/30 group-focus-within:text-cyan-400 transition-colors">
-                            <User className="w-5 h-5" />
-                        </div>
+                <form onSubmit={handleLogin} className="space-y-5">
+                    <div className="space-y-1 flex flex-col">
+                        <label className="text-[10px] font-medium text-white/50 uppercase tracking-widest ml-1 mb-1 select-none pointer-events-none">Usuário</label>
                         <input
                             type="text"
-                            required
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-full py-4 pl-12 pr-6 text-white text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 transition-all font-medium placeholder:text-white/20"
-                            placeholder="Seu Usuário"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400/50 focus:border-cyan-400/50 transition-all font-light"
+                            required
                         />
                     </div>
-
-                    <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-white/30 group-focus-within:text-cyan-400 transition-colors">
-                            <KeyRound className="w-5 h-5" />
-                        </div>
+                    <div className="space-y-1 flex flex-col">
+                        <label className="text-[10px] font-medium text-white/50 uppercase tracking-widest ml-1 mb-1 select-none pointer-events-none">Senha</label>
                         <input
                             type="password"
-                            required
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-full py-4 pl-12 pr-6 text-white text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 transition-all font-medium placeholder:text-white/20"
-                            placeholder="Sua Senha"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400/50 focus:border-cyan-400/50 transition-all font-light placeholder:text-white/20"
+                            placeholder="••••••••"
+                            required
                         />
                     </div>
-
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full mt-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold tracking-widest uppercase text-xs py-4 rounded-full transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:pointer-events-none flex justify-center items-center"
+                        className="w-full mt-8 bg-cyan-500/10 ring-1 ring-inset ring-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 hover:ring-cyan-500/50 hover:text-cyan-300 font-bold uppercase tracking-widest text-[10px] py-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(34,211,238,0.1)] hover:shadow-[0_0_30px_rgba(34,211,238,0.2)] group/btn select-none"
                     >
-                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Entrar na Plataforma'}
+                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+                            <>
+                                Entrar na Plataforma
+                                <ArrowRight className="w-4 h-4 opacity-70 group-hover/btn:translate-x-1 transition-transform" />
+                            </>
+                        )}
                     </button>
                 </form>
+            </div>
 
-                <p className="mt-12 text-[10px] text-white/20 tracking-widest uppercase">
-                    &copy; 2026 River. Todos os direitos reservados.
-                </p>
+            <div className="absolute bottom-8 text-xs text-white/30 font-light tracking-widest select-none pointer-events-none z-10">
+                RIVER CREATIVE LAB &copy; {new Date().getFullYear()}
             </div>
         </div>
     );

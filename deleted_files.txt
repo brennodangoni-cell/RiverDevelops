@@ -1,0 +1,44 @@
+commit 78b48725df737d27c6e03c51854011bed350e50c
+Author: semtetog <brennodmoraes@gmail.com>
+Date:   Wed Mar 4 16:11:21 2026 -0300
+
+    Revert "feat(frontend): Added Client Portal (Login, Dashboard) and Admin Client Management interface"
+    
+    This reverts commit dd0b75eb64d332e34406aa9783f694c298a93fb1.
+
+ delete mode 100644 src/pages/Admin/Clients.tsx
+ delete mode 100644 src/pages/Client/Dashboard.tsx
+ delete mode 100644 src/pages/Client/Login.tsx
+
+commit 2fec1cca5252f641921ce559e2f18008eded77ff
+Author: semtetog <brennodmoraes@gmail.com>
+Date:   Wed Mar 4 16:11:21 2026 -0300
+
+    Revert "fix(frontend): remove unused Link causing vercel build to fail & update deploy guide docs"
+    
+    This reverts commit 69768f7f0ba745c8f1826182164da422757da63d.
+
+ delete mode 100644 DEPLOY_GUIDE_VERCEL_RAILWAY.md
+
+commit 69768f7f0ba745c8f1826182164da422757da63d
+Author: semtetog <brennodmoraes@gmail.com>
+Date:   Tue Mar 3 22:36:32 2026 -0300
+
+    fix(frontend): remove unused Link causing vercel build to fail & update deploy guide docs
+
+ delete mode 100644 CLOUDFLARE_SETUP.md
+ delete mode 100644 DEPLOY_HOSTINGER.md
+ delete mode 100644 DEPLOY_HOSTINGER_RIVERTASKS.md
+
+commit 90d2e5990203972a86db7c0a166fc4a4406388a9
+Author: semtetog <brennodmoraes@gmail.com>
+Date:   Tue Mar 3 22:28:23 2026 -0300
+
+    chore: remove backend from git tracking as it uses independent deploy
+
+ delete mode 100644 backend/package-lock.json
+ delete mode 100644 backend/package.json
+ delete mode 100644 backend/src/auth.ts
+ delete mode 100644 backend/src/db.ts
+ delete mode 100644 backend/src/index.ts
+ delete mode 100644 backend/tsconfig.json

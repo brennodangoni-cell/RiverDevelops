@@ -111,6 +111,77 @@ app.delete('/api/tasks/:id', authenticate, (req: Request, res: Response) => {
     res.json({ success: true });
 });
 
+// Demands CRUD
+app.get('/api/demands', authenticate, (req: Request, res: Response) => {
+    const demands = db.prepare(`
+        SELECT d.*, creator.username as created_by_username
+        FROM demands d
+        LEFT JOIN users creator ON d.created_by = creator.id
+        ORDER BY d.created_at DESC
+    `).all();
+    res.json(demands);
+});
+
+app.post('/api/demands', authenticate, (req: Request, res: Response) => {
+    const { client_name, total_videos, duration_seconds, has_material, material_link, description } = req.body;
+    const created_by = (req as any).user.id;
+
+    const insert = db.prepare(`
+        INSERT INTO demands (client_name, total_videos, duration_seconds, has_material, material_link, description, created_by)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    const result = insert.run(
+        client_name,
+        total_videos,
+        duration_seconds || null,
+        has_material ? 1 : 0,
+        material_link || null,
+        description || '',
+        created_by
+    );
+
+    res.json({ id: result.lastInsertRowid, success: true });
+});
+
+app.delete('/api/demands/:id', authenticate, (req: Request, res: Response) => {
+    const { id } = req.params;
+    db.prepare('DELETE FROM demands WHERE id = ?').run(id);
+    res.json({ success: true });
+});
+
+// Endpoint to allocate tasks from a demand
+app.post('/api/demands/:id/allocate', authenticate, (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { assigned_to, videos_count, urgency, notes } = req.body;
+    const created_by = (req as any).user.id;
+
+    const demand = db.prepare('SELECT * FROM demands WHERE id = ?').get(id) as any;
+    if (!demand) return res.status(404).json({ error: 'Demand not found' });
+
+    const title = `Demanda: ${demand.client_name} - ${videos_count} vídeo(s) de ${demand.duration_seconds || '?'}s`;
+    let desc = `Ref Demanda #${id}.\n`;
+    if (demand.has_material && demand.material_link) desc += `Material: ${demand.material_link}\n`;
+    if (demand.description) desc += `Instruções: ${demand.description}\n`;
+    if (notes) desc += `Notas (p/ Admin): ${notes}`;
+
+    db.prepare(`
+        INSERT INTO tasks (title, description, urgency, status, assigned_to, created_by)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `).run(title, desc.trim(), urgency || 'MEDIUM', 'TODO', assigned_to, created_by);
+
+    const newAssignedCount = (demand.assigned_videos || 0) + parseInt(videos_count, 10);
+    const newStatus = newAssignedCount >= demand.total_videos ? 'completed' : 'partial';
+
+    db.prepare(`
+        UPDATE demands
+        SET assigned_videos = ?, status = ?
+        WHERE id = ?
+    `).run(newAssignedCount, newStatus, id);
+
+    res.json({ success: true });
+});
+
 // Transactions CRUD
 app.get('/api/transactions', authenticate, (req: Request, res: Response) => {
     const transactions = db.prepare(`
@@ -172,7 +243,7 @@ app.post('/api/clients/login', (req: Request, res: Response) => {
     if (!bcrypt.compareSync(password, client.password)) return res.status(401).json({ error: 'Invalid password' });
 
     const token = generateToken({ id: client.id, username: client.username, role: 'client' });
-    res.json({ token, client: { id: client.id, username: client.username } });
+    res.json({ token, client: { id: client.id, username: client.username, avatar_url: client.avatar_url } });
 });
 
 // Client: Get their own content
@@ -185,7 +256,7 @@ app.get('/api/client/content', authenticate, (req: Request, res: Response) => {
 
 // Admin: Get all clients
 app.get('/api/admin/clients', authenticate, (req: Request, res: Response) => {
-    const clients = db.prepare('SELECT id, username, created_at FROM clients ORDER BY created_at DESC').all();
+    const clients = db.prepare('SELECT id, username, avatar_url, created_at FROM clients ORDER BY created_at DESC').all();
     res.json(clients);
 });
 
@@ -197,15 +268,52 @@ app.get('/api/admin/clients/:clientId/content', authenticate, (req: Request, res
 });
 
 // Admin: Create client
-app.post('/api/admin/clients', authenticate, (req: Request, res: Response) => {
+app.post('/api/admin/clients', authenticate, upload.single('avatarFile'), (req: Request, res: Response) => {
     const { username, password } = req.body;
     if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
 
+    let finalAvatarUrl = null;
+    if (req.file) {
+        finalAvatarUrl = `/uploads/${req.file.filename}`;
+    }
+
     const hash = bcrypt.hashSync(password, 10);
     try {
-        const insert = db.prepare('INSERT INTO clients (username, password) VALUES (?, ?)');
-        const result = insert.run(username, hash);
-        res.json({ id: result.lastInsertRowid, success: true });
+        const insert = db.prepare('INSERT INTO clients (username, password, avatar_url) VALUES (?, ?, ?)');
+        const result = insert.run(username, hash, finalAvatarUrl);
+        res.json({ id: result.lastInsertRowid, success: true, avatar_url: finalAvatarUrl });
+    } catch (e: any) {
+        if (e.message.includes('UNIQUE')) return res.status(400).json({ error: 'Username already exists' });
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Admin: Edit client
+app.put('/api/admin/clients/:id', authenticate, upload.single('avatarFile'), (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { username, password } = req.body;
+
+    let updateQuery = 'UPDATE clients SET username = ?';
+    let params: any[] = [username];
+
+    if (password) {
+        const hash = bcrypt.hashSync(password, 10);
+        updateQuery += ', password = ?';
+        params.push(hash);
+    }
+
+    if (req.file) {
+        const finalAvatarUrl = `/uploads/${req.file.filename}`;
+        updateQuery += ', avatar_url = ?';
+        params.push(finalAvatarUrl);
+    }
+
+    updateQuery += ' WHERE id = ?';
+    params.push(id);
+
+    try {
+        db.prepare(updateQuery).run(...params);
+        res.json({ success: true });
     } catch (e: any) {
         if (e.message.includes('UNIQUE')) return res.status(400).json({ error: 'Username already exists' });
         res.status(500).json({ error: e.message });

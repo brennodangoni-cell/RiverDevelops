@@ -50,11 +50,28 @@ type User = {
     username: string;
 };
 
+type Demand = {
+    id: number;
+    client_name: string;
+    total_videos: number;
+    duration_seconds: number | null;
+    has_material: number; // sqlite gets 0 or 1
+    material_link: string | null;
+    description: string | null;
+    assigned_videos: number;
+    status: 'pending' | 'partial' | 'completed';
+    created_by: number;
+    created_by_username: string;
+    created_at: string;
+};
+
 export default function Dashboard() {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [users, setUsers] = useState<User[]>([]);
     const [transactions, setTransactions] = useState<any[]>([]);
+    const [demands, setDemands] = useState<Demand[]>([]);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<'tasks' | 'demands'>('tasks');
     const navigate = useNavigate();
 
     // Modal states
@@ -68,6 +85,12 @@ export default function Dashboard() {
     const [editingTaskData, setEditingTaskData] = useState({ title: '', description: '' });
 
     const [newTask, setNewTask] = useState({ title: '', description: '', urgency: 'MEDIUM', status: 'TODO', assigned_to: '' });
+
+    const [newDemand, setNewDemand] = useState({ client_name: '', total_videos: '', duration_seconds: '', has_material: false, material_link: '', description: '' });
+    const [isDemandModalOpen, setIsDemandModalOpen] = useState(false);
+
+    const [isAllocateModalOpen, setIsAllocateModalOpen] = useState(false);
+    const [allocateData, setAllocateData] = useState({ demand_id: 0, assigned_to: '', videos_count: '', urgency: 'MEDIUM', notes: '' });
 
     const currentUser = JSON.parse(localStorage.getItem('rivertasks_user') || '{}');
 
@@ -86,14 +109,16 @@ export default function Dashboard() {
 
     const fetchData = async (silent = false) => {
         try {
-            const [tasksRes, usersRes, txRes] = await Promise.all([
+            const [tasksRes, usersRes, txRes, demandsRes] = await Promise.all([
                 axios.get('/api/tasks'),
                 axios.get('/api/users'),
-                axios.get('/api/transactions')
+                axios.get('/api/transactions'),
+                axios.get('/api/demands')
             ]);
             setTasks(tasksRes.data);
             setUsers(usersRes.data);
             setTransactions(txRes.data);
+            setDemands(demandsRes.data);
         } catch (error) {
             if (!silent) toast.error('Erro ao buscar dados.');
             if (axios.isAxiosError(error) && error.response?.status === 401) {
@@ -137,6 +162,50 @@ export default function Dashboard() {
             fetchData();
         } catch (error) {
             toast.error('Erro ao atualizar tarefa.');
+        }
+    };
+
+    const handleCreateDemand = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await axios.post('/api/demands', {
+                ...newDemand,
+                total_videos: Number(newDemand.total_videos) || 0,
+                duration_seconds: Number(newDemand.duration_seconds) || 0,
+            });
+            toast.success('Demanda criada!');
+            setIsDemandModalOpen(false);
+            setNewDemand({ client_name: '', total_videos: '', duration_seconds: '', has_material: false, material_link: '', description: '' });
+            fetchData();
+        } catch (error) {
+            toast.error('Erro ao criar demanda.');
+        }
+    };
+
+    const handleDeleteDemand = async (id: number) => {
+        if (!confirm('Excluir esta demanda?')) return;
+        try {
+            await axios.delete(`/api/demands/${id}`);
+            toast.success('Demanda excluída.');
+            fetchData();
+        } catch (error) {
+            toast.error('Erro ao excluir demanda.');
+        }
+    };
+
+    const handleAllocateDemand = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await axios.post(`/api/demands/${allocateData.demand_id}/allocate`, {
+                ...allocateData,
+                assigned_to: Number(allocateData.assigned_to) || currentUser.id
+            });
+            toast.success('Tarefa gerada a partir da demanda!');
+            setIsAllocateModalOpen(false);
+            setAllocateData({ demand_id: 0, assigned_to: '', videos_count: '', urgency: 'MEDIUM', notes: '' });
+            fetchData();
+        } catch (error) {
+            toast.error('Erro ao alocar demanda.');
         }
     };
 
@@ -237,7 +306,7 @@ export default function Dashboard() {
                                 </Link>
                                 <Link
                                     to="/admin/clientes"
-                                    className="w-10 h-10 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center hover:bg-purple-500/20 hover:border-purple-500 transition-all duration-300 shrink-0 shadow-[0_0_15px_rgba(168,85,247,0.15)]"
+                                    className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center hover:bg-emerald-500/20 hover:border-emerald-500 transition-all duration-300 shrink-0 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
                                     title="Gestão de Clientes"
                                 >
                                     <Users className="w-4 h-4" />
@@ -310,7 +379,7 @@ export default function Dashboard() {
                             </Link>
                             <Link
                                 to="/admin/clientes"
-                                className="w-10 h-10 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center hover:bg-purple-500/20 hover:border-purple-500 transition-all duration-300 shrink-0 shadow-[0_0_15px_rgba(168,85,247,0.15)]"
+                                className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center hover:bg-emerald-500/20 hover:border-emerald-500 transition-all duration-300 shrink-0 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
                                 title="Gestão de Clientes"
                             >
                                 <Users className="w-4 h-4" />
@@ -354,95 +423,166 @@ export default function Dashboard() {
                 </div>
             </nav>
 
-            {/* Sleek Kanban Board */}
-            <main className="max-w-[1600px] mx-auto px-4 sm:px-6 md:px-10 pt-[160px] lg:pt-[180px] min-h-[100dvh] relative z-10 flex flex-wrap justify-center lg:justify-start gap-8 pb-12">
-                {sections.map(section => (
-                    <div key={section.status} className="w-full sm:w-auto md:min-w-[340px] md:max-w-lg flex-1 flex flex-col relative shrink-0">
-                        {/* Floating Pill Header */}
-                        <div className="flex items-center justify-between mb-6 rounded-full py-4 px-6 shrink-0 shadow-lg relative isolate">
-                            <div className="absolute inset-0 bg-white/5 backdrop-blur-xl ring-1 ring-inset ring-white/10 rounded-full -z-10 overflow-hidden" />
-                            <div className="flex items-center gap-4">
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${section.bg} ring-1 ring-white/10 shadow-lg`}>
-                                    <section.icon className={`w-5 h-5 ${section.color}`} />
+            {/* Top Toggle Demands vs Tasks */}
+            <div className="max-w-[1600px] mx-auto px-4 sm:px-6 md:px-10 pt-[150px] lg:pt-[170px] relative z-20 flex justify-center mb-6">
+                <div className="bg-black/40 backdrop-blur-md rounded-full border border-white/5 p-1 flex items-center gap-1">
+                    <button onClick={() => setActiveTab('tasks')} className={`px-5 py-2 sm:px-8 sm:py-2.5 rounded-full text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-all duration-300 ${activeTab === 'tasks' ? 'bg-cyan-500 text-black shadow-[0_0_20px_rgba(34,211,238,0.3)]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}>
+                        Tarefas Ativas
+                    </button>
+                    <button onClick={() => setActiveTab('demands')} className={`px-5 py-2 sm:px-8 sm:py-2.5 rounded-full text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-all duration-300 ${activeTab === 'demands' ? 'bg-emerald-500 text-black shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}>
+                        Mural de Demandas
+                    </button>
+                </div>
+            </div>
+
+            {activeTab === 'tasks' ? (
+                /* Sleek Kanban Board */
+                <main className="max-w-[1600px] mx-auto px-4 sm:px-6 md:px-10 min-h-[50dvh] relative z-10 flex flex-wrap justify-center lg:justify-start gap-8 pb-12">
+                    {sections.map(section => (
+                        <div key={section.status} className="w-full sm:w-auto md:min-w-[340px] md:max-w-lg flex-1 flex flex-col relative shrink-0">
+                            {/* Floating Pill Header */}
+                            <div className="flex items-center justify-between mb-6 rounded-full py-4 px-6 shrink-0 shadow-lg relative isolate">
+                                <div className="absolute inset-0 bg-white/5 backdrop-blur-xl ring-1 ring-inset ring-white/10 rounded-full -z-10 overflow-hidden" />
+                                <div className="flex items-center gap-4">
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${section.bg} ring-1 ring-white/10 shadow-lg`}>
+                                        <section.icon className={`w-5 h-5 ${section.color}`} />
+                                    </div>
+                                    <h2 className="text-lg lg:text-xl font-display font-medium text-white tracking-wide">{section.title}</h2>
                                 </div>
-                                <h2 className="text-lg lg:text-xl font-display font-medium text-white tracking-wide">{section.title}</h2>
+                                <span className="text-xs font-sans font-bold text-white/50 bg-white/5 px-4 py-1.5 rounded-full ring-1 ring-white/10">
+                                    {tasks.filter(t => t.status === section.status && t.assigned_to === viewingUserId && !(t.status === 'DONE' && isOlderThanToday(t.updated_at || t.created_at))).length}
+                                </span>
                             </div>
-                            <span className="text-xs font-sans font-bold text-white/50 bg-white/5 px-4 py-1.5 rounded-full ring-1 ring-white/10">
-                                {tasks.filter(t => t.status === section.status && t.assigned_to === viewingUserId && !(t.status === 'DONE' && isOlderThanToday(t.updated_at || t.created_at))).length}
-                            </span>
-                        </div>
 
-                        {/* Task List */}
-                        <div className="flex flex-col pb-8 space-y-4">
-                            {tasks.filter(t => t.status === section.status && t.assigned_to === viewingUserId && !(t.status === 'DONE' && isOlderThanToday(t.updated_at || t.created_at))).map(task => (
-                                <div key={task.id} className="group relative flex flex-col rounded-[2rem] p-6 transition-all duration-300 shadow-lg hover:shadow-2xl cursor-default isolate">
-                                    <div className="absolute inset-0 bg-white/5 backdrop-blur-xl ring-1 ring-inset ring-white/10 group-hover:bg-white/10 group-hover:ring-white/20 rounded-[2rem] transition-all duration-300 -z-10 overflow-hidden pointer-events-none" />
+                            {/* Task List */}
+                            <div className="flex flex-col pb-8 space-y-4">
+                                {tasks.filter(t => t.status === section.status && t.assigned_to === viewingUserId && !(t.status === 'DONE' && isOlderThanToday(t.updated_at || t.created_at))).map(task => (
+                                    <div key={task.id} className="group relative flex flex-col rounded-[2rem] p-6 transition-all duration-300 shadow-lg hover:shadow-2xl cursor-default isolate">
+                                        <div className="absolute inset-0 bg-white/5 backdrop-blur-xl ring-1 ring-inset ring-white/10 group-hover:bg-white/10 group-hover:ring-white/20 rounded-[2rem] transition-all duration-300 -z-10 overflow-hidden pointer-events-none" />
 
-                                    {/* Action Buttons (Floating pill inside card - restricted to assignee) */}
-                                    {task.assigned_to === currentUser.id && (
-                                        <div className="absolute top-5 right-5 z-10 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 flex gap-1 bg-black/80 backdrop-blur-md rounded-full border border-white/10 p-1.5 shadow-xl">
-                                            {task.status !== 'TODO' && (
-                                                <button onClick={() => handleUpdateStatus(task.id, 'TODO')} className="p-2 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-colors" title="Mover para Por Fazer"><CircleDashed className="w-4 h-4" /></button>
-                                            )}
-                                            {task.status !== 'IN_PROGRESS' && (
-                                                <button onClick={() => handleUpdateStatus(task.id, 'IN_PROGRESS')} className="p-2 text-white/40 hover:text-cyan-400 hover:bg-cyan-400/10 rounded-full transition-colors" title="Mover para Andamento"><Clock className="w-4 h-4" /></button>
-                                            )}
-                                            {task.status !== 'DONE' && (
-                                                <button onClick={() => handleUpdateStatus(task.id, 'DONE')} className="p-2 text-white/40 hover:text-green-400 hover:bg-green-400/10 rounded-full transition-colors" title="Mover para Concluído"><Check className="w-4 h-4" /></button>
-                                            )}
-                                            {task.status !== 'DONE' && (
-                                                <button onClick={() => {
-                                                    setEditingTaskId(task.id);
-                                                    setEditingTaskData({ title: task.title, description: task.description || '' });
-                                                }} className="p-2 text-white/40 hover:text-blue-400 hover:bg-blue-400/10 rounded-full transition-colors" title="Editar Tarefa">
-                                                    <Edit2 className="w-4 h-4" />
-                                                </button>
-                                            )}
-                                            <div className="w-px h-6 bg-white/10 mx-0.5 my-auto" />
-                                            <button onClick={() => { setTaskToDelete(task.id); setIsDeleteModalOpen(true); }} className="p-2 text-white/40 hover:text-red-400 hover:bg-red-400/10 rounded-full transition-colors" title="Excluir"><Trash2 className="w-4 h-4" /></button>
-                                        </div>
-                                    )}
-
-                                    <>
-                                        <h3 className="text-base font-medium leading-relaxed text-white tracking-wide mb-3 pr-24">{task.title}</h3>
-                                        {task.description && (
-                                            <p className="text-sm text-white/50 line-clamp-3 leading-relaxed mb-6 font-light">{task.description}</p>
+                                        {/* Action Buttons (Floating pill inside card - restricted to assignee) */}
+                                        {task.assigned_to === currentUser.id && (
+                                            <div className="absolute top-5 right-5 z-10 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 flex gap-1 bg-black/80 backdrop-blur-md rounded-full border border-white/10 p-1.5 shadow-xl">
+                                                {task.status !== 'TODO' && (
+                                                    <button onClick={() => handleUpdateStatus(task.id, 'TODO')} className="p-2 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-colors" title="Mover para Por Fazer"><CircleDashed className="w-4 h-4" /></button>
+                                                )}
+                                                {task.status !== 'IN_PROGRESS' && (
+                                                    <button onClick={() => handleUpdateStatus(task.id, 'IN_PROGRESS')} className="p-2 text-white/40 hover:text-cyan-400 hover:bg-cyan-400/10 rounded-full transition-colors" title="Mover para Andamento"><Clock className="w-4 h-4" /></button>
+                                                )}
+                                                {task.status !== 'DONE' && (
+                                                    <button onClick={() => handleUpdateStatus(task.id, 'DONE')} className="p-2 text-white/40 hover:text-green-400 hover:bg-green-400/10 rounded-full transition-colors" title="Mover para Concluído"><Check className="w-4 h-4" /></button>
+                                                )}
+                                                {task.status !== 'DONE' && (
+                                                    <button onClick={() => {
+                                                        setEditingTaskId(task.id);
+                                                        setEditingTaskData({ title: task.title, description: task.description || '' });
+                                                    }} className="p-2 text-white/40 hover:text-blue-400 hover:bg-blue-400/10 rounded-full transition-colors" title="Editar Tarefa">
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                                <div className="w-px h-6 bg-white/10 mx-0.5 my-auto" />
+                                                <button onClick={() => { setTaskToDelete(task.id); setIsDeleteModalOpen(true); }} className="p-2 text-white/40 hover:text-red-400 hover:bg-red-400/10 rounded-full transition-colors" title="Excluir"><Trash2 className="w-4 h-4" /></button>
+                                            </div>
                                         )}
-                                    </>
 
-                                    <div className="flex items-center justify-between mt-auto pt-5 border-t border-white/5">
-                                        <div className="flex flex-col gap-1.5">
-                                            <span className="text-[10px] text-white/40 uppercase tracking-widest font-medium">Atribuída por:</span>
-                                            <div className="flex items-center gap-2">
-                                                <img
-                                                    src={task.created_by_username === currentUser.username ? `/${currentUser.username?.toLowerCase() || 'default'}.webp` : `/${task.created_by_username?.toLowerCase()}.webp`}
-                                                    alt={task.created_by_username}
-                                                    className="w-7 h-7 rounded-full object-cover border border-white/10 shadow-sm"
-                                                    onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${task.created_by_username}&background=111&color=fff`; }}
-                                                />
-                                                <span className="text-xs tracking-wide text-white/80 font-medium">
-                                                    {task.created_by_username === currentUser.username ? 'VOCÊ' : task.created_by_username?.split(' ')[0]}
-                                                </span>
+                                        <>
+                                            <h3 className="text-base font-medium leading-relaxed text-white tracking-wide mb-3 pr-24">{task.title}</h3>
+                                            {task.description && (
+                                                <p className="text-sm text-white/50 line-clamp-3 leading-relaxed mb-6 font-light">{task.description}</p>
+                                            )}
+                                        </>
+
+                                        <div className="flex items-center justify-between mt-auto pt-5 border-t border-white/5">
+                                            <div className="flex flex-col gap-1.5">
+                                                <span className="text-[10px] text-white/40 uppercase tracking-widest font-medium">Atribuída por:</span>
+                                                <div className="flex items-center gap-2">
+                                                    <img
+                                                        src={task.created_by_username === currentUser.username ? `/${currentUser.username?.toLowerCase() || 'default'}.webp` : `/${task.created_by_username?.toLowerCase()}.webp`}
+                                                        alt={task.created_by_username}
+                                                        className="w-7 h-7 rounded-full object-cover border border-white/10 shadow-sm"
+                                                        onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${task.created_by_username}&background=111&color=fff`; }}
+                                                    />
+                                                    <span className="text-xs tracking-wide text-white/80 font-medium">
+                                                        {task.created_by_username === currentUser.username ? 'VOCÊ' : task.created_by_username?.split(' ')[0]}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col items-end justify-center h-full pt-4">
+                                                {getUrgencyIndicator(task.urgency)}
                                             </div>
                                         </div>
-                                        <div className="flex flex-col items-end justify-center h-full pt-4">
-                                            {getUrgencyIndicator(task.urgency)}
+                                    </div>
+                                ))}
+                                {tasks.filter(t => t.status === section.status && t.assigned_to === viewingUserId && !(t.status === 'DONE' && isOlderThanToday(t.updated_at || t.created_at))).length === 0 && (
+                                    <div className="bg-white/[0.02] border border-white/5 border-dashed rounded-[2rem] py-14 flex flex-col items-center justify-center text-center opacity-70">
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-4 ${section.bg} ring-1 ring-white/5`}>
+                                            <section.icon className={`w-4 h-4 ${section.color}`} />
                                         </div>
+                                        <span className="text-xs text-white/50 font-display font-medium tracking-widest uppercase">Pilha Vazia</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </main>
+            ) : (
+                <main className="max-w-[1600px] mx-auto px-4 sm:px-6 md:px-10 min-h-[50dvh] relative z-10 pb-12 w-full flex flex-col items-center">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 bg-white/5 border border-white/10 rounded-[2rem] sm:rounded-full py-6 sm:py-4 px-6 sm:px-8 backdrop-blur-xl shrink-0 w-full max-w-7xl shadow-lg">
+                        <div>
+                            <h1 className="text-xl font-display font-medium text-white tracking-widest uppercase">Demandas em Aberto</h1>
+                            <p className="text-xs text-white/40 tracking-wider">Gerencie a fila de projetos pendentes de clientes.</p>
+                        </div>
+                        <button onClick={() => setIsDemandModalOpen(true)} className="bg-emerald-500/10 hover:bg-emerald-500/20 ring-1 ring-inset ring-emerald-500/30 text-emerald-400 font-bold tracking-widest uppercase text-[10px] px-6 py-3 rounded-full flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(16,185,129,0.15)]">
+                            <Plus className="w-4 h-4" /> Nova Demanda
+                        </button>
+                    </div>
+
+                    {demands.length === 0 ? (
+                        <div className="bg-white/5 border border-white/10 border-dashed rounded-[3rem] w-full max-w-7xl py-24 flex flex-col items-center justify-center text-center relative">
+                            <span className="text-sm text-white/40 tracking-widest uppercase">Nenhuma demanda cadastrada</span>
+                        </div>
+                    ) : (
+                        <div className="w-full max-w-7xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-0">
+                            {demands.map(demand => (
+                                <div key={demand.id} className="bg-[#0A0A0A] border border-white/10 rounded-[2rem] p-6 flex flex-col relative group transition-all hover:border-white/20 hover:shadow-2xl hover:shadow-cyan-500/10">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <h3 className="text-lg font-bold text-white tracking-wider truncate uppercase">{demand.client_name}</h3>
+                                        <button onClick={() => handleDeleteDemand(demand.id)} className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500/50 hover:text-red-500 hover:bg-red-500/20 transition-colors shrink-0">
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4 mb-4">
+                                        <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                                            <span className="text-[10px] text-white/40 uppercase tracking-widest block mb-1">Restam</span>
+                                            <span className="text-xl font-display font-bold text-cyan-400">{demand.total_videos - demand.assigned_videos} <span className="text-[10px] text-white/30 font-medium">/ {demand.total_videos} vlog</span></span>
+                                        </div>
+                                        <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                                            <span className="text-[10px] text-white/40 uppercase tracking-widest block mb-1">Duração Calc.</span>
+                                            <span className="text-xl font-display font-bold text-emerald-400">{demand.duration_seconds || '--'}<span className="text-[10px] text-emerald-400/50">s</span></span>
+                                        </div>
+                                    </div>
+                                    {demand.description && <p className="text-xs text-white/50 mb-4 line-clamp-3 leading-relaxed">{demand.description}</p>}
+                                    {demand.has_material === 1 && demand.material_link && (
+                                        <a href={demand.material_link} target="_blank" rel="noreferrer" className="text-[10px] text-blue-400 hover:text-blue-300 underline tracking-wider mb-4 block truncate">Link de Referência / Material</a>
+                                    )}
+
+                                    <div className="mt-auto pt-4 border-t border-white/10 flex justify-between items-center">
+                                        <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full ${demand.status === 'completed' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : demand.status === 'partial' ? 'bg-amber-400/10 text-amber-500 border border-amber-400/20' : 'bg-white/5 text-white/50 border border-white/10'}`}>
+                                            {demand.status === 'completed' ? 'Concluída' : demand.status === 'partial' ? 'Em Progresso' : 'Pendente'}
+                                        </span>
+
+                                        {demand.status !== 'completed' && (
+                                            <button onClick={() => { setAllocateData({ ...allocateData, demand_id: demand.id, videos_count: String(demand.total_videos - demand.assigned_videos) }); setIsAllocateModalOpen(true); }} className="text-[10px] font-bold uppercase tracking-widest text-black bg-cyan-400 hover:bg-cyan-300 px-5 py-2.5 rounded-full transition-all hover:scale-105 shadow-[0_0_15px_rgba(34,211,238,0.3)]">
+                                                Pegar Demanda
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             ))}
-                            {tasks.filter(t => t.status === section.status && t.assigned_to === viewingUserId && !(t.status === 'DONE' && isOlderThanToday(t.updated_at || t.created_at))).length === 0 && (
-                                <div className="bg-white/[0.02] border border-white/5 border-dashed rounded-[2rem] py-14 flex flex-col items-center justify-center text-center opacity-70">
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-4 ${section.bg} ring-1 ring-white/5`}>
-                                        <section.icon className={`w-4 h-4 ${section.color}`} />
-                                    </div>
-                                    <span className="text-xs text-white/50 font-display font-medium tracking-widest uppercase">Pilha Vazia</span>
-                                </div>
-                            )}
                         </div>
-                    </div>
-                ))}
-            </main>
+                    )}
+                </main>
+            )}
 
             {/* Create Task Modal */}
             {isModalOpen && (
@@ -670,6 +810,95 @@ export default function Dashboard() {
                                 </button>
                             </div>
                         </div>
+                    </div>
+                </div>
+            )}
+            {/* Create Demand Modal */}
+            {isDemandModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsDemandModalOpen(false)} />
+                    <div className="relative bg-[#080808]/90 backdrop-blur-2xl ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] transform transition-all flex flex-col ring-1 ring-white/5 p-8 sm:p-10">
+                        <button type="button" onClick={() => setIsDemandModalOpen(false)} className="absolute top-6 right-6 z-20 text-white/30 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2.5 rounded-full">
+                            <X className="w-5 h-5" />
+                        </button>
+
+                        <div className="w-full text-center mb-8">
+                            <h2 className="text-xl sm:text-2xl font-display font-medium text-white tracking-wide uppercase">Nova Demanda</h2>
+                            <p className="text-xs text-white/40 tracking-wider">Adicione o projeto do cliente no mural.</p>
+                        </div>
+
+                        <form onSubmit={handleCreateDemand} className="flex flex-col gap-4">
+                            <input required type="text" value={newDemand.client_name} onChange={e => setNewDemand({ ...newDemand, client_name: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50 transition-all font-light" placeholder="Nome do Cliente" />
+
+                            <div className="flex gap-4">
+                                <input required type="number" min="1" value={newDemand.total_videos} onChange={e => setNewDemand({ ...newDemand, total_videos: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50 transition-all font-light" placeholder="Qtd. de Vídeos" />
+                                <input required type="number" min="1" value={newDemand.duration_seconds} onChange={e => setNewDemand({ ...newDemand, duration_seconds: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50 transition-all font-light" placeholder="Segundos CADA" />
+                            </div>
+
+                            <label className="flex items-center gap-3 cursor-pointer mt-2 mb-1 px-2">
+                                <div className={`w-5 h-5 rounded flex items-center justify-center transition-colors border ${newDemand.has_material ? 'bg-emerald-500 border-emerald-500' : 'bg-transparent border-white/20'}`}>
+                                    {newDemand.has_material && <Check className="w-3.5 h-3.5 text-black" />}
+                                </div>
+                                <span className="text-xs font-bold text-white/70 tracking-widest uppercase">Possui material de apoio?</span>
+                                <input type="checkbox" checked={newDemand.has_material} onChange={e => setNewDemand({ ...newDemand, has_material: e.target.checked })} className="hidden" />
+                            </label>
+
+                            {newDemand.has_material && (
+                                <input required type="url" value={newDemand.material_link} onChange={e => setNewDemand({ ...newDemand, material_link: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50 transition-all font-light" placeholder="Link do Google Drive / Dropbox" />
+                            )}
+
+                            <textarea rows={2} value={newDemand.description} onChange={e => setNewDemand({ ...newDemand, description: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50 transition-all font-light resize-none mt-2" placeholder="Instruções ou Descrição Extra" />
+
+                            <button type="submit" className="w-full mt-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400 hover:text-emerald-300 font-bold uppercase tracking-widest text-xs py-4 rounded-full transition-all flex justify-center items-center shadow-[0_0_20px_rgba(16,185,129,0.1)]">
+                                Registrar Demanda
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Allocate Demand Modal */}
+            {isAllocateModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsAllocateModalOpen(false)} />
+                    <div className="relative bg-[#080808]/90 backdrop-blur-2xl ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] transform transition-all flex flex-col ring-1 ring-white/5 p-8 sm:p-10">
+                        <button type="button" onClick={() => setIsAllocateModalOpen(false)} className="absolute top-6 right-6 z-20 text-white/30 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2.5 rounded-full">
+                            <X className="w-5 h-5" />
+                        </button>
+
+                        <div className="w-full text-center mb-8">
+                            <h2 className="text-xl sm:text-2xl font-display font-medium text-white tracking-wide uppercase">Pegar Parte</h2>
+                            <p className="text-xs text-white/40 tracking-wider">Designe uma parte da demanda como tarefa.</p>
+                        </div>
+
+                        <form onSubmit={handleAllocateDemand} className="flex flex-col gap-4">
+                            <div className="flex gap-4 w-full">
+                                <div className="flex-1 dropdown-container relative bg-white/5 border border-white/10 rounded-2xl px-5 py-1 flex items-center cursor-pointer hover:bg-white/10 hover:border-cyan-400/50 transition-all">
+                                    <select required value={allocateData.assigned_to} onChange={e => setAllocateData({ ...allocateData, assigned_to: e.target.value })} className="w-full bg-transparent text-white outline-none cursor-pointer appearance-none text-center font-bold tracking-widest text-sm uppercase">
+                                        <option value="" disabled className="text-black bg-white">Membro (Equipe)</option>
+                                        <option value={currentUser.id} className="text-black bg-white">VOCÊ</option>
+                                        {users.filter(u => u.id !== currentUser.id).map(user => (
+                                            <option key={user.id} value={user.id} className="text-black bg-white">{user.username}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="w-1/3">
+                                    <input required type="number" min="1" max={allocateData.videos_count} value={allocateData.videos_count} onChange={e => setAllocateData({ ...allocateData, videos_count: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 transition-all font-bold placeholder:text-white/20" placeholder="Qtd. Vds" />
+                                </div>
+                            </div>
+
+                            <div className="flex bg-white/5 rounded-full overflow-hidden p-1 border border-white/10 w-full mt-2">
+                                <button type="button" onClick={() => setAllocateData({ ...allocateData, urgency: 'LOW' })} className={`flex-1 py-3 text-[9px] font-bold uppercase tracking-widest rounded-full transition-all ${allocateData.urgency === 'LOW' ? 'bg-emerald-400 text-black shadow-lg' : 'text-emerald-400 hover:bg-white/10'}`}>Baixa Urgência</button>
+                                <button type="button" onClick={() => setAllocateData({ ...allocateData, urgency: 'MEDIUM' })} className={`flex-1 py-3 text-[9px] font-bold uppercase tracking-widest rounded-full transition-all ${allocateData.urgency === 'MEDIUM' ? 'bg-yellow-400 text-black shadow-lg' : 'text-yellow-400 hover:bg-white/10'}`}>Normal</button>
+                                <button type="button" onClick={() => setAllocateData({ ...allocateData, urgency: 'HIGH' })} className={`flex-1 py-3 text-[9px] font-bold uppercase tracking-widest rounded-full transition-all ${allocateData.urgency === 'HIGH' ? 'bg-red-500 text-black shadow-lg' : 'text-red-500 hover:bg-white/10'}`}>Urgente</button>
+                            </div>
+
+                            <textarea rows={2} value={allocateData.notes} onChange={e => setAllocateData({ ...allocateData, notes: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-cyan-400/50 transition-all font-light resize-none mt-2" placeholder="Notas/Anotações Rápidas (Opcional)" />
+
+                            <button type="submit" className="w-full mt-4 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-widest text-xs py-4 rounded-full transition-all flex justify-center items-center shadow-[0_0_20px_rgba(34,211,238,0.1)]">
+                                Confirmar e Criar Tarefa
+                            </button>
+                        </form>
                     </div>
                 </div>
             )}
