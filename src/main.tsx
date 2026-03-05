@@ -16,7 +16,7 @@ import axios from 'axios'
 
 // Set globally the API base URL (Vercel Env or Localhost)
 // @ts-ignore
-axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'https://riverdevelops.onrender.com';
+axios.defaults.baseURL = 'https://riverdevelops.onrender.com';
 
 const router = createBrowserRouter([
     {
