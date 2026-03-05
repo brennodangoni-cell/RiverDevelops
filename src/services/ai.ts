@@ -177,36 +177,36 @@ export async function analyzeProduct(imagesBase64: string[], marketingContext?: 
             parts: [
                 ...parts,
                 {
-                    text: `SYSTEM MANDATE: You are an ELITE ADVERTISING DIRECTOR and CMO.
+                    text: `SYSTEM MANDATE: You are an ELITE 3D INDUSTRIAL DESIGNER and VISUAL STRATEGIST.
 ${marketingContext ? `
-[CRITICAL MARKETING CONTEXT - SUPER-PRIORITY]
+[CRITICAL MARKETING CONTEXT]
 """
 ${marketingContext}
 """
-MANDATE: ALL Suggested Sceneries (Lifestyle & Product-Only) MUST directly serve the marketing goals, target audience, and benefits described above. No generic suggestions allowed.
 ` : ''}
 
-Analyze these product images for a KLING 3.0 AI Video. RETURN a JSON with: 1. 'description' (ENGLISH, detailed). 2. 'productType' (PT-BR). 3. 'suggestedSceneriesProductOnly' (PT-BR): 4 scenarios. 4. 'suggestedSceneriesLifestyle' (PT-BR): 4 scenarios. MANDATE: REALISTIC, PROFESSIONAL, GROUNDED. Cinematic = good lighting, clean composition, believable — NOT surreal, NOT dreamlike, NOT avant-garde. Think: Nike/Apple/real brand commercials. Real locations, real people, real light. No liquid metal, no floating objects, no fantasy. Elegant but believable.
+Analyze these images to create a 'DIGITAL TWIN SPECIFICATION'. Your goal is absolute geometric and branding fidelity for a video production.
 
-1. "description" (ENGLISH, ultra-detailed):
-    - Exact physical traits: shape, silhouette, weight distribution
-    - MICRO-PHYSICS: How the materials react to touch and pressure (e.g., "memory foam compression", "rigid plastic", "liquid viscosity")
-    - Textures & Finishes: (matte, glossy, brushed, rubberized, porous)
-    - Colors: Verbal description + precise HEX codes (e.g., "Emerald Green #50C878")
-    - QUANTITY: Exactly how many items (pair/set/single)?
-    - Branding: Exact placement and legibility of all logos/text.
+RETURN a JSON matching the schema below.
 
-2. "productType" (PORTUGUESE): Short category name
+1. "description" (ENGLISH - TECHNICAL BLUEPRINT):
+    - GEOMETRIC VOLUME: Describe the 3D shape, proportions, and symmetry with mathematical precision.
+    - BRANDING MAP: List every logo, text, and icon. Specify EXACT placement (e.g., 'Lateral-mid-left', 'Embossed on sole'), material (e.g., 'Raised rubber', 'Screen-printed gold'), and font characteristics.
+    - MATERIAL PHYSICS: How light reflects (specular vs diffuse), surface roughness (RMS), and structural behavior (flexibility vs rigidity).
+    - COLOR FIDELITY: Exact verbal descriptions + precise HEX codes (minimum 3).
+    - QUANTITY & STATE: Exactly what is in the frame (e.g., 'One left-foot shoe', 'A set of 3 bottles').
 
-3. "suggestedSceneriesProductOnly" (PORTUGUESE): 4 REALISTIC scenarios — studio, fundo neutro, mesa de madeira, superfície natural. Clean, professional, believable. No surrealism.
+2. "productType" (PORTUGUESE): Short category name.
 
-4. "suggestedSceneriesLifestyle" (PORTUGUESE): 4 REALISTIC scenarios — pessoa em ambiente real (sala, rua, praia, café). Natural, elegante, sem exageros. Interação genuína com o produto.
+3. "suggestedSceneriesProductOnly" (PORTUGUESE): 4 commercial scenarios focusing on product details.
 
-5. "colors" (ENGLISH): List of all unique colors/variations detected with HEX.
+4. "suggestedSceneriesLifestyle" (PORTUGUESE): 4 realistic scenarios with human interaction.
 
-6. "sellingPoints" (PORTUGUESE): TOP 3 technical/visual advantages.
+5. "colors" (ENGLISH): Detailed list of all color shades with HEX.
 
-7. "dominantHexColors": List the 3 most important HEX CODES detected.` }
+6. "sellingPoints" (PORTUGUESE): Top 3 technical/aesthetic advantages.
+
+7. "dominantHexColors": Top 3 HEX codes.` }
             ]
         },
         config: {
@@ -214,33 +214,13 @@ Analyze these product images for a KLING 3.0 AI Video. RETURN a JSON with: 1. 'd
             responseSchema: {
                 type: Type.OBJECT,
                 properties: {
-                    description: { type: Type.STRING, description: "Ultra-precise English description including shape, colors (hex), materials, textures, branding, text, logos, QUANTITY (pair/single/set), display convention, and all unique visual features." },
-                    productType: { type: Type.STRING, description: "A short category name in Portuguese (e.g., 'Tênis', 'Garrafa de Skincare', 'Eletrônico')." },
-                    suggestedSceneriesProductOnly: {
-                        type: Type.ARRAY,
-                        items: { type: Type.STRING },
-                        description: "Array of 3-4 realistic studio/neutral environment descriptions in Portuguese. Professional, believable, no surrealism."
-                    },
-                    suggestedSceneriesLifestyle: {
-                        type: Type.ARRAY,
-                        items: { type: Type.STRING },
-                        description: "Array of 3-4 realistic lifestyle scenarios in Portuguese. Real locations, natural actions, no fantasy."
-                    },
-                    colors: {
-                        type: Type.ARRAY,
-                        items: { type: Type.STRING },
-                        description: "List of all unique color variations detected in the provided images."
-                    },
-                    sellingPoints: {
-                        type: Type.ARRAY,
-                        items: { type: Type.STRING },
-                        description: "Top 3 marketing hooks/technical advantages in Portuguese."
-                    },
-                    dominantHexColors: {
-                        type: Type.ARRAY,
-                        items: { type: Type.STRING },
-                        description: "List of precise hex codes extracted (e.g. ['#FFFFFF'])."
-                    }
+                    description: { type: Type.STRING, description: "Technical blueprint in English: 3D geometry, precise branding map (coordinates/style), material physics, and exact color specs." },
+                    productType: { type: Type.STRING },
+                    suggestedSceneriesProductOnly: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    suggestedSceneriesLifestyle: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    colors: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    sellingPoints: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    dominantHexColors: { type: Type.ARRAY, items: { type: Type.STRING } }
                 },
                 required: ["description", "productType", "suggestedSceneriesProductOnly", "suggestedSceneriesLifestyle", "colors", "sellingPoints", "dominantHexColors"]
             }
@@ -494,7 +474,7 @@ Output: JSON array of 3 ${engine === 'kling' ? 'Kling 3.0' : 'Sora 2'} prompts (
 // 3. GENERATE MOCKUP — DUAL ENGINE: SORA (Collage) | KLING (Starting Frame)
 // =======================================================================
 export async function generateMockup(
-    _productDescription: string, // IGNORED — produto vem só das fotos
+    productDescription: string,
     options: any,
     promptIndex: number,
     productImages: string[],
@@ -510,52 +490,64 @@ export async function generateMockup(
 
     const ai = new GoogleGenAI({ apiKey });
 
-    // --- KLING 3.0 LOGIC (Single Frame Reference) ---
+    // --- KLING 3.0 LOGIC (Single Frame Reference for I2V) ---
     const klingSceneVariations = [
-        "Hero shot: product centered, slightly angled (3/4 view). Full product visible with logo/branding readable. Clean, spacious composition with room for motion.",
-        "Lifestyle context: product in a natural setting, as if someone just placed it down or is about to pick it up. Realistic environment, product is the clear focal point.",
-        "Detail-focused: product from an interesting angle that shows craftsmanship, texture, and material quality. Close enough to see details but full product still visible.",
-        "Dynamic angle: slightly low camera angle looking up at the product, giving it presence and importance. Product fills ~60% of frame.",
-        "Top-down: product photographed from directly above on a clean surface. Symmetrical, editorial layout.",
-        "Side profile: clean lateral view showing the product's silhouette and proportions clearly.",
-        "In-use context: the product as it would appear mid-use by a person, product clearly visible and detailed.",
-        "Environment hero: product placed in a beautiful setting that complements its colors and style.",
-        "Brand showcase: angle that best displays the logo/branding while showing the full product."
+        "HERO MASTER: 3/4 view from a low-angle. Product occupies 60% of frame. Mandatory: PRIMARY LOGO must be razor-sharp, centered or clearly legible, and positioned for maximum impact as per Branding Map. 3D depth in branding is mandatory.",
+        "LIFESTYLE HERO: Product in a premium real-world setting. Natural eye-level angle. Focus is entirely on the product/brand interaction. Logo MUST be visible and perfectly legible even in the environment.",
+        "MACRO DETAIL: Extreme close-up on primary logo and materials. The logo must have physical depth, shadows, and 3D representation (embossed/debossed). Material fidelity is 100%.",
+        "DYNAMIC OBLIQUE: Product angled at 45 degrees. Camera at a low-angle. Professional lighting highlights BOTH silhouette and the BRANDING. Zero distortion of the logo geometry.",
+        "EDITORIAL TOP-DOWN: Symmetrical layout from directly above. Clean surface. Product geometry and all top-facing logos must be perfectly preserved and sharp.",
+        "PROFILE MASTER: Horizontal side-view. Zero geometric warping. Side branding must be perfectly legible and follow the product's 3D curvature exactly.",
+        "IN-ACTION STILL: Product being used, branding always oriented towards the camera. The logo is the anchor of the scene's composition.",
+        "ENVIRONMENTAL PORTRAIT: Product in its niche scenario. Lighting creates 'halo' around the logo area. Material textures are hyper-sharp.",
+        "BRAND REVEAL STILL: Expert angle specifically chosen to showcase the primary branding/wordmark as a high-fidelity 3D element."
     ];
 
-    // --- SORA 2 LOGIC (High Fidelity Collage) ---
+    // --- SORA 2 LOGIC (High Fidelity Agency Collage) ---
     const soraHeroHints = [
-        "Produto inteiro em cena, logo visível. Ambiente amplo.",
-        "Produto em uso/interação. Logo legível.",
-        "Close-up de materiais e logo. Nitidez máxima.",
-        "Ângulo lateral limpo. Logo visível.",
-        "Vista de cima. Geometria limpa. Branding nítido.",
-        "Ângulo hero, branding de frente.",
-        "Cena dinâmica. Produto e logo em destaque.",
-        "Lifestyle. Produto em ação. Logo visível.",
-        "Produto em foco. Logo em destaque."
+        "Fidelidade 100% ao Digital Twin. Ângulo Hero 3/4, logo em destaque nítido com profundidade 3D.",
+        "Lifestyle Realista. Produto integrado, logo visível e geometricamente perfeito.",
+        "Macro-Fidelidade. Foco extremo no logo e texturas originais. Nenhuma simplificação de branding.",
+        "Perfil Técnico. Geometria perfeita, logo lateral perfeitamente legível.",
+        "Vista Editorial de Cima. Organização limpa, branding visível e centralizado.",
+        "Ângulo de Poder (Low-Angle). Produto imponente, logo principal como ponto focal.",
+        "Cena de Uso Premium. Detalhes de branding preservados em movimento/ação.",
+        "Ambiente Imersivo. Iluminação desenha o contorno do produto e ressalta o logo.",
+        "Showcase de Marca. Foco absoluto no branding, geometria fiel ao Digital Twin."
     ];
 
     const aspectRatio = options.aspectRatio || "16:9";
 
-    const klingImagePrompt = `KLING 3.0 VIDEO REFERENCE IMAGE — Generate a CLEAN, SINGLE-SCENE image to be used as the starting frame for Kling 3.0 Image-to-Video generation.
-═══════════════════════════════════════════════════════════════
-PRODUCT FIDELITY: Identical to photos. No invention. No split screens. ONE SINGLE clean image.
-COMPOSITION: ${klingSceneVariations[promptIndex] || klingSceneVariations[0]}
-Environment: ${options.environment} | Light: ${options.timeOfDay}
-${options.mode === 'lifestyle' ? `- Include a person: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : '- Product-only'}
-${promptText ? `SCENE CONTEXT: "${promptText.slice(0, 300)}"` : ''}`;
+    const commonFidelityRules = `
+DIGITAL TWIN PROTOCOL — MANDATORY FIDELITY RULES:
+- ABSOLUTE GEOMETRIC ACCURACY: The product in the mockup must be a 100% faithful reconstruction of the product in the reference photos. ZERO deviations in shape, proportions, or features.
+- 3D LOGO REPRESENTATION: Logos and branding are NOT flat textures. They must be rendered as physical, 3D elements with depth, bevels, or appropriate material interaction (embossed, debossed, or raised).
+- MATERIAL INTEGRITY: If the photo shows suede, the mockup must show suede. If it's polished steel, it must reflect like steel. Preserve every stitch, texture, and seam.
+- ZERO HALLUCINATION: Do NOT add features, logos, or parts that are not present in the reference images.
+- ONE PRODUCT ONLY: This is a commercial mockup for a single product model.
+    `;
 
-    const soraImagePrompt = `AGENCY PITCH BOARD — 16:9 COLLAGE. Layout OBRIGATÓRIO com painéis separados.
-REGRA CRÍTICA: Produto idêntico às fotos. Zero invenção de logo.
-[ESQUERDA ~55%] — HERO / MAIN: ${soraHeroHints[promptIndex] || soraHeroHints[0]}
-[DIREITA — 3 painéis empilhados]
-1. TOPO: Close-up do logo ou textura.
-2. MEIO: Detalhe de material/acabamento.
-3. BAIXO: Ângulo alternativo (sola/lateral/costas).
-Ambiente: ${options.environment} | Luz: ${options.timeOfDay}
-${options.mode === 'lifestyle' ? `- Pessoa: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
-${promptText ? `Contexto: "${promptText.slice(0, 250)}"` : ''}`;
+    const klingImagePrompt = `KLING 3.0 REFERENCE FRAME (I2V INPUT)
+${commonFidelityRules}
+TASK: Generate ONE SINGLE photorealistic frame that serves as the STARTING POINT for a video.
+COMPOSITION: ${klingSceneVariations[promptIndex] || klingSceneVariations[0]}
+Environment: ${options.environment} | Lighting: ${options.timeOfDay}
+${options.mode === 'lifestyle' ? `- Person: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : '- Product-only'}
+${promptText ? `SCENE CONTEXT (Match this vibe): "${promptText.slice(0, 300)}"` : ''}
+TECHNICAL: Sharp focus, 8k resolution, cinematic commercial photography. NO split screens.`;
+
+    const soraImagePrompt = `SORA 2 AGENCY PITCH BOARD (16:9 COLLAGE)
+${commonFidelityRules}
+TASK: Generate a professional collage with distinct panels.
+[MAIN PANEL - LEFT 60%]: ${soraHeroHints[promptIndex] || soraHeroHints[0]}
+[DETAIL PANELS - RIGHT 40% (Stacked Vertically)]:
+1. TOP: Extreme Close-up of LOGO/BRANDING (3D depth mandatory).
+2. MID: Texture/Material detail (100% faithful).
+3. BOTTOM: Alternative angle (sole/back/side).
+Environment: ${options.environment} | Light: ${options.timeOfDay}
+${options.mode === 'lifestyle' ? `- User: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
+${promptText ? `Context: "${promptText.slice(0, 250)}"` : ''}
+TECHNICAL: Professional lighting, crisp borders between panels, luxury commercial aesthetic.`;
 
     const imagePrompt = engine === 'kling' ? klingImagePrompt : soraImagePrompt;
 
@@ -566,10 +558,11 @@ ${promptText ? `Contexto: "${promptText.slice(0, 250)}"` : ''}`;
 
     for (let i = 0; i < selected.length; i++) {
         const { data, mimeType } = parseBase64(selected[i]);
-        contentParts.push({ text: `[PRODUTO FOTO ${i + 1}] Replique fielmente.` });
+        contentParts.push({ text: `REFERENCE PHOTO ${i + 1}: Principal source for geometry and materials.` });
         contentParts.push({ inlineData: { data, mimeType } });
     }
 
+    contentParts.push({ text: `TECHNICAL BLUEPRINT (DIGITAL TWIN SPEC):\n${productDescription}` });
     contentParts.push({ text: imagePrompt });
 
     try {
