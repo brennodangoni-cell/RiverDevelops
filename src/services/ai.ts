@@ -409,12 +409,13 @@ export async function generatePrompts(
 ACT AS AN ELITE AI VIDEO DIRECTOR & SORA 2 NARRATIVE ARCHITECT.
 
 SORA 2 MASTER SKELETON (HIERARCHICAL PRIORITY):
-1. KINETIC FOUNDATION (Movement): Define the camera kit and action immediately. (e.g., 35mm Anamorphic, Fluid Orbit shot).
-2. SUBJECT VISUAL ANATOMY: Describe the product as a rigid, physically stable entity. Focus on textures and micro-details.
-3. MICRO-PHYSICS: Describe how materials interact (e.g., "soft compression of the sole under the model's weight").
-4. VOLUMETRIC LIGHTING: Use technical light descriptions (Rim light, God rays, Bokeh).
-5. COLORS: Reinforce colors with HEX CODES (e.g., "Midnight Black #1A1A1A").
-6. ATMOSPHERE & FX: Environmental particles, mist, or surreal elements.
+1. PRODUCT REFERENCE (FIRST): Always start with "Use the uploaded image(s) as the exact product reference..."
+2. KINETIC FOUNDATION (Movement): Define the camera kit and action immediately. (e.g., 35mm Anamorphic, Fluid Orbit shot).
+3. SUBJECT VISUAL ANATOMY: Describe the product EXACTLY as in the uploaded photos — materials, sole shape, logo position, colors (use HEX). The product must be a RIGID, physically stable entity. No distortion.
+4. MICRO-PHYSICS: Describe how materials interact (e.g., "soft compression of the sole under the model's weight").
+5. VOLUMETRIC LIGHTING: Use technical light descriptions (Rim light, God rays, Bokeh).
+6. COLORS: Reinforce colors with HEX CODES from the product (e.g., "Midnight Black #1A1A1A").
+7. ATMOSPHERE & FX: Environmental particles, mist, or surreal elements.
 
 DIRECTIVES:
 - NO CONCEPTUAL TERMS: Never use words like "comfortable" or "premium". Use visual proofs: "The material deforms 2mm under pressure" (Visual-First).
@@ -462,6 +463,11 @@ ${taskDescription}
 ${promptStyle}
 
 CRITICAL: The output MUST be a SINGLE paragraph in ENGLISH, adhering to the SORA 2 MASTER SKELETON. No labels, no bullet points.
+
+[PRODUCT REFERENCE LOCK — MANDATORY FIRST SENTENCE]
+Every generated prompt MUST begin with this exact sentence (copy it verbatim):
+"Use the uploaded image(s) as the exact product reference. Preserve geometry, logo placement, proportions, materials, texture scale, and typography. Do not invent or alter any product details."
+Then continue with the cinematic description. This ensures Sora 2 matches the product EXACTLY when the user uploads the same photos.
     `;
 
 
@@ -482,8 +488,16 @@ CRITICAL: The output MUST be a SINGLE paragraph in ENGLISH, adhering to the SORA
         }
     }));
 
+    const REFERENCE_LOCK = "Use the uploaded image(s) as the exact product reference. Preserve geometry, logo placement, proportions, materials, texture scale, and typography. Do not invent or alter any product details. ";
     try {
-        return JSON.parse(response.text || "[]");
+        const parsed = JSON.parse(response.text || "[]");
+        if (!Array.isArray(parsed)) return [];
+        return parsed.map((p: string) => {
+            const s = (typeof p === 'string' ? p : '').trim();
+            if (!s) return REFERENCE_LOCK.trim();
+            if (s.toLowerCase().startsWith("use the uploaded")) return s;
+            return REFERENCE_LOCK + s;
+        });
     } catch (e) {
         console.error("Failed to parse prompts", e);
         return [];
@@ -518,39 +532,42 @@ export async function generateMockup(
         "Product focus. Logo prominently displayed."
     ];
 
-    const imagePrompt = `TASK: TECHNICAL PRODUCT RECONSTRUCTION (COLLAGE).
-GOAL: Create a professional commercial concept sheet (16:9 Collage).
+    const imagePrompt = `TASK: AGENCY PITCH BOARD — 16:9 COLLAGE WITH LABELS.
+Create a HIGH-END COMMERCIAL CONCEPT SHEET. Every panel MUST have a visible text label.
 
-[CRITICAL - SOURCE OF TRUTH]
-THE ATTACHED PHOTOS ARE THE ONLY REFERENCE FOR PRODUCT SHAPE, COLORS, AND BRANDING. 
-- CLONE MODE: Absolute adherence to reference photos. 
-- ZERO HALLUCINATION: Do not add details, textures, or features not present in the photos.
-- IDENTITY LOCK: The product must be a pixel-perfect reconstruction of the references.
+[ABSOLUTE PRODUCT FIDELITY — NON-NEGOTIABLE]
+THE ATTACHED PHOTOS ARE THE SOLE SOURCE OF TRUTH. You MUST clone the product EXACTLY:
+- Same shape, proportions, materials, stitching, sole geometry.
+- LOGO/TYPOGRAPHY: Replicate every letter, font, and spelling. Text MUST be perfectly readable — no blur, no distortion.
+- ZERO HALLUCINATION: Do not invent colors, textures, or details not in the photos.
 
-[SCENE CONTEXT - FOR ENVIRONMENT ONLY]
-ENVIRONMENT: ${options.environment}
-LIGHTING: ${options.timeOfDay}
-STYLE: ${options.style}
-${options.mode === 'lifestyle' ? `- TALENT: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
-${promptText || productDescription ? `BLUEPRINT: "${promptText || productDescription}"` : ''}
+[LAYOUT — MANDATORY STRUCTURE]
+1. HERO SHOT (LEFT, ~55%): Label "HERO" or "MAIN" in small text. ${focusInstructions[promptIndex] || "Full product in scene."}
+2. LOGO CLOSE-UP (RIGHT TOP, ~22%): Label "LOGO" or "BRANDING". Extreme close-up of the logo/branding from the photos. RAZOR-SHARP. Every letter legible.
+3. MATERIAL DETAIL (RIGHT MID, ~22%): Label "MATERIAL" or "TEXTURE". Macro of fabric, sole, or stitching.
+4. ANGLE DETAIL (RIGHT BOTTOM, ~22%): Label "DETAIL" or "ANGLE". Another key product angle.
 
-[LAYOUT]
-- MAIN HERO SHOT (LEFT, 60%): ${focusInstructions[promptIndex] || "Hero product focus."}
-- DETAIL ANGLES (RIGHT STACK, 40%): 3 microscopic views focusing strictly on the materials and branding found in the photos.
+[SCENE CONTEXT]
+Environment: ${options.environment} | Lighting: ${options.timeOfDay} | Style: ${options.style}
+${options.mode === 'lifestyle' ? `Talent: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
+${promptText || productDescription ? `Scene: "${(promptText || productDescription).slice(0, 200)}"` : ''}
 
-CRITICAL: Perfect symmetry, cinematic grade. The product MUST be identical to the photos.`;
+OUTPUT: Cinematic agency board. Labels in clean sans-serif. Product identical to references. Logo panel MUST be sharp.`;
 
     // Build content parts: reference images (if available) + text prompt
     const contentParts: any[] = [];
 
-    // Send max 3 reference images to save tokens/cost (first, middle, last for best coverage)
+    // Send max 3 reference images — CRITICAL for product fidelity
     if (productImages && productImages.length > 0) {
         const selected = productImages.length <= 3
             ? productImages
             : [productImages[0], productImages[Math.floor(productImages.length / 2)], productImages[productImages.length - 1]];
+        let idx = 1;
         for (const img of selected) {
             const { data, mimeType } = parseBase64(img);
+            contentParts.push({ text: `[REFERENCE IMAGE ${idx} — CLONE THIS PRODUCT EXACTLY IN YOUR OUTPUT]` });
             contentParts.push({ inlineData: { data, mimeType } });
+            idx++;
         }
     }
 
