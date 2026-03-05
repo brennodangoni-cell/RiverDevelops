@@ -95,16 +95,19 @@ export async function initDb() {
     }
 
     try {
-        const checkBrenno = await pool.query('SELECT id FROM users WHERE username = $1', ['Brenno']);
-        if (checkBrenno.rows.length === 0) {
-            const hash = bcrypt.hashSync('admin123', 10);
-            await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', ['Turbalada', hash]);
-            await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', ['Floripa', hash]);
-            await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', ['Brenno', hash]);
-            await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', ['admin', hash]);
+        console.log("Iniciando verificação de usuários no Supabase...");
 
-            console.log("Usuários Brenno e admin criados com sucesso.");
-        }
+        // Garante que o usuário Brenno e admin existam com a senha admin123
+        await pool.query('DELETE FROM users WHERE username IN ($1, $2, $3, $4)', ['Turbalada', 'Floripa', 'Brenno', 'admin']);
+
+        const hash = bcrypt.hashSync('admin123', 10);
+        await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', ['Turbalada', hash]);
+        await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', ['Floripa', hash]);
+        await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', ['Brenno', hash]);
+        await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', ['admin', hash]);
+
+        const countRes = await pool.query('SELECT COUNT(*) FROM users');
+        console.log(`SISTEMA: Usuários prontos. Total: ${countRes.rows[0].count}`);
     } catch (err: any) {
         console.error("Erro no Seed do Supabase:", err.message);
     }

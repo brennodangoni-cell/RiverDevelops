@@ -44,10 +44,17 @@ app.post('/api/login', async (req: Request, res: Response) => {
         const result = await db.query('SELECT * FROM users WHERE username = $1', [username]);
         const user = result.rows[0];
 
-        if (!user || !bcrypt.compareSync(password, user.password)) {
+        if (!user) {
+            console.log(`LOGIN: Usuário [${username}] NÃO encontrado no banco.`);
             return res.status(401).json({ error: 'Credenciais inválidas' });
         }
 
+        if (!bcrypt.compareSync(password, user.password)) {
+            console.log(`LOGIN: Senha INCORRETA para [${username}].`);
+            return res.status(401).json({ error: 'Credenciais inválidas' });
+        }
+
+        console.log(`LOGIN: Usuário [${username}] logado com sucesso!`);
         const token = generateToken({ id: user.id, username: user.username });
         res.json({ token, user: { id: user.id, username: user.username } });
     } catch (e: any) {
