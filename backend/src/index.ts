@@ -4,7 +4,8 @@ import bcrypt from 'bcryptjs';
 import db, { initDb } from './db';
 import { authenticate, generateToken } from './auth';
 import multer from 'multer';
-import { createClient } from '@supabase/supabase-js';
+import path from 'path';
+import fs from 'fs';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -12,28 +13,40 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Mantemos o Supabase APENAS para os arquivos (Vídeos/Imagens) porque ele é ótimo nisso e grátis
-const supabaseUrl = 'https://tctzbsjmuariwylrfbuy.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjdHpic2ptdWFyaXd5bHJmYnV5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjY3NjQ0MywiZXhwIjoyMDg4MjUyNDQzfQ.Xnm8Yu-N8PLUuvimDGpr9IdodeAW_qL9ZJszKTJVcFk';
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-const storage = multer.memoryStorage();
-const upload = multer({ storage, limits: { fileSize: 500 * 1024 * 1024 } }); // 500MB
-
-async function initSupabaseStorage() {
-    try {
-        const { data: buckets } = await supabase.storage.listBuckets();
-        if (!buckets?.find(b => b.name === 'rivertasks')) {
-            await supabase.storage.createBucket('rivertasks', { public: true });
-        }
-    } catch (err) { }
+// Criar pasta de uploads se não existir
+const uploadsDir = path.join(__dirname, '../public/uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Inicializa Banco (Hostinger) e Storage (Supabase)
+// Servir arquivos estáticos (Para as imagens e vídeos abrirem no site)
+app.use('/uploads', express.static(uploadsDir));
+
+// Configuração do Multer para salvar os arquivos NO PRÓPRIO SERVIDOR (Hostinger)
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, uploadsDir);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const safeName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '');
+        cb(null, uniqueSuffix + '-' + safeName);
+    }
+});
+
+const upload = multer({
+    storage,
+    limits: { fileSize: 500 * 1024 * 1024 } // Limite de 500MB
+});
+
+// Inicializa Banco (Hostinger MySQL)
 (async () => {
     await initDb();
-    await initSupabaseStorage();
 })();
+
+// ==========================================
+// ROTAS DO SISTEMA (MODO HOSTINGER TOTAL)
+// ==========================================
 
 // Admin Login
 app.post('/api/login', async (req: Request, res: Response) => {
@@ -53,7 +66,6 @@ app.post('/api/login', async (req: Request, res: Response) => {
     }
 });
 
-// Users
 app.get('/api/users', authenticate, async (req: Request, res: Response) => {
     try {
         const [rows] = await db.query('SELECT id, username FROM users');
@@ -152,85 +164,6 @@ app.post('/api/demands', authenticate, async (req: Request, res: Response) => {
     }
 });
 
-app.delete('/api/demands/:id', authenticate, async (req: Request, res: Response) => {
-    const { id } = req.params;
-    try {
-        await db.query('DELETE FROM demands WHERE id = ?', [id]);
-        res.json({ success: true });
-    } catch (e: any) {
-        res.status(500).json({ error: e.message });
-    }
-});
-
-app.post('/api/demands/:id/allocate', authenticate, async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const { assigned_to, videos_count, urgency, notes } = req.body;
-    const created_by = (req as any).user.id;
-    try {
-        const [rows]: any = await db.query('SELECT * FROM demands WHERE id = ?', [id]);
-        const demand = rows[0];
-        if (!demand) return res.status(404).json({ error: 'Demanda não encontrada' });
-
-        const title = `Demanda: ${demand.client_name} - ${videos_count} vídeo(s) de ${demand.duration_seconds || '?'}s`;
-        let desc = `Ref Demanda #${id}.\n`;
-        if (demand.has_material && demand.material_link) desc += `Material: ${demand.material_link}\n`;
-        if (demand.description) desc += `Instruções: ${demand.description}\n`;
-        if (notes) desc += `Notas: ${notes}`;
-
-        await db.query(`
-            INSERT INTO tasks (title, description, urgency, status, assigned_to, created_by)
-            VALUES (?, ?, ?, ?, ?, ?)
-        `, [title, desc.trim(), urgency || 'MEDIUM', 'TODO', assigned_to, created_by]);
-
-        const newAssignedCount = (demand.assigned_videos || 0) + parseInt(videos_count, 10);
-        const newStatus = newAssignedCount >= demand.total_videos ? 'completed' : 'partial';
-
-        await db.query('UPDATE demands SET assigned_videos = ?, status = ? WHERE id = ?', [newAssignedCount, newStatus, id]);
-        res.json({ success: true });
-    } catch (e: any) {
-        res.status(500).json({ error: e.message });
-    }
-});
-
-// Transactions
-app.get('/api/transactions', authenticate, async (req: Request, res: Response) => {
-    try {
-        const [rows] = await db.query(`
-            SELECT t.*, creator.username as created_by_username
-            FROM transactions t
-            LEFT JOIN users creator ON t.created_by = creator.id
-            ORDER BY t.date DESC, t.created_at DESC
-        `);
-        res.json(rows);
-    } catch (e: any) {
-        res.status(500).json({ error: e.message });
-    }
-});
-
-app.post('/api/transactions', authenticate, async (req: Request, res: Response) => {
-    const { type, amount, description, date, client_name } = req.body;
-    const created_by = (req as any).user.id;
-    try {
-        const [result]: any = await db.query(`
-            INSERT INTO transactions (type, amount, description, date, created_by, client_name)
-            VALUES (?, ?, ?, ?, ?, ?)
-        `, [type, amount, description, date, created_by, client_name || null]);
-        res.json({ id: result.insertId, success: true });
-    } catch (e: any) {
-        res.status(500).json({ error: e.message });
-    }
-});
-
-app.delete('/api/transactions/:id', authenticate, async (req: Request, res: Response) => {
-    const { id } = req.params;
-    try {
-        await db.query('DELETE FROM transactions WHERE id = ?', [id]);
-        res.json({ success: true });
-    } catch (e: any) {
-        res.status(500).json({ error: e.message });
-    }
-});
-
 // Clients Portal
 app.post('/api/clients/login', async (req: Request, res: Response) => {
     const { username, password } = req.body;
@@ -257,6 +190,48 @@ app.get('/api/client/content', authenticate, async (req: Request, res: Response)
     }
 });
 
+// Admin: Criar Cliente (Salvando avatar no disco local)
+app.post('/api/admin/clients', authenticate, upload.single('avatarFile'), async (req: Request, res: Response) => {
+    const { username, password } = req.body;
+    try {
+        let finalAvatarUrl = null;
+        if (req.file) {
+            finalAvatarUrl = `/uploads/${req.file.filename}`;
+        }
+        const hash = bcrypt.hashSync(password, 10);
+        const [result]: any = await db.query('INSERT INTO clients (username, password, avatar_url) VALUES (?, ?, ?)', [username, hash, finalAvatarUrl]);
+        res.json({ id: result.insertId, success: true, avatar_url: finalAvatarUrl });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Admin: Upload de Conteúdo (Salvando vídeo/imagem no disco local)
+app.post('/api/admin/clients/:clientId/content', authenticate, upload.single('mediaFile'), async (req: Request, res: Response) => {
+    const { clientId } = req.params;
+    const { title, category, product, week_date, media_url, media_type } = req.body;
+    try {
+        let finalMediaUrl = media_url;
+        let finalMediaType = media_type;
+
+        if (req.file) {
+            finalMediaUrl = `/uploads/${req.file.filename}`;
+            finalMediaType = req.file.mimetype.startsWith('video/') ? 'video' : 'image';
+        }
+
+        if (!finalMediaUrl) return res.status(400).json({ error: 'URL ou Arquivo de mídia é obrigatório' });
+
+        await db.query(`
+            INSERT INTO client_content (client_id, title, category, product, week_date, media_url, media_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `, [clientId, title || '', category || '', product || '', week_date || '', finalMediaUrl, finalMediaType || 'image']);
+
+        res.json({ success: true, url: finalMediaUrl });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 app.get('/api/admin/clients', authenticate, async (req: Request, res: Response) => {
     try {
         const [rows] = await db.query('SELECT id, username, avatar_url, created_at FROM clients ORDER BY created_at DESC');
@@ -276,53 +251,15 @@ app.get('/api/admin/clients/:clientId/content', authenticate, async (req: Reques
     }
 });
 
-// Helper Supabase
-async function uploadToSupabase(file: Express.Multer.File): Promise<string> {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const safeName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '');
-    const path = `uploads/${uniqueSuffix}-${safeName}`;
-    const { data, error } = await supabase.storage.from('rivertasks').upload(path, file.buffer, { contentType: file.mimetype });
-    if (error) throw error;
-    const { data: publicData } = supabase.storage.from('rivertasks').getPublicUrl(path);
-    return publicData.publicUrl;
-}
-
-app.post('/api/admin/clients', authenticate, upload.single('avatarFile'), async (req: Request, res: Response) => {
-    const { username, password } = req.body;
-    try {
-        let finalAvatarUrl = null;
-        if (req.file) finalAvatarUrl = await uploadToSupabase(req.file);
-        const hash = bcrypt.hashSync(password, 10);
-        const [result]: any = await db.query('INSERT INTO clients (username, password, avatar_url) VALUES (?, ?, ?)', [username, hash, finalAvatarUrl]);
-        res.json({ id: result.insertId, success: true, avatar_url: finalAvatarUrl });
-    } catch (e: any) {
-        res.status(500).json({ error: e.message });
-    }
-});
-
-app.post('/api/admin/clients/:clientId/content', authenticate, upload.single('mediaFile'), async (req: Request, res: Response) => {
-    const { clientId } = req.params;
-    const { title, category, product, week_date, media_url, media_type } = req.body;
-    try {
-        let finalMediaUrl = media_url;
-        let finalMediaType = media_type;
-        if (req.file) {
-            finalMediaUrl = await uploadToSupabase(req.file);
-            finalMediaType = req.file.mimetype.startsWith('video/') ? 'video' : 'image';
-        }
-        await db.query(`
-            INSERT INTO client_content (client_id, title, category, product, week_date, media_url, media_type)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        `, [clientId, title || '', category || '', product || '', week_date || '', finalMediaUrl, finalMediaType || 'image']);
-        res.json({ success: true, url: finalMediaUrl });
-    } catch (e: any) {
-        res.status(500).json({ error: e.message });
-    }
-});
-
 app.delete('/api/admin/content/:contentId', authenticate, async (req: Request, res: Response) => {
     const { contentId } = req.params;
     try {
+        // Opcional: deletar arquivo físico do disco
+        const [rows]: any = await db.query('SELECT media_url FROM client_content WHERE id = ?', [contentId]);
+        if (rows[0] && rows[0].media_url.startsWith('/uploads/')) {
+            const filePath = path.join(__dirname, '..', 'public', rows[0].media_url);
+            if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        }
         await db.query('DELETE FROM client_content WHERE id = ?', [contentId]);
         res.json({ success: true });
     } catch (e: any) {
@@ -343,5 +280,5 @@ app.delete('/api/admin/clients/:id', authenticate, async (req: Request, res: Res
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`RiverTasks API running on port ${PORT}`);
+    console.log(`RiverTasks API 100% Hostinger em execução na porta ${PORT}`);
 });

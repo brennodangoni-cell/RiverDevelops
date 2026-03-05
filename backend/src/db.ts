@@ -6,9 +6,9 @@ dotenv.config();
 // Configurações da Hostinger
 const dbConfig = {
     host: '193.203.175.91',
-    user: 'u785537399_6574',
+    user: 'u785537399_shapefit',
     password: 'Gameroficial2*',
-    database: 'u785537399_6574',
+    database: 'u785537399_shapefit',
     port: 3306,
     ssl: {
         rejectUnauthorized: false
