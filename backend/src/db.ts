@@ -95,22 +95,15 @@ export async function initDb() {
     }
 
     try {
-        const usersRes = await pool.query('SELECT COUNT(*) as count FROM users');
-        if (parseInt(usersRes.rows[0].count) === 0) {
+        const checkBrenno = await pool.query('SELECT id FROM users WHERE username = $1', ['Brenno']);
+        if (checkBrenno.rows.length === 0) {
             const hash = bcrypt.hashSync('admin123', 10);
             await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', ['Turbalada', hash]);
             await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', ['Floripa', hash]);
             await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', ['Brenno', hash]);
+            await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', ['admin', hash]);
 
-            const adminIdRes = await pool.query('SELECT id FROM users LIMIT 1');
-            const adminId = adminIdRes.rows[0].id;
-
-            await pool.query(`
-                INSERT INTO tasks (title, description, urgency, status, assigned_to, created_by)
-                VALUES ($1, $2, $3, $4, $5, $6)
-            `, ['Bem-vindo!', 'Sistema conectado ao Supabase via IPv4 Pooler.', 'LOW', 'DONE', adminId, adminId]);
-
-            console.log("Banco de dados Supabase inicializado.");
+            console.log("Usuários Brenno e admin criados com sucesso.");
         }
     } catch (err: any) {
         console.error("Erro no Seed do Supabase:", err.message);
