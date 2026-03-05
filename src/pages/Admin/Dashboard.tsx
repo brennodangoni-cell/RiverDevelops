@@ -70,6 +70,7 @@ export default function Dashboard() {
     const [users, setUsers] = useState<User[]>([]);
     const [transactions, setTransactions] = useState<any[]>([]);
     const [demands, setDemands] = useState<Demand[]>([]);
+    const [clients, setClients] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'tasks' | 'demands'>('tasks');
     const navigate = useNavigate();
@@ -86,8 +87,10 @@ export default function Dashboard() {
 
     const [newTask, setNewTask] = useState({ title: '', description: '', urgency: 'MEDIUM', status: 'TODO', assigned_to: '' });
 
-    const [newDemand, setNewDemand] = useState({ client_name: '', total_videos: '', duration_seconds: '', has_material: false, material_link: '', description: '' });
+    const [newDemand, setNewDemand] = useState({ client_name: '', total_videos: '', has_material: false, material_link: '', description: '' });
     const [isDemandModalOpen, setIsDemandModalOpen] = useState(false);
+    const [showNewClientForm, setShowNewClientForm] = useState(false);
+    const [newClientData, setNewClientData] = useState({ username: '', password: '', niche: '' });
 
     const [isAllocateModalOpen, setIsAllocateModalOpen] = useState(false);
     const [allocateData, setAllocateData] = useState({ demand_id: 0, assigned_to: '', videos_count: '', urgency: 'MEDIUM', notes: '' });
@@ -109,16 +112,18 @@ export default function Dashboard() {
 
     const fetchData = async (silent = false) => {
         try {
-            const [tasksRes, usersRes, txRes, demandsRes] = await Promise.all([
+            const [tasksRes, usersRes, txRes, demandsRes, clientsRes] = await Promise.all([
                 axios.get('/api/tasks'),
                 axios.get('/api/users'),
                 axios.get('/api/transactions'),
-                axios.get('/api/demands')
+                axios.get('/api/demands'),
+                axios.get('/api/admin/clients')
             ]);
             setTasks(tasksRes.data);
             setUsers(usersRes.data);
             setTransactions(txRes.data);
             setDemands(demandsRes.data);
+            setClients(clientsRes.data);
         } catch (error) {
             if (!silent) toast.error('Erro ao buscar dados.');
             if (axios.isAxiosError(error) && error.response?.status === 401) {
@@ -168,17 +173,41 @@ export default function Dashboard() {
     const handleCreateDemand = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            let finalClientName = newDemand.client_name;
+
+            if (showNewClientForm) {
+                if (!newClientData.username || !newClientData.password) {
+                    return toast.error('Preencha os dados do novo cliente.');
+                }
+                const clientRes = await axios.post('/api/admin/clients', {
+                    username: newClientData.username,
+                    password: newClientData.password,
+                    niche: newClientData.niche
+                });
+                void clientRes;
+                finalClientName = newClientData.username;
+                toast.success('Novo cliente criado!');
+            }
+
+            if (!finalClientName) {
+                return toast.error('Selecione ou crie um cliente.');
+            }
+
             await axios.post('/api/demands', {
                 ...newDemand,
+                client_name: finalClientName,
                 total_videos: Number(newDemand.total_videos) || 0,
-                duration_seconds: newDemand.duration_seconds
+                duration_seconds: null // simplified as requested
             });
+
             toast.success('Demanda criada!');
             setIsDemandModalOpen(false);
-            setNewDemand({ client_name: '', total_videos: '', duration_seconds: '', has_material: false, material_link: '', description: '' });
+            setNewDemand({ client_name: '', total_videos: '', has_material: false, material_link: '', description: '' });
+            setShowNewClientForm(false);
+            setNewClientData({ username: '', password: '', niche: '' });
             fetchData();
-        } catch (error) {
-            toast.error('Erro ao criar demanda.');
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || 'Erro ao criar demanda.');
         }
     };
 
@@ -549,14 +578,14 @@ export default function Dashboard() {
                                             <Trash2 className="w-4 h-4" />
                                         </button>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4 mb-4">
-                                        <div className="bg-white/5 rounded-xl p-3 border border-white/5 flex flex-col justify-between">
-                                            <span className="text-[10px] text-white/40 uppercase tracking-widest block mb-1">Restam</span>
-                                            <span className="text-xl font-display font-bold text-cyan-400">{demand.total_videos - demand.assigned_videos} <span className="text-[10px] text-white/30 font-medium">/ {demand.total_videos} vlog</span></span>
-                                        </div>
-                                        <div className="bg-white/5 rounded-xl p-3 border border-white/5 flex flex-col justify-between">
-                                            <span className="text-[10px] text-white/40 uppercase tracking-widest block mb-1">Formatos</span>
-                                            <span className="text-[11px] font-display font-medium text-emerald-400 break-words line-clamp-2">{demand.duration_seconds || '--'}</span>
+                                    <div className="grid grid-cols-1 gap-4 mb-4 font-sans">
+                                        <div className="bg-white/5 rounded-2xl p-5 border border-white/5 flex flex-col items-center justify-center gap-1 group/stats relative overflow-hidden">
+                                            <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover/stats:opacity-100 " />
+                                            <span className="text-[10px] text-white/30 uppercase tracking-[0.2em] block font-bold relative z-10">Status do Volume</span>
+                                            <span className="text-3xl font-display font-medium text-emerald-400 relative z-10">
+                                                {demand.total_videos - demand.assigned_videos}
+                                                <span className="text-xs text-white/20 ml-2 font-light">restantes de {demand.total_videos}</span>
+                                            </span>
                                         </div>
                                     </div>
                                     {demand.description && <p className="text-xs text-white/50 mb-4 line-clamp-3 leading-relaxed">{demand.description}</p>}
@@ -815,7 +844,7 @@ export default function Dashboard() {
             {isDemandModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => setIsDemandModalOpen(false)} />
-                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform  flex flex-col ring-1 ring-white/5 p-8 sm:p-10">
+                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg transform  flex flex-col ring-1 ring-white/5 p-8 sm:p-10 max-h-[90vh] overflow-y-auto custom-scrollbar">
                         <button type="button" onClick={() => setIsDemandModalOpen(false)} className="absolute top-6 right-6 z-20 text-white/30 hover:text-white  bg-white/5 hover:bg-white/10 p-2.5 rounded-full">
                             <X className="w-5 h-5" />
                         </button>
@@ -825,30 +854,93 @@ export default function Dashboard() {
                             <p className="text-xs text-white/40 tracking-wider">Adicione o projeto do cliente no mural.</p>
                         </div>
 
-                        <form onSubmit={handleCreateDemand} className="flex flex-col gap-4">
-                            <input required type="text" value={newDemand.client_name} onChange={e => setNewDemand({ ...newDemand, client_name: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50  font-light" placeholder="Nome do Cliente" />
+                        <form onSubmit={handleCreateDemand} className="flex flex-col gap-5">
+                            {!showNewClientForm ? (
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between px-2">
+                                        <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Escolher Cliente</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowNewClientForm(true)}
+                                            className="text-[10px] font-bold text-cyan-400 hover:text-cyan-300 uppercase tracking-widest bg-cyan-400/10 px-3 py-1.5 rounded-full border border-cyan-400/20"
+                                        >
+                                            + Novo Cliente
+                                        </button>
+                                    </div>
+                                    <select
+                                        required={!showNewClientForm}
+                                        value={newDemand.client_name}
+                                        onChange={e => setNewDemand({ ...newDemand, client_name: e.target.value })}
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50 font-light appearance-none"
+                                    >
+                                        <option value="" className="bg-[#080808] text-white/40">Selecione o Cliente...</option>
+                                        {clients.map(c => (
+                                            <option key={c.id} value={c.username} className="bg-[#080808] text-white">
+                                                {c.username} {c.niche ? `(${c.niche})` : ''}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            ) : (
+                                <div className="space-y-4 bg-white/[0.02] border border-white/5 rounded-[2rem] p-6">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Novo Cliente</span>
+                                            <span className="text-[9px] text-white/20 font-light tracking-wide italic">cadastrando cliente na hora...</span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowNewClientForm(false)}
+                                            className="text-[10px] font-bold text-white/40 hover:text-white uppercase tracking-widest"
+                                        >
+                                            Cancelar
+                                        </button>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <input required={showNewClientForm} type="text" value={newClientData.username} onChange={e => setNewClientData({ ...newClientData, username: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3.5 text-white text-sm outline-none focus:border-cyan-400/50 font-light" placeholder="Nome / Usuário do Cliente" />
+                                        <input required={showNewClientForm} type="password" value={newClientData.password} onChange={e => setNewClientData({ ...newClientData, password: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3.5 text-white text-sm outline-none focus:border-cyan-400/50 font-light" placeholder="Senha de Acesso" />
+                                        <input type="text" value={newClientData.niche} onChange={e => setNewClientData({ ...newClientData, niche: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3.5 text-white text-sm outline-none focus:border-cyan-400/50 font-light" placeholder="Nicho / Segmento (Opcional)" />
+                                    </div>
+                                </div>
+                            )}
 
-                            <div className="flex flex-col sm:flex-row gap-4">
-                                <input required type="number" min="1" value={newDemand.total_videos} onChange={e => setNewDemand({ ...newDemand, total_videos: e.target.value })} className="w-full sm:w-1/3 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50  font-bold placeholder:font-light hide-number-spin" placeholder="Total de Vídeos" />
-                                <input required type="text" value={newDemand.duration_seconds} onChange={e => setNewDemand({ ...newDemand, duration_seconds: e.target.value })} className="w-full sm:w-2/3 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50  font-light" placeholder="Ex: 5 de 30s, 2 de 60s" />
+                            <div>
+                                <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-2 block mb-3">Escopo do Projeto</label>
+                                <div className="flex gap-4">
+                                    <div className="flex-1 relative">
+                                        <input
+                                            required
+                                            type="number"
+                                            min="1"
+                                            value={newDemand.total_videos}
+                                            onChange={e => setNewDemand({ ...newDemand, total_videos: e.target.value })}
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-base outline-none focus:border-emerald-400/50 font-bold placeholder:font-light hide-number-spin"
+                                            placeholder="Qtd. total de vídeos"
+                                        />
+                                        <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-white/20 uppercase tracking-widest">Vídeos</span>
+                                    </div>
+                                </div>
                             </div>
 
-                            <label className="flex items-center gap-3 cursor-pointer mt-2 mb-1 px-2">
-                                <div className={`w-5 h-5 rounded flex items-center justify-center  border ${newDemand.has_material ? 'bg-emerald-500 border-emerald-500' : 'bg-transparent border-white/20'}`}>
+                            <label className="flex items-center gap-3 cursor-pointer mt-1 px-2 group">
+                                <div className={`w-5 h-5 rounded flex items-center justify-center border transition-all duration-0 ${newDemand.has_material ? 'bg-emerald-500 border-emerald-500' : 'bg-transparent border-white/20 group-hover:border-white/40'}`}>
                                     {newDemand.has_material && <Check className="w-3.5 h-3.5 text-black" />}
                                 </div>
-                                <span className="text-xs font-bold text-white/70 tracking-widest uppercase">Possui material de apoio?</span>
+                                <span className="text-[10px] font-bold text-white/70 tracking-widest uppercase">Possui material de apoio?</span>
                                 <input type="checkbox" checked={newDemand.has_material} onChange={e => setNewDemand({ ...newDemand, has_material: e.target.checked })} className="hidden" />
                             </label>
 
                             {newDemand.has_material && (
-                                <input required type="url" value={newDemand.material_link} onChange={e => setNewDemand({ ...newDemand, material_link: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50  font-light" placeholder="Link do Google Drive / Dropbox" />
+                                <input required={newDemand.has_material} type="url" value={newDemand.material_link} onChange={e => setNewDemand({ ...newDemand, material_link: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50 font-light" placeholder="Link do Google Drive / Dropbox" />
                             )}
 
-                            <textarea rows={2} value={newDemand.description} onChange={e => setNewDemand({ ...newDemand, description: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50  font-light resize-none mt-2" placeholder="Instruções ou Descrição Extra" />
+                            <textarea rows={2} value={newDemand.description} onChange={e => setNewDemand({ ...newDemand, description: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-400/50 font-light resize-none h-24" placeholder="Algum outro detalhe importante?" />
 
-                            <button type="submit" className="w-full mt-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400 hover:text-emerald-300 font-bold uppercase tracking-widest text-xs py-4 rounded-full  flex justify-center items-center">
-                                Registrar Demanda
+                            <button type="submit" className="w-full mt-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400 hover:text-emerald-300 font-bold uppercase tracking-widest text-[10px] py-5 rounded-full flex justify-center items-center gap-3 group/btn">
+                                Registrar Demanda no Mural
+                                <div className="p-1 rounded-full bg-emerald-500 text-black group-hover/btn:scale-110">
+                                    <Plus className="w-3 h-3" />
+                                </div>
                             </button>
                         </form>
                     </div>
@@ -870,18 +962,30 @@ export default function Dashboard() {
                         </div>
 
                         <form onSubmit={handleAllocateDemand} className="flex flex-col gap-4">
-                            <div className="flex gap-4 w-full">
-                                <div className="flex-1 dropdown-container relative bg-white/5 border border-white/10 rounded-2xl px-5 py-1 flex items-center cursor-pointer hover:bg-white/10 hover:border-cyan-400/50 ">
-                                    <select required value={allocateData.assigned_to} onChange={e => setAllocateData({ ...allocateData, assigned_to: e.target.value })} className="w-full bg-transparent text-white outline-none cursor-pointer appearance-none text-center font-bold tracking-widest text-sm uppercase">
-                                        <option value="" disabled className="text-black bg-white">Membro (Equipe)</option>
-                                        <option value={currentUser.id} className="text-black bg-white">VOCÊ</option>
-                                        {users.filter(u => u.id !== currentUser.id).map(user => (
-                                            <option key={user.id} value={user.id} className="text-black bg-white">{user.username}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="w-1/3">
-                                    <input required type="number" min="1" max={allocateData.videos_count} value={allocateData.videos_count} onChange={e => setAllocateData({ ...allocateData, videos_count: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50  font-bold placeholder:text-white/20" placeholder="Qtd. Vds" />
+                            <div className="flex flex-col gap-3">
+                                <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-2">Designar para</label>
+                                <div className="flex gap-4 w-full">
+                                    <div className="flex-1 dropdown-container relative bg-white/5 border border-white/10 rounded-2xl px-5 py-1 flex items-center cursor-pointer hover:bg-white/10 hover:border-cyan-400/50">
+                                        <select required value={allocateData.assigned_to} onChange={e => setAllocateData({ ...allocateData, assigned_to: e.target.value })} className="w-full bg-transparent text-white outline-none cursor-pointer appearance-none text-center font-bold tracking-widest text-sm uppercase py-3.5">
+                                            <option value="" disabled className="text-black bg-white">SELECIONAR MEMBRO</option>
+                                            <option value={currentUser.id} className="text-black bg-white">VOCÊ</option>
+                                            {users.filter(u => u.id !== currentUser.id).map(user => (
+                                                <option key={user.id} value={user.id} className="text-black bg-white">{user.username}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="w-1/3">
+                                        <input
+                                            required
+                                            type="number"
+                                            min="1"
+                                            max={allocateData.videos_count}
+                                            value={allocateData.videos_count}
+                                            onChange={e => setAllocateData({ ...allocateData, videos_count: e.target.value })}
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 font-bold placeholder:text-white/20 hide-number-spin"
+                                            placeholder="Qtd."
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
