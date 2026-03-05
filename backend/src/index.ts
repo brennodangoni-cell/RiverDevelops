@@ -4,230 +4,285 @@ import bcrypt from 'bcryptjs';
 import db, { initDb } from './db';
 import { authenticate, generateToken } from './auth';
 import multer from 'multer';
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Setup static serving for uploads
-const uploadsDir = path.join(__dirname, '../public/uploads');
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-}
-app.use('/uploads', express.static(uploadsDir));
+// Init Supabase Client
+const supabaseUrl = 'https://tctzbsjmuariwylrfbuy.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjdHpic2ptdWFyaXd5bHJmYnV5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjY3NjQ0MywiZXhwIjoyMDg4MjUyNDQzfQ.Xnm8Yu-N8PLUuvimDGpr9IdodeAW_qL9ZJszKTJVcFk';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, uploadsDir),
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
+const storage = multer.memoryStorage();
+const upload = multer({ storage, limits: { fileSize: 500 * 1024 * 1024 } }); // 500MB limit
+
+async function initSupabaseStorage() {
+    try {
+        const { data: buckets, error } = await supabase.storage.listBuckets();
+        if (error) throw error;
+        if (!buckets?.find(b => b.name === 'rivertasks')) {
+            await supabase.storage.createBucket('rivertasks', { public: true });
+            console.log("Supabase storage bucket 'rivertasks' criado.");
+        }
+    } catch (err) {
+        console.error("Erro ao configurar Supabase Storage:", err);
     }
-});
-const upload = multer({ storage });
+}
 
-// Initialize Database
-initDb();
+// Initialize Database & Storage
+(async () => {
+    await initDb();
+    await initSupabaseStorage();
+})();
 
 // Generic Admin Login
-app.post('/api/login', (req: Request, res: Response) => {
+app.post('/api/login', async (req: Request, res: Response) => {
     const { username, password } = req.body;
-    const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username) as any;
+    try {
+        const userRes = await db.query('SELECT * FROM users WHERE username = $1', [username]);
+        const user = userRes.rows[0];
 
-    if (!user) {
-        return res.status(401).json({ error: 'User not found' });
+        if (!user) {
+            return res.status(401).json({ error: 'User not found' });
+        }
+
+        if (!bcrypt.compareSync(password, user.password)) {
+            return res.status(401).json({ error: 'Invalid password' });
+        }
+
+        const token = generateToken({ id: user.id, username: user.username });
+        res.json({ token, user: { id: user.id, username: user.username } });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
     }
-
-    if (!bcrypt.compareSync(password, user.password)) {
-        return res.status(401).json({ error: 'Invalid password' });
-    }
-
-    const token = generateToken({ id: user.id, username: user.username });
-    res.json({ token, user: { id: user.id, username: user.username } });
 });
 
 // Get all users (for assigning tasks)
-app.get('/api/users', authenticate, (req: Request, res: Response) => {
-    const users = db.prepare('SELECT id, username FROM users').all();
-    res.json(users);
+app.get('/api/users', authenticate, async (req: Request, res: Response) => {
+    try {
+        const users = await db.query('SELECT id, username FROM users');
+        res.json(users.rows);
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // Tasks CRUD
-app.get('/api/tasks', authenticate, (req: Request, res: Response) => {
-    const tasks = db.prepare(`
-        SELECT t.*, u.username as assigned_to_username, creator.username as created_by_username
-        FROM tasks t
-        LEFT JOIN users u ON t.assigned_to = u.id
-        LEFT JOIN users creator ON t.created_by = creator.id
-        ORDER BY t.created_at DESC
-    `).all();
-    res.json(tasks);
+app.get('/api/tasks', authenticate, async (req: Request, res: Response) => {
+    try {
+        const tasks = await db.query(`
+            SELECT t.*, u.username as assigned_to_username, creator.username as created_by_username
+            FROM tasks t
+            LEFT JOIN users u ON t.assigned_to = u.id
+            LEFT JOIN users creator ON t.created_by = creator.id
+            ORDER BY t.created_at DESC
+        `);
+        res.json(tasks.rows);
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
-app.post('/api/tasks', authenticate, (req: Request, res: Response) => {
+app.post('/api/tasks', authenticate, async (req: Request, res: Response) => {
     const { title, description, urgency, status, assigned_to } = req.body;
     const created_by = (req as any).user.id;
 
-    const insert = db.prepare(`
-        INSERT INTO tasks (title, description, urgency, status, assigned_to, created_by)
-        VALUES (?, ?, ?, ?, ?, ?)
-    `);
-
-    const result = insert.run(
-        title,
-        description || '',
-        urgency || 'MEDIUM',
-        status || 'TODO',
-        assigned_to || created_by,
-        created_by
-    );
-
-    res.json({ id: result.lastInsertRowid, success: true });
+    try {
+        const result = await db.query(`
+            INSERT INTO tasks (title, description, urgency, status, assigned_to, created_by)
+            VALUES ($1, $2, $3, $4, $5, $6) RETURNING id
+        `, [
+            title,
+            description || '',
+            urgency || 'MEDIUM',
+            status || 'TODO',
+            assigned_to || created_by,
+            created_by
+        ]);
+        res.json({ id: result.rows[0].id, success: true });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
-app.put('/api/tasks/:id', authenticate, (req: Request, res: Response) => {
+app.put('/api/tasks/:id', authenticate, async (req: Request, res: Response) => {
     const { id } = req.params;
     const { title, description, urgency, status, assigned_to } = req.body;
 
-    const update = db.prepare(`
-        UPDATE tasks 
-        SET title = COALESCE(?, title),
-            description = COALESCE(?, description),
-            urgency = COALESCE(?, urgency),
-            status = COALESCE(?, status),
-            assigned_to = COALESCE(?, assigned_to),
-            updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-    `);
-
-    update.run(title, description, urgency, status, assigned_to, id);
-    res.json({ success: true });
+    try {
+        await db.query(`
+            UPDATE tasks 
+            SET title = COALESCE($1, title),
+                description = COALESCE($2, description),
+                urgency = COALESCE($3, urgency),
+                status = COALESCE($4, status),
+                assigned_to = COALESCE($5, assigned_to),
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = $6
+        `, [title, description, urgency, status, assigned_to, id]);
+        res.json({ success: true });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
-app.delete('/api/tasks/:id', authenticate, (req: Request, res: Response) => {
+app.delete('/api/tasks/:id', authenticate, async (req: Request, res: Response) => {
     const { id } = req.params;
-    db.prepare('DELETE FROM tasks WHERE id = ?').run(id);
-    res.json({ success: true });
+    try {
+        await db.query('DELETE FROM tasks WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // Demands CRUD
-app.get('/api/demands', authenticate, (req: Request, res: Response) => {
-    const demands = db.prepare(`
-        SELECT d.*, creator.username as created_by_username
-        FROM demands d
-        LEFT JOIN users creator ON d.created_by = creator.id
-        ORDER BY d.created_at DESC
-    `).all();
-    res.json(demands);
+app.get('/api/demands', authenticate, async (req: Request, res: Response) => {
+    try {
+        const demands = await db.query(`
+            SELECT d.*, creator.username as created_by_username
+            FROM demands d
+            LEFT JOIN users creator ON d.created_by = creator.id
+            ORDER BY d.created_at DESC
+        `);
+        res.json(demands.rows);
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
-app.post('/api/demands', authenticate, (req: Request, res: Response) => {
+app.post('/api/demands', authenticate, async (req: Request, res: Response) => {
     const { client_name, total_videos, duration_seconds, has_material, material_link, description } = req.body;
     const created_by = (req as any).user.id;
 
-    const insert = db.prepare(`
-        INSERT INTO demands (client_name, total_videos, duration_seconds, has_material, material_link, description, created_by)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    const result = insert.run(
-        client_name,
-        total_videos,
-        duration_seconds || null,
-        has_material ? 1 : 0,
-        material_link || null,
-        description || '',
-        created_by
-    );
-
-    res.json({ id: result.lastInsertRowid, success: true });
+    try {
+        const result = await db.query(`
+            INSERT INTO demands (client_name, total_videos, duration_seconds, has_material, material_link, description, created_by)
+            VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id
+        `, [
+            client_name,
+            total_videos,
+            duration_seconds || null,
+            has_material ? 1 : 0,
+            material_link || null,
+            description || '',
+            created_by
+        ]);
+        res.json({ id: result.rows[0].id, success: true });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
-app.delete('/api/demands/:id', authenticate, (req: Request, res: Response) => {
+app.delete('/api/demands/:id', authenticate, async (req: Request, res: Response) => {
     const { id } = req.params;
-    db.prepare('DELETE FROM demands WHERE id = ?').run(id);
-    res.json({ success: true });
+    try {
+        await db.query('DELETE FROM demands WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // Endpoint to allocate tasks from a demand
-app.post('/api/demands/:id/allocate', authenticate, (req: Request, res: Response) => {
+app.post('/api/demands/:id/allocate', authenticate, async (req: Request, res: Response) => {
     const { id } = req.params;
     const { assigned_to, videos_count, urgency, notes } = req.body;
     const created_by = (req as any).user.id;
 
-    const demand = db.prepare('SELECT * FROM demands WHERE id = ?').get(id) as any;
-    if (!demand) return res.status(404).json({ error: 'Demand not found' });
+    try {
+        const demandRes = await db.query('SELECT * FROM demands WHERE id = $1', [id]);
+        const demand = demandRes.rows[0];
+        if (!demand) return res.status(404).json({ error: 'Demand not found' });
 
-    const title = `Demanda: ${demand.client_name} - ${videos_count} vídeo(s) de ${demand.duration_seconds || '?'}s`;
-    let desc = `Ref Demanda #${id}.\n`;
-    if (demand.has_material && demand.material_link) desc += `Material: ${demand.material_link}\n`;
-    if (demand.description) desc += `Instruções: ${demand.description}\n`;
-    if (notes) desc += `Notas (p/ Admin): ${notes}`;
+        const title = `Demanda: ${demand.client_name} - ${videos_count} vídeo(s) de ${demand.duration_seconds || '?'}s`;
+        let desc = `Ref Demanda #${id}.\n`;
+        if (demand.has_material && demand.material_link) desc += `Material: ${demand.material_link}\n`;
+        if (demand.description) desc += `Instruções: ${demand.description}\n`;
+        if (notes) desc += `Notas (p/ Admin): ${notes}`;
 
-    db.prepare(`
-        INSERT INTO tasks (title, description, urgency, status, assigned_to, created_by)
-        VALUES (?, ?, ?, ?, ?, ?)
-    `).run(title, desc.trim(), urgency || 'MEDIUM', 'TODO', assigned_to, created_by);
+        await db.query(`
+            INSERT INTO tasks (title, description, urgency, status, assigned_to, created_by)
+            VALUES ($1, $2, $3, $4, $5, $6)
+        `, [title, desc.trim(), urgency || 'MEDIUM', 'TODO', assigned_to, created_by]);
 
-    const newAssignedCount = (demand.assigned_videos || 0) + parseInt(videos_count, 10);
-    const newStatus = newAssignedCount >= demand.total_videos ? 'completed' : 'partial';
+        const newAssignedCount = (demand.assigned_videos || 0) + parseInt(videos_count, 10);
+        const newStatus = newAssignedCount >= demand.total_videos ? 'completed' : 'partial';
 
-    db.prepare(`
-        UPDATE demands
-        SET assigned_videos = ?, status = ?
-        WHERE id = ?
-    `).run(newAssignedCount, newStatus, id);
+        await db.query(`
+            UPDATE demands
+            SET assigned_videos = $1, status = $2
+            WHERE id = $3
+        `, [newAssignedCount, newStatus, id]);
 
-    res.json({ success: true });
+        res.json({ success: true });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // Transactions CRUD
-app.get('/api/transactions', authenticate, (req: Request, res: Response) => {
-    const transactions = db.prepare(`
-        SELECT t.*, creator.username as created_by_username
-        FROM transactions t
-        LEFT JOIN users creator ON t.created_by = creator.id
-        ORDER BY t.date DESC, t.created_at DESC
-    `).all();
-    res.json(transactions);
+app.get('/api/transactions', authenticate, async (req: Request, res: Response) => {
+    try {
+        const transactions = await db.query(`
+            SELECT t.*, creator.username as created_by_username
+            FROM transactions t
+            LEFT JOIN users creator ON t.created_by = creator.id
+            ORDER BY t.date DESC, t.created_at DESC
+        `);
+        res.json(transactions.rows);
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
-app.post('/api/transactions', authenticate, (req: Request, res: Response) => {
+app.post('/api/transactions', authenticate, async (req: Request, res: Response) => {
     const { type, amount, description, date, client_name } = req.body;
     const created_by = (req as any).user.id;
 
-    const insert = db.prepare(`
-        INSERT INTO transactions (type, amount, description, date, created_by, client_name)
-        VALUES (?, ?, ?, ?, ?, ?)
-    `);
-
-    const result = insert.run(type, amount, description, date, created_by, client_name || null);
-    res.json({ id: result.lastInsertRowid, success: true });
+    try {
+        const result = await db.query(`
+            INSERT INTO transactions (type, amount, description, date, created_by, client_name)
+            VALUES ($1, $2, $3, $4, $5, $6) RETURNING id
+        `, [type, amount, description, date, created_by, client_name || null]);
+        res.json({ id: result.rows[0].id, success: true });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
-app.put('/api/transactions/:id', authenticate, (req: Request, res: Response) => {
+app.put('/api/transactions/:id', authenticate, async (req: Request, res: Response) => {
     const { id } = req.params;
     const { type, amount, description, date, client_name } = req.body;
 
-    const update = db.prepare(`
-        UPDATE transactions 
-        SET type = COALESCE(?, type),
-            amount = COALESCE(?, amount),
-            description = COALESCE(?, description),
-            date = COALESCE(?, date),
-            client_name = ?
-        WHERE id = ?
-    `);
-
-    update.run(type, amount, description, date, client_name || null, id);
-    res.json({ success: true });
+    try {
+        await db.query(`
+            UPDATE transactions 
+            SET type = COALESCE($1, type),
+                amount = COALESCE($2, amount),
+                description = COALESCE($3, description),
+                date = COALESCE($4, date),
+                client_name = $5
+            WHERE id = $6
+        `, [type, amount, description, date, client_name || null, id]);
+        res.json({ success: true });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
-app.delete('/api/transactions/:id', authenticate, (req: Request, res: Response) => {
+app.delete('/api/transactions/:id', authenticate, async (req: Request, res: Response) => {
     const { id } = req.params;
-    db.prepare('DELETE FROM transactions WHERE id = ?').run(id);
-    res.json({ success: true });
+    try {
+        await db.query('DELETE FROM transactions WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // ==========================================
@@ -235,133 +290,174 @@ app.delete('/api/transactions/:id', authenticate, (req: Request, res: Response) 
 // ==========================================
 
 // Client Login Endpoint
-app.post('/api/clients/login', (req: Request, res: Response) => {
+app.post('/api/clients/login', async (req: Request, res: Response) => {
     const { username, password } = req.body;
-    const client = db.prepare('SELECT * FROM clients WHERE username = ?').get(username) as any;
+    try {
+        const clientRes = await db.query('SELECT * FROM clients WHERE username = $1', [username]);
+        const client = clientRes.rows[0];
 
-    if (!client) return res.status(401).json({ error: 'Client not found' });
-    if (!bcrypt.compareSync(password, client.password)) return res.status(401).json({ error: 'Invalid password' });
+        if (!client) return res.status(401).json({ error: 'Client not found' });
+        if (!bcrypt.compareSync(password, client.password)) return res.status(401).json({ error: 'Invalid password' });
 
-    const token = generateToken({ id: client.id, username: client.username, role: 'client' });
-    res.json({ token, client: { id: client.id, username: client.username, avatar_url: client.avatar_url } });
+        const token = generateToken({ id: client.id, username: client.username, role: 'client' });
+        res.json({ token, client: { id: client.id, username: client.username, avatar_url: client.avatar_url } });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // Client: Get their own content
-app.get('/api/client/content', authenticate, (req: Request, res: Response) => {
-    // We assume authenticate middleware just decodes and attaches user/client ID.
+app.get('/api/client/content', authenticate, async (req: Request, res: Response) => {
     const clientId = (req as any).user.id;
-    const content = db.prepare('SELECT * FROM client_content WHERE client_id = ? ORDER BY created_at DESC').all(clientId);
-    res.json(content);
+    try {
+        const content = await db.query('SELECT * FROM client_content WHERE client_id = $1 ORDER BY created_at DESC', [clientId]);
+        res.json(content.rows);
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // Admin: Get all clients
-app.get('/api/admin/clients', authenticate, (req: Request, res: Response) => {
-    const clients = db.prepare('SELECT id, username, avatar_url, created_at FROM clients ORDER BY created_at DESC').all();
-    res.json(clients);
+app.get('/api/admin/clients', authenticate, async (req: Request, res: Response) => {
+    try {
+        const clients = await db.query('SELECT id, username, avatar_url, created_at FROM clients ORDER BY created_at DESC');
+        res.json(clients.rows);
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // Admin: Get specific client content
-app.get('/api/admin/clients/:clientId/content', authenticate, (req: Request, res: Response) => {
+app.get('/api/admin/clients/:clientId/content', authenticate, async (req: Request, res: Response) => {
     const { clientId } = req.params;
-    const content = db.prepare('SELECT * FROM client_content WHERE client_id = ? ORDER BY created_at DESC').all(clientId);
-    res.json(content);
+    try {
+        const content = await db.query('SELECT * FROM client_content WHERE client_id = $1 ORDER BY created_at DESC', [clientId]);
+        res.json(content.rows);
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
+// Helper for Supabase Upload
+async function uploadToSupabase(file: Express.Multer.File): Promise<string> {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const safeName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '');
+    const path = `uploads/${uniqueSuffix}-${safeName}`;
+
+    const { data, error } = await supabase.storage.from('rivertasks').upload(path, file.buffer, {
+        contentType: file.mimetype,
+        upsert: false
+    });
+
+    if (error) throw error;
+
+    const { data: publicData } = supabase.storage.from('rivertasks').getPublicUrl(path);
+    return publicData.publicUrl;
+}
+
 // Admin: Create client
-app.post('/api/admin/clients', authenticate, upload.single('avatarFile'), (req: Request, res: Response) => {
+app.post('/api/admin/clients', authenticate, upload.single('avatarFile'), async (req: Request, res: Response) => {
     const { username, password } = req.body;
     if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
 
-    let finalAvatarUrl = null;
-    if (req.file) {
-        finalAvatarUrl = `/uploads/${req.file.filename}`;
-    }
-
-    const hash = bcrypt.hashSync(password, 10);
     try {
-        const insert = db.prepare('INSERT INTO clients (username, password, avatar_url) VALUES (?, ?, ?)');
-        const result = insert.run(username, hash, finalAvatarUrl);
-        res.json({ id: result.lastInsertRowid, success: true, avatar_url: finalAvatarUrl });
+        let finalAvatarUrl = null;
+        if (req.file) {
+            finalAvatarUrl = await uploadToSupabase(req.file);
+        }
+
+        const hash = bcrypt.hashSync(password, 10);
+        const result = await db.query('INSERT INTO clients (username, password, avatar_url) VALUES ($1, $2, $3) RETURNING id', [username, hash, finalAvatarUrl]);
+        res.json({ id: result.rows[0].id, success: true, avatar_url: finalAvatarUrl });
     } catch (e: any) {
-        if (e.message.includes('UNIQUE')) return res.status(400).json({ error: 'Username already exists' });
+        if (e.message.includes('unique') || e.code === '23505') return res.status(400).json({ error: 'Username already exists' });
         res.status(500).json({ error: e.message });
     }
 });
 
 // Admin: Edit client
-app.put('/api/admin/clients/:id', authenticate, upload.single('avatarFile'), (req: Request, res: Response) => {
+app.put('/api/admin/clients/:id', authenticate, upload.single('avatarFile'), async (req: Request, res: Response) => {
     const { id } = req.params;
     const { username, password } = req.body;
 
-    let updateQuery = 'UPDATE clients SET username = ?';
-    let params: any[] = [username];
-
-    if (password) {
-        const hash = bcrypt.hashSync(password, 10);
-        updateQuery += ', password = ?';
-        params.push(hash);
-    }
-
-    if (req.file) {
-        const finalAvatarUrl = `/uploads/${req.file.filename}`;
-        updateQuery += ', avatar_url = ?';
-        params.push(finalAvatarUrl);
-    }
-
-    updateQuery += ' WHERE id = ?';
-    params.push(id);
-
     try {
-        db.prepare(updateQuery).run(...params);
+        let updateQuery = 'UPDATE clients SET username = $1';
+        let params: any[] = [username];
+        let paramCounter = 2;
+
+        if (password) {
+            const hash = bcrypt.hashSync(password, 10);
+            updateQuery += `, password = $${paramCounter}`;
+            params.push(hash);
+            paramCounter++;
+        }
+
+        if (req.file) {
+            const finalAvatarUrl = await uploadToSupabase(req.file);
+            updateQuery += `, avatar_url = $${paramCounter}`;
+            params.push(finalAvatarUrl);
+            paramCounter++;
+        }
+
+        updateQuery += ` WHERE id = $${paramCounter}`;
+        params.push(id);
+
+        await db.query(updateQuery, params);
         res.json({ success: true });
     } catch (e: any) {
-        if (e.message.includes('UNIQUE')) return res.status(400).json({ error: 'Username already exists' });
+        if (e.message.includes('unique') || e.code === '23505') return res.status(400).json({ error: 'Username already exists' });
         res.status(500).json({ error: e.message });
     }
 });
 
 // Admin: Delete client
-app.delete('/api/admin/clients/:id', authenticate, (req: Request, res: Response) => {
+app.delete('/api/admin/clients/:id', authenticate, async (req: Request, res: Response) => {
     const { id } = req.params;
-    db.prepare('DELETE FROM client_content WHERE client_id = ?').run(id); // cascade manual
-    db.prepare('DELETE FROM clients WHERE id = ?').run(id);
-    res.json({ success: true });
+    try {
+        await db.query('DELETE FROM client_content WHERE client_id = $1', [id]); // cascade manual
+        await db.query('DELETE FROM clients WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // Admin: Upload / Create Content for Client
-app.post('/api/admin/clients/:clientId/content', authenticate, upload.single('mediaFile'), (req: Request, res: Response) => {
+app.post('/api/admin/clients/:clientId/content', authenticate, upload.single('mediaFile'), async (req: Request, res: Response) => {
     const { clientId } = req.params;
-    // Fields can be sent via multipart/form-data
     const { title, category, product, week_date, media_url, media_type } = req.body;
 
-    let finalMediaUrl = media_url;
-    let finalMediaType = media_type;
-
-    if (req.file) {
-        finalMediaUrl = `/uploads/${req.file.filename}`;
-        finalMediaType = req.file.mimetype.startsWith('video/') ? 'video' : 'image';
-    }
-
-    if (!finalMediaUrl) return res.status(400).json({ error: 'Media URL or File is required' });
-
-    const insert = db.prepare(`
-        INSERT INTO client_content (client_id, title, category, product, week_date, media_url, media_type)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    `);
-
     try {
-        const result = insert.run(clientId, title || '', category || '', product || '', week_date || '', finalMediaUrl, finalMediaType || 'image');
-        res.json({ id: result.lastInsertRowid, success: true, url: finalMediaUrl });
+        let finalMediaUrl = media_url;
+        let finalMediaType = media_type;
+
+        if (req.file) {
+            finalMediaUrl = await uploadToSupabase(req.file);
+            finalMediaType = req.file.mimetype.startsWith('video/') ? 'video' : 'image';
+        }
+
+        if (!finalMediaUrl) return res.status(400).json({ error: 'Media URL or File is required' });
+
+        const result = await db.query(`
+            INSERT INTO client_content (client_id, title, category, product, week_date, media_url, media_type)
+            VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id
+        `, [clientId, title || '', category || '', product || '', week_date || '', finalMediaUrl, finalMediaType || 'image']);
+
+        res.json({ id: result.rows[0].id, success: true, url: finalMediaUrl });
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }
 });
 
 // Admin: Delete Client Content
-app.delete('/api/admin/content/:contentId', authenticate, (req: Request, res: Response) => {
+app.delete('/api/admin/content/:contentId', authenticate, async (req: Request, res: Response) => {
     const { contentId } = req.params;
-    db.prepare('DELETE FROM client_content WHERE id = ?').run(contentId);
-    res.json({ success: true });
+    try {
+        await db.query('DELETE FROM client_content WHERE id = $1', [contentId]);
+        res.json({ success: true });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 const PORT = process.env.PORT || 3000;
