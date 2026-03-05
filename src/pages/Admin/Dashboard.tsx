@@ -346,7 +346,11 @@ export default function Dashboard() {
 
                         {/* Center (User Selection Switcher) */}
                         <div className="flex items-center justify-center w-fit max-w-full mx-auto overflow-x-auto custom-scrollbar md:absolute md:left-1/2 md:-translate-x-1/2 bg-black/40 backdrop-blur-md rounded-full border border-white/5 p-1 gap-1">
-                            {users.map(u => {
+                            {[...users].sort((a, b) => {
+                                if (a.id === currentUser.id) return -1;
+                                if (b.id === currentUser.id) return 1;
+                                return 0;
+                            }).map(u => {
                                 const isCurrentUser = u.id === currentUser.id;
                                 return (
                                     <button
