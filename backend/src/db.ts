@@ -6,16 +6,16 @@ dotenv.config();
 import dns from 'dns';
 dns.setDefaultResultOrder('ipv4first');
 
+// String de conexão para o Supavisor (Porta 6543 - Transaction Mode)
+// O '*' na senha DEVE ser codificado como '%2A' para o pooler funcionar no Render
+const connectionString = 'postgresql://postgres.tctzbsjmuariwylrfbuy:Gameroficial2%2A@aws-0-sa-east-1.pooler.supabase.com:6543/postgres';
+
 const pool = new Pool({
-    user: 'postgres.tctzbsjmuariwylrfbuy',
-    host: 'aws-0-sa-east-1.pooler.supabase.com',
-    database: 'postgres',
-    password: 'Gameroficial2*',
-    port: 5432,
+    connectionString,
     ssl: { rejectUnauthorized: false },
     max: 10,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 5000,
+    connectionTimeoutMillis: 10000,
 });
 
 export async function initDb() {
