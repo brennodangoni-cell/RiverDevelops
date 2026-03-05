@@ -8,7 +8,20 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-app.use(cors());
+
+// CORS: allow frontend domains (Vercel + custom domain)
+const allowedOrigins = [
+    'https://riverdevelops.com',
+    'https://www.riverdevelops.com',
+    /^https:\/\/.*\.vercel\.app$/
+];
+app.use(cors({
+    origin: (origin, cb) => {
+        if (!origin) return cb(null, true); // same-origin or tools like Postman
+        const ok = allowedOrigins.some(o => typeof o === 'string' ? o === origin : o.test(origin));
+        cb(null, ok ? origin : false);
+    }
+}));
 app.use(express.json());
 
 // ==========================================
@@ -24,6 +37,8 @@ const upload = multer({ storage, limits: { fileSize: 500 * 1024 * 1024 } });
 // ==========================================
 // ROTAS DO MODO INFALÍVEL
 // ==========================================
+
+app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
 app.post('/api/login', async (req: Request, res: Response) => {
     const { username, password } = req.body;
