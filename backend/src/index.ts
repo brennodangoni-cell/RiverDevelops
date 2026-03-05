@@ -172,7 +172,7 @@ app.get('/api/demands', authenticate, async (req: Request, res: Response) => {
 });
 
 app.post('/api/demands', authenticate, async (req: Request, res: Response) => {
-    const { client_name, total_videos, duration_seconds, has_material, material_link, description } = req.body;
+    const { client_name, total_videos, duration_seconds, has_material, description } = req.body;
     const created_by = (req as any).user.id;
     try {
         const payload = {
@@ -180,13 +180,81 @@ app.post('/api/demands', authenticate, async (req: Request, res: Response) => {
             total_videos,
             duration_seconds: duration_seconds || null,
             has_material: has_material ? 1 : 0,
-            material_link: material_link || null,
             description: description || '',
             created_by
         };
         const { data, error } = await supabase.from('demands').insert([payload]).select('id').single();
         if (error) throw error;
         res.json({ id: data.id, success: true });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.get('/api/demands/:id/materials', authenticate, async (req: Request, res: Response) => {
+    const { id } = req.params;
+    try {
+        const { data, error } = await supabase.from('demand_materials').select('*').eq('demand_id', parseInt(id)).order('created_at', { ascending: true });
+        if (error) throw error;
+        res.json(data || []);
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/demands/:id/materials', authenticate, upload.single('file'), async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { media_type, content, title } = req.body;
+    try {
+        let media_url: string | null = null;
+        let finalType = media_type || 'text';
+
+        if (req.file) {
+            media_url = await uploadToSupabase(req.file);
+            finalType = req.file.mimetype.startsWith('video/') ? 'video' : 'image';
+        }
+
+        const payload = {
+            demand_id: parseInt(id),
+            media_type: finalType,
+            media_url: media_url || null,
+            content: content || null,
+            title: title || null
+        };
+
+        const { data, error } = await supabase.from('demand_materials').insert([payload]).select('id, media_type, media_url, content, title, created_at').single();
+        if (error) throw error;
+        res.json(data);
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/demands/:id/materials/text', authenticate, async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { content, title } = req.body;
+    try {
+        const payload = {
+            demand_id: parseInt(id),
+            media_type: 'text',
+            media_url: null,
+            content: content || '',
+            title: title || null
+        };
+        const { data, error } = await supabase.from('demand_materials').insert([payload]).select('id, media_type, content, title, created_at').single();
+        if (error) throw error;
+        res.json(data);
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.delete('/api/demands/:demandId/materials/:materialId', authenticate, async (req: Request, res: Response) => {
+    const { materialId } = req.params;
+    try {
+        const { error } = await supabase.from('demand_materials').delete().eq('id', parseInt(materialId));
+        if (error) throw error;
+        res.json({ success: true });
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }

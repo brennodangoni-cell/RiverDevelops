@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Plus, X, Users, Upload, Trash2, Loader2, ArrowLeft, Image as ImageIcon, Video, Folder, Calendar, FileText, Pencil, Eye, EyeOff } from 'lucide-react';
+import { Plus, X, Users, Upload, Trash2, Loader2, ArrowLeft, Image as ImageIcon, Video, Folder, Calendar, FileText, Pencil, Eye, EyeOff, Copy, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 type Client = {
@@ -29,12 +29,22 @@ type Demand = {
     total_videos: number;
     duration_seconds: string | null;
     has_material: number;
-    material_link: string | null;
+    material_link?: string | null;
     description: string | null;
     assigned_videos: number;
     status: 'pending' | 'partial' | 'completed';
     created_by: number;
     created_by_username: string;
+    created_at: string;
+};
+
+type DemandMaterial = {
+    id: number;
+    demand_id: number;
+    media_type: 'image' | 'video' | 'text';
+    media_url: string | null;
+    content: string | null;
+    title: string | null;
     created_at: string;
 };
 
@@ -53,6 +63,7 @@ export default function AdminClients() {
     // Demands state
     const [demands, setDemands] = useState<Demand[]>([]);
     const [demandsLoading, setDemandsLoading] = useState(false);
+    const [demandMaterialsMap, setDemandMaterialsMap] = useState<Record<number, DemandMaterial[]>>({});
 
     // Create / Edit Modal State
     const [isClientModalOpen, setIsClientModalOpen] = useState(false);
@@ -106,6 +117,11 @@ export default function AdminClients() {
             const res = await axios.get('/api/demands');
             const clientDemands = res.data.filter((d: Demand) => d.client_name === username);
             setDemands(clientDemands);
+            const ids = clientDemands.map((d: Demand) => d.id);
+            const materialsRes = await Promise.all(ids.map((id: number) => axios.get(`/api/demands/${id}/materials`).catch(() => ({ data: [] }))));
+            const map: Record<number, DemandMaterial[]> = {};
+            ids.forEach((id: number, i: number) => { map[id] = materialsRes[i]?.data ?? []; });
+            setDemandMaterialsMap(map);
         } catch (error) {
             console.error('Erro ao buscar demandas.');
         } finally {
@@ -378,8 +394,43 @@ export default function AdminClients() {
                                                 </div>
                                             </div>
                                             {demand.description && <p className="text-xs text-white/50 mb-4 line-clamp-3 leading-relaxed">{demand.description}</p>}
-                                            {demand.has_material === 1 && demand.material_link && (
-                                                <a href={demand.material_link} target="_blank" rel="noreferrer" className="text-[10px] text-blue-400 hover:text-blue-300 underline tracking-wider mb-4 block truncate">Material de Referência</a>
+                                            {((demandMaterialsMap[demand.id]?.length ?? 0) > 0 || (demand.has_material === 1 && demand.material_link)) && (
+                                                <div className="mb-4 space-y-2">
+                                                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest block">Material de apoio</span>
+                                                    <div className="space-y-2 max-h-28 overflow-y-auto custom-scrollbar">
+                                                        {(demandMaterialsMap[demand.id] ?? []).map(m => (
+                                                            <div key={m.id} className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg p-2 group/m">
+                                                                {m.media_type === 'image' && m.media_url && (
+                                                                    <a href={m.media_url} target="_blank" rel="noreferrer" className="shrink-0 w-10 h-10 rounded overflow-hidden bg-white/5">
+                                                                        <img src={m.media_url} alt="" className="w-full h-full object-cover" />
+                                                                    </a>
+                                                                )}
+                                                                {m.media_type === 'video' && m.media_url && (
+                                                                    <div className="shrink-0 w-10 h-10 rounded bg-white/5 flex items-center justify-center"><Video className="w-5 h-5 text-white/50" /></div>
+                                                                )}
+                                                                {m.media_type === 'text' && (
+                                                                    <div className="shrink-0 w-10 h-10 rounded bg-white/5 flex items-center justify-center"><FileText className="w-5 h-5 text-white/50" /></div>
+                                                                )}
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="text-[10px] text-white/70 truncate">{m.media_type === 'text' ? (m.content || '').slice(0, 35) + '...' : (m.media_url || '').slice(-25)}</div>
+                                                                </div>
+                                                                <div className="flex items-center gap-0.5 opacity-0 group-hover/m:opacity-100">
+                                                                    {m.media_type === 'text' ? (
+                                                                        <button onClick={() => { navigator.clipboard.writeText(m.content || ''); toast.success('Copiado!'); }} className="p-1.5 rounded bg-white/10 hover:bg-white/20" title="Copiar"><Copy className="w-3 h-3" /></button>
+                                                                    ) : m.media_url ? (
+                                                                        <>
+                                                                            <button onClick={() => { navigator.clipboard.writeText(m.media_url!); toast.success('Link copiado!'); }} className="p-1.5 rounded bg-white/10 hover:bg-white/20" title="Copiar"><Copy className="w-3 h-3" /></button>
+                                                                            <a href={m.media_url} download target="_blank" rel="noreferrer" className="p-1.5 rounded bg-white/10 hover:bg-white/20" title="Baixar"><Download className="w-3 h-3" /></a>
+                                                                        </>
+                                                                    ) : null}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                        {demand.has_material === 1 && demand.material_link && !(demandMaterialsMap[demand.id]?.length) && (
+                                                            <a href={demand.material_link} target="_blank" rel="noreferrer" className="text-[10px] text-blue-400 hover:text-blue-300 underline block truncate">Link legado</a>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             )}
                                             <div className="mt-auto pt-4 border-t border-white/10 flex justify-between items-center">
                                                 <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full ${demand.status === 'completed' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : demand.status === 'partial' ? 'bg-amber-400/10 text-amber-500 border border-amber-400/20' : 'bg-white/5 text-white/50 border border-white/10'}`}>

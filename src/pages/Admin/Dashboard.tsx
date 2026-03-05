@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Check, Clock, LogOut, Trash2, Loader2, X, CircleDashed, CheckCircle2, Edit2, DollarSign, Sparkles, Users, Eye, EyeOff } from 'lucide-react';
+import { Plus, Check, Clock, LogOut, Trash2, Loader2, X, CircleDashed, CheckCircle2, Edit2, DollarSign, Sparkles, Users, Eye, EyeOff, Image, Video, FileText, Copy, Download, Paperclip } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
@@ -55,13 +55,23 @@ type Demand = {
     client_name: string;
     total_videos: number;
     duration_seconds: string | null;
-    has_material: number; // sqlite gets 0 or 1
-    material_link: string | null;
+    has_material: number;
+    material_link?: string | null; // legado
     description: string | null;
     assigned_videos: number;
     status: 'pending' | 'partial' | 'completed';
     created_by: number;
     created_by_username: string;
+    created_at: string;
+};
+
+type DemandMaterial = {
+    id: number;
+    demand_id: number;
+    media_type: 'image' | 'video' | 'text';
+    media_url: string | null;
+    content: string | null;
+    title: string | null;
     created_at: string;
 };
 
@@ -87,8 +97,13 @@ export default function Dashboard() {
 
     const [newTask, setNewTask] = useState({ title: '', description: '', urgency: 'MEDIUM', status: 'TODO', assigned_to: '' });
 
-    const [newDemand, setNewDemand] = useState({ client_name: '', total_videos: '', has_material: false, material_link: '', description: '' });
+    const [newDemand, setNewDemand] = useState({ client_name: '', total_videos: '', has_material: false, description: '' });
+    const [demandMaterialsToUpload, setDemandMaterialsToUpload] = useState<{ files: File[]; texts: { content: string; title?: string }[] }>({ files: [], texts: [] });
     const [isDemandModalOpen, setIsDemandModalOpen] = useState(false);
+    const [demandMaterialsMap, setDemandMaterialsMap] = useState<Record<number, DemandMaterial[]>>({});
+    const [isMaterialsModalOpen, setIsMaterialsModalOpen] = useState(false);
+    const [materialsModalDemandId, setMaterialsModalDemandId] = useState<number | null>(null);
+    const [materialsUploading, setMaterialsUploading] = useState(false);
     const [showNewClientForm, setShowNewClientForm] = useState(false);
     const [newClientData, setNewClientData] = useState({ username: '', password: '', niche: '' });
     const [showNewClientPassword, setShowNewClientPassword] = useState(false);
@@ -117,8 +132,15 @@ export default function Dashboard() {
             setTasks(tasksRes.data ?? []);
             setUsers(usersRes.data ?? []);
             setTransactions(txRes.data ?? []);
-            setDemands(demandsRes.data ?? []);
+            const demandsList = demandsRes.data ?? [];
+            setDemands(demandsList);
             setClients(clientsRes.data ?? []);
+
+            const ids = (demandsList as Demand[]).map(d => d.id);
+            const materialsRes = await Promise.all(ids.map(id => axios.get(`/api/demands/${id}/materials`).catch(() => ({ data: [] }))));
+            const map: Record<number, DemandMaterial[]> = {};
+            ids.forEach((id, i) => { map[id] = materialsRes[i]?.data ?? []; });
+            setDemandMaterialsMap(map);
         } catch (error) {
             const msg = axios.isAxiosError(error)
                 ? (error.response?.data?.error || `HTTP ${error.response?.status}` || error.message)
@@ -170,6 +192,7 @@ export default function Dashboard() {
 
     const handleCreateDemand = async (e: React.FormEvent) => {
         e.preventDefault();
+        setMaterialsUploading(true);
         try {
             let finalClientName = newDemand.client_name;
 
@@ -191,22 +214,42 @@ export default function Dashboard() {
                 return toast.error('Selecione ou crie um cliente.');
             }
 
-            await axios.post('/api/demands', {
+            const { data: demandData } = await axios.post('/api/demands', {
                 ...newDemand,
                 client_name: finalClientName,
                 total_videos: Number(newDemand.total_videos) || 0,
-                duration_seconds: null // simplified as requested
+                duration_seconds: null,
+                has_material: newDemand.has_material
             });
+
+            const demandId = demandData?.id;
+            if (demandId && newDemand.has_material && (demandMaterialsToUpload.files.length > 0 || demandMaterialsToUpload.texts.length > 0)) {
+                try {
+                    for (const f of demandMaterialsToUpload.files) {
+                        const fd = new FormData();
+                        fd.append('file', f);
+                        await axios.post(`/api/demands/${demandId}/materials`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+                    }
+                    for (const t of demandMaterialsToUpload.texts) {
+                        await axios.post(`/api/demands/${demandId}/materials/text`, { content: t.content, title: t.title || null });
+                    }
+                } catch (e: any) {
+                    toast.error('Demanda criada, mas alguns materiais falharam: ' + (e.response?.data?.error || e.message));
+                }
+            }
 
             toast.success('Demanda criada!');
             setIsDemandModalOpen(false);
             setIsClientDropdownOpen(false);
-            setNewDemand({ client_name: '', total_videos: '', has_material: false, material_link: '', description: '' });
+            setNewDemand({ client_name: '', total_videos: '', has_material: false, description: '' });
+            setDemandMaterialsToUpload({ files: [], texts: [] });
             setShowNewClientForm(false);
             setNewClientData({ username: '', password: '', niche: '' });
             fetchData();
         } catch (error: any) {
             toast.error(error.response?.data?.error || 'Erro ao criar demanda.');
+        } finally {
+            setMaterialsUploading(false);
         }
     };
 
@@ -219,6 +262,23 @@ export default function Dashboard() {
         } catch (error) {
             toast.error('Erro ao excluir demanda.');
         }
+    };
+
+    const handleAddMaterialFile = async (demandId: number, file: File) => {
+        const fd = new FormData();
+        fd.append('file', file);
+        const { data } = await axios.post(`/api/demands/${demandId}/materials`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+        setDemandMaterialsMap(prev => ({ ...prev, [demandId]: [...(prev[demandId] ?? []), data] }));
+    };
+
+    const handleAddMaterialText = async (demandId: number, content: string, title?: string) => {
+        const { data } = await axios.post(`/api/demands/${demandId}/materials/text`, { content, title: title || null });
+        setDemandMaterialsMap(prev => ({ ...prev, [demandId]: [...(prev[demandId] ?? []), data] }));
+    };
+
+    const handleRemoveMaterial = async (demandId: number, materialId: number) => {
+        await axios.delete(`/api/demands/${demandId}/materials/${materialId}`);
+        setDemandMaterialsMap(prev => ({ ...prev, [demandId]: (prev[demandId] ?? []).filter(m => m.id !== materialId) }));
     };
 
     const handleAllocateDemand = async (e: React.FormEvent) => {
@@ -608,9 +668,55 @@ export default function Dashboard() {
                                         </div>
                                     </div>
                                     {demand.description && <p className="text-xs text-white/50 mb-4 line-clamp-3 leading-relaxed">{demand.description}</p>}
-                                    {demand.has_material === 1 && demand.material_link && (
-                                        <a href={demand.material_link} target="_blank" rel="noreferrer" className="text-[10px] text-blue-400 hover:text-blue-300 underline tracking-wider mb-4 block truncate">Link de Referência / Material</a>
-                                    )}
+                                    <div className="mb-4 space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Material de apoio</span>
+                                            <button onClick={() => { setMaterialsModalDemandId(demand.id); setIsMaterialsModalOpen(true); }} className="text-[9px] font-bold text-emerald-400 hover:text-emerald-300 uppercase tracking-widest flex items-center gap-1">
+                                                <Plus className="w-3.5 h-3.5" /> Adicionar
+                                            </button>
+                                        </div>
+                                            <div className="space-y-2 max-h-32 overflow-y-auto custom-scrollbar">
+                                                {(demandMaterialsMap[demand.id] ?? []).map(m => (
+                                                    <div key={m.id} className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl p-3 group/material">
+                                                        {m.media_type === 'image' && m.media_url && (
+                                                            <a href={m.media_url} target="_blank" rel="noreferrer" className="shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-white/5">
+                                                                <img src={m.media_url} alt="" className="w-full h-full object-cover" />
+                                                            </a>
+                                                        )}
+                                                        {m.media_type === 'video' && m.media_url && (
+                                                            <div className="shrink-0 w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center">
+                                                                <Video className="w-6 h-6 text-white/50" />
+                                                            </div>
+                                                        )}
+                                                        {m.media_type === 'text' && (
+                                                            <div className="shrink-0 w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center">
+                                                                <FileText className="w-6 h-6 text-white/50" />
+                                                            </div>
+                                                        )}
+                                                        <div className="flex-1 min-w-0">
+                                                            {m.title && <div className="text-[10px] text-white/50 truncate">{m.title}</div>}
+                                                            <div className="text-xs text-white/80 truncate">{m.media_type === 'text' ? (m.content || '').slice(0, 40) + (m.content && m.content.length > 40 ? '...' : '') : (m.media_url || '').slice(-30)}</div>
+                                                        </div>
+                                                        <div className="flex items-center gap-1 opacity-0 group-hover/material:opacity-100 transition-opacity">
+                                                            {m.media_type === 'text' ? (
+                                                                <button onClick={() => { navigator.clipboard.writeText(m.content || ''); toast.success('Texto copiado!'); }} className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/70" title="Copiar"><Copy className="w-3.5 h-3.5" /></button>
+                                                            ) : m.media_url ? (
+                                                                <>
+                                                                    <button onClick={() => { navigator.clipboard.writeText(m.media_url!); toast.success('Link copiado!'); }} className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/70" title="Copiar link"><Copy className="w-3.5 h-3.5" /></button>
+                                                                    <a href={m.media_url} download target="_blank" rel="noreferrer" className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/70" title="Baixar"><Download className="w-3.5 h-3.5" /></a>
+                                                                </>
+                                                            ) : null}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                {demand.has_material === 1 && demand.material_link && !(demandMaterialsMap[demand.id]?.length) && (
+                                                    <a href={demand.material_link} target="_blank" rel="noreferrer" className="text-[10px] text-blue-400 hover:text-blue-300 underline tracking-wider block truncate">Link legado</a>
+                                                )}
+                                                {(demandMaterialsMap[demand.id]?.length ?? 0) === 0 && !(demand.has_material === 1 && demand.material_link) && (
+                                                    <div className="text-[10px] text-white/30 italic py-2">Nenhum material ainda</div>
+                                                )}
+                                            </div>
+                                        </div>
 
                                     <div className="mt-auto pt-4 border-t border-white/10 flex justify-between items-center">
                                         <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full ${demand.status === 'completed' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : demand.status === 'partial' ? 'bg-amber-400/10 text-amber-500 border border-amber-400/20' : 'bg-white/5 text-white/50 border border-white/10'}`}>
@@ -987,20 +1093,64 @@ export default function Dashboard() {
                                             {newDemand.has_material && <Check className="w-3.5 h-3.5 text-black" />}
                                         </div>
                                         <span className="text-[10px] font-bold text-white/70 tracking-widest uppercase">Possui material de apoio?</span>
-                                        <input type="checkbox" checked={newDemand.has_material} onChange={e => setNewDemand({ ...newDemand, has_material: e.target.checked })} className="hidden" />
+                                        <input type="checkbox" checked={newDemand.has_material} onChange={e => { setNewDemand({ ...newDemand, has_material: e.target.checked }); if (!e.target.checked) setDemandMaterialsToUpload({ files: [], texts: [] }); }} className="hidden" />
                                     </label>
 
                                     {newDemand.has_material && (
-                                        <input required={newDemand.has_material} type="url" value={newDemand.material_link} onChange={e => setNewDemand({ ...newDemand, material_link: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-sm outline-none focus:border-emerald-400/50 font-light placeholder:text-white/20 transition-all" placeholder="Link do Google Drive / Dropbox" />
+                                        <div className="space-y-3 bg-white/[0.02] border border-white/10 rounded-2xl p-5">
+                                            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest block">Fotos e vídeos</span>
+                                            <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-white/20 rounded-xl py-6 px-4 cursor-pointer hover:border-emerald-400/50 hover:bg-white/[0.03] transition-all">
+                                                <Paperclip className="w-6 h-6 text-white/40" />
+                                                <span className="text-[10px] text-white/50 uppercase tracking-widest">Arraste arquivos ou clique para selecionar</span>
+                                                <input type="file" multiple accept="image/*,video/*" className="hidden" onChange={e => {
+                                                    const files = Array.from(e.target.files || []);
+                                                    setDemandMaterialsToUpload(prev => ({ ...prev, files: [...prev.files, ...files] }));
+                                                    e.target.value = '';
+                                                }} />
+                                            </label>
+                                            {demandMaterialsToUpload.files.length > 0 && (
+                                                <div className="flex flex-wrap gap-2">
+                                                    {demandMaterialsToUpload.files.map((f, i) => (
+                                                        <div key={i} className="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-2 text-[10px] text-white/80">
+                                                            {f.type.startsWith('video/') ? <Video className="w-4 h-4" /> : <Image className="w-4 h-4" />}
+                                                            <span className="truncate max-w-[120px]">{f.name}</span>
+                                                            <button type="button" onClick={() => setDemandMaterialsToUpload(prev => ({ ...prev, files: prev.files.filter((_, j) => j !== i) }))} className="text-red-400 hover:text-red-300"><X className="w-3.5 h-3.5" /></button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest block mt-4">Textos de apoio</span>
+                                            <div className="space-y-2">
+                                                {demandMaterialsToUpload.texts.map((t, i) => (
+                                                    <div key={i} className="flex gap-2 items-start">
+                                                        <div className="flex-1 bg-white/5 border border-white/10 rounded-xl p-3">
+                                                            {t.title && <div className="text-[10px] text-white/50 uppercase mb-1">{t.title}</div>}
+                                                            <div className="text-xs text-white/80 line-clamp-2">{t.content}</div>
+                                                        </div>
+                                                        <button type="button" onClick={() => setDemandMaterialsToUpload(prev => ({ ...prev, texts: prev.texts.filter((_, j) => j !== i) }))} className="text-red-400 hover:text-red-300 shrink-0"><X className="w-4 h-4" /></button>
+                                                    </div>
+                                                ))}
+                                                <div className="flex gap-2">
+                                                    <input type="text" placeholder="Título (opcional)" className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-xs placeholder:text-white/30" id="new-text-title" />
+                                                    <textarea placeholder="Conteúdo do texto..." rows={2} className="flex-[2] bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-xs placeholder:text-white/30 resize-none" id="new-text-content" />
+                                                    <button type="button" onClick={() => {
+                                                        const title = (document.getElementById('new-text-title') as HTMLInputElement)?.value?.trim();
+                                                        const content = (document.getElementById('new-text-content') as HTMLTextAreaElement)?.value?.trim();
+                                                        if (content) {
+                                                            setDemandMaterialsToUpload(prev => ({ ...prev, texts: [...prev.texts, { content, title: title || undefined }] }));
+                                                            (document.getElementById('new-text-title') as HTMLInputElement).value = '';
+                                                            (document.getElementById('new-text-content') as HTMLTextAreaElement).value = '';
+                                                        }
+                                                    }} className="bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 rounded-xl px-4 py-2 text-[10px] font-bold uppercase shrink-0">+</button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     )}
 
                                     <textarea rows={2} value={newDemand.description} onChange={e => setNewDemand({ ...newDemand, description: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-[clamp(0.75rem,2.5vh,1rem)] text-white text-sm outline-none focus:border-emerald-400/50 font-light resize-none h-[clamp(4rem,10vh,6rem)]" placeholder="Algum outro detalhe importante?" />
 
-                                    <button type="submit" className="w-full mt-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400 hover:text-emerald-300 font-bold uppercase tracking-widest text-[clamp(0.6rem,1.5vh,0.7rem)] py-[clamp(1rem,2.8vh,1.25rem)] rounded-full flex justify-center items-center gap-3 group/btn">
-                                        Registrar Demanda no Mural
-                                        <div className="p-1 rounded-full bg-emerald-500 text-black group-hover/btn:scale-110">
-                                            <Plus className="w-3 h-3" />
-                                        </div>
+                                    <button type="submit" disabled={materialsUploading} className="w-full mt-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400 hover:text-emerald-300 font-bold uppercase tracking-widest text-[clamp(0.6rem,1.5vh,0.7rem)] py-[clamp(1rem,2.8vh,1.25rem)] rounded-full flex justify-center items-center gap-3 group/btn disabled:opacity-60 disabled:cursor-not-allowed">
+                                        {materialsUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Registrar Demanda no Mural<div className="p-1 rounded-full bg-emerald-500 text-black group-hover/btn:scale-110"><Plus className="w-3 h-3" /></div></>}
                                     </button>
                                 </form>
                             </div>
@@ -1071,6 +1221,128 @@ export default function Dashboard() {
                     </div>
                 )
             }
+
+            {/* Materials Modal - Adicionar materiais a demanda existente */}
+            {isMaterialsModalOpen && materialsModalDemandId && (
+                <MaterialsModal
+                    demandId={materialsModalDemandId}
+                    materials={demandMaterialsMap[materialsModalDemandId] ?? []}
+                    onClose={() => { setIsMaterialsModalOpen(false); setMaterialsModalDemandId(null); }}
+                    onAddFile={handleAddMaterialFile}
+                    onAddText={handleAddMaterialText}
+                    onRemove={handleRemoveMaterial}
+                    onCopy={(text) => { navigator.clipboard.writeText(text); toast.success('Copiado!'); }}
+                    onDownload={(url) => { window.open(url, '_blank'); }}
+                />
+            )}
+        </div>
+    );
+}
+
+function MaterialsModal({ demandId, materials, onClose, onAddFile, onAddText, onRemove, onCopy, onDownload }: {
+    demandId: number;
+    materials: DemandMaterial[];
+    onClose: () => void;
+    onAddFile: (demandId: number, file: File) => Promise<void>;
+    onAddText: (demandId: number, content: string, title?: string) => Promise<void>;
+    onRemove: (demandId: number, materialId: number) => Promise<void>;
+    onCopy: (text: string) => void;
+    onDownload: (url: string) => void;
+}) {
+    const [uploading, setUploading] = useState(false);
+    const [newTextTitle, setNewTextTitle] = useState('');
+    const [newTextContent, setNewTextContent] = useState('');
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
+        setUploading(true);
+        try {
+            for (const f of files) await onAddFile(demandId, f);
+            toast.success('Arquivos adicionados!');
+        } catch (e: any) {
+            toast.error(e.response?.data?.error || 'Erro ao enviar');
+        } finally {
+            setUploading(false);
+            e.target.value = '';
+        }
+    };
+
+    const handleAddText = async () => {
+        if (!newTextContent.trim()) return;
+        setUploading(true);
+        try {
+            await onAddText(demandId, newTextContent.trim(), newTextTitle.trim() || undefined);
+            setNewTextTitle('');
+            setNewTextContent('');
+            toast.success('Texto adicionado!');
+        } catch (e: any) {
+            toast.error(e.response?.data?.error || 'Erro ao adicionar');
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px]" onClick={onClose} />
+            <div className="relative bg-[#080808]/95 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-xl max-h-[90vh] overflow-hidden flex flex-col">
+                <button type="button" onClick={onClose} className="absolute top-6 right-6 z-20 text-white/30 hover:text-white bg-white/5 hover:bg-white/10 p-2.5 rounded-full">
+                    <X className="w-5 h-5" />
+                </button>
+                <div className="p-8 flex flex-col gap-6 overflow-y-auto custom-scrollbar">
+                    <h2 className="text-xl font-display font-medium text-white tracking-wide">Material de apoio</h2>
+
+                    <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-white/20 rounded-2xl py-8 px-4 cursor-pointer hover:border-emerald-400/50 hover:bg-white/[0.03] transition-all">
+                        <Paperclip className="w-8 h-8 text-white/40" />
+                        <span className="text-[10px] text-white/50 uppercase tracking-widest">Arraste fotos ou vídeos</span>
+                        <input type="file" multiple accept="image/*,video/*" className="hidden" onChange={handleFileChange} disabled={uploading} />
+                    </label>
+
+                    <div className="flex gap-2">
+                        <input value={newTextTitle} onChange={e => setNewTextTitle(e.target.value)} placeholder="Título (opcional)" className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/30" />
+                        <textarea value={newTextContent} onChange={e => setNewTextContent(e.target.value)} placeholder="Texto de apoio..." rows={2} className="flex-[2] bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/30 resize-none" />
+                        <button onClick={handleAddText} disabled={uploading || !newTextContent.trim()} className="bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 rounded-xl px-5 py-3 text-xs font-bold uppercase shrink-0 disabled:opacity-50">+ Texto</button>
+                    </div>
+
+                    <div className="space-y-2">
+                        <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Materiais ({materials.length})</span>
+                        {materials.map(m => (
+                            <div key={m.id} className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl p-4 group/m">
+                                {m.media_type === 'image' && m.media_url && (
+                                    <a href={m.media_url} target="_blank" rel="noreferrer" className="shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-white/5">
+                                        <img src={m.media_url} alt="" className="w-full h-full object-cover" />
+                                    </a>
+                                )}
+                                {m.media_type === 'video' && m.media_url && (
+                                    <div className="shrink-0 w-14 h-14 rounded-lg bg-white/5 flex items-center justify-center"><Video className="w-7 h-7 text-white/50" /></div>
+                                )}
+                                {m.media_type === 'text' && (
+                                    <div className="shrink-0 w-14 h-14 rounded-lg bg-white/5 flex items-center justify-center"><FileText className="w-7 h-7 text-white/50" /></div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                    {m.title && <div className="text-[10px] text-white/50 truncate">{m.title}</div>}
+                                    <div className="text-sm text-white/80 truncate">{m.media_type === 'text' ? (m.content || '').slice(0, 60) + '...' : (m.media_url || '').slice(-40)}</div>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    {m.media_type === 'text' ? (
+                                        <button onClick={() => onCopy(m.content || '')} className="p-2 rounded-lg bg-white/10 hover:bg-white/20" title="Copiar"><Copy className="w-4 h-4" /></button>
+                                    ) : m.media_url ? (
+                                        <>
+                                            <button onClick={() => onCopy(m.media_url!)} className="p-2 rounded-lg bg-white/10 hover:bg-white/20" title="Copiar link"><Copy className="w-4 h-4" /></button>
+                                            <button onClick={() => onDownload(m.media_url!)} className="p-2 rounded-lg bg-white/10 hover:bg-white/20" title="Baixar"><Download className="w-4 h-4" /></button>
+                                        </>
+                                    ) : null}
+                                    <button onClick={() => onRemove(demandId, m.id)} className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400" title="Remover"><Trash2 className="w-4 h-4" /></button>
+                                </div>
+                            </div>
+                        ))}
+                        {materials.length === 0 && (
+                            <div className="text-center py-8 text-white/40 text-sm">Nenhum material ainda. Adicione fotos, vídeos ou textos acima.</div>
+                        )}
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
