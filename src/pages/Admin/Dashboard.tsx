@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Check, Clock, LogOut, Trash2, Loader2, X, CircleDashed, CheckCircle2, Edit2, DollarSign, Sparkles, Users } from 'lucide-react';
+import { Plus, Check, Clock, LogOut, Trash2, Loader2, X, CircleDashed, CheckCircle2, Edit2, DollarSign, Sparkles, Users, Eye, EyeOff } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
@@ -91,6 +91,7 @@ export default function Dashboard() {
     const [isDemandModalOpen, setIsDemandModalOpen] = useState(false);
     const [showNewClientForm, setShowNewClientForm] = useState(false);
     const [newClientData, setNewClientData] = useState({ username: '', password: '', niche: '' });
+    const [showNewClientPassword, setShowNewClientPassword] = useState(false);
 
     const [isAllocateModalOpen, setIsAllocateModalOpen] = useState(false);
     const [allocateData, setAllocateData] = useState({ demand_id: 0, assigned_to: '', videos_count: '', urgency: 'MEDIUM', notes: '' });
@@ -408,14 +409,14 @@ export default function Dashboard() {
                             </Link>
                             <Link
                                 to="/admin/clientes"
-                                className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center hover:bg-emerald-500/20 hover:border-emerald-500   shrink-0"
+                                className="w-10 h-10 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center hover:bg-purple-500/20 hover:border-purple-500   shrink-0"
                                 title="Gestão de Clientes"
                             >
                                 <Users className="w-4 h-4" />
                             </Link>
                             <button
                                 onClick={() => setIsHistoryModalOpen(true)}
-                                className="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center hover:bg-cyan-500/20 hover:border-cyan-500   shrink-0"
+                                className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center hover:bg-amber-500/20 hover:border-amber-500   shrink-0"
                                 title="Histórico de Tarefas"
                             >
                                 <Clock className="w-4 h-4" />
@@ -926,7 +927,12 @@ export default function Dashboard() {
                                     </div>
                                     <div className="space-y-3">
                                         <input required={showNewClientForm} type="text" value={newClientData.username} onChange={e => setNewClientData({ ...newClientData, username: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3.5 text-white text-sm outline-none focus:border-cyan-400/50 font-light" placeholder="Nome / Usuário do Cliente" />
-                                        <input required={showNewClientForm} type="password" value={newClientData.password} onChange={e => setNewClientData({ ...newClientData, password: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3.5 text-white text-sm outline-none focus:border-cyan-400/50 font-light" placeholder="Senha de Acesso" />
+                                        <div className="relative">
+                                            <input required={showNewClientForm} type={showNewClientPassword ? "text" : "password"} value={newClientData.password} onChange={e => setNewClientData({ ...newClientData, password: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3.5 text-white text-sm outline-none focus:border-cyan-400/50 font-light" placeholder="Senha de Acesso" />
+                                            <button type="button" onClick={() => setShowNewClientPassword(!showNewClientPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white p-2">
+                                                {showNewClientPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                            </button>
+                                        </div>
                                         <input type="text" value={newClientData.niche} onChange={e => setNewClientData({ ...newClientData, niche: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3.5 text-white text-sm outline-none focus:border-cyan-400/50 font-light" placeholder="Nicho / Segmento (Opcional)" />
                                     </div>
                                 </div>
