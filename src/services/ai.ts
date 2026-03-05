@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 
 export interface ProductAnalysis {
@@ -25,7 +24,7 @@ export interface SceneryAnalysis {
 // =======================================================================
 const BRAIN_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.1-pro-preview"];
 const ANALYSIS_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro"];
-const IMAGE_MODELS = ["gemini-3.1-pro-image-preview", "gemini-2.5-flash-image", "gemini-2.0-flash-preview-image-generation"];
+const IMAGE_MODELS = ["gemini-3.1-flash-image-preview", "gemini-3-pro-image-preview"];
 
 // =======================================================================
 // ERROR TYPES (Fix #2 - Specific error handling)
@@ -177,36 +176,36 @@ export async function analyzeProduct(imagesBase64: string[], marketingContext?: 
             parts: [
                 ...parts,
                 {
-                    text: `SYSTEM MANDATE: You are an ELITE 3D INDUSTRIAL DESIGNER and VISUAL STRATEGIST.
+                    text: `SYSTEM MANDATE: You are an ELITE ADVERTISING DIRECTOR and CMO.
 ${marketingContext ? `
-[CRITICAL MARKETING CONTEXT]
+[CRITICAL MARKETING CONTEXT - SUPER-PRIORITY]
 """
 ${marketingContext}
 """
+MANDATE: ALL Suggested Sceneries (Lifestyle & Product-Only) MUST directly serve the marketing goals, target audience, and benefits described above. No generic suggestions allowed.
 ` : ''}
 
-Analyze these images to create a 'DIGITAL TWIN SPECIFICATION'. Your goal is absolute geometric and branding fidelity for a video production.
+Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. 'description' (ENGLISH, detailed). 2. 'productType' (PT-BR). 3. 'suggestedSceneriesProductOnly' (PT-BR): 4 scenarios (2 realistic, 2 HIGH-FASHION/AVANT-GARDE SURREALISM). 4. 'suggestedSceneriesLifestyle' (PT-BR): 4 scenarios (2 realistic, 2 CINEMATIC DREAMLIKE/LUXURY SURREALISM). MANDATE: Avoid childish, toy-like, or 'ludic' metaphors. No marshmallows, no candy, no fairytales. Use HIGH-END aesthetic references (e.g. perfume commercials, luxury fashion, liquid metal, volumetric light).
 
-RETURN a JSON matching the schema below.
+1. "description" (ENGLISH, ultra-detailed):
+    - Exact physical traits: shape, silhouette, weight distribution
+    - MICRO-PHYSICS: How the materials react to touch and pressure (e.g., "memory foam compression", "rigid plastic", "liquid viscosity")
+    - Textures & Finishes: (matte, glossy, brushed, rubberized, porous)
+    - Colors: Verbal description + precise HEX codes (e.g., "Emerald Green #50C878")
+    - QUANTITY: Exactly how many items (pair/set/single)?
+    - Branding: Exact placement and legibility of all logos/text.
 
-1. "description" (ENGLISH - TECHNICAL BLUEPRINT):
-    - GEOMETRIC VOLUME: Describe the 3D shape, proportions, and symmetry with mathematical precision.
-    - BRANDING MAP: List every logo, text, and icon. Specify EXACT placement (e.g., 'Lateral-mid-left', 'Embossed on sole'), material (e.g., 'Raised rubber', 'Screen-printed gold'), and font characteristics.
-    - MATERIAL PHYSICS: How light reflects (specular vs diffuse), surface roughness (RMS), and structural behavior (flexibility vs rigidity).
-    - COLOR FIDELITY: Exact verbal descriptions + precise HEX codes (minimum 3).
-    - QUANTITY & STATE: Exactly what is in the frame (e.g., 'One left-foot shoe', 'A set of 3 bottles').
+2. "productType" (PORTUGUESE): Short category name
 
-2. "productType" (PORTUGUESE): Short category name.
+3. "suggestedSceneriesProductOnly" (PORTUGUESE): 4 REAL COMMERCIAL VIDEO SCENARIOS for product-only shots. Focus on cinematic movement and lighting.
 
-3. "suggestedSceneriesProductOnly" (PORTUGUESE): 4 commercial scenarios focusing on product details.
+4. "suggestedSceneriesLifestyle" (PORTUGUESE): 4 REAL COMMERCIAL VIDEO SCENARIOS with people. Focus on physical interaction with the product.
 
-4. "suggestedSceneriesLifestyle" (PORTUGUESE): 4 realistic scenarios with human interaction.
+5. "colors" (ENGLISH): List of all unique colors/variations detected with HEX.
 
-5. "colors" (ENGLISH): Detailed list of all color shades with HEX.
+6. "sellingPoints" (PORTUGUESE): TOP 3 technical/visual advantages.
 
-6. "sellingPoints" (PORTUGUESE): Top 3 technical/aesthetic advantages.
-
-7. "dominantHexColors": Top 3 HEX codes.` }
+7. "dominantHexColors": List the 3 most important HEX CODES detected.` }
             ]
         },
         config: {
@@ -214,13 +213,33 @@ RETURN a JSON matching the schema below.
             responseSchema: {
                 type: Type.OBJECT,
                 properties: {
-                    description: { type: Type.STRING, description: "Technical blueprint in English: 3D geometry, precise branding map (coordinates/style), material physics, and exact color specs." },
-                    productType: { type: Type.STRING },
-                    suggestedSceneriesProductOnly: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    suggestedSceneriesLifestyle: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    colors: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    sellingPoints: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    dominantHexColors: { type: Type.ARRAY, items: { type: Type.STRING } }
+                    description: { type: Type.STRING, description: "Ultra-precise English description including shape, colors (hex), materials, textures, branding, text, logos, QUANTITY (pair/single/set), display convention, and all unique visual features." },
+                    productType: { type: Type.STRING, description: "A short category name in Portuguese (e.g., 'Tênis', 'Garrafa de Skincare', 'Eletrônico')." },
+                    suggestedSceneriesProductOnly: {
+                        type: Type.ARRAY,
+                        items: { type: Type.STRING },
+                        description: "Array of 3-4 studio, minimalist, or 3D environment descriptions in Portuguese."
+                    },
+                    suggestedSceneriesLifestyle: {
+                        type: Type.ARRAY,
+                        items: { type: Type.STRING },
+                        description: "Array of 3-4 cinematic, real-world environment descriptions in Portuguese."
+                    },
+                    colors: {
+                        type: Type.ARRAY,
+                        items: { type: Type.STRING },
+                        description: "List of all unique color variations detected in the provided images."
+                    },
+                    sellingPoints: {
+                        type: Type.ARRAY,
+                        items: { type: Type.STRING },
+                        description: "Top 3 marketing hooks/technical advantages in Portuguese."
+                    },
+                    dominantHexColors: {
+                        type: Type.ARRAY,
+                        items: { type: Type.STRING },
+                        description: "List of precise hex codes extracted (e.g. ['#FFFFFF'])."
+                    }
                 },
                 required: ["description", "productType", "suggestedSceneriesProductOnly", "suggestedSceneriesLifestyle", "colors", "sellingPoints", "dominantHexColors"]
             }
@@ -295,147 +314,94 @@ RETURN a JSON:
 }
 
 // =======================================================================
-// 2. GENERATE PROMPTS — DUAL ENGINE: SORA 2 (10s) + KLING 3.0 (5s)
+// 2. GENERATE PROMPTS
 // =======================================================================
-export type PromptEngine = 'sora' | 'kling';
-
 export async function generatePrompts(
     productDescription: string,
     options: any,
     previousPrompts?: string[],
     detectedColors?: string[],
-    sceneDraft?: string,
-    engine: PromptEngine = 'kling' // NEW: which prompt format to use
+    sceneDraft?: string // Specific scene draft to polish
 ): Promise<string[]> {
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
 
     const ai = new GoogleGenAI({ apiKey });
 
-    const hexInfo = detectedColors?.length ? `\nPRODUCT COLORS (use these exact descriptions): ${detectedColors.join(', ')}` : '';
+    const normalizePaletteAnchors = (items?: string[]) =>
+        (items || [])
+            .map((c) => c.replace(/#[0-9a-fA-F]{3,8}/g, '').trim())
+            .filter(Boolean)
+            .slice(0, 5);
 
-    // === TASK DESCRIPTION (shared logic) ===
-    let taskDescription = '';
+    const stripHexDirectives = (text: string) =>
+        text
+            .replace(/ADOPT THESE EXACT HEX COLORS:[^\n]*\n?/gi, '')
+            .replace(/#[0-9a-fA-F]{3,8}/g, '')
+            .trim();
+
+    const outputCount = sceneDraft ? 1 : 3;
+    const referenceLockLine = "Use the uploaded image(s) as the exact product reference. Preserve geometry, logo placement, proportions, materials, and texture scale.";
+    const paletteAnchors = normalizePaletteAnchors(detectedColors);
+    const continuityAnchor = previousPrompts?.length
+        ? previousPrompts[previousPrompts.length - 1].slice(0, 300)
+        : '';
+    const userIntent = sceneDraft || options.supportingDescription || '';
     const isScriptMode = options.mode === 'script' && !!options.script;
+    const cleanProductDescription = stripHexDirectives(productDescription);
+    const styleHints = [
+        "product turntable commercial shot",
+        "studio product lighting",
+        "photorealistic product commercial"
+    ];
 
-    if (sceneDraft) {
-        taskDescription = engine === 'kling'
-            ? `Polish this draft into a Kling 3.0 prompt. Keep the same vibe. Follow the Kling format below.`
-            : `Polish this draft into a simple, natural prompt. Keep the same vibe — person, action, product, logo visibility, ambient sound.`;
-    } else if (isScriptMode) {
-        taskDescription = engine === 'kling'
-            ? `Script: ${options.script}\nBreak into 3 Kling 3.0 prompts following the format below.`
-            : `Script: ${options.script}\nBreak into 3 simple prompts. Same natural style: person, action, product, logo visible, sound.`;
-    } else if (previousPrompts && previousPrompts.length > 0) {
-        taskDescription = `Previous scenes: ${previousPrompts.map((p, i) => `Scene ${i + 1}: ${p.slice(0, 80)}...`).join('\n')}\n` + (
-            engine === 'kling'
-                ? `Generate 3 NEW scenes. Different angles, actions, settings. Follow the Kling 3.0 format.`
-                : `Generate 3 NEW scenes in the same simple, natural style. Match the vibe.`
-        );
-    } else if (detectedColors && detectedColors.length > 1) {
-        taskDescription = engine === 'kling'
-            ? `Create 3 scenes showcasing different color variants of the product. Follow the Kling 3.0 format.`
-            : `Create 3 scenes showcasing different color variants. Same simple style: person + action + product + logo visible + sound.`;
-    } else {
-        taskDescription = engine === 'kling'
-            ? `Create 3 scenes:\nScene 1: Product hero shot — the product is the star. Clean background, product rotating or being revealed. Logo visible.\nScene 2: Lifestyle — a person interacting with the product naturally. The product is clearly visible with details preserved.\nScene 3: Detail/Close-up — extreme close-up showing textures, materials, stitching, brand details.`
-            : `Create 3 simple scenes:\nScene 1: Person in a relaxed setting (e.g. by pool, in living room). Product visible. Logo clear. Natural light.\nScene 2: Different person or angle. Product in use (stepping, walking). Logo on strap/footbed clearly visible.\nScene 3: Close-up or detail. Product colors and materials. Logo sharp.\nAll in the same natural, flowing style — no jargon.`;
-    }
+    const promptContext = `You are a senior Sora 2 product-commercial prompt director.
+Generate ${outputCount} professional blueprint prompt(s) for Sora 2.
 
-    // === PROMPT STYLE (engine-specific) ===
-    const klingPromptStyle = `
-WRITE PROMPTS OPTIMIZED FOR KLING 3.0 VIDEO AI (Image-to-Video mode, 5 seconds each).
+MANDATORY RULES
+- English output only.
+- Each blueprint must be 85-125 words.
+- Start every blueprint with this exact sentence: "${referenceLockLine}"
+- One shot per blueprint: one main subject action + one camera move.
+- Keep product identity locked: shape, logo, proportions, texture, stitching, materials.
+- Do NOT use HEX codes. Use natural color language only.
+- Use concrete visual words, not generic marketing adjectives.
+- If surreal is requested, keep product physics intact and apply surrealism to environment/action.
+- Separate object motion from camera motion in explicit language.
+- Add commercial style cues naturally when relevant: ${styleHints.join(', ')}.
+- Output must be JSON array of ${outputCount} string(s). No markdown.
 
-KLING 3.0 PROMPT FORMAT — FOLLOW THIS EXACTLY:
+PROJECT SETTINGS
+- Mode: ${options.mode === 'lifestyle' ? 'Lifestyle' : 'Product only'}
+- Environment: ${options.environment || 'Studio'}
+- Lighting: ${options.timeOfDay || 'Controlled cinematic light'}
+- Cinematography style: ${options.style || 'Commercial'}
+- Aspect ratio target: ${options.aspectRatio || '16:9'}
+- Camera preference: ${options.cameraAngle || 'natural hero framing'}
+- Action preference: ${options.sceneAction || 'clean product-first movement'}
+${options.mode === 'lifestyle' ? `- Talent: ${options.gender}, ${options.skinTone} skin, ${options.hairColor} hair` : ''}
 
-Each prompt should be a SINGLE CONTINUOUS TAKE of 5 seconds. Describe what happens in those 5 seconds.
+PRODUCT IDENTITY (SOURCE OF TRUTH)
+${cleanProductDescription}
+${paletteAnchors.length ? `Palette anchors (natural language): ${paletteAnchors.join(', ')}` : ''}
+${continuityAnchor ? `Continuity anchor from previous blueprint: ${continuityAnchor}` : ''}
 
-STRUCTURE:
-1. SHOT TYPE + CAMERA: Start with the shot type and camera angle.
-   Examples: "Close-up, low angle" / "Medium shot, eye level" / "Wide shot, the camera slowly orbits" / "Extreme close-up, rack focus"
+SCENE BRIEF
+${isScriptMode ? `Adapt this script into concise, cinematic blueprint shots:\n${options.script}` : (userIntent ? userIntent : 'Build a premium product reveal sequence with clear progression: reveal, interaction, macro detail.')}
 
-2. SUBJECT + ACTION: Describe who/what is in frame and what happens.
-   Examples: "a man's hand reaches down and picks up the product" / "the product sits on a marble surface as warm light sweeps across it"
+RESPONSE STYLE
+For each blueprint paragraph use this internal order:
+1) Product lock sentence,
+2) Object motion sentence,
+3) Camera motion sentence,
+4) Lighting/material behavior sentence,
+5) Constraint sentence (no deformation/no invented details/no illegible branding).
 
-3. PRODUCT DETAILS: Weave in specific physical details from the reference image.
-   Examples: "the soft grey suede texture catches the light" / "revealing the embossed logo on the heel tab"
+QUALITY BAR
+- Keep language compact and direct.
+- Avoid poetic filler and repeated adjectives.
+- Use physically plausible timing beats for 8-10s clips.`;
 
-4. ENVIRONMENT + LIGHTING: Brief, natural description.
-   Examples: "on a polished concrete surface, warm golden hour light" / "in a modern minimalist apartment, soft diffused window light"
-
-5. MOTION: What moves and how. Keep it subtle for 5 seconds.
-   Examples: "the camera slowly pulls back" / "he shifts his weight, the shoe flexes naturally" / "a gentle breeze moves the fabric"
-
-EXAMPLE KLING 3.0 PROMPTS:
-
-"Close-up, low angle. A pair of grey suede slip-on moccasins rests on a warm wooden surface. Soft golden light sweeps across the brushed suede texture, highlighting the tonal stitching and the cream rubber sole. The camera slowly glides from left to right, revealing the embossed 'A' logo on the heel tab. Shallow depth of field, luxury product commercial quality."
-
-"Medium shot, eye level. A young man in dark jeans walks confidently across polished concrete in a modern urban café. The camera tracks his feet, capturing the grey suede moccasins with cream soles. He pauses, shifts his weight — the shoe flexes naturally. Warm ambient lighting, shallow depth of field."
-
-RULES:
-- DURATION: Each prompt = exactly ONE 5-second clip. Don't describe more than 5 seconds of action.
-- REALISTIC only. No surrealism, no fantasy, no impossible scenarios.
-- SIMPLE language. No technical jargon. Describe what a camera operator would see.
-- Product details must match the reference image EXACTLY — colors, textures, logos, materials.
-- One flowing paragraph per prompt. 60-100 words.
-- Include camera movement (slow orbit, tracking, pull back, static with subtle motion).
-- Do NOT use shot numbering like "Shot 1 (3s)". That's for multi-shot mode. Each prompt is a SINGLE continuous take.
-- Do NOT reference "uploaded images" or "@Product" — just describe the product naturally.
-- If lifestyle mode: include a person with natural actions.
-- The product's brand/logo should be mentioned as visible somewhere in the scene.
-    `;
-
-    const soraPromptStyle = `
-WRITE SIMPLE, NATURAL SORA 2 PROMPTS — LIKE A SUCCESSFUL COMMERCIAL BRIEF (10 seconds each).
-
-FORMAT (follow this flow):
-1. Person + action + location. Example: "A middle-aged man with light skin and blonde hair sits on a comfortable lounge chair by a resort pool..."
-2. Product woven in naturally with colors and details. Example: "his creamy beige 'yogui' flip-flops, accented with the vivid orange stripe, resting casually on the warm flagstones."
-3. Shot type, framing, lens — brief. Example: "A medium shot, framed at 9:16 with an 85mm lens, captures his relaxed posture..."
-4. Camera movement: holds steady, tracks, orbits — simple.
-5. Mood/feeling: contentment, ease, gentle grace.
-6. Logo visibility: "making the 'yogui' logo on the strap clearly visible" or similar.
-7. Ambient sound: "Gentle sounds of water lapping and distant conversation" or "subtle fabric rustles."
-
-RULES:
-- DURATION: Each prompt = ONE 10-second clip.
-- REALISTIC scenes only. No surrealism, no dreamlike, no fantasy. Believable locations and actions.
-- SIMPLE language. No jargon like "kinetic foundation" or "volumetric lighting".
-- Brand name in quotes: 'yogui' or whatever the product brand is.
-- Product colors and materials described naturally (creamy beige, vivid orange stripe, pure white, black stripe).
-- One flowing paragraph. 80-120 words.
-- If lifestyle: include person (age hint, skin, hair) and their natural action.
-- Logo must be "clearly visible" somewhere in the prompt.
-    `;
-
-    const promptStyle = engine === 'kling' ? klingPromptStyle : soraPromptStyle;
-    const clipDuration = engine === 'kling' ? '5-second' : '10-second';
-    const wordRange = engine === 'kling' ? '60-100' : '80-120';
-    const engineLabel = engine === 'kling' ? 'KLING 3.0 Video AI (Image-to-Video)' : 'SORA 2 (Image-to-Video)';
-
-    const promptContext = `
-Generate prompts for ${engineLabel}. The user will upload a product photo as reference and paste your prompt. The AI will generate a ${clipDuration} video matching the reference image + prompt.
-
-SETTINGS:
-- Environment: ${options.environment}
-- Lighting: ${options.timeOfDay}
-- Style: ${options.style}
-- Aspect Ratio: ${options.aspectRatio}
-${options.mode === 'lifestyle' ? `- Person: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
-
-PRODUCT DESCRIPTION (from image analysis):
-${productDescription}
-${hexInfo}
-
-${sceneDraft ? `SCENE DRAFT TO POLISH:\n"${sceneDraft}"` : ''}
-${(options.customScenario || options.supportingDescription) ? `\nUSER REQUEST / CENA DESCRITA: ${(options.customScenario || options.supportingDescription).trim()}` : ''}
-
-${taskDescription}
-
-${promptStyle}
-
-Output: JSON array of 3 ${engine === 'kling' ? 'Kling 3.0' : 'Sora 2'} prompts (${wordRange} words each). Natural, cinematic language. Each prompt = a single ${clipDuration} clip.
-    `;
 
     const response = await generateWithFallback(ai, BRAIN_MODELS, (model) => ({
         model,
@@ -448,7 +414,7 @@ Output: JSON array of 3 ${engine === 'kling' ? 'Kling 3.0' : 'Sora 2'} prompts (
                 type: Type.ARRAY,
                 items: {
                     type: Type.STRING,
-                    description: `A ${engine === 'kling' ? 'Kling 3.0' : 'Sora 2'} Video AI prompt optimized for Image-to-Video, ${clipDuration} clip.`
+                    description: "A detailed Sora 2 video generation prompt."
                 }
             }
         }
@@ -457,131 +423,87 @@ Output: JSON array of 3 ${engine === 'kling' ? 'Kling 3.0' : 'Sora 2'} prompts (
     try {
         const parsed = JSON.parse(response.text || "[]");
         if (!Array.isArray(parsed)) return [];
-        return parsed.map((p: string) => {
-            const s = (typeof p === 'string' ? p : '').trim();
-            if (!s) return '';
-            return s;
-        }).filter((s: string) => s.length > 0);
+        return parsed
+            .map((p) => typeof p === 'string' ? p.trim() : '')
+            .map((p) => {
+                const normalized = p.replace(/\s+/g, ' ').trim();
+                if (!normalized) return '';
+                return normalized.toLowerCase().startsWith(referenceLockLine.toLowerCase())
+                    ? normalized
+                    : `${referenceLockLine} ${normalized}`;
+            })
+            .filter((p) => p.length > 0)
+            .slice(0, outputCount);
     } catch (e) {
         console.error("Failed to parse prompts", e);
         return [];
     }
 }
 
-
-
 // =======================================================================
-// 3. GENERATE MOCKUP — DUAL ENGINE: SORA (Collage) | KLING (Starting Frame)
+// 3. GENERATE MOCKUP (Fix #1 — Now receives original product images!)
 // =======================================================================
 export async function generateMockup(
     productDescription: string,
     options: any,
     promptIndex: number,
     productImages: string[],
-    promptText?: string,
-    engine: PromptEngine = 'kling',
-    frameType: 'start' | 'end' = 'start',
-    previousFrame?: string | null
+    promptText?: string // Optional: use the actual prompt text for the mockup
 ): Promise<string | null> {
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
 
-    if (!productImages?.length) {
-        throw new AIError("Envie fotos do produto para gerar o mockup. O gerador usa apenas as imagens, não descrições.", "UNKNOWN", false);
-    }
-
     const ai = new GoogleGenAI({ apiKey });
 
-    // --- KLING 3.0 LOGIC (Single Frame Reference for I2V) ---
-    const klingSceneVariations = [
-        "HERO MASTER: 3/4 view from a low-angle. Product occupies 60% of frame. Mandatory: PRIMARY LOGO must be razor-sharp, centered or clearly legible, and positioned for maximum impact as per Branding Map. 3D depth in branding is mandatory.",
-        "LIFESTYLE HERO: Product in a premium real-world setting. Natural eye-level angle. Focus is entirely on the product/brand interaction. Logo MUST be visible and perfectly legible even in the environment.",
-        "MACRO DETAIL: Extreme close-up on primary logo and materials. The logo must have physical depth, shadows, and 3D representation (embossed/debossed). Material fidelity is 100%.",
-        "DYNAMIC OBLIQUE: Product angled at 45 degrees. Camera at a low-angle. Professional lighting highlights BOTH silhouette and the BRANDING. Zero distortion of the logo geometry.",
-        "EDITORIAL TOP-DOWN: Symmetrical layout from directly above. Clean surface. Product geometry and all top-facing logos must be perfectly preserved and sharp.",
-        "PROFILE MASTER: Horizontal side-view. Zero geometric warping. Side branding must be perfectly legible and follow the product's 3D curvature exactly.",
-        "IN-ACTION STILL: Product being used, branding always oriented towards the camera. The logo is the anchor of the scene's composition.",
-        "ENVIRONMENTAL PORTRAIT: Product in its niche scenario. Lighting creates 'halo' around the logo area. Material textures are hyper-sharp.",
-        "BRAND REVEAL STILL: Expert angle specifically chosen to showcase the primary branding/wordmark as a high-fidelity 3D element."
+
+    const focusInstructions = [
+        "Focus on the environment and how the product fits in. Show the whole object with logo/branding clearly visible.",
+        "Focus on the interaction/movement. The product must remain 100% rigid and faithful. Logo must be readable.",
+        "Hyper-zoom on materials, textures, AND the logo/branding. Text must be perfectly sharp and legible.",
+        "Show the silhouette from a clean side angle. If the logo is on this side, it must be clearly visible.",
+        "Show it from directly above. Clean geometry. Any top branding must be sharp.",
+        "Majestic hero angle, looking up at the product. Branding facing camera.",
+        "Dynamic scene. Logo visible.",
+        "Lifestyle action. Logo visible.",
+        "Product focus. Logo prominently displayed."
     ];
 
-    // --- SORA 2 LOGIC (High Fidelity Agency Collage) ---
-    const soraHeroHints = [
-        "Fidelidade 100% ao Digital Twin. Ângulo Hero 3/4, logo em destaque nítido com profundidade 3D.",
-        "Lifestyle Realista. Produto integrado, logo visível e geometricamente perfeito.",
-        "Macro-Fidelidade. Foco extremo no logo e texturas originais. Nenhuma simplificação de branding.",
-        "Perfil Técnico. Geometria perfeita, logo lateral perfeitamente legível.",
-        "Vista Editorial de Cima. Organização limpa, branding visível e centralizado.",
-        "Ângulo de Poder (Low-Angle). Produto imponente, logo principal como ponto focal.",
-        "Cena de Uso Premium. Detalhes de branding preservados em movimento/ação.",
-        "Ambiente Imersivo. Iluminação desenha o contorno do produto e ressalta o logo.",
-        "Showcase de Marca. Foco absoluto no branding, geometria fiel ao Digital Twin."
-    ];
+    const imagePrompt = `TASK: TECHNICAL PRODUCT RECONSTRUCTION (COLLAGE).
+GOAL: Create a professional commercial concept sheet (16:9 Collage).
 
-    const aspectRatio = options.aspectRatio || "16:9";
+[CRITICAL - SOURCE OF TRUTH]
+THE ATTACHED PHOTOS ARE THE ONLY REFERENCE FOR PRODUCT SHAPE, COLORS, AND BRANDING. 
+- CLONE MODE: Absolute adherence to reference photos. 
+- ZERO HALLUCINATION: Do not add details, textures, or features not present in the photos.
+- IDENTITY LOCK: The product must be a pixel-perfect reconstruction of the references.
 
-    const commonFidelityRules = `
-DIGITAL TWIN PROTOCOL — MANDATORY FIDELITY RULES:
-- ABSOLUTE GEOMETRIC ACCURACY: The product in the mockup must be a 100% faithful reconstruction of the product in the reference photos. ZERO deviations in shape, proportions, or features.
-- 3D LOGO REPRESENTATION: Logos and branding are NOT flat textures. They must be rendered as physical, 3D elements with depth, bevels, or appropriate material interaction (embossed, debossed, or raised).
-- MATERIAL INTEGRITY: If the photo shows suede, the mockup must show suede. If it's polished steel, it must reflect like steel. Preserve every stitch, texture, and seam.
-- ZERO HALLUCINATION: Do NOT add features, logos, or parts that are not present in the reference images.
-- ONE PRODUCT ONLY: This is a commercial mockup for a single product model.
-    `;
+[SCENE CONTEXT - FOR ENVIRONMENT ONLY]
+ENVIRONMENT: ${options.environment}
+LIGHTING: ${options.timeOfDay}
+STYLE: ${options.style}
+${options.mode === 'lifestyle' ? `- TALENT: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
+${promptText || productDescription ? `BLUEPRINT: "${promptText || productDescription}"` : ''}
 
-    const sequenceDraftingRules = frameType === 'end' ? `
-MOTION SEQUENCE BLUEPRINT (END FRAME):
-- VISUAL CONTINUITY: This is the FINAL frame of a 5-10 second video. 
-- CONSISTENCY: Use the 'PREVIOUS FRAME' (Reference 0) as the absolute anchor for colors, lighting, and product positioning. 
-- SEQUENTIAL MOTION: The product should have moved slightly compared to Reference 0 (e.g., rotated 15 degrees, or camera pushed in). 
-- DO NOT CHANGE THE PRODUCT DESIGN: The product must remain identical to Reference 0.
-    ` : '';
+[LAYOUT]
+- MAIN HERO SHOT (LEFT, 60%): ${focusInstructions[promptIndex] || "Hero product focus."}
+- DETAIL ANGLES (RIGHT STACK, 40%): 3 microscopic views focusing strictly on the materials and branding found in the photos.
 
-    const klingImagePrompt = `KLING 3.0 REFERENCE FRAME (${frameType.toUpperCase()} FRAME)
-${commonFidelityRules}
-${sequenceDraftingRules}
-TASK: Generate ONE SINGLE photorealistic frame that serves as the ${frameType === 'end' ? 'ENDING' : 'STARTING'} POINT for a video.
-COMPOSITION: ${klingSceneVariations[promptIndex] || klingSceneVariations[0]}
-Environment: ${options.environment} | Lighting: ${options.timeOfDay}
-${options.mode === 'lifestyle' ? `- Person: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : '- Product-only'}
-${promptText ? `SCENE CONTEXT (Match this vibe): "${promptText.slice(0, 300)}"` : ''}
-TECHNICAL: Sharp focus, 8k resolution, cinematic commercial photography. NO split screens.`;
+CRITICAL: Perfect symmetry, cinematic grade. The product MUST be identical to the photos.`;
 
-    const soraImagePrompt = `SORA 2 AGENCY PITCH BOARD (16:9 COLLAGE)
-${commonFidelityRules}
-TASK: Generate a professional collage with distinct panels.
-[MAIN PANEL - LEFT 60%]: ${soraHeroHints[promptIndex] || soraHeroHints[0]}
-[DETAIL PANELS - RIGHT 40% (Stacked Vertically)]:
-1. TOP: Extreme Close-up of LOGO/BRANDING (3D depth mandatory).
-2. MID: Texture/Material detail (100% faithful).
-3. BOTTOM: Alternative angle (sole/back/side).
-Environment: ${options.environment} | Light: ${options.timeOfDay}
-${options.mode === 'lifestyle' ? `- User: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
-${promptText ? `Context: "${promptText.slice(0, 250)}"` : ''}
-TECHNICAL: Professional lighting, crisp borders between panels, luxury commercial aesthetic.`;
-
-    const imagePrompt = engine === 'kling' ? klingImagePrompt : soraImagePrompt;
-
+    // Build content parts: reference images (if available) + text prompt
     const contentParts: any[] = [];
 
-    // If ending frame, Reference 0 is the starting frame
-    if (frameType === 'end' && previousFrame) {
-        const { data, mimeType } = parseBase64(previousFrame);
-        contentParts.push({ text: `PREVIOUS STARTING FRAME (Reference 0): This is the beginning of the clip. Ensure the new END FRAME matches this exactly in style/lighting.` });
-        contentParts.push({ inlineData: { data, mimeType } });
+    // Send max 3 reference images to save tokens/cost (first, middle, last for best coverage)
+    if (productImages && productImages.length > 0) {
+        const selected = productImages.length <= 3
+            ? productImages
+            : [productImages[0], productImages[Math.floor(productImages.length / 2)], productImages[productImages.length - 1]];
+        for (const img of selected) {
+            const { data, mimeType } = parseBase64(img);
+            contentParts.push({ inlineData: { data, mimeType } });
+        }
     }
 
-    const selected = productImages.length <= 4
-        ? productImages
-        : [productImages[0], productImages[Math.floor(productImages.length / 3)], productImages[Math.floor(2 * productImages.length / 3)], productImages[productImages.length - 1]];
-
-    for (let i = 0; i < selected.length; i++) {
-        const { data, mimeType } = parseBase64(selected[i]);
-        contentParts.push({ text: `REFERENCE PHOTO ${i + 1}: Principal source for geometry and materials.` });
-        contentParts.push({ inlineData: { data, mimeType } });
-    }
-
-    contentParts.push({ text: `TECHNICAL BLUEPRINT (DIGITAL TWIN SPEC):\n${productDescription}` });
     contentParts.push({ text: imagePrompt });
 
     try {
@@ -591,7 +513,7 @@ TECHNICAL: Professional lighting, crisp borders between panels, luxury commercia
             config: {
                 // @ts-ignore
                 imageConfig: {
-                    aspectRatio: engine === 'kling' ? aspectRatio : "16:9",
+                    aspectRatio: "16:9",
                     imageSize: "1K"
                 }
             }
@@ -603,191 +525,9 @@ TECHNICAL: Professional lighting, crisp borders between panels, luxury commercia
             }
         }
     } catch (e: any) {
-        throw classifyError(e);
+        const classified = classifyError(e);
+        console.error("Mockup generation failed:", classified.type, classified.message);
+        throw classified;
     }
     return null;
-}
-
-// =======================================================================
-// 4. GENERATE VIDEO (Veo) — 8s, opcional com mockup como referência
-// =======================================================================
-const VEO_MODELS = ["models/veo-3.0-generate-001"];
-const POLL_INTERVAL_MS = 15000;
-const MAX_POLL_MINUTES = 10;
-// Veo preview = 10 req/min. Backoff: 90s, 120s, 180s, 240s
-const RATE_LIMIT_DELAYS = [90000, 120000, 180000, 240000];
-
-export async function generateVideo(
-    prompt: string,
-    mockupImageBase64?: string | null,
-    options?: { aspectRatio?: string; durationSeconds?: number }
-): Promise<string | null> {
-    const apiKey = getApiKey();
-    if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
-
-    const ai = new GoogleGenAI({ apiKey });
-    const duration = Math.min(8, options?.durationSeconds ?? 8); // Veo max 8s
-    const aspectRatio = options?.aspectRatio ?? "16:9";
-
-    const source: { prompt: string; image?: { imageBytes: string; mimeType: string } } = { prompt };
-    if (mockupImageBase64) {
-        const { data, mimeType } = parseBase64(mockupImageBase64);
-        source.image = { imageBytes: data, mimeType };
-    }
-
-    let operation: any;
-    let lastError: any;
-
-    for (const model of VEO_MODELS) {
-        for (let attempt = 0; attempt < RATE_LIMIT_DELAYS.length + 1; attempt++) {
-            try {
-                operation = await ai.models.generateVideos({
-                    model,
-                    source,
-                    config: {
-                        durationSeconds: duration,
-                        aspectRatio,
-                        numberOfVideos: 1,
-                        generateAudio: true
-                    }
-                });
-                lastError = null;
-                break;
-            } catch (e: any) {
-                lastError = e;
-                const classified = classifyError(e);
-                console.warn(`Video gen [${model}] attempt ${attempt + 1}:`, classified.type, classified.message);
-
-                if (classified.type === 'RATE_LIMIT' && attempt < RATE_LIMIT_DELAYS.length) {
-                    const delay = RATE_LIMIT_DELAYS[attempt];
-                    console.warn(`Aguardando ${delay / 1000}s antes de retentar (Veo tem limite de 10 req/min)...`);
-                    await new Promise(r => setTimeout(r, delay));
-                } else if (classified.type === 'MODEL_NOT_FOUND') {
-                    break;
-                } else {
-                    throw classified;
-                }
-            }
-        }
-        if (operation) break;
-    }
-
-    if (!operation && lastError) {
-        const err = classifyError(lastError);
-        if (err.type === 'RATE_LIMIT') {
-            throw new AIError(
-                "Veo está com fila cheia. Tente em 1-2 horas ou use Vertex AI (Google Cloud) para quotas maiores.",
-                'RATE_LIMIT',
-                true
-            );
-        }
-        throw err;
-    }
-
-    const startTime = Date.now();
-    while (!operation?.done) {
-        if (Date.now() - startTime > MAX_POLL_MINUTES * 60 * 1000) {
-            throw new AIError("Timeout: geração de vídeo excedeu o tempo limite.", "TIMEOUT", false);
-        }
-        await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
-        try {
-            operation = await ai.operations.getVideosOperation({ operation });
-        } catch (e: any) {
-            throw classifyError(e);
-        }
-    }
-
-    const video = operation?.response?.generatedVideos?.[0]?.video;
-    if (!video) return null;
-
-    if (video.uri) return video.uri;
-    if (video.videoBytes) {
-        const mime = video.mimeType || "video/mp4";
-        return `data:${mime};base64,${video.videoBytes}`;
-    }
-    return null;
-}
-
-// =======================================================================
-// 5. GENERATE VIDEO (Kling) — I2V or T2V via API (5s clips by default)
-// =======================================================================
-const KLING_BASE = "https://api.klingapi.com";
-const KLING_POLL_MS = 5000;
-const KLING_MAX_POLL_MINUTES = 5;
-
-function getKlingApiKey(): string {
-    const local = localStorage.getItem('kling_api_key');
-    if (local && local.trim().length > 10) return local.trim();
-    const env = (import.meta as any).env?.VITE_KLING_API_KEY;
-    if (env && env.trim().length > 10) return env.trim();
-    return "";
-}
-
-export async function generateVideoKling(
-    prompt: string,
-    mockupImageBase64?: string | null,
-    options?: { aspectRatio?: string; durationSeconds?: number; endMockupUrl?: string | null }
-): Promise<string | null> {
-    const apiKey = getKlingApiKey();
-    if (!apiKey) throw new AIError("Chave API do Kling não configurada. Configure em Configuração.", "API_KEY_MISSING");
-
-    const duration = options?.durationSeconds ?? 5; // Default: 5s clips (cost-optimized)
-    const aspectRatio = options?.aspectRatio ?? "16:9";
-
-    const endpoint = mockupImageBase64 ? "/v1/videos/image2video" : "/v1/videos/text2video";
-    const body: Record<string, unknown> = {
-        model: "kling-v2.6-std",
-        prompt,
-        duration,
-        aspect_ratio: aspectRatio,
-        mode: "standard"
-    };
-
-    if (mockupImageBase64) {
-        const { data } = parseBase64(mockupImageBase64);
-        body.image = `data:image/jpeg;base64,${data}`;
-    }
-
-    if (options?.endMockupUrl) {
-        const { data } = parseBase64(options.endMockupUrl);
-        body.image_tail = `data:image/jpeg;base64,${data}`;
-    }
-
-    const res = await fetch(`${KLING_BASE}${endpoint}`, {
-        method: "POST",
-        headers: {
-            "Authorization": `Bearer ${apiKey}`,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
-    });
-
-    if (!res.ok) {
-        const errText = await res.text();
-        if (res.status === 429) throw new AIError("Kling: limite de requisições. Aguarde e tente novamente.", "RATE_LIMIT", true);
-        throw new AIError(errText.slice(0, 150) || `Kling API erro ${res.status}`, "UNKNOWN", true);
-    }
-
-    const data = await res.json();
-    const taskId = data.task_id || data.data?.task_id;
-    if (!taskId) throw new AIError("Kling não retornou task_id.", "UNKNOWN", false);
-
-    const start = Date.now();
-    while (Date.now() - start < KLING_MAX_POLL_MINUTES * 60 * 1000) {
-        await new Promise(r => setTimeout(r, KLING_POLL_MS));
-        const statusRes = await fetch(`${KLING_BASE}/v1/videos/${taskId}`, {
-            headers: { "Authorization": `Bearer ${apiKey}` }
-        });
-        if (!statusRes.ok) continue;
-        const statusData = await statusRes.json();
-        const state = statusData.task_status ?? statusData.data?.task_status ?? statusData.status;
-        if (state === "succeed" || state === "completed" || state === "success") {
-            const url = statusData.task_result?.video_url ?? statusData.data?.video_url ?? statusData.video_url;
-            if (url) return url;
-        }
-        if (state === "failed" || state === "error") {
-            throw new AIError(statusData.task_result?.message ?? statusData.message ?? "Kling falhou.", "UNKNOWN", false);
-        }
-    }
-    throw new AIError("Timeout: Kling excedeu o tempo limite.", "TIMEOUT", false);
 }
