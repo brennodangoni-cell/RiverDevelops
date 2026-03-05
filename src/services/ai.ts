@@ -545,11 +545,12 @@ ${promptText ? `Contexto da cena: "${promptText.slice(0, 250)}"` : ''}`;
 }
 
 // =======================================================================
-// 4. GENERATE VIDEO (Veo 3.1) — 8s, opcional com mockup como referência
+// 4. GENERATE VIDEO (Veo) — 8s, opcional com mockup como referência
 // =======================================================================
-const VEO_MODELS = ["veo-3.1-generate-preview", "veo-2.0-generate-001"];
+const VEO_MODELS = ["models/veo-3.1-generate-preview", "models/veo-3.0-generate-001", "veo-2.0-generate-001"];
 const POLL_INTERVAL_MS = 15000;
 const MAX_POLL_MINUTES = 10;
+const RATE_LIMIT_RETRY_DELAY_MS = 45000; // 45s entre retentativas
 
 export async function generateVideo(
     prompt: string,
@@ -570,21 +571,42 @@ export async function generateVideo(
     }
 
     let operation: any;
-    try {
-        operation = await ai.models.generateVideos({
-            model: VEO_MODELS[0],
-            source,
-            config: {
-                durationSeconds: duration,
-                aspectRatio,
-                numberOfVideos: 1,
-                generateAudio: true
+    let lastError: any;
+
+    for (const model of VEO_MODELS) {
+        for (let attempt = 0; attempt <= 2; attempt++) {
+            try {
+                operation = await ai.models.generateVideos({
+                    model,
+                    source,
+                    config: {
+                        durationSeconds: duration,
+                        aspectRatio,
+                        numberOfVideos: 1,
+                        generateAudio: true
+                    }
+                });
+                lastError = null;
+                break;
+            } catch (e: any) {
+                lastError = e;
+                const classified = classifyError(e);
+                console.warn(`Video gen [${model}] attempt ${attempt + 1}:`, classified.type, classified.message);
+
+                if (classified.type === 'RATE_LIMIT' && attempt < 2) {
+                    await new Promise(r => setTimeout(r, RATE_LIMIT_RETRY_DELAY_MS));
+                } else if (classified.type === 'MODEL_NOT_FOUND') {
+                    break; // tenta próximo modelo
+                } else {
+                    throw classified;
+                }
             }
-        });
-    } catch (e: any) {
-        const classified = classifyError(e);
-        console.error("Video generation start failed:", classified.type, classified.message);
-        throw classified;
+        }
+        if (operation) break;
+    }
+
+    if (!operation && lastError) {
+        throw classifyError(lastError);
     }
 
     const startTime = Date.now();
