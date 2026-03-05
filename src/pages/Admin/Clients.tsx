@@ -251,7 +251,7 @@ export default function AdminClients() {
 
             <nav className="fixed top-0 left-0 right-0 z-50 pt-4 md:pt-6 px-4 md:px-10 pointer-events-auto">
                 <div className="max-w-[1500px] mx-auto">
-                    <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4 py-3 md:py-2.5 px-4 rounded-[1.5rem] md:rounded-full shadow-2xl isolate">
+                    <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4 py-3 md:py-2.5 px-4 rounded-[1.5rem] md:rounded-full isolate">
                         <div className="absolute inset-0 bg-[#141414] border border-white/5 rounded-[1.5rem] md:rounded-full -z-10 overflow-hidden" />
 
                         {!selectedClient ? (
@@ -260,7 +260,7 @@ export default function AdminClients() {
                                     <button onClick={() => navigate('/admin')} className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors shrink-0 text-white/50 hover:text-cyan-400">
                                         <ArrowLeft className="w-5 h-5" />
                                     </button>
-                                    <div className="hidden sm:flex w-10 h-10 rounded-full bg-cyan-500/10 items-center justify-center ring-1 ring-cyan-500/30">
+                                    <div className="hidden sm:flex w-10 h-10 rounded-full bg-cyan-500/10 items-center justify-center ring-1 ">
                                         <Users className="w-5 h-5 text-cyan-400" />
                                     </div>
                                     <div className="flex flex-col">
@@ -289,7 +289,7 @@ export default function AdminClients() {
                                     </button>
                                     <div className="flex items-center gap-3">
                                         {selectedClient.avatar_url ? (
-                                            <img src={getMediaUrl(selectedClient.avatar_url)} className="w-10 h-10 rounded-full object-cover shadow-lg border border-white/10" alt="Avatar" style={{ imageRendering: 'high-quality' as any }} decoding="async" />
+                                            <img src={getMediaUrl(selectedClient.avatar_url)} className="w-10 h-10 rounded-full object-cover border border-white/10" alt="Avatar" style={{ imageRendering: 'high-quality' as any }} decoding="async" />
                                         ) : (
                                             <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-white/10 flex items-center justify-center font-bold uppercase">{selectedClient.username.charAt(0)}</div>
                                         )}
@@ -324,7 +324,7 @@ export default function AdminClients() {
                                     <div key={client.id} className="relative group bg-white/5 border border-white/10 rounded-[2rem] p-6 hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer overflow-hidden " onClick={() => handleSelectClient(client)}>
                                         <div className="flex flex-col h-full z-10 relative">
                                             <div className="flex items-start justify-between mb-6">
-                                                <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-white/10 flex items-center justify-center shadow-lg relative overflow-hidden group-hover:scale-105 transition-transform duration-300">
+                                                <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-white/10 flex items-center justify-center relative overflow-hidden group-hover:scale-105 transition-transform duration-300">
                                                     {client.avatar_url ? (
                                                         <img src={getMediaUrl(client.avatar_url)} alt="Profile" className="w-full h-full object-cover" style={{ imageRendering: 'high-quality' as any }} decoding="async" />
                                                     ) : (
@@ -413,7 +413,7 @@ export default function AdminClients() {
                         ) : (
                             <div className="w-full max-w-[1500px] grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                                 {content.map(item => (
-                                    <div key={item.id} className="group relative bg-[#0A0A0A] border border-white/10 rounded-[2rem] overflow-hidden hover:border-white/20 transition-all hover:shadow-2xl hover:shadow-cyan-500/10 flex flex-col pb-4">
+                                    <div key={item.id} className="group relative bg-[#0A0A0A] border border-white/10 rounded-[2rem] overflow-hidden hover:border-white/20 transition-all hover: flex flex-col pb-4">
 
                                         <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <button onClick={() => handleDeleteContent(item.id)} className="w-8 h-8 rounded-full bg-red-500/80 flex items-center justify-center text-white hover:bg-red-500 hover:scale-110 transition-all">
@@ -454,9 +454,9 @@ export default function AdminClients() {
 
             {/* Create/Edit Client Modal */}
             {isClientModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/80 " onClick={() => !clientSaving && setIsClientModalOpen(false)} />
-                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-md shadow-2xl p-10 flex flex-col items-center">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => !clientSaving && setIsClientModalOpen(false)} />
+                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-md p-10 flex flex-col items-center">
                         {!clientSaving && <button type="button" onClick={() => setIsClientModalOpen(false)} className="absolute top-5 right-5 text-white/30 hover:text-white bg-white/5 p-3 rounded-full"><X className="w-5 h-5" /></button>}
 
                         <h2 className="text-xl font-display font-medium text-white mb-2 tracking-widest uppercase mt-4">{isEditing ? 'Editar Cliente' : 'Novo Cliente'}</h2>
@@ -469,18 +469,18 @@ export default function AdminClients() {
                                     <div className="absolute inset-0 z-0">
                                         <img src={previewUrl} className="w-full h-full object-cover blur-xl opacity-40 scale-125" alt="blur-bg" />
                                     </div>
-                                    <div className="relative z-10 w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-cyan-400 shadow-[0_0_40px_rgba(34,211,238,0.2)] my-4 group-hover:shadow-[0_0_50px_rgba(34,211,238,0.4)] transition-all">
+                                    <div className="relative z-10 w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-cyan-400 my-4 group-hover: transition-all">
                                         <img src={previewUrl} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500 cursor-crosshair" alt="preview" />
                                     </div>
                                     <div className="relative z-10 flex gap-3 justify-center pb-4 w-full px-4">
-                                        <label className="flex-1 text-center text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 hover:bg-cyan-500/20 py-2.5 rounded-full cursor-pointer transition-colors shadow-lg">
+                                        <label className="flex-1 text-center text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 hover:bg-cyan-500/20 py-2.5 rounded-full cursor-pointer transition-colors">
                                             Trocar Foto
                                             <input type="file" accept="image/*" onChange={e => {
                                                 const file = e.target.files?.[0];
                                                 if (file) { setClientAvatar(file); setPreviewUrl(URL.createObjectURL(file)); }
                                             }} className="hidden" />
                                         </label>
-                                        <button type="button" onClick={() => { setClientAvatar(null); setPreviewUrl(null); if (isEditing && clientFormId && selectedClient) { /* Opt: clear in backend too if needed, here just UI */ } }} className="flex-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-red-500 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 py-2.5 rounded-full transition-colors shadow-lg">
+                                        <button type="button" onClick={() => { setClientAvatar(null); setPreviewUrl(null); if (isEditing && clientFormId && selectedClient) { /* Opt: clear in backend too if needed, here just UI */ } }} className="flex-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-red-500 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 py-2.5 rounded-full transition-colors">
                                             Remover
                                         </button>
                                     </div>
@@ -510,7 +510,7 @@ export default function AdminClients() {
                                 </button>
                             </div>
 
-                            <button type="submit" disabled={clientSaving} className="w-full mt-4 bg-cyan-500/10 ring-1 ring-inset ring-cyan-500/30 hover:bg-cyan-500/20 text-cyan-400 disabled:opacity-50 disabled:pointer-events-none font-bold uppercase tracking-widest text-[10px] py-4 rounded-xl transition-all flex justify-center items-center shadow-[0_0_20px_rgba(34,211,238,0.1)]">
+                            <button type="submit" disabled={clientSaving} className="w-full mt-4 bg-cyan-500/10 ring-1 ring-inset  hover:bg-cyan-500/20 text-cyan-400 disabled:opacity-50 disabled:pointer-events-none font-bold uppercase tracking-widest text-[10px] py-4 rounded-xl transition-all flex justify-center items-center">
                                 {clientSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : (isEditing ? 'Salvar Alterações' : 'Criar Acesso')}
                             </button>
                         </form>
@@ -520,9 +520,9 @@ export default function AdminClients() {
 
             {/* Upload Content Modal */}
             {isUploadModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/80 " onClick={() => !uploading && setIsUploadModalOpen(false)} />
-                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg shadow-2xl p-8 sm:p-10 flex flex-col">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-[8px] backdrop-blur-sm " onClick={() => !uploading && setIsUploadModalOpen(false)} />
+                    <div className="relative bg-[#080808]/90 ring-1 ring-inset ring-white/10 rounded-[3rem] w-full max-w-lg p-8 sm:p-10 flex flex-col">
                         {!uploading && <button type="button" onClick={() => setIsUploadModalOpen(false)} className="absolute top-5 right-5 text-white/30 hover:text-white bg-white/5 p-3 rounded-full z-10"><X className="w-5 h-5" /></button>}
 
                         <div className="text-center mb-8 relative z-0">
@@ -556,7 +556,7 @@ export default function AdminClients() {
                                 )}
                             </label>
 
-                            <button type="submit" disabled={uploading} className="w-full mt-4 bg-emerald-500/10 ring-1 ring-inset ring-emerald-500/30 hover:bg-emerald-500/20 disabled:bg-emerald-900/10 disabled:opacity-50 text-emerald-400 font-bold uppercase tracking-widest text-[10px] py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(52,211,153,0.1)] flex justify-center items-center">
+                            <button type="submit" disabled={uploading} className="w-full mt-4 bg-emerald-500/10 ring-1 ring-inset ring-emerald-500/30 hover:bg-emerald-500/20 disabled:bg-emerald-900/10 disabled:opacity-50 text-emerald-400 font-bold uppercase tracking-widest text-[10px] py-4 rounded-xl transition-all flex justify-center items-center">
                                 {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Começar Upload'}
                             </button>
                         </form>

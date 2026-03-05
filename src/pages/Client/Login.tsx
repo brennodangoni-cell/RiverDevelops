@@ -38,12 +38,12 @@ export default function ClientLogin() {
                 <span className="hidden sm:inline">Voltar</span>
             </button>
 
-            <div className="z-10 w-full max-w-[420px] bg-[#141414] border border-white/5 p-10 sm:p-12 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] relative group">
+            <div className="z-10 w-full max-w-[420px] bg-[#141414] border border-white/5 p-10 sm:p-12 rounded-3xl relative group">
                 {/* Top thin luminous line */}
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent" />
 
                 <div className="text-center mb-10 select-none flex flex-col items-center">
-                    <div className="w-16 h-16 rounded-full bg-black border border-white/20 flex items-center justify-center mb-6 shadow-xl relative overflow-hidden">
+                    <div className="w-16 h-16 rounded-full bg-black border border-white/20 flex items-center justify-center mb-6 relative overflow-hidden">
                         <div className="absolute inset-0 bg-cyan-500/10" />
                         <img src="/logo.webp" alt="River Logo" className="w-10 h-10 object-contain relative z-10" />
                     </div>
@@ -76,7 +76,7 @@ export default function ClientLogin() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full mt-8 bg-cyan-500/10 ring-1 ring-inset ring-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 hover:ring-cyan-500/50 hover:text-cyan-300 font-bold uppercase tracking-widest text-[10px] py-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(34,211,238,0.1)] hover:shadow-[0_0_30px_rgba(34,211,238,0.2)] group/btn select-none"
+                        className="w-full mt-8 bg-cyan-500/10 ring-1 ring-inset ring-white/10 text-cyan-400 hover:bg-cyan-500/20 hover:text-cyan-300 font-bold uppercase tracking-widest text-[10px] py-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 hover:ring-white/30 group/btn select-none"
                     >
                         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                             <>
