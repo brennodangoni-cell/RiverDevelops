@@ -256,6 +256,31 @@ app.post('/api/admin/clients', authenticate, upload.single('avatarFile'), async 
     }
 });
 
+app.put('/api/admin/clients/:id', authenticate, upload.single('avatarFile'), async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { username, password, niche } = req.body;
+    try {
+        const payload: any = {};
+        if (username) payload.username = username;
+        if (niche) payload.niche = niche;
+
+        if (password && password.trim() !== '') {
+            payload.password = bcrypt.hashSync(password, 10);
+        }
+
+        if (req.file) {
+            payload.avatar_url = await uploadToSupabase(req.file);
+        }
+
+        const { data, error } = await supabase.from('clients').update(payload).eq('id', id).select('id, username, niche, avatar_url').single();
+        if (error) throw error;
+
+        res.json({ success: true, client: data });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 app.get('/api/admin/clients', authenticate, async (req: Request, res: Response) => {
     try {
         const { data, error } = await supabase.from('clients').select('id, username, avatar_url, niche, created_at').order('created_at', { ascending: false });

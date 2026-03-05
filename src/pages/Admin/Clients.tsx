@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Plus, X, Users, Upload, Trash2, Loader2, ArrowLeft, Image as ImageIcon, Video, Folder, Calendar, FileText, Pencil } from 'lucide-react';
+import { Plus, X, Users, Upload, Trash2, Loader2, ArrowLeft, Image as ImageIcon, Video, Folder, Calendar, FileText, Pencil, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 type Client = {
@@ -62,6 +62,7 @@ export default function AdminClients() {
     const [clientAvatar, setClientAvatar] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [clientSaving, setClientSaving] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -248,36 +249,69 @@ export default function AdminClients() {
     return (
         <div className="min-h-screen font-sans text-white relative bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a]">
 
-            <main className="max-w-[1600px] mx-auto px-4 sm:px-6 md:px-10 pt-[160px] lg:pt-[180px] min-h-[100dvh] relative z-10 pb-12 flex flex-col items-center lg:items-start">
+            <nav className="fixed top-0 left-0 right-0 z-50 pt-4 md:pt-6 px-4 md:px-10 pointer-events-auto">
+                <div className="max-w-[1500px] mx-auto">
+                    <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4 py-3 md:py-2.5 px-4 rounded-[1.5rem] md:rounded-full shadow-2xl isolate">
+                        <div className="absolute inset-0 bg-[#141414] border border-white/5 rounded-[1.5rem] md:rounded-full -z-10 overflow-hidden" />
+
+                        {!selectedClient ? (
+                            <>
+                                <div className="flex items-center gap-4 group">
+                                    <button onClick={() => navigate('/admin')} className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors shrink-0 text-white/50 hover:text-cyan-400">
+                                        <ArrowLeft className="w-5 h-5" />
+                                    </button>
+                                    <div className="hidden sm:flex w-10 h-10 rounded-full bg-cyan-500/10 items-center justify-center ring-1 ring-cyan-500/30">
+                                        <Users className="w-5 h-5 text-cyan-400" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-lg font-display font-bold text-white tracking-widest uppercase mb-[-2px]">Portal de Clientes</span>
+                                        <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest">Painel Administrativo</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4 w-full md:w-auto">
+                                    <input
+                                        type="text"
+                                        placeholder="Buscar cliente ou nicho..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="w-full md:w-64 bg-black/40 border border-white/10 rounded-full px-5 py-2.5 text-white text-xs outline-none focus:border-cyan-400/50 focus:bg-white/10 transition-all font-light placeholder:text-white/30 truncate"
+                                    />
+                                    <button onClick={openCreateModal} className="bg-white/5 hover:bg-white/10 border border-white/20 text-white font-medium text-xs px-5 py-2.5 rounded-full flex items-center gap-2 transition-all group shrink-0">
+                                        <Plus className="w-4 h-4 opacity-70 group-hover:text-cyan-400 group-hover:rotate-90 transition-all duration-300" /> <span className="hidden sm:inline">Novo Cliente</span>
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="flex items-center gap-4 group">
+                                    <button onClick={() => setSelectedClient(null)} className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors shrink-0 text-white/50 hover:text-cyan-400">
+                                        <ArrowLeft className="w-5 h-5" />
+                                    </button>
+                                    <div className="flex items-center gap-3">
+                                        {selectedClient.avatar_url ? (
+                                            <img src={getMediaUrl(selectedClient.avatar_url)} className="w-10 h-10 rounded-full object-cover shadow-lg border border-white/10" alt="Avatar" style={{ imageRendering: 'high-quality' as any }} decoding="async" />
+                                        ) : (
+                                            <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-white/10 flex items-center justify-center font-bold uppercase">{selectedClient.username.charAt(0)}</div>
+                                        )}
+                                        <div className="flex flex-col">
+                                            <span className="text-lg font-display font-bold text-white tracking-widest uppercase mb-[-2px]">{selectedClient.username}</span>
+                                            <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">{selectedClient.niche || 'Área Secundária'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button onClick={() => setIsUploadModalOpen(true)} className="bg-white/5 hover:bg-white/10 border border-white/20 text-white px-5 py-2.5 rounded-full font-medium text-xs transition-all flex items-center gap-2 group shrink-0">
+                                    <Upload className="w-4 h-4 opacity-70 group-hover:text-cyan-400 transition-colors" /> <span className="hidden sm:inline">Enviar Entrega</span>
+                                </button>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </nav>
+
+            <main className="max-w-[1600px] mx-auto px-4 sm:px-6 md:px-10 pt-[120px] lg:pt-[130px] min-h-[100dvh] relative z-10 pb-12 flex flex-col items-center lg:items-start">
 
                 {!selectedClient ? (
-                    <div className="w-full flex flex-col items-center">
-                        <div className="w-full max-w-[1500px] flex flex-col md:flex-row items-center justify-between mb-10 bg-white/5 border border-white/10 rounded-[3rem] p-4 sm:p-6 gap-6">
-                            <div className="flex items-center gap-4 w-full md:w-auto">
-                                <button onClick={() => navigate('/admin')} className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors shrink-0 text-white/50 hover:text-cyan-400">
-                                    <ArrowLeft className="w-5 h-5" />
-                                </button>
-                                <div className="hidden sm:flex w-12 h-12 rounded-full bg-cyan-500/10 items-center justify-center ring-1 ring-cyan-500/30">
-                                    <Users className="w-6 h-6 text-cyan-400" />
-                                </div>
-                                <div>
-                                    <h1 className="text-xl font-display font-medium text-white tracking-widest uppercase">Portal de Clientes</h1>
-                                    <p className="text-xs text-white/40 tracking-wider hidden sm:block">Gerencie os acessos e entregas</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-4 w-full md:w-auto">
-                                <input
-                                    type="text"
-                                    placeholder="Buscar cliente ou nicho..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full md:w-64 bg-black/40 border border-white/10 rounded-full px-5 py-3 text-white text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 transition-all font-light placeholder:text-white/30 truncate"
-                                />
-                                <button onClick={openCreateModal} className="bg-cyan-500/10 hover:bg-cyan-500/20 ring-1 ring-inset ring-cyan-500/30 text-cyan-400 font-bold tracking-widest uppercase text-[10px] sm:text-xs px-6 py-3 rounded-full flex items-center gap-2 transition-all whitespace-nowrap">
-                                    <Plus className="w-4 h-4" /> Novo Cliente
-                                </button>
-                            </div>
-                        </div>
+                    <div className="w-full flex flex-col items-center mt-6">
 
                         {clients.filter(c => c.username.toLowerCase().includes(searchQuery.toLowerCase()) || c.niche?.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
                             <div className="bg-white/5 border border-white/10 border-dashed rounded-[3rem] w-full max-w-[1500px] py-20 flex flex-col items-center justify-center text-center">
@@ -320,28 +354,7 @@ export default function AdminClients() {
                         )}
                     </div>
                 ) : (
-                    <div className="w-full flex flex-col items-center">
-                        <div className="w-full max-w-[1500px] flex flex-col md:flex-row items-center justify-between mb-8 gap-6 bg-black/40 border border-white/10 rounded-[3rem] p-6 md:p-8 ">
-                            <div className="flex items-center gap-6">
-                                <button onClick={() => setSelectedClient(null)} className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors shrink-0">
-                                    <ArrowLeft className="w-5 h-5" />
-                                </button>
-                                <div className="flex items-center gap-4">
-                                    {selectedClient.avatar_url ? (
-                                        <img src={getMediaUrl(selectedClient.avatar_url)} className="w-12 h-12 rounded-full object-cover shadow-lg border border-white/10" alt="Avatar" style={{ imageRendering: 'high-quality' as any }} decoding="async" />
-                                    ) : (
-                                        <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-white/10 flex items-center justify-center text-xl font-bold uppercase">{selectedClient.username.charAt(0)}</div>
-                                    )}
-                                    <div>
-                                        <h2 className="text-2xl font-display font-bold tracking-widest text-white uppercase">{selectedClient.username}</h2>
-                                        <p className="text-xs text-emerald-400/80 tracking-wider uppercase font-bold">{selectedClient.niche || 'Área Secundária'}</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <button onClick={() => setIsUploadModalOpen(true)} className="bg-cyan-500/10 ring-1 ring-inset ring-cyan-500/30 hover:bg-cyan-500/20 text-cyan-400 font-bold tracking-widest uppercase text-xs px-8 py-4 rounded-full flex items-center gap-3 transition-all shrink-0">
-                                <Upload className="w-4 h-4" /> Enviar Entrega
-                            </button>
-                        </div>
+                    <div className="w-full flex flex-col items-center mt-6">
 
                         {/* Demands Section */}
                         <div className="w-full max-w-[1500px] mb-12">
@@ -490,7 +503,12 @@ export default function AdminClients() {
 
                             <input type="text" value={clientForm.niche} onChange={e => setClientForm({ ...clientForm, niche: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 transition-all font-light placeholder:text-white/20" placeholder="Nicho (ex: Clínico Geral)" />
 
-                            <input required={!isEditing} type="password" value={clientForm.password} onChange={e => setClientForm({ ...clientForm, password: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 transition-all font-light placeholder:text-white/20" placeholder={isEditing ? "Nova Senha (deixe em branco p/ manter)" : "Senha de Acesso"} />
+                            <div className="relative w-full">
+                                <input required={!isEditing} type={showPassword ? "text" : "password"} value={clientForm.password} onChange={e => setClientForm({ ...clientForm, password: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-center text-sm outline-none focus:border-cyan-400/50 focus:bg-white/10 transition-all font-light placeholder:text-white/20" placeholder={isEditing ? "Nova Senha (deixe em branco p/ manter)" : "Senha de Acesso"} autoComplete="new-password" />
+                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors p-2">
+                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                            </div>
 
                             <button type="submit" disabled={clientSaving} className="w-full mt-4 bg-cyan-500/10 ring-1 ring-inset ring-cyan-500/30 hover:bg-cyan-500/20 text-cyan-400 disabled:opacity-50 disabled:pointer-events-none font-bold uppercase tracking-widest text-[10px] py-4 rounded-xl transition-all flex justify-center items-center shadow-[0_0_20px_rgba(34,211,238,0.1)]">
                                 {clientSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : (isEditing ? 'Salvar Alterações' : 'Criar Acesso')}
