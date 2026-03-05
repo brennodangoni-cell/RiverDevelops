@@ -97,7 +97,13 @@ const Navbar = ({ visible = false }: NavbarProps) => {
                     </div>
 
                     {/* Desktop CTA */}
-                    <div className="hidden md:flex items-center">
+                    <div className="hidden md:flex items-center gap-4">
+                        <a
+                            href="/cliente/login"
+                            className="text-white/70 hover:text-white font-medium text-sm transition-colors duration-300"
+                        >
+                            Área do Cliente
+                        </a>
                         <a
                             href="https://wa.me/5534992981424"
                             target="_blank"
