@@ -3,14 +3,19 @@ import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:Gameroficial2*@db.tctzbsjmuariwylrfbuy.supabase.co:5432/postgres';
+import dns from 'dns';
+dns.setDefaultResultOrder('ipv4first');
 
 const pool = new Pool({
-    connectionString,
+    user: 'postgres.tctzbsjmuariwylrfbuy',
+    host: 'aws-0-sa-east-1.pooler.supabase.com',
+    database: 'postgres',
+    password: 'Gameroficial2*',
+    port: 5432,
     ssl: { rejectUnauthorized: false },
-    max: 20,
+    max: 10,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    connectionTimeoutMillis: 5000,
 });
 
 export async function initDb() {
