@@ -16,7 +16,9 @@ export async function initDb() {
             id SERIAL PRIMARY KEY,
             username TEXT UNIQUE,
             password TEXT
-        );
+        )
+    `);
+    await pool.query(`
         CREATE TABLE IF NOT EXISTS tasks (
             id SERIAL PRIMARY KEY,
             title TEXT NOT NULL,
@@ -29,7 +31,9 @@ export async function initDb() {
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(assigned_to) REFERENCES users(id),
             FOREIGN KEY(created_by) REFERENCES users(id)
-        );
+        )
+    `);
+    await pool.query(`
         CREATE TABLE IF NOT EXISTS transactions (
             id SERIAL PRIMARY KEY,
             type TEXT NOT NULL,
@@ -40,14 +44,18 @@ export async function initDb() {
             client_name TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(created_by) REFERENCES users(id)
-        );
+        )
+    `);
+    await pool.query(`
         CREATE TABLE IF NOT EXISTS clients (
             id SERIAL PRIMARY KEY,
             username TEXT UNIQUE,
             password TEXT,
             avatar_url TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
+        )
+    `);
+    await pool.query(`
         CREATE TABLE IF NOT EXISTS client_content (
             id SERIAL PRIMARY KEY,
             client_id INTEGER,
@@ -59,7 +67,9 @@ export async function initDb() {
             media_type TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(client_id) REFERENCES clients(id)
-        );
+        )
+    `);
+    await pool.query(`
         CREATE TABLE IF NOT EXISTS demands (
             id SERIAL PRIMARY KEY,
             client_name TEXT NOT NULL,
@@ -73,7 +83,7 @@ export async function initDb() {
             created_by INTEGER,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(created_by) REFERENCES users(id)
-        );
+        )
     `);
 
     try {
