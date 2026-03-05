@@ -106,6 +106,7 @@ export default function VideoLab() {
         skinTone: 'Light',
         hairColor: 'Blonde',
         supportingDescription: '',
+        customScenario: '',
         script: '',
         characters: '',
         cameraAngle: '',
@@ -1056,6 +1057,17 @@ export default function VideoLab() {
                                                         </div>
                                                     </button>
                                                 ))}
+                                            </div>
+
+                                            <div className="mt-6 pt-6 border-t border-white/5 space-y-3">
+                                                <label className="text-[9px] font-semibold text-zinc-500 uppercase tracking-[0.2em]">Ou descreva sua cena em poucas palavras</label>
+                                                <input
+                                                    value={options.customScenario}
+                                                    onChange={(e) => setOptions({ ...options, customScenario: e.target.value })}
+                                                    placeholder="Ex: mulher grávida no banheiro ao amanhecer, homem na piscina do resort, casal na praia ao pôr do sol..."
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-sm text-zinc-300 placeholder:text-zinc-600 outline-none focus:border-cyan-500/50 transition-colors"
+                                                />
+                                                <p className="text-[9px] text-zinc-600">A IA usa isso como prioridade. Selecione Lifestyle + gênero abaixo para cenas com pessoa.</p>
                                             </div>
                                         </div>
                                     )}

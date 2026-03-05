@@ -396,7 +396,7 @@ ${productDescription}
 ${hexInfo}
 
 ${sceneDraft ? `SCENE DRAFT TO POLISH:\n"${sceneDraft}"` : ''}
-${options.supportingDescription ? `\nUSER REQUEST: ${options.supportingDescription}` : ''}
+${(options.customScenario || options.supportingDescription) ? `\nUSER REQUEST / CENA DESCRITA: ${(options.customScenario || options.supportingDescription).trim()}` : ''}
 
 ${taskDescription}
 
