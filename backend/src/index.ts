@@ -1,5 +1,6 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { Readable } from 'node:stream';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import { authenticate, generateToken } from './auth';
@@ -35,7 +36,7 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const storage = multer.memoryStorage();
-const upload = multer({ storage, limits: { fileSize: 500 * 1024 * 1024 } });
+const upload = multer({ storage });
 
 // ==========================================
 // ROTAS DO MODO INFALÍVEL
@@ -211,7 +212,7 @@ app.post('/api/demands/:id/materials', authenticate, upload.single('file'), asyn
         let finalType = media_type || 'text';
 
         if (req.file) {
-            media_url = await uploadToSupabase(req.file);
+            media_url = await uploadFile(req.file);
             finalType = req.file.mimetype.startsWith('video/') ? 'video' : 'image';
         }
 
@@ -347,21 +348,66 @@ app.post('/api/clients/login', async (req: Request, res: Response) => {
     }
 });
 
-async function uploadToSupabase(file: Express.Multer.File): Promise<string> {
+const SUPABASE_FILE_LIMIT = 50 * 1024 * 1024; // 50MB free tier
+
+function getR2Client(): S3Client | null {
+    const accountId = process.env.R2_ACCOUNT_ID;
+    const accessKey = process.env.R2_ACCESS_KEY_ID;
+    const secretKey = process.env.R2_SECRET_ACCESS_KEY;
+    if (!accountId || !accessKey || !secretKey) return null;
+    return new S3Client({
+        region: 'auto',
+        endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+        credentials: { accessKeyId: accessKey, secretAccessKey: secretKey },
+        forcePathStyle: true
+    });
+}
+
+async function uploadToR2(file: Express.Multer.File): Promise<string> {
+    const client = getR2Client();
+    const bucket = process.env.R2_BUCKET_NAME;
+    const publicUrl = process.env.R2_PUBLIC_URL;
+    if (!client || !bucket || !publicUrl) throw new Error('R2 não configurado. Defina R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME e R2_PUBLIC_URL.');
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const safeName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '');
-    const path = `uploads/${uniqueSuffix}-${safeName}`;
-    const { data, error } = await supabase.storage.from('rivertasks').upload(path, file.buffer, { contentType: file.mimetype });
-    if (error) throw error;
-    const { data: publicData } = supabase.storage.from('rivertasks').getPublicUrl(path);
-    return publicData.publicUrl;
+    const key = `uploads/${uniqueSuffix}-${safeName}`;
+    await client.send(new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        Body: file.buffer,
+        ContentType: file.mimetype
+    }));
+    const base = publicUrl.replace(/\/$/, '');
+    return `${base}/${key}`;
+}
+
+async function uploadFile(file: Express.Multer.File): Promise<string> {
+    const useR2First = file.size > SUPABASE_FILE_LIMIT && getR2Client();
+    if (useR2First) {
+        return uploadToR2(file);
+    }
+    try {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const safeName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '');
+        const path = `uploads/${uniqueSuffix}-${safeName}`;
+        const { error } = await supabase.storage.from('rivertasks').upload(path, file.buffer, { contentType: file.mimetype });
+        if (error) throw error;
+        const { data: publicData } = supabase.storage.from('rivertasks').getPublicUrl(path);
+        return publicData.publicUrl;
+    } catch (e: any) {
+        const msg = (e.message || '').toLowerCase();
+        if ((msg.includes('size') || msg.includes('limit') || msg.includes('413') || file.size > SUPABASE_FILE_LIMIT) && getR2Client()) {
+            return uploadToR2(file);
+        }
+        throw e;
+    }
 }
 
 app.post('/api/admin/clients', authenticate, upload.single('avatarFile'), async (req: Request, res: Response) => {
     const { username, password, niche } = req.body;
     try {
         let finalAvatarUrl = null;
-        if (req.file) finalAvatarUrl = await uploadToSupabase(req.file);
+        if (req.file) finalAvatarUrl = await uploadFile(req.file);
         const hash = bcrypt.hashSync(password, 10);
 
         const payload = { username, password: hash, niche: niche || 'Não definido', avatar_url: finalAvatarUrl };
@@ -387,7 +433,7 @@ app.put('/api/admin/clients/:id', authenticate, upload.single('avatarFile'), asy
         }
 
         if (req.file) {
-            payload.avatar_url = await uploadToSupabase(req.file);
+            payload.avatar_url = await uploadFile(req.file);
         }
 
         const { data, error } = await supabase.from('clients').update(payload).eq('id', id).select('id, username, niche, avatar_url').single();
@@ -422,7 +468,7 @@ app.post('/api/admin/clients/:clientId/content', authenticate, upload.array('med
         const inserted: string[] = [];
 
         for (const file of files) {
-            const finalMediaUrl = await uploadToSupabase(file);
+            const finalMediaUrl = await uploadFile(file);
             const finalMediaType = file.mimetype.startsWith('video/') ? 'video' : 'image';
             const payload = {
                 client_id: parseInt(clientId as string),
@@ -440,7 +486,18 @@ app.post('/api/admin/clients/:clientId/content', authenticate, upload.array('med
 
         res.json({ success: true, count: inserted.length, urls: inserted });
     } catch (e: any) {
-        res.status(500).json({ error: e.message });
+        const msg = (e.message || e.error_description || String(e)).toLowerCase();
+        if (msg.includes('payload too large') || msg.includes('limit') || msg.includes('size') || msg.includes('413') || msg.includes('entity too large')) {
+            const hint = getR2Client() ? '' : ' Configure Cloudflare R2 no .env para vídeos > 50MB (grátis).';
+            return res.status(413).json({ error: `Arquivo muito grande (Supabase free: 50MB).${hint}` });
+        }
+        if (msg.includes('r2 não configurado')) {
+            return res.status(500).json({ error: 'Vídeo > 50MB. Configure R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME e R2_PUBLIC_URL no .env do backend.' });
+        }
+        if (msg.includes('supabase') || msg.includes('storage') || msg.includes('upload')) {
+            return res.status(500).json({ error: 'Erro no armazenamento. Verifique o tamanho (Supabase free: 50MB por arquivo).' });
+        }
+        res.status(500).json({ error: (e.message || 'Erro ao enviar').slice(0, 200) });
     }
 });
 
@@ -476,6 +533,13 @@ app.delete('/api/admin/clients/:id', authenticate, async (req: Request, res: Res
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }
+});
+
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    if (err?.code === 'LIMIT_FILE_SIZE' || err?.code === 'LIMIT_UNEXPECTED_FILE') {
+        return res.status(413).json({ error: 'Arquivo muito grande. Tente um vídeo menor ou comprima antes.' });
+    }
+    res.status(500).json({ error: err?.message || 'Erro interno' });
 });
 
 const PORT = process.env.PORT || 10000;

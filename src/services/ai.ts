@@ -186,7 +186,7 @@ ${marketingContext}
 MANDATE: ALL Suggested Sceneries (Lifestyle & Product-Only) MUST directly serve the marketing goals, target audience, and benefits described above. No generic suggestions allowed.
 ` : ''}
 
-Analyze these product images for a SORA 2 digital twin. RETURN a JSON with: 1. 'description' (ENGLISH, detailed). 2. 'productType' (PT-BR). 3. 'suggestedSceneriesProductOnly' (PT-BR): 4 scenarios. 4. 'suggestedSceneriesLifestyle' (PT-BR): 4 scenarios. MANDATE: REALISTIC, PROFESSIONAL, GROUNDED. Cinematic = good lighting, clean composition, believable — NOT surreal, NOT dreamlike, NOT avant-garde. Think: Nike/Apple/real brand commercials. Real locations, real people, real light. No liquid metal, no floating objects, no fantasy. Elegant but believable.
+Analyze these product images for a KLING 3.0 AI Video. RETURN a JSON with: 1. 'description' (ENGLISH, detailed). 2. 'productType' (PT-BR). 3. 'suggestedSceneriesProductOnly' (PT-BR): 4 scenarios. 4. 'suggestedSceneriesLifestyle' (PT-BR): 4 scenarios. MANDATE: REALISTIC, PROFESSIONAL, GROUNDED. Cinematic = good lighting, clean composition, believable — NOT surreal, NOT dreamlike, NOT avant-garde. Think: Nike/Apple/real brand commercials. Real locations, real people, real light. No liquid metal, no floating objects, no fantasy. Elegant but believable.
 
 1. "description" (ENGLISH, ultra-detailed):
     - Exact physical traits: shape, silhouette, weight distribution
@@ -315,53 +315,98 @@ RETURN a JSON:
 }
 
 // =======================================================================
-// 2. GENERATE PROMPTS
+// 2. GENERATE PROMPTS — DUAL ENGINE: SORA 2 (10s) + KLING 3.0 (5s)
 // =======================================================================
+export type PromptEngine = 'sora' | 'kling';
+
 export async function generatePrompts(
     productDescription: string,
     options: any,
     previousPrompts?: string[],
     detectedColors?: string[],
-    sceneDraft?: string // Specific scene draft to polish
+    sceneDraft?: string,
+    engine: PromptEngine = 'kling' // NEW: which prompt format to use
 ): Promise<string[]> {
-    // Define DNA injection
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
 
     const ai = new GoogleGenAI({ apiKey });
 
-    // Initialize DNA injection
-    const hexInfo = detectedColors?.length ? `\nADOPT THESE EXACT HEX COLORS FOR PRODUCT MATERIALS: ${detectedColors.join(', ')}` : '';
-    let taskDescription = sceneDraft ? `
-    Polish this draft into a simple, natural prompt. Keep the same vibe — person, action, product, logo visibility, ambient sound.
-    ` : (detectedColors && detectedColors.length > 1 ? `
-    Create 3 scenes showcasing different color variants. Same simple style: person + action + product + logo visible + sound.
-    ` : `
-    Create 3 simple scenes:
-    Scene 1: Person in a relaxed setting (e.g. by pool, in living room). Product visible. Logo clear. Natural light.
-    Scene 2: Different person or angle. Product in use (stepping, walking). Logo on strap/footbed clearly visible.
-    Scene 3: Close-up or detail. Product colors and materials. Logo sharp.
-    All in the same natural, flowing style — no jargon.
-    `);
+    const hexInfo = detectedColors?.length ? `\nPRODUCT COLORS (use these exact descriptions): ${detectedColors.join(', ')}` : '';
 
+    // === TASK DESCRIPTION (shared logic) ===
+    let taskDescription = '';
     const isScriptMode = options.mode === 'script' && !!options.script;
 
     if (sceneDraft) {
-        // Task description for "Magic" expansion is already set above
+        taskDescription = engine === 'kling'
+            ? `Polish this draft into a Kling 3.0 prompt. Keep the same vibe. Follow the Kling format below.`
+            : `Polish this draft into a simple, natural prompt. Keep the same vibe — person, action, product, logo visibility, ambient sound.`;
     } else if (isScriptMode) {
-        taskDescription = `
-    Script: ${options.script}
-    Break into 3 simple prompts. Same natural style: person, action, product, logo visible, sound.
-        `;
+        taskDescription = engine === 'kling'
+            ? `Script: ${options.script}\nBreak into 3 Kling 3.0 prompts following the format below.`
+            : `Script: ${options.script}\nBreak into 3 simple prompts. Same natural style: person, action, product, logo visible, sound.`;
     } else if (previousPrompts && previousPrompts.length > 0) {
-        taskDescription = `
-    Previous scenes: ${previousPrompts.map((p, i) => `Scene ${i + 1}: ${p.slice(0, 80)}...`).join('\n')}
-    Generate 3 NEW scenes in the same simple, natural style. Match the vibe.
-        `;
+        taskDescription = `Previous scenes: ${previousPrompts.map((p, i) => `Scene ${i + 1}: ${p.slice(0, 80)}...`).join('\n')}\n` + (
+            engine === 'kling'
+                ? `Generate 3 NEW scenes. Different angles, actions, settings. Follow the Kling 3.0 format.`
+                : `Generate 3 NEW scenes in the same simple, natural style. Match the vibe.`
+        );
+    } else if (detectedColors && detectedColors.length > 1) {
+        taskDescription = engine === 'kling'
+            ? `Create 3 scenes showcasing different color variants of the product. Follow the Kling 3.0 format.`
+            : `Create 3 scenes showcasing different color variants. Same simple style: person + action + product + logo visible + sound.`;
+    } else {
+        taskDescription = engine === 'kling'
+            ? `Create 3 scenes:\nScene 1: Product hero shot — the product is the star. Clean background, product rotating or being revealed. Logo visible.\nScene 2: Lifestyle — a person interacting with the product naturally. The product is clearly visible with details preserved.\nScene 3: Detail/Close-up — extreme close-up showing textures, materials, stitching, brand details.`
+            : `Create 3 simple scenes:\nScene 1: Person in a relaxed setting (e.g. by pool, in living room). Product visible. Logo clear. Natural light.\nScene 2: Different person or angle. Product in use (stepping, walking). Logo on strap/footbed clearly visible.\nScene 3: Close-up or detail. Product colors and materials. Logo sharp.\nAll in the same natural, flowing style — no jargon.`;
     }
 
-    const promptStyle = `
-WRITE SIMPLE, NATURAL SORA 2 PROMPTS — LIKE A SUCCESSFUL COMMERCIAL BRIEF.
+    // === PROMPT STYLE (engine-specific) ===
+    const klingPromptStyle = `
+WRITE PROMPTS OPTIMIZED FOR KLING 3.0 VIDEO AI (Image-to-Video mode, 5 seconds each).
+
+KLING 3.0 PROMPT FORMAT — FOLLOW THIS EXACTLY:
+
+Each prompt should be a SINGLE CONTINUOUS TAKE of 5 seconds. Describe what happens in those 5 seconds.
+
+STRUCTURE:
+1. SHOT TYPE + CAMERA: Start with the shot type and camera angle.
+   Examples: "Close-up, low angle" / "Medium shot, eye level" / "Wide shot, the camera slowly orbits" / "Extreme close-up, rack focus"
+
+2. SUBJECT + ACTION: Describe who/what is in frame and what happens.
+   Examples: "a man's hand reaches down and picks up the product" / "the product sits on a marble surface as warm light sweeps across it"
+
+3. PRODUCT DETAILS: Weave in specific physical details from the reference image.
+   Examples: "the soft grey suede texture catches the light" / "revealing the embossed logo on the heel tab"
+
+4. ENVIRONMENT + LIGHTING: Brief, natural description.
+   Examples: "on a polished concrete surface, warm golden hour light" / "in a modern minimalist apartment, soft diffused window light"
+
+5. MOTION: What moves and how. Keep it subtle for 5 seconds.
+   Examples: "the camera slowly pulls back" / "he shifts his weight, the shoe flexes naturally" / "a gentle breeze moves the fabric"
+
+EXAMPLE KLING 3.0 PROMPTS:
+
+"Close-up, low angle. A pair of grey suede slip-on moccasins rests on a warm wooden surface. Soft golden light sweeps across the brushed suede texture, highlighting the tonal stitching and the cream rubber sole. The camera slowly glides from left to right, revealing the embossed 'A' logo on the heel tab. Shallow depth of field, luxury product commercial quality."
+
+"Medium shot, eye level. A young man in dark jeans walks confidently across polished concrete in a modern urban café. The camera tracks his feet, capturing the grey suede moccasins with cream soles. He pauses, shifts his weight — the shoe flexes naturally. Warm ambient lighting, shallow depth of field."
+
+RULES:
+- DURATION: Each prompt = exactly ONE 5-second clip. Don't describe more than 5 seconds of action.
+- REALISTIC only. No surrealism, no fantasy, no impossible scenarios.
+- SIMPLE language. No technical jargon. Describe what a camera operator would see.
+- Product details must match the reference image EXACTLY — colors, textures, logos, materials.
+- One flowing paragraph per prompt. 60-100 words.
+- Include camera movement (slow orbit, tracking, pull back, static with subtle motion).
+- Do NOT use shot numbering like "Shot 1 (3s)". That's for multi-shot mode. Each prompt is a SINGLE continuous take.
+- Do NOT reference "uploaded images" or "@Product" — just describe the product naturally.
+- If lifestyle mode: include a person with natural actions.
+- The product's brand/logo should be mentioned as visible somewhere in the scene.
+    `;
+
+    const soraPromptStyle = `
+WRITE SIMPLE, NATURAL SORA 2 PROMPTS — LIKE A SUCCESSFUL COMMERCIAL BRIEF (10 seconds each).
 
 FORMAT (follow this flow):
 1. Person + action + location. Example: "A middle-aged man with light skin and blonde hair sits on a comfortable lounge chair by a resort pool..."
@@ -373,6 +418,7 @@ FORMAT (follow this flow):
 7. Ambient sound: "Gentle sounds of water lapping and distant conversation" or "subtle fabric rustles."
 
 RULES:
+- DURATION: Each prompt = ONE 10-second clip.
 - REALISTIC scenes only. No surrealism, no dreamlike, no fantasy. Believable locations and actions.
 - SIMPLE language. No jargon like "kinetic foundation" or "volumetric lighting".
 - Brand name in quotes: 'yogui' or whatever the product brand is.
@@ -382,17 +428,22 @@ RULES:
 - Logo must be "clearly visible" somewhere in the prompt.
     `;
 
+    const promptStyle = engine === 'kling' ? klingPromptStyle : soraPromptStyle;
+    const clipDuration = engine === 'kling' ? '5-second' : '10-second';
+    const wordRange = engine === 'kling' ? '60-100' : '80-120';
+    const engineLabel = engine === 'kling' ? 'KLING 3.0 Video AI (Image-to-Video)' : 'SORA 2 (Image-to-Video)';
+
     const promptContext = `
-Write simple, natural Sora 2 prompts. Natural scene descriptions only — no meta-instructions about "uploaded images" or "product reference".
+Generate prompts for ${engineLabel}. The user will upload a product photo as reference and paste your prompt. The AI will generate a ${clipDuration} video matching the reference image + prompt.
 
 SETTINGS:
 - Environment: ${options.environment}
 - Lighting: ${options.timeOfDay}
 - Style: ${options.style}
-- Aspect: ${options.aspectRatio}
+- Aspect Ratio: ${options.aspectRatio}
 ${options.mode === 'lifestyle' ? `- Person: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
 
-PRODUCT:
+PRODUCT DESCRIPTION (from image analysis):
 ${productDescription}
 ${hexInfo}
 
@@ -403,9 +454,8 @@ ${taskDescription}
 
 ${promptStyle}
 
-Output: JSON array of 3 simple prompts (80-120 words each). Natural language. No jargon.
+Output: JSON array of 3 ${engine === 'kling' ? 'Kling 3.0' : 'Sora 2'} prompts (${wordRange} words each). Natural, cinematic language. Each prompt = a single ${clipDuration} clip.
     `;
-
 
     const response = await generateWithFallback(ai, BRAIN_MODELS, (model) => ({
         model,
@@ -418,7 +468,7 @@ Output: JSON array of 3 simple prompts (80-120 words each). Natural language. No
                 type: Type.ARRAY,
                 items: {
                     type: Type.STRING,
-                    description: "A detailed Sora 2 video generation prompt."
+                    description: `A ${engine === 'kling' ? 'Kling 3.0' : 'Sora 2'} Video AI prompt optimized for Image-to-Video, ${clipDuration} clip.`
                 }
             }
         }
@@ -438,15 +488,18 @@ Output: JSON array of 3 simple prompts (80-120 words each). Natural language. No
     }
 }
 
+
+
 // =======================================================================
-// 3. GENERATE MOCKUP — 100% VISION-BASED (fotos = única fonte do produto)
+// 3. GENERATE MOCKUP — DUAL ENGINE: SORA (Collage) | KLING (Starting Frame)
 // =======================================================================
 export async function generateMockup(
     _productDescription: string, // IGNORED — produto vem só das fotos
     options: any,
     promptIndex: number,
     productImages: string[],
-    promptText?: string // Cena/ambiente para o mockup (não aparência do produto)
+    promptText?: string,
+    engine: PromptEngine = 'kling'
 ): Promise<string | null> {
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API do Gemini não configurada.", "API_KEY_MISSING");
@@ -457,7 +510,21 @@ export async function generateMockup(
 
     const ai = new GoogleGenAI({ apiKey });
 
-    const heroHints = [
+    // --- KLING 3.0 LOGIC (Single Frame Reference) ---
+    const klingSceneVariations = [
+        "Hero shot: product centered, slightly angled (3/4 view). Full product visible with logo/branding readable. Clean, spacious composition with room for motion.",
+        "Lifestyle context: product in a natural setting, as if someone just placed it down or is about to pick it up. Realistic environment, product is the clear focal point.",
+        "Detail-focused: product from an interesting angle that shows craftsmanship, texture, and material quality. Close enough to see details but full product still visible.",
+        "Dynamic angle: slightly low camera angle looking up at the product, giving it presence and importance. Product fills ~60% of frame.",
+        "Top-down: product photographed from directly above on a clean surface. Symmetrical, editorial layout.",
+        "Side profile: clean lateral view showing the product's silhouette and proportions clearly.",
+        "In-use context: the product as it would appear mid-use by a person, product clearly visible and detailed.",
+        "Environment hero: product placed in a beautiful setting that complements its colors and style.",
+        "Brand showcase: angle that best displays the logo/branding while showing the full product."
+    ];
+
+    // --- SORA 2 LOGIC (High Fidelity Collage) ---
+    const soraHeroHints = [
         "Produto inteiro em cena, logo visível. Ambiente amplo.",
         "Produto em uso/interação. Logo legível.",
         "Close-up de materiais e logo. Nitidez máxima.",
@@ -468,51 +535,38 @@ export async function generateMockup(
         "Lifestyle. Produto em ação. Logo visível.",
         "Produto em foco. Logo em destaque."
     ];
-    const heroHint = heroHints[promptIndex] || heroHints[0];
 
-    const imagePrompt = `AGENCY PITCH BOARD — 16:9 COLLAGE. Layout OBRIGATÓRIO com painéis separados.
+    const aspectRatio = options.aspectRatio || "16:9";
 
+    const klingImagePrompt = `KLING 3.0 VIDEO REFERENCE IMAGE — Generate a CLEAN, SINGLE-SCENE image to be used as the starting frame for Kling 3.0 Image-to-Video generation.
 ═══════════════════════════════════════════════════════════════
-REGRA CRÍTICA — ZERO INVENÇÃO DE LOGO/MARCA
-═══════════════════════════════════════════════════════════════
+PRODUCT FIDELITY: Identical to photos. No invention. No split screens. ONE SINGLE clean image.
+COMPOSITION: ${klingSceneVariations[promptIndex] || klingSceneVariations[0]}
+Environment: ${options.environment} | Light: ${options.timeOfDay}
+${options.mode === 'lifestyle' ? `- Include a person: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : '- Product-only'}
+${promptText ? `SCENE CONTEXT: "${promptText.slice(0, 300)}"` : ''}`;
 
-O produto deve ser IDÊNTICO ao que aparece nas fotos do PRODUTO.
-
-- Se uma foto mostra logo/marca SOZINHA (sem produto) = é de APOIO/REFERÊNCIA. NÃO adicione esse logo ao produto. NUNCA.
-- Só replique logo/marca que já aparece VISÍVEL NO PRODUTO nas fotos do produto.
-- Se o produto nas fotos NÃO tem logo visível = o mockup NÃO deve ter logo. Mostre detalhe de material/textura no painel em vez de inventar logo.
-
-ESTRUTURA OBRIGATÓRIA:
-
-[ESQUERDA ~55%] — HERO / MAIN
-- Shot principal do produto inteiro — exatamente como nas fotos
-- ${heroHint}
-- Ambiente: ${options.environment} | Luz: ${options.timeOfDay}
+    const soraImagePrompt = `AGENCY PITCH BOARD — 16:9 COLLAGE. Layout OBRIGATÓRIO com painéis separados.
+REGRA CRÍTICA: Produto idêntico às fotos. Zero invenção de logo.
+[ESQUERDA ~55%] — HERO / MAIN: ${soraHeroHints[promptIndex] || soraHeroHints[0]}
+[DIREITA — 3 painéis empilhados]
+1. TOPO: Close-up do logo ou textura.
+2. MEIO: Detalhe de material/acabamento.
+3. BAIXO: Ângulo alternativo (sola/lateral/costas).
+Ambiente: ${options.environment} | Luz: ${options.timeOfDay}
 ${options.mode === 'lifestyle' ? `- Pessoa: ${options.gender}, ${options.skinTone}, ${options.hairColor}` : ''}
+${promptText ? `Contexto: "${promptText.slice(0, 250)}"` : ''}`;
 
-[DIREITA — 3 painéis empilhados, ~15% cada]
-
-1. TOPO — Só se o produto NAS FOTOS tiver logo visível: close-up do logo. Se NÃO tiver logo no produto, use: close-up de textura/material.
-
-2. MEIO — MATERIAL / INTERIOR
-   - Detalhe de costura, forro, acabamento, textura
-   - O que as fotos do produto mostram
-
-3. BAIXO — DETALHE / ÂNGULO
-   - Sola, lateral, costas — fiel às fotos
-
-NUNCA invente logo, letra ou marca. Produto = cópia exata do que está nas fotos do produto.
-${promptText ? `Contexto da cena: "${promptText.slice(0, 250)}"` : ''}`;
+    const imagePrompt = engine === 'kling' ? klingImagePrompt : soraImagePrompt;
 
     const contentParts: any[] = [];
-
     const selected = productImages.length <= 4
         ? productImages
         : [productImages[0], productImages[Math.floor(productImages.length / 3)], productImages[Math.floor(2 * productImages.length / 3)], productImages[productImages.length - 1]];
 
     for (let i = 0; i < selected.length; i++) {
         const { data, mimeType } = parseBase64(selected[i]);
-        contentParts.push({ text: `[IMAGEM ${i + 1}] Se for foto do PRODUTO: replique exatamente. Se for logo/marca SOZINHA (de apoio): NÃO coloque no produto.` });
+        contentParts.push({ text: `[PRODUTO FOTO ${i + 1}] Replique fielmente.` });
         contentParts.push({ inlineData: { data, mimeType } });
     }
 
@@ -525,7 +579,7 @@ ${promptText ? `Contexto da cena: "${promptText.slice(0, 250)}"` : ''}`;
             config: {
                 // @ts-ignore
                 imageConfig: {
-                    aspectRatio: "16:9",
+                    aspectRatio: engine === 'kling' ? aspectRatio : "16:9",
                     imageSize: "1K"
                 }
             }
@@ -537,9 +591,7 @@ ${promptText ? `Contexto da cena: "${promptText.slice(0, 250)}"` : ''}`;
             }
         }
     } catch (e: any) {
-        const classified = classifyError(e);
-        console.error("Mockup generation failed:", classified.type, classified.message);
-        throw classified;
+        throw classifyError(e);
     }
     return null;
 }
@@ -645,7 +697,7 @@ export async function generateVideo(
 }
 
 // =======================================================================
-// 5. GENERATE VIDEO (Kling 2.6) — alternativa ao Veo, menos rate limit
+// 5. GENERATE VIDEO (Kling) — I2V or T2V via API (5s clips by default)
 // =======================================================================
 const KLING_BASE = "https://api.klingapi.com";
 const KLING_POLL_MS = 5000;
@@ -667,7 +719,7 @@ export async function generateVideoKling(
     const apiKey = getKlingApiKey();
     if (!apiKey) throw new AIError("Chave API do Kling não configurada. Configure em Configuração.", "API_KEY_MISSING");
 
-    const duration = Math.min(10, Math.max(5, options?.durationSeconds ?? 5)); // Kling: 5 ou 10s
+    const duration = options?.durationSeconds ?? 5; // Default: 5s clips (cost-optimized)
     const aspectRatio = options?.aspectRatio ?? "16:9";
 
     const endpoint = mockupImageBase64 ? "/v1/videos/image2video" : "/v1/videos/text2video";

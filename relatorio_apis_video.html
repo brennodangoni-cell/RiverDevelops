@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório — APIs de Vídeo AI para Produção de Vídeos de Produto</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8f9fa;
+            color: #1a1a2e;
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+        .page {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+        }
+
+        .cover {
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 30%, #2d1b69 60%, #4a1d96 100%);
+            color: white;
+            padding: 80px 60px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cover::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -30%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(124, 58, 237, 0.3) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .cover-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            padding: 8px 20px;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cover h1 {
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cover h1 span {
+            background: linear-gradient(90deg, #a78bfa, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .cover p.subtitle {
+            font-size: 18px;
+            font-weight: 300;
+            opacity: 0.8;
+            max-width: 550px;
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cover-meta {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            gap: 30px;
+            font-size: 13px;
+            opacity: 0.6;
+        }
+
+        .content {
+            padding: 60px;
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1a1a2e;
+            margin-top: 50px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #4a1d96;
+        }
+
+        h2:first-child {
+            margin-top: 0;
+        }
+
+        h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2d1b69;
+            margin-top: 30px;
+            margin-bottom: 12px;
+        }
+
+        h4 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #4a1d96;
+            margin-top: 20px;
+            margin-bottom: 8px;
+        }
+
+        p {
+            margin-bottom: 12px;
+            color: #374151;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #f0e6ff 0%, #e8f4fd 100%);
+            border-left: 4px solid #4a1d96;
+            padding: 20px 24px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .highlight-box.green {
+            background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+            border-left-color: #059669;
+        }
+
+        .highlight-box.red {
+            background: linear-gradient(135deg, #fef2f2 0%, #fff1f2 100%);
+            border-left-color: #dc2626;
+        }
+
+        .highlight-box.yellow {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left-color: #d97706;
+        }
+
+        .highlight-box.blue {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border-left-color: #2563eb;
+        }
+
+        .highlight-box strong {
+            color: #1a1a2e;
+        }
+
+        .highlight-box p {
+            margin-bottom: 6px;
+        }
+
+        .highlight-box p:last-child {
+            margin-bottom: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0 24px 0;
+            font-size: 13px;
+        }
+
+        thead th {
+            background: #1a1a2e;
+            color: white;
+            padding: 12px 14px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        thead th:first-child {
+            border-radius: 8px 0 0 0;
+        }
+
+        thead th:last-child {
+            border-radius: 0 8px 0 0;
+        }
+
+        tbody td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge.green {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge.red {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge.yellow {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        ul {
+            margin: 8px 0 16px 20px;
+        }
+
+        li {
+            margin-bottom: 6px;
+            color: #374151;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #d1d5db, transparent);
+            margin: 40px 0;
+        }
+
+        .recommendation {
+            background: linear-gradient(135deg, #1a1a2e 0%, #2d1b69 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 16px;
+            margin: 30px 0;
+        }
+
+        .recommendation h3 {
+            color: #a78bfa;
+            margin-top: 0;
+        }
+
+        .recommendation p {
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .recommendation strong {
+            color: white;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px 60px;
+            background: #f9fafb;
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
+        @media print {
+            .page {
+                box-shadow: none;
+            }
+
+            .cover {
+                min-height: auto;
+                padding: 60px 40px;
+            }
+
+            .content {
+                padding: 40px;
+            }
+
+            h2 {
+                page-break-after: avoid;
+            }
+
+            table {
+                page-break-inside: avoid;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .cover {
+                padding: 40px 30px;
+            }
+
+            .cover h1 {
+                font-size: 28px;
+            }
+
+            .content {
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+
+        <div class="cover">
+            <div class="cover-badge">📊 Relatório Interno</div>
+            <h1>APIs de Vídeo AI<br>para <span>Produção de Vídeos de Produto</span></h1>
+            <p class="subtitle">Análise completa de custos, qualidade e viabilidade comercial para nosso volume real de
+                20-40 pacotes/mês (R$ 10.000-20.000/mês).</p>
+            <div class="cover-meta">
+                <span>📅 05 de Março de 2026</span>
+                <span>💰 Cotação: US$ 1 = R$ 5,80</span>
+            </div>
+        </div>
+
+        <div class="content">
+
+            <h2>📋 1. Resumo Executivo</h2>
+
+            <div class="highlight-box green">
+                <p><strong>📈 Situação da empresa (Março 2026):</strong></p>
+                <p>• Empresa com <strong>2 semanas de operação</strong></p>
+                <p>• <strong>10 pacotes vendidos</strong> = R$ 5.000 faturados</p>
+                <p>• Projeção: <strong>dobrar o volume</strong> nas próximas 2 semanas</p>
+                <p>• Estimativa mensal: <strong>20 a 40 pacotes/mês = R$ 10.000 a R$ 20.000</strong></p>
+            </div>
+
+            <p>Nosso fluxo utiliza o <strong>Sora 2</strong> (gratuito) para gerar vídeos de produto. O processo envolve
+                gerar <strong>10-20 clipes de 10 segundos</strong> para montar <strong>1 vídeo final de 30
+                    segundos</strong>, removendo partes ruins, tirando o áudio e adicionando narração com ElevenLabs.
+            </p>
+
+            <h3>Modelo de Negócio</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Detalhe</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Pacote vendido</td>
+                        <td><strong>15 vídeos de 30 segundos</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Preço do pacote</td>
+                        <td><strong>R$ 500,00</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Gerações por vídeo final</td>
+                        <td>10-20 clipes de 10s (média ~15)</td>
+                    </tr>
+                    <tr>
+                        <td>Total de gerações por pacote</td>
+                        <td>~225 gerações de 10 segundos</td>
+                    </tr>
+                    <tr>
+                        <td>Custo atual (Sora 2)</td>
+                        <td>R$ 0 (gratuito)</td>
+                    </tr>
+                    <tr style="background:#f0fdf4;">
+                        <td><strong>Volume atual</strong></td>
+                        <td><strong>~20 pacotes/mês (R$ 10.000)</strong></td>
+                    </tr>
+                    <tr style="background:#f0fdf4;">
+                        <td><strong>Projeção próximo mês</strong></td>
+                        <td><strong>~40 pacotes/mês (R$ 20.000)</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="divider"></div>
+
+            <h2>🎬 2. Plataformas Analisadas</h2>
+
+            <h3>2.1 Kling AI (Kuaishou)</h3>
+            <p>Plataforma líder em geração de vídeo AI. O <strong>Kling 3.0</strong> é o mais avançado com subject
+                consistency superior, multi-shot storyboarding e áudio nativo. O <strong>Kling 2.6</strong> tem boa
+                qualidade e custo menor.</p>
+
+            <h3>2.2 Seedance 2.0 (ByteDance)</h3>
+            <p>Especializado em <strong>image-to-video</strong> com máxima preservação de detalhes do produto. Excelente
+                para e-commerce.</p>
+
+            <h3>2.3 Sora 2 (OpenAI)</h3>
+            <p>Modelo atual. Gratuito e ilimitado, porém com <strong>qualidade inconsistente para vídeos de
+                    produto</strong> — requer muitas tentativas.</p>
+
+            <div class="divider"></div>
+
+            <h2>⚠️ 3. Assinatura Kling NÃO Funciona pra Nós</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Plano</th>
+                        <th>Preço/mês (R$)</th>
+                        <th>Créditos</th>
+                        <th>Pacotes possíveis</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Pro</td>
+                        <td>R$ 150</td>
+                        <td>3.000</td>
+                        <td>~1 pacote</td>
+                        <td><span class="badge red">INSUFICIENTE</span></td>
+                    </tr>
+                    <tr>
+                        <td>Premier</td>
+                        <td>R$ 377</td>
+                        <td>8.000</td>
+                        <td>~2-3 pacotes</td>
+                        <td><span class="badge red">INSUFICIENTE</span></td>
+                    </tr>
+                    <tr>
+                        <td>Ultra</td>
+                        <td>R$ 742</td>
+                        <td>26.000</td>
+                        <td>~7-8 pacotes</td>
+                        <td><span class="badge red">INSUFICIENTE</span></td>
+                    </tr>
+                    <tr style="background:#fef2f2;">
+                        <td><strong>Nós precisamos</strong></td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td><strong>20-40 pacotes</strong></td>
+                        <td><span class="badge red">NENHUM ATENDE</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="highlight-box red">
+                <p><strong>Conclusão:</strong> O maior plano (Ultra R$ 742) suporta ~8 pacotes/mês. Nós precisamos de
+                    20-40. <strong>Nenhum plano de assinatura atende nossa demanda. A API é o único caminho
+                        viável.</strong></p>
+            </div>
+
+            <div class="divider"></div>
+
+            <h2>💰 4. Opções de API — Custo por Geração</h2>
+
+            <h3>Provedores disponíveis</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Provedor</th>
+                        <th>Modelos</th>
+                        <th>Custo I2V 5s (R$)</th>
+                        <th>Custo I2V 10s (R$)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="background:#f0fdf4;">
+                        <td><strong>PiAPI ⭐</strong><br><small>piapi.ai</small></td>
+                        <td>Kling 3.0, 2.6, Seedance 2.0</td>
+                        <td><strong>R$ 1,16</strong> (Kling 2.6)<br>R$ 2,90 (Kling 3.0 720p)</td>
+                        <td><strong>R$ 2,32</strong> (Kling 2.6)<br>R$ 5,80 (Kling 3.0 720p)</td>
+                    </tr>
+                    <tr>
+                        <td>PiAPI — Seedance 2.0</td>
+                        <td>Seedance 2.0</td>
+                        <td>R$ 2,32 (Fast)<br>R$ 4,35 (Pro)</td>
+                        <td>R$ 4,64 (Fast)<br>R$ 8,70 (Pro)</td>
+                    </tr>
+                    <tr>
+                        <td>API Direta Kling<br><small>klingai.com/dev</small></td>
+                        <td>Kling V3, V2.6</td>
+                        <td>R$ 3,65 (Std)<br>R$ 4,87 (Pro)</td>
+                        <td>R$ 7,31 (Std)<br>R$ 9,74 (Pro)</td>
+                    </tr>
+                    <tr>
+                        <td>Atlas Cloud<br><small>atlascloud.ai</small></td>
+                        <td>Kling 3.0, Seedance, Sora 2</td>
+                        <td>R$ 5,22 (Std)<br>R$ 6,96 (Pro)</td>
+                        <td>R$ 10,44 (Std)<br>R$ 13,92 (Pro)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="divider"></div>
+
+            <h2>🧮 5. Análise Financeira — Volume Real</h2>
+
+            <div class="highlight-box yellow">
+                <p><strong>Premissa:</strong> Modelos melhores (Kling 2.6/3.0) acertam mais que o Sora 2 (~55-70% vs
+                    ~30-40%). Estimamos que as tentativas caiam de ~15 para ~10 por vídeo. Também recomendamos
+                    <strong>gerar clipes de 5s</strong> em vez de 10s (custo cai pela metade, mais controle na edição).
+                </p>
+            </div>
+
+            <h3>5.1 Cenário Atual — 20 pacotes/mês (R$ 10.000)</h3>
+            <p>20 pacotes × 15 vídeos × 10 takes = <strong>3.000 gerações de 5s/mês</strong></p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>API</th>
+                        <th>Custo/clipe</th>
+                        <th>Custo mensal</th>
+                        <th>Receita</th>
+                        <th>Lucro</th>
+                        <th>Margem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="background:#f0fdf4;">
+                        <td>Sora 2 (grátis)</td>
+                        <td>R$ 0</td>
+                        <td><strong>R$ 0</strong></td>
+                        <td>R$ 10.000</td>
+                        <td><strong>R$ 10.000</strong></td>
+                        <td><span class="badge green">100%</span></td>
+                    </tr>
+                    <tr style="background:#f0fdf4;">
+                        <td><strong>Kling 2.6 API (PiAPI) ⭐</strong></td>
+                        <td>R$ 1,16</td>
+                        <td><strong>R$ 3.480</strong></td>
+                        <td>R$ 10.000</td>
+                        <td><strong>R$ 6.520</strong></td>
+                        <td><span class="badge green">65%</span></td>
+                    </tr>
+                    <tr>
+                        <td>Seedance 2.0 Fast (PiAPI)</td>
+                        <td>R$ 2,32</td>
+                        <td><strong>R$ 6.960</strong></td>
+                        <td>R$ 10.000</td>
+                        <td><strong>R$ 3.040</strong></td>
+                        <td><span class="badge yellow">30%</span></td>
+                    </tr>
+                    <tr>
+                        <td>Kling 3.0 Std (API Direta)</td>
+                        <td>R$ 3,65</td>
+                        <td><strong>R$ 10.950</strong></td>
+                        <td>R$ 10.000</td>
+                        <td><strong>-R$ 950</strong></td>
+                        <td><span class="badge red">PREJUÍZO</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>5.2 Cenário Projetado — 40 pacotes/mês (R$ 20.000)</h3>
+            <p>40 pacotes × 15 vídeos × 10 takes = <strong>6.000 gerações de 5s/mês</strong></p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>API</th>
+                        <th>Custo/clipe</th>
+                        <th>Custo mensal</th>
+                        <th>Receita</th>
+                        <th>Lucro</th>
+                        <th>Margem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="background:#f0fdf4;">
+                        <td>Sora 2 (grátis)</td>
+                        <td>R$ 0</td>
+                        <td><strong>R$ 0</strong></td>
+                        <td>R$ 20.000</td>
+                        <td><strong>R$ 20.000</strong></td>
+                        <td><span class="badge green">100%</span></td>
+                    </tr>
+                    <tr style="background:#f0fdf4;">
+                        <td><strong>Kling 2.6 API (PiAPI) ⭐</strong></td>
+                        <td>R$ 1,16</td>
+                        <td><strong>R$ 6.960</strong></td>
+                        <td>R$ 20.000</td>
+                        <td><strong>R$ 13.040</strong></td>
+                        <td><span class="badge green">65%</span></td>
+                    </tr>
+                    <tr>
+                        <td>Seedance 2.0 Fast (PiAPI)</td>
+                        <td>R$ 2,32</td>
+                        <td><strong>R$ 13.920</strong></td>
+                        <td>R$ 20.000</td>
+                        <td><strong>R$ 6.080</strong></td>
+                        <td><span class="badge yellow">30%</span></td>
+                    </tr>
+                    <tr>
+                        <td>Kling 3.0 Std (API Direta)</td>
+                        <td>R$ 3,65</td>
+                        <td><strong>R$ 21.900</strong></td>
+                        <td>R$ 20.000</td>
+                        <td><strong>-R$ 1.900</strong></td>
+                        <td><span class="badge red">PREJUÍZO</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="divider"></div>
+
+            <h2>📊 6. Qualidade: Kling vs Sora 2 para Produtos</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Critério</th>
+                        <th>Sora 2</th>
+                        <th>Kling 2.6</th>
+                        <th>Kling 3.0</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Fidelidade ao produto</td>
+                        <td>⭐⭐⭐</td>
+                        <td>⭐⭐⭐⭐</td>
+                        <td>⭐⭐⭐⭐⭐</td>
+                    </tr>
+                    <tr>
+                        <td>Consistência entre takes</td>
+                        <td>⭐⭐</td>
+                        <td>⭐⭐⭐⭐</td>
+                        <td>⭐⭐⭐⭐⭐</td>
+                    </tr>
+                    <tr>
+                        <td>Motion fluidity</td>
+                        <td>⭐⭐⭐</td>
+                        <td>⭐⭐⭐⭐</td>
+                        <td>⭐⭐⭐⭐⭐</td>
+                    </tr>
+                    <tr>
+                        <td>Preservação de logos</td>
+                        <td>⭐⭐</td>
+                        <td>⭐⭐⭐</td>
+                        <td>⭐⭐⭐⭐</td>
+                    </tr>
+                    <tr>
+                        <td>Taxa de acerto p/ produto</td>
+                        <td>~30-40%</td>
+                        <td>~50-60%</td>
+                        <td>~60-70%</td>
+                    </tr>
+                    <tr>
+                        <td>Image-to-Video</td>
+                        <td>✅</td>
+                        <td>✅ (bom)</td>
+                        <td>✅ (superior)</td>
+                    </tr>
+                    <tr>
+                        <td>Áudio nativo</td>
+                        <td>❌</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                    </tr>
+                    <tr>
+                        <td>Custo por clipe 5s</td>
+                        <td>Grátis</td>
+                        <td>R$ 1,16</td>
+                        <td>R$ 2,90+</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="highlight-box green">
+                <p><strong>Ponto-chave:</strong> O Kling 2.6 oferece o <strong>melhor equilíbrio entre qualidade e
+                        custo</strong>. A qualidade é significativamente superior ao Sora 2 para produtos, com custo de
+                    apenas R$ 1,16 por clipe. O Kling 3.0 é melhor, mas custa 3x mais e dá prejuízo no nosso volume.</p>
+            </div>
+
+            <div class="divider"></div>
+
+            <h2>🆚 7. Assinatura vs API no Nosso Volume</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Método</th>
+                        <th>20 pacotes/mês?</th>
+                        <th>40 pacotes/mês?</th>
+                        <th>Custo estimado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Kling Pro (R$150)</td>
+                        <td><span class="badge red">NÃO</span> (max ~1)</td>
+                        <td><span class="badge red">NÃO</span></td>
+                        <td>—</td>
+                    </tr>
+                    <tr>
+                        <td>Kling Ultra (R$742)</td>
+                        <td><span class="badge red">NÃO</span> (max ~8)</td>
+                        <td><span class="badge red">NÃO</span></td>
+                        <td>—</td>
+                    </tr>
+                    <tr style="background:#f0fdf4;">
+                        <td><strong>Kling 2.6 API ⭐</strong></td>
+                        <td><span class="badge green">SIM ✅</span></td>
+                        <td><span class="badge green">SIM ✅</span></td>
+                        <td>R$ 3.480-6.960</td>
+                    </tr>
+                    <tr>
+                        <td>Seedance 2.0 Fast API</td>
+                        <td><span class="badge green">SIM ✅</span></td>
+                        <td><span class="badge green">SIM ✅</span></td>
+                        <td>R$ 6.960-13.920</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="divider"></div>
+
+            <h2>🏆 8. Recomendação Final</h2>
+
+            <div class="recommendation">
+                <h3>🥇 Opção Recomendada: Kling 2.6 via API (PiAPI) — Pay-per-use</h3>
+                <p>Para nosso volume de <strong>20-40 pacotes/mês</strong>, a <strong>API Kling 2.6 via PiAPI</strong> é
+                    a única opção viável e escalável. Nenhum plano de assinatura suporta esse volume.</p>
+                <p><strong>Investimento: ~R$ 3.480-6.960/mês</strong></p>
+                <p><strong>Lucro estimado: R$ 6.520-13.040/mês (65% de margem)</strong></p>
+                <p><strong>Vantagem extra:</strong> Pode ser integrada ao AI Video Studio para automatizar o fluxo.</p>
+            </div>
+
+            <div class="recommendation" style="background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);">
+                <h3 style="color: #6ee7b7;">💰 ROI da API</h3>
+                <p>Com <strong>20 pacotes/mês</strong>: gasto R$ 3.480 → fatura R$ 10.000 → <strong>lucro R$
+                        6.520</strong></p>
+                <p>Com <strong>40 pacotes/mês</strong>: gasto R$ 6.960 → fatura R$ 20.000 → <strong>lucro R$
+                        13.040</strong></p>
+                <p>A cada R$ 1 investido na API, retornam <strong>R$ 2,87</strong>. ROI de <strong>187%</strong>.</p>
+            </div>
+
+            <h3>Estratégia de migração:</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fase</th>
+                        <th>Ação</th>
+                        <th>Custo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Fase 1 — Teste</strong></td>
+                        <td>Criar conta na PiAPI, testar Kling 2.6 com free credits</td>
+                        <td>R$ 0</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Fase 2 — Validação</strong></td>
+                        <td>Produzir 2-3 pacotes com Kling 2.6 API, comparar qualidade</td>
+                        <td>~R$ 350-520</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Fase 3 — Migração</strong></td>
+                        <td>Migrar produção para API. Integrar no AI Video Studio</td>
+                        <td>Pay-per-use</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Fase 4 — Escala</strong></td>
+                        <td>Automatizar, aumentar capacidade, captar mais clientes</td>
+                        <td>Escala linear</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Dicas para maximizar lucro:</h3>
+            <ul>
+                <li><strong>Gerar clipes de 5 segundos</strong> em vez de 10s — custo cai pela metade</li>
+                <li><strong>Investir em prompts otimizados</strong> — menos tentativas = menos custo</li>
+                <li><strong>Automatizar via AI Video Studio</strong> — economiza horas de trabalho por pacote</li>
+                <li><strong>Considerar subir pacote para R$ 700-800</strong> — qualidade superior justifica</li>
+                <li><strong>Volume 50+ pacotes</strong> — negociar desconto por volume com PiAPI</li>
+            </ul>
+
+            <div class="highlight-box green">
+                <p><strong>Conclusão:</strong> Com nosso volume de 20-40 pacotes/mês, a <strong>API Kling 2.6 via
+                        PiAPI</strong> é a opção ideal. Investimento de R$ 3.480-6.960/mês para faturar R$
+                    10.000-20.000, mantendo <strong>margem de 65%</strong> (lucro de R$ 6.520-13.040/mês). O Sora 2
+                    gratuito continua válido para manter margem máxima enquanto a qualidade for aceitável.</p>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            <p>Relatório gerado em 05/03/2026 | Cotação USD/BRL: R$ 5,80 | Dados de preço sujeitos a alteração</p>
+        </div>
+    </div>
+</body>
+
+</html>

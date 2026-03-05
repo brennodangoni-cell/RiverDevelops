@@ -132,6 +132,7 @@ export default function VideoLab() {
     const [savedMockups, setSavedMockups] = useState<SavedMockup[]>([]);
     const [renderAllOnInit, setRenderAllOnInit] = useState(false);
     const [generateVideoVeo, setGenerateVideoVeo] = useState(false);
+    const [promptEngine, setPromptEngine] = useState<'sora' | 'kling'>(() => (localStorage.getItem('prompt_engine') as 'sora' | 'kling') || 'kling');
     const [videoProvider, setVideoProvider] = useState<'veo' | 'kling'>(() => (localStorage.getItem('video_provider') as 'veo' | 'kling') || 'kling');
     const [klingApiKey, setKlingApiKey] = useState(() => localStorage.getItem('kling_api_key') || '');
     const [sceneryData, setSceneryData] = useState<SceneryAnalysis | null>(null);
@@ -164,6 +165,10 @@ export default function VideoLab() {
     useEffect(() => {
         if (klingApiKey) localStorage.setItem('kling_api_key', klingApiKey);
     }, [klingApiKey]);
+
+    useEffect(() => {
+        localStorage.setItem('prompt_engine', promptEngine);
+    }, [promptEngine]);
 
     useEffect(() => {
         localStorage.setItem('video_provider', videoProvider);
@@ -343,9 +348,9 @@ export default function VideoLab() {
                 ? `${baseDescription}\n\nMARKETING CONTEXT: ${marketingContext.trim()}`
                 : baseDescription) + hexInfo + hooksInfo;
 
-            setProgressText('Engenharia de Prompts (Sora 2 Cinematic Engine)...');
+            setProgressText(`Engenharia de Prompts (${promptEngine === 'kling' ? 'Kling 3.0' : 'Sora 2'} Engine)...`);
             const progressTimer = simulateProgress(3, 18, 45000);
-            const prompts = await generatePrompts(finalDescription, options, undefined, analysis.colors);
+            const prompts = await generatePrompts(finalDescription, options, undefined, analysis.colors, undefined, promptEngine);
             clearInterval(progressTimer);
             setProgress(20);
             const newResults: Result[] = prompts.map(p => ({ prompt: p, mockupUrl: null }));
@@ -356,7 +361,7 @@ export default function VideoLab() {
 
             // Render sequentially to show progress and avoid state corruption
             for (let i = 0; i < targets.length; i++) {
-                const mockupUrl = await generateMockup(finalDescription, options, i, compressedImages, prompts[i])
+                const mockupUrl = await generateMockup(finalDescription, options, i, compressedImages, prompts[i], promptEngine)
                     .catch(e => { console.warn(`Mockup ${i + 1} failed:`, e); return null; });
 
                 setResults(prev => {
@@ -370,9 +375,13 @@ export default function VideoLab() {
                 // Gerar vídeo para a primeira cena (se habilitado)
                 if (generateVideoVeo && i === 0 && mockupUrl && prompts[i]) {
                     const genVideo = videoProvider === 'kling' ? generateVideoKling : generateVideo;
-                    setProgressText(videoProvider === 'kling' ? 'Gerando vídeo Kling 2.6 (~30s)...' : 'Gerando vídeo Veo (pode levar 2-5 min)...');
+                    setProgressText(videoProvider === 'kling' ? 'Gerando vídeo Kling 3.0 (~30s)...' : 'Gerando vídeo Veo (pode levar 2-5 min)...');
+                    const duration = promptEngine === 'sora' ? 10 : 5;
                     try {
-                        const videoUrl = await genVideo(prompts[i], mockupUrl, { aspectRatio: options.aspectRatio, durationSeconds: videoProvider === 'kling' ? 5 : 8 });
+                        const videoUrl = await genVideo(prompts[i], mockupUrl, {
+                            aspectRatio: options.aspectRatio,
+                            durationSeconds: videoProvider === 'kling' ? duration : 8
+                        });
                         setResults(prev => {
                             const updated = [...prev];
                             if (updated[0]) updated[0] = { ...updated[0], videoUrl: videoUrl ?? undefined };
@@ -414,7 +423,7 @@ export default function VideoLab() {
             setProgressText('Expandindo Sequência Narrativa...');
             const progressTimer = simulateProgress(5, 28, 40000);
             const previousPrompts = results.map(r => r.prompt);
-            const newPrompts = await generatePrompts(finalDescription, options, previousPrompts, analysis.colors);
+            const newPrompts = await generatePrompts(finalDescription, options, previousPrompts, analysis.colors, undefined, promptEngine);
             clearInterval(progressTimer);
             setProgress(30);
             const startIndex = results.length;
@@ -424,7 +433,7 @@ export default function VideoLab() {
             setProgressText(`Renderizando ${newPrompts.length} Mockups extras...`);
 
             for (let i = 0; i < newPrompts.length; i++) {
-                const mockupUrl = await generateMockup(finalDescription, options, startIndex + i, compressedImages, newPrompts[i])
+                const mockupUrl = await generateMockup(finalDescription, options, startIndex + i, compressedImages, newPrompts[i], promptEngine)
                     .catch(e => { console.warn(`Mockup extra ${i + 1} failed:`, e); return null; });
 
                 setResults(prev => {
@@ -464,10 +473,11 @@ export default function VideoLab() {
                 const newOptions = { ...options, supportingDescription: `Regenerate scene ${index + 1} with a completely different creative angle.` };
                 const newPrompts = await generatePrompts(
                     finalDescription, newOptions,
-                    results.slice(0, index).map(r => r.prompt)
+                    results.slice(0, index).map(r => r.prompt),
+                    undefined, undefined, promptEngine
                 );
                 const newPrompt = newPrompts[0];
-                const mockupUrl = await generateMockup(finalDescription, newOptions, index, compressedImages, newPrompt);
+                const mockupUrl = await generateMockup(finalDescription, newOptions, index, compressedImages, newPrompt, promptEngine);
                 setResults(prev => {
                     const updated = [...prev];
                     updated[index] = { prompt: newPrompt, mockupUrl };
@@ -501,9 +511,9 @@ export default function VideoLab() {
 
         toast.promise(
             (async () => {
-                const newPrompts = await generatePrompts(finalDescription, options, undefined, undefined, currentDraft);
+                const newPrompts = await generatePrompts(finalDescription, options, undefined, undefined, currentDraft, promptEngine);
                 const newPrompt = newPrompts[0];
-                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, newPrompt);
+                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, newPrompt, promptEngine);
                 setResults(prev => {
                     const updated = [...prev];
                     updated[index] = { prompt: newPrompt, mockupUrl };
@@ -531,7 +541,7 @@ export default function VideoLab() {
 
         toast.promise(
             (async () => {
-                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, results[index].prompt);
+                const mockupUrl = await generateMockup(finalDescription, options, index, compressedImages, results[index].prompt, promptEngine);
                 setResults(prev => {
                     const updated = [...prev];
                     updated[index] = { ...updated[index], mockupUrl };
@@ -605,7 +615,7 @@ export default function VideoLab() {
                 let newMockupUrl = results[index].mockupUrl;
 
                 if (refineMode === 'both' || refineMode === 'prompt') {
-                    const newPrompts = await generatePrompts(finalDescription, options, undefined, analysis.colors, draftWithFeedback);
+                    const newPrompts = await generatePrompts(finalDescription, options, undefined, analysis.colors, draftWithFeedback, promptEngine);
                     newPrompt = newPrompts[0];
                 }
 
@@ -614,7 +624,7 @@ export default function VideoLab() {
                         ? `${newPrompt}\n\n[MOCKUP REFINEMENT FEEDBACK NOW APPLYING]: ${feedbackContextText}`
                         : newPrompt;
 
-                    newMockupUrl = await generateMockup(finalDescription, options, index, compressedImages, finalMockupPrompt);
+                    newMockupUrl = await generateMockup(finalDescription, options, index, compressedImages, finalMockupPrompt, promptEngine);
                 }
 
                 setResults(prev => {
@@ -1272,6 +1282,33 @@ export default function VideoLab() {
                                             </div>
                                         </div>
 
+                                        <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-5 space-y-4">
+                                            <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider block">
+                                                Engine de Prompt & Mockup
+                                            </label>
+                                            <div className="flex gap-3">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setPromptEngine('sora')}
+                                                    className={`flex-1 py-3 px-4 rounded-xl text-xs font-medium transition-all ${promptEngine === 'sora' ? 'bg-cyan-500/20 border border-cyan-500/50 text-cyan-400' : 'bg-white/5 border border-white/10 text-zinc-400 hover:border-white/20'}`}
+                                                >
+                                                    Sora 2 (10s Content)
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setPromptEngine('kling')}
+                                                    className={`flex-1 py-3 px-4 rounded-xl text-xs font-medium transition-all ${promptEngine === 'kling' ? 'bg-amber-500/20 border border-amber-500/50 text-amber-400' : 'bg-white/5 border border-white/10 text-zinc-400 hover:border-white/20'}`}
+                                                >
+                                                    Kling 3.0 (5s Ops)
+                                                </button>
+                                            </div>
+                                            <span className="text-[10px] text-zinc-500 block leading-tight">
+                                                {promptEngine === 'kling'
+                                                    ? 'Otimizado para Kling: Takes de 5s, prompts diretos e frames limpos para I2V.'
+                                                    : 'Otimizado para Sora: Takes de 10s, prompts detalhados e mockups em collage.'}
+                                            </span>
+                                        </div>
+
                                         <div
                                             onClick={() => setRenderAllOnInit(!renderAllOnInit)}
                                             className={`p-5 rounded-2xl border cursor-pointer transition-all ${!renderAllOnInit ? 'bg-emerald-500/5 border-emerald-500/30' : 'bg-white/[0.02] border-white/5 opacity-60'}`}
@@ -1318,7 +1355,7 @@ export default function VideoLab() {
                                                         onClick={() => setVideoProvider('kling')}
                                                         className={`flex-1 py-3 px-4 rounded-xl text-xs font-medium transition-all ${videoProvider === 'kling' ? 'bg-amber-500/20 border border-amber-500/50 text-amber-400' : 'bg-white/5 border border-white/10 text-zinc-400 hover:border-white/20'}`}
                                                     >
-                                                        Kling 2.6 (5s, ~30s)
+                                                        Kling 3.0 (5s/10s, ~30s)
                                                     </button>
                                                 </div>
                                                 {videoProvider === 'kling' && (
