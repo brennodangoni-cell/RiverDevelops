@@ -189,6 +189,13 @@ app.get('/api/admin/clients', authenticate, (req: Request, res: Response) => {
     res.json(clients);
 });
 
+// Admin: Get specific client content
+app.get('/api/admin/clients/:clientId/content', authenticate, (req: Request, res: Response) => {
+    const { clientId } = req.params;
+    const content = db.prepare('SELECT * FROM client_content WHERE client_id = ? ORDER BY created_at DESC').all(clientId);
+    res.json(content);
+});
+
 // Admin: Create client
 app.post('/api/admin/clients', authenticate, (req: Request, res: Response) => {
     const { username, password } = req.body;
