@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
 import {
     ChevronLeft, Upload, X, ArrowRight, Wand2,
-    Sparkles, Camera, Layers, Box, Monitor, Smartphone,
-    Fingerprint, Zap, PlayCircle, LogOut, Star, BookImage,
-    Download, Copy, Trash2, Loader2, RotateCcw
+    Sparkles, Camera, Box, Monitor,
+    Fingerprint, Zap, PlayCircle, LogOut,
+    Download, Copy, Loader2, RotateCcw
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
