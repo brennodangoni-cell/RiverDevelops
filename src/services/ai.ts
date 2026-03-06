@@ -18,7 +18,7 @@ export interface ProductAnalysis {
 
 const BRAIN_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.1-pro-preview"];
 const ANALYSIS_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro"];
-const IMAGE_MODELS = ["gemini-3.1-flash-image-preview", "gemini-3-pro-image-preview", "gemini-1.5-flash"];
+const IMAGE_MODELS = ["gemini-3.1-flash-image-preview", "gemini-3-pro-image-preview"];
 
 export class AIError extends Error {
     type: 'SAFETY_FILTER' | 'RATE_LIMIT' | 'MODEL_NOT_FOUND' | 'API_KEY_MISSING' | 'TIMEOUT' | 'UNKNOWN';
@@ -159,9 +159,18 @@ export async function generateMockup(
     const ai = new GoogleGenAI({ apiKey } as any);
 
     const imagePrompt = `TASK: PROFESSIONAL CREATIVE DELIVERY BOARD.
-MANDATE: Create a high-fidelity 16:9 cinematic presentation of the product.
-DESCRIPTION: The image must be a composite board showing a large master Hero Shot with cinematic studio lighting, plus 3 smaller inset detail shots showing macro textures and logos.
-STYLE: Global illumination, soft premium shadows, consistent with the product's DNA.
+MANDATE: [DIGITAL TWIN PROTOCOL] - EXTREME PRODUCT FIDELITY.
+The product shown in the images MUST BE RECONSTRUCTED WITH 100% ACCURACY. 
+NO hallucinations, NO shape changes, NO modification of logos or colors.
+
+LAYOUT:
+- Large Left/Center: A stunning Hero Shot (master cinematic lighting).
+- Right Side Column: 3 smaller square macro/detail shots showing textures, logos, and materials.
+- All shots must be 100% consistent with the provided product photos.
+
+SPECIFICATIONS:
+- Lighting: Global illumination, soft premium shadows, consistent with the product's DNA.
+- Fidelity: Meticulously preserve every physical detail, grain, and branding element.
 
 PRODUCT: ${productDescription}
 CINEMATIC BLUEPRINT: ${promptText}
