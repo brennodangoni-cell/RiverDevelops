@@ -196,7 +196,7 @@ app.post('/api/demands', authenticate, async (req: Request, res: Response) => {
 app.get('/api/demands/:id/materials', authenticate, async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-        const { data, error } = await supabase.from('demand_materials').select('*').eq('demand_id', parseInt(id)).order('created_at', { ascending: true });
+        const { data, error } = await supabase.from('demand_materials').select('*').eq('demand_id', parseInt(id as string)).order('created_at', { ascending: true });
         if (error) throw error;
         res.json(data || []);
     } catch (e: any) {
@@ -217,7 +217,7 @@ app.post('/api/demands/:id/materials', authenticate, upload.single('file'), asyn
         }
 
         const payload = {
-            demand_id: parseInt(id),
+            demand_id: parseInt(id as string),
             media_type: finalType,
             media_url: media_url || null,
             content: content || null,
@@ -237,7 +237,7 @@ app.post('/api/demands/:id/materials/text', authenticate, async (req: Request, r
     const { content, title } = req.body;
     try {
         const payload = {
-            demand_id: parseInt(id),
+            demand_id: parseInt(id as string),
             media_type: 'text',
             media_url: null,
             content: content || '',
@@ -254,8 +254,54 @@ app.post('/api/demands/:id/materials/text', authenticate, async (req: Request, r
 app.delete('/api/demands/:demandId/materials/:materialId', authenticate, async (req: Request, res: Response) => {
     const { materialId } = req.params;
     try {
-        const { error } = await supabase.from('demand_materials').delete().eq('id', parseInt(materialId));
+        const { error } = await supabase.from('demand_materials').delete().eq('id', parseInt(materialId as string));
         if (error) throw error;
+        res.json({ success: true });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.delete('/api/demands/:id', authenticate, async (req: Request, res: Response) => {
+    const { id } = req.params;
+    try {
+        await supabase.from('demand_materials').delete().eq('demand_id', parseInt(id as string));
+        const { error } = await supabase.from('demands').delete().eq('id', parseInt(id as string));
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/demands/:id/allocate', authenticate, async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { assigned_to, videos_count, urgency, notes } = req.body;
+    const created_by = (req as any).user.id;
+
+    try {
+        const { data: demand, error: dErr } = await supabase.from('demands').select('*').eq('id', parseInt(id as string)).single();
+        if (dErr || !demand) throw new Error('Demanda não encontrada');
+
+        const count = parseInt(videos_count) || 0;
+        const newAssignedVideos = (demand.assigned_videos || 0) + count;
+        let newStatus = 'partial';
+        if (newAssignedVideos >= demand.total_videos) newStatus = 'completed';
+
+        const { error: uErr } = await supabase.from('demands').update({ assigned_videos: newAssignedVideos, status: newStatus }).eq('id', parseInt(id as string));
+        if (uErr) throw uErr;
+
+        const taskPayload = {
+            title: `Vídeos [${count}] - ${demand.client_name}`,
+            description: `Demanda: ${demand.description || ''}\n\nNotas: ${notes || ''}`,
+            urgency: urgency || 'MEDIUM',
+            status: 'TODO',
+            assigned_to: assigned_to || created_by,
+            created_by
+        };
+        const { error: tErr } = await supabase.from('tasks').insert([taskPayload]);
+        if (tErr) throw tErr;
+
         res.json({ success: true });
     } catch (e: any) {
         res.status(500).json({ error: e.message });
@@ -319,7 +365,7 @@ app.get('/api/client/download/:contentId', authenticate, async (req: Request, re
     if (user?.role !== 'client') return res.status(403).json({ error: 'Acesso negado' });
     const { contentId } = req.params;
     try {
-        const { data, error } = await supabase.from('client_content').select('media_url, media_type, title').eq('id', parseInt(contentId)).eq('client_id', user.id).single();
+        const { data, error } = await supabase.from('client_content').select('media_url, media_type, title').eq('id', parseInt(contentId as string)).eq('client_id', user.id).single();
         if (error || !data?.media_url) return res.status(404).json({ error: 'Arquivo não encontrado' });
         const ext = data.media_type === 'video' ? 'mp4' : 'jpg';
         const filename = `${(data.title || 'arquivo').replace(/\s+/g, '-')}.${ext}`;
