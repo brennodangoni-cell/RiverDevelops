@@ -87,6 +87,22 @@ export default function VideoLab() {
         }
     };
 
+    const copyImageToClipboard = async (url: string) => {
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            await navigator.clipboard.write([
+                new ClipboardItem({
+                    [blob.type]: blob
+                })
+            ]);
+            toast.success('Imagem copiada para a área de transferência!');
+        } catch (err) {
+            console.error('Failed to copy image: ', err);
+            toast.error('Erro ao copiar imagem.');
+        }
+    };
+
     return (
         <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-cyan-500/30 overflow-x-hidden">
             {/* Background Effects */}
@@ -125,8 +141,8 @@ export default function VideoLab() {
                     {step === 1 && (
                         <motion.div key="s1" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="max-w-3xl mx-auto">
                             <div className="text-center mb-12">
-                                <h2 className="text-4xl font-bold tracking-tighter mb-4">Laboratory of the Future</h2>
-                                <p className="text-zinc-500 text-lg">Upload your product images and let the AI Director create the vision.</p>
+                                <h2 className="text-4xl font-bold tracking-tighter mb-4">Laboratório do Futuro</h2>
+                                <p className="text-zinc-500 text-lg">Faça o upload de fotos do produto e deixe o Diretor de IA criar a visão.</p>
                             </div>
 
                             <div className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-12 backdrop-blur-3xl shadow-2xl">
@@ -137,8 +153,8 @@ export default function VideoLab() {
                                         <Upload className="w-10 h-10" />
                                     </div>
                                     <div className="space-y-2">
-                                        <h3 className="text-xl font-semibold">Drop product photos</h3>
-                                        <p className="text-sm text-zinc-500">Provide different angles for better DNA extraction.</p>
+                                        <h3 className="text-xl font-semibold">Arraste as fotos do produto</h3>
+                                        <p className="text-sm text-zinc-500">Forneça ângulos diferentes para uma melhor extração de DNA.</p>
                                     </div>
                                 </div>
 
@@ -156,11 +172,11 @@ export default function VideoLab() {
                                 )}
 
                                 <div className="mt-12 space-y-4">
-                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">Marketing Context (Optional)</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">Contexto de Marketing (Opcional)</label>
                                     <textarea
                                         value={marketingContext}
                                         onChange={(e) => setMarketingContext(e.target.value)}
-                                        placeholder="Target audience, main benefit, mood... help the Director understand your goal."
+                                        placeholder="Público-alvo, principal benefício, tom de voz... ajude o Diretor a entender seu objetivo."
                                         className="w-full bg-black/40 border border-white/10 rounded-2xl p-6 text-sm outline-none focus:border-cyan-500/50 min-h-[120px] transition-all placeholder:text-zinc-700"
                                     />
                                 </div>
@@ -170,7 +186,7 @@ export default function VideoLab() {
                                     disabled={isAnalyzing || imageFiles.length === 0}
                                     className="w-full mt-10 py-6 bg-white hover:bg-cyan-50 text-black font-bold uppercase tracking-[0.2em] text-sm rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-[0_0_40px_rgba(255,255,255,0.1)]"
                                 >
-                                    {isAnalyzing ? <><Loader2 className="w-5 h-5 animate-spin" /> Analyzing DNA...</> : <>Extract DNA & Plan Concepts <ArrowRight className="w-4 h-4" /></>}
+                                    {isAnalyzing ? <><Loader2 className="w-5 h-5 animate-spin" /> Analisando DNA...</> : <>Extrair DNA & Planejar Conceitos <ArrowRight className="w-4 h-4" /></>}
                                 </button>
                             </div>
                         </motion.div>
@@ -183,12 +199,12 @@ export default function VideoLab() {
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-3">
                                         <Fingerprint className="w-6 h-6 text-cyan-400" />
-                                        <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-cyan-400">Visual DNA Extracted</span>
+                                        <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-cyan-400">DNA Visual Extraído</span>
                                     </div>
-                                    <h2 className="text-5xl font-bold tracking-tighter">Choose Your Vision</h2>
-                                    <p className="text-zinc-500 max-w-xl text-lg">The AI Director processed your product and architected 4 premium directions. Select one to proceed.</p>
+                                    <h2 className="text-5xl font-bold tracking-tighter">Escolha Sua Visão</h2>
+                                    <p className="text-zinc-500 max-w-xl text-lg">O Diretor de IA processou seu produto e arquitetou 4 direções premium. Selecione uma para prosseguir.</p>
                                 </div>
-                                <button onClick={() => setStep(1)} className="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-full text-xs font-semibold uppercase tracking-wider transition-all">Change Photos</button>
+                                <button onClick={() => setStep(1)} className="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-full text-xs font-semibold uppercase tracking-wider transition-all">Alterar Fotos</button>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -219,7 +235,7 @@ export default function VideoLab() {
 
                                         <div className="mt-8 flex items-center justify-between border-t border-white/5 pt-8">
                                             <div className="space-y-1">
-                                                <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600 italic">Director's Note:</span>
+                                                <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600 italic">Nota do Diretor:</span>
                                                 <p className="text-[11px] text-zinc-500 italic max-w-xs">{concept.commercialReason}</p>
                                             </div>
                                             <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-cyan-500 group-hover:text-black transition-all">
@@ -237,7 +253,7 @@ export default function VideoLab() {
                         <motion.div key="s3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12">
                             <div className="flex items-center justify-between">
                                 <div className="space-y-2">
-                                    <h2 className="text-4xl font-bold tracking-tighter">Cinematic Blueprint</h2>
+                                    <h2 className="text-4xl font-bold tracking-tighter">Blueprint Cinematográfico</h2>
                                     <div className="flex items-center gap-3">
                                         <div className="w-2 h-2 rounded-full bg-cyan-500" />
                                         <span className="text-xs font-semibold uppercase tracking-widest text-cyan-400">{selectedConcept?.title}</span>
@@ -245,9 +261,9 @@ export default function VideoLab() {
                                 </div>
                                 <div className="flex gap-4">
                                     <button onClick={() => setStep(2)} className="px-6 py-3 bg-white/5 border border-white/10 rounded-full flex items-center gap-2 hover:bg-white/10 transition-all">
-                                        <RotateCcw className="w-4 h-4" /> Change Concept
+                                        <RotateCcw className="w-4 h-4" /> Alterar Conceito
                                     </button>
-                                    <button onClick={() => { setStep(1); setResults([]); }} className="px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-full transition-all">New Project</button>
+                                    <button onClick={() => { setStep(1); setResults([]); }} className="px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-full transition-all">Novo Projeto</button>
                                 </div>
                             </div>
 
@@ -258,8 +274,8 @@ export default function VideoLab() {
                                         <Wand2 className="w-8 h-8 text-cyan-400 absolute inset-0 m-auto animate-pulse" />
                                     </div>
                                     <div className="space-y-2">
-                                        <h3 className="text-2xl font-bold tracking-tight">Directing Scenario...</h3>
-                                        <p className="text-zinc-500">Calculating lighting physics, motion dynamics, and product fidelity.</p>
+                                        <h3 className="text-2xl font-bold tracking-tight">Dirigindo Cenário...</h3>
+                                        <p className="text-zinc-500">Calculando física de iluminação, dinâmica de movimento e fidelidade do produto.</p>
                                     </div>
                                 </div>
                             ) : (
@@ -267,23 +283,26 @@ export default function VideoLab() {
                                     {/* Mockup Preview */}
                                     <div className="lg:col-span-12">
                                         {results[0]?.mockupUrl ? (
-                                            <div className="relative group rounded-[3rem] overflow-hidden border border-white/5 aspect-video bg-black/50">
-                                                <img src={results[0].mockupUrl} className="w-full h-full object-cover" alt="Mockup" />
-                                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-12">
+                                            <div className="relative group rounded-[3rem] overflow-hidden border border-white/5 aspect-video bg-black/50 cursor-pointer" onClick={() => copyImageToClipboard(results[0].mockupUrl!)}>
+                                                <img src={results[0].mockupUrl} className="w-full h-full object-cover" alt="Mockup" title="Clique para copiar a imagem" />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-12 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
                                                     <div className="flex items-center gap-4">
-                                                        <button onClick={() => navigator.clipboard.writeText(results[0].prompt)} className="px-8 py-4 bg-white text-black font-bold uppercase tracking-widest text-xs rounded-full flex items-center gap-3 hover:bg-cyan-400 transition-all">
-                                                            <Copy className="w-4 h-4" /> Copy Sora Blueprint
+                                                        <button onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(results[0].prompt); toast.success('Prompt copiado!'); }} className="px-8 py-4 bg-white text-black font-bold uppercase tracking-widest text-xs rounded-full flex items-center gap-3 hover:bg-cyan-400 transition-all">
+                                                            <Copy className="w-4 h-4" /> Copiar Blueprint Sora
                                                         </button>
-                                                        <a href={results[0].mockupUrl} download className="p-4 bg-white/10 backdrop-blur-md rounded-full border border-white/20 hover:bg-white/20 transition-all">
+                                                        <a href={results[0].mockupUrl} download onClick={(e) => e.stopPropagation()} className="p-4 bg-white/10 backdrop-blur-md rounded-full border border-white/20 hover:bg-white/20 transition-all">
                                                             <Download className="w-5 h-5" />
                                                         </a>
                                                     </div>
+                                                </div>
+                                                <div className="absolute top-8 right-8 px-4 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/10 text-[10px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    Clique para Copiar a Imagem
                                                 </div>
                                             </div>
                                         ) : (
                                             <div className="aspect-video bg-white/[0.02] border border-white/5 rounded-[3rem] flex flex-col items-center justify-center text-zinc-700">
                                                 <Camera className="w-16 h-16 mb-4" />
-                                                <p className="text-sm uppercase tracking-widest font-bold">Mockup Unavailable</p>
+                                                <p className="text-sm uppercase tracking-widest font-bold">Mockup Indisponível</p>
                                             </div>
                                         )}
                                     </div>
@@ -303,16 +322,16 @@ export default function VideoLab() {
 
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                             <div className="p-6 bg-white/[0.03] border border-white/5 rounded-2xl space-y-2">
-                                                <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600">Motion Architecture</span>
-                                                <p className="text-xs text-zinc-400 font-medium">Simple & Decisive (Optimized for Sora 2)</p>
+                                                <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600">Arquitetura de Movimento</span>
+                                                <p className="text-xs text-zinc-400 font-medium">Complexa & Decisiva (Otimizada para Sora 2)</p>
                                             </div>
                                             <div className="p-6 bg-white/[0.03] border border-white/5 rounded-2xl space-y-2">
-                                                <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600">Visual Quality</span>
-                                                <p className="text-xs text-zinc-400 font-medium">Kinetic High-Fidelity Commercial</p>
+                                                <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600">Qualidade Visual</span>
+                                                <p className="text-xs text-zinc-400 font-medium">Cinematográfico de Ultra-Alta Fidelidade</p>
                                             </div>
                                             <div className="p-6 bg-white/[0.03] border border-white/5 rounded-2xl space-y-2">
-                                                <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600">Stability Lock</span>
-                                                <p className="text-xs text-zinc-400 font-medium">Verified Geometry & Detail Safety</p>
+                                                <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600">Trava de Estabilidade</span>
+                                                <p className="text-xs text-zinc-400 font-medium">Geometria e Detalhes Verificados</p>
                                             </div>
                                         </div>
                                     </div>

@@ -123,13 +123,21 @@ export async function generatePrompts(
     if (!apiKey) throw new AIError("Chave API não configurada.", "API_KEY_MISSING");
     const ai = new GoogleGenAI({ apiKey } as any);
 
-    const promptContext = `SYSTEM: You are a Senior Sora 2 Director.
-Generate 1 DECISIVE, SIMPLE, and HIGH-FIDELITY prompt based on this concept.
-MANDATE: Output MUST be in English.
+    const promptContext = `SYSTEM: You are a Senior Sora 2 Director specialized in high-end product cinematography.
+TASK: Generate 1 VIVID, TECHNICALLY DESCRIPTIVE, and CINEMATIC prompt.
+
+MANDATE: 
+- Output MUST be in English.
+- Cinematic vocabulary: Use terms like "85mm prime lens", "anamorphic flare", "micro-focal shift", "depth of field", "volumetric lighting", "soft rim light".
+- Motion: Describe slow, elegant camera rigs (slider, crane, macro pull). No fast cuts.
+- Detail: Describe physical textures (brushed metal grains, liquid viscosity, fabric weave).
+- Atmosphere: Mention "suspended dust particles", "subtle haze", "refractions".
+- Length: 2-4 sentences. Detailed but focused on ONE continuous shot.
+- NO meta-comments, NO aspect ratio specs.
 
 CONCEPT: ${concept.title} - ${concept.visualHook}
 PRODUCT: ${productDescription}
-${marketingContext ? `MARKETING: ${marketingContext}` : ''}
+${marketingContext ? `MARKETING CONTEXT: ${marketingContext}` : ''}
 Return as a JSON array of 1 string.`;
 
     const response = await generateWithFallback(ai, BRAIN_MODELS, () => ({
@@ -150,10 +158,17 @@ export async function generateMockup(
     if (!apiKey) throw new AIError("Chave API não configurada.", "API_KEY_MISSING");
     const ai = new GoogleGenAI({ apiKey } as any);
 
-    const imagePrompt = `TASK: HIGH-END COMMERCIAL CONCEPT MOCKUP.
+    const imagePrompt = `TASK: PROFESSIONAL CREATIVE DELIVERY BOARD.
+MANDATE: Generate a high-fidelity 16:9 presentation of the product.
+LAYOUT:
+- Large Left/Center: A stunning Hero Shot (master cinematic lighting).
+- Right Side Column: 3 smaller square macro/detail shots showing textures, logos, and materials.
+- All shots must be 100% consistent with the provided product photos.
+- Lighting: Global illumination, soft shadows, premium studio or location look.
+
 PRODUCT: ${productDescription}
 CINEMATIC BLUEPRINT: ${promptText}
-MANDATE: 16:9 Aspect ratio. Quality reconstruction.`;
+DO NOT add text, watermarks, or mock UI elements. Just the beautiful image board.`;
 
     const parts = productImages.slice(0, 3).map(b64 => {
         const { data, mimeType } = parseBase64(b64);
