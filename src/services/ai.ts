@@ -97,6 +97,10 @@ Analyze this product and architect 4 PERFECT CINEMATIC CONCEPTS for Sora 2.
 - Concept 3: "Surreal Avant-Garde" (Visual metaphor).
 - Concept 4: "Power Hero" (Minimalist/Silhouette).
 
+MANDATE:
+- "description" MUST be in English.
+- "title", "visualHook", "commercialReason" MUST be in Portuguese (PT-BR).
+
 RETURN JSON with: description (English), productType (PT), concepts (Array of 4 objects with title, visualHook, commercialReason, category), colors (HEX list), sellingPoints, dominantHexColors.${marketingContext ? `\nCONTEXT: ${marketingContext}` : ''}`
                 }
             ]
@@ -121,6 +125,8 @@ export async function generatePrompts(
 
     const promptContext = `SYSTEM: You are a Senior Sora 2 Director.
 Generate 1 DECISIVE, SIMPLE, and HIGH-FIDELITY prompt based on this concept.
+MANDATE: Output MUST be in English.
+
 CONCEPT: ${concept.title} - ${concept.visualHook}
 PRODUCT: ${productDescription}
 ${marketingContext ? `MARKETING: ${marketingContext}` : ''}
