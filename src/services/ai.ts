@@ -16,15 +16,9 @@ export interface ProductAnalysis {
     dominantHexColors?: string[];
 }
 
-// =======================================================================
-// MODEL CONFIGURATION
-// =======================================================================
 const BRAIN_MODELS = ["gemini-2.0-flash", "gemini-1.5-pro"];
 const ANALYSIS_MODELS = ["gemini-2.0-flash"];
 
-// =======================================================================
-// ERROR TYPES
-// =======================================================================
 export class AIError extends Error {
     type: 'SAFETY_FILTER' | 'RATE_LIMIT' | 'MODEL_NOT_FOUND' | 'API_KEY_MISSING' | 'TIMEOUT' | 'UNKNOWN';
     retryable: boolean;
@@ -40,7 +34,7 @@ function classifyError(e: any): AIError {
     if (msg.includes('API key') || msg.includes('API_KEY')) {
         return new AIError('Chave API do Gemini não encontrada ou inválida.', 'API_KEY_MISSING', false);
     }
-    if (msg.includes('safety') || msg.includes('SAFETY') || msg.includes('suggestive') || msg.includes('racy') || msg.includes('blocked')) {
+    if (msg.includes('safety') || msg.includes('SAFETY') || msg.includes('blocked')) {
         return new AIError('Conteúdo bloqueado pelo filtro de segurança.', 'SAFETY_FILTER', true);
     }
     if (msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED')) {
@@ -59,13 +53,14 @@ function parseBase64(base64: string): { data: string; mimeType: string } {
     return { data: base64, mimeType: 'image/jpeg' };
 }
 
-async function generateWithFallback(ai: GoogleGenAI, models: string[], requestBuilder: (model: string) => any): Promise<any> {
+async function generateWithFallback(ai: any, models: string[], contentsBuilder: () => any): Promise<any> {
     let lastError: any;
     for (const modelName of models) {
         try {
-            const model = ai.getGenerativeModel({ model: modelName });
-            const request = requestBuilder(modelName);
-            return await model.generateContent(request);
+            return await ai.models.generateContent({
+                model: modelName,
+                ...contentsBuilder()
+            });
         } catch (e: any) {
             lastError = e;
             console.warn(`Model ${modelName} failed`, e);
@@ -74,13 +69,10 @@ async function generateWithFallback(ai: GoogleGenAI, models: string[], requestBu
     throw classifyError(lastError);
 }
 
-// =======================================================================
-// 1. ANALYZE PRODUCT
-// =======================================================================
 export async function analyzeProduct(imagesBase64: string[], marketingContext?: string): Promise<ProductAnalysis> {
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API não configurada.", "API_KEY_MISSING");
-    const ai = new GoogleGenAI(apiKey);
+    const ai = new GoogleGenAI({ apiKey } as any);
     const parts = imagesBase64.map(b64 => {
         const { data, mimeType } = parseBase64(b64);
         return { inlineData: { data, mimeType } };
@@ -94,17 +86,12 @@ export async function analyzeProduct(imagesBase64: string[], marketingContext?: 
                     text: `SYSTEM MANDATE: You are a WORLD-CLASS CREATIVE DIRECTOR for high-end luxury commercials.
 Analyze this product and architect 4 PERFECT CINEMATIC CONCEPTS for Sora 2.
 
-[CRITICAL ANALYSIS]
-1. Identify Material DNA (Liquid, Carbon Fiber, Metal).
-2. identify Brand position.
-
 [THE TASK] 4 Concepts:
 - Concept 1: "Technical Detail" (Macro/textures).
 - Concept 2: "Lifestyle Luxury" (Premium environment).
 - Concept 3: "Surreal Avant-Garde" (Visual metaphor).
 - Concept 4: "Power Hero" (Minimalist/Silhouette).
 
-MANDATE: No generic ideas. Prompts must be DECISIVE. Elegant motion (8-10s).
 RETURN JSON with: description (English), productType (PT), concepts (Array of 4 objects with title, visualHook, commercialReason, category), colors (HEX list), sellingPoints, dominantHexColors.${marketingContext ? `\nCONTEXT: ${marketingContext}` : ''}`
                 }
             ]
@@ -114,12 +101,10 @@ RETURN JSON with: description (English), productType (PT), concepts (Array of 4 
         }
     }));
 
-    return JSON.parse(response.response.text());
+    const text = response.text || "";
+    return JSON.parse(text);
 }
 
-// =======================================================================
-// 2. GENERATE PROMPTS
-// =======================================================================
 export async function generatePrompts(
     productDescription: string,
     concept: CommercialConcept,
@@ -127,34 +112,24 @@ export async function generatePrompts(
 ): Promise<string[]> {
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API não configurada.", "API_KEY_MISSING");
-    const ai = new GoogleGenAI(apiKey);
+    const ai = new GoogleGenAI({ apiKey } as any);
 
     const promptContext = `SYSTEM: You are a Senior Sora 2 Director.
 Generate 1 DECISIVE, SIMPLE, and HIGH-FIDELITY prompt based on this concept.
-
 CONCEPT: ${concept.title} - ${concept.visualHook}
 PRODUCT: ${productDescription}
 ${marketingContext ? `MARKETING: ${marketingContext}` : ''}
-
-MANDATORY RULES:
-1. One single shot. Shorter is better for stability.
-2. Direct movement (Slow pan, gentle tilt, macro pull-in). No complex choreographies.
-3. NEVER mention aspect ratio like "9:16" or "16:9".
-4. Focus on physical realism.
-5. Absolute product fidelity.
-6. Return as a JSON array of 1 string.`;
+Return as a JSON array of 1 string.`;
 
     const response = await generateWithFallback(ai, BRAIN_MODELS, () => ({
         contents: [{ parts: [{ text: promptContext }] }],
         generationConfig: { responseMimeType: "application/json" }
     }));
 
-    return JSON.parse(response.response.text());
+    const text = response.text || "";
+    return JSON.parse(text);
 }
 
-// =======================================================================
-// 3. GENERATE MOCKUP
-// =======================================================================
 export async function generateMockup(
     productDescription: string,
     promptText: string,
@@ -162,17 +137,12 @@ export async function generateMockup(
 ): Promise<string | null> {
     const apiKey = getApiKey();
     if (!apiKey) throw new AIError("Chave API não configurada.", "API_KEY_MISSING");
-    const ai = new GoogleGenAI(apiKey);
+    const ai = new GoogleGenAI({ apiKey } as any);
 
     const imagePrompt = `TASK: HIGH-END COMMERCIAL CONCEPT MOCKUP.
 PRODUCT: ${productDescription}
 CINEMATIC BLUEPRINT: ${promptText}
-
-MANDATE:
-- Perfect product reconstruction based on attached photos.
-- Luxury lighting.
-- 16:9 Aspect ratio.
-- DO NOT add text or logos that are not in the photos.`;
+MANDATE: 16:9 Aspect ratio. Quality reconstruction.`;
 
     const parts = productImages.slice(0, 3).map(b64 => {
         const { data, mimeType } = parseBase64(b64);
@@ -180,12 +150,12 @@ MANDATE:
     });
 
     try {
-        const model = ai.getGenerativeModel({ model: "gemini-2.0-flash" });
-        const response = await model.generateContent({
+        const response = await ai.models.generateContent({
+            model: "gemini-2.0-flash",
             contents: [{ parts: [...parts, { text: imagePrompt }] }]
         });
 
-        for (const part of response.response.candidates?.[0]?.content?.parts || []) {
+        for (const part of response.candidates?.[0]?.content?.parts || []) {
             if (part.inlineData) {
                 return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
             }
