@@ -16,8 +16,9 @@ export interface ProductAnalysis {
     dominantHexColors?: string[];
 }
 
-const BRAIN_MODELS = ["gemini-1.5-pro", "gemini-1.5-flash"];
-const ANALYSIS_MODELS = ["gemini-1.5-flash", "gemini-1.5-pro"];
+const BRAIN_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.1-pro-preview"];
+const ANALYSIS_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro"];
+const IMAGE_MODELS = ["gemini-3.1-flash-image-preview", "gemini-3-pro-image-preview"];
 
 export class AIError extends Error {
     type: 'SAFETY_FILTER' | 'RATE_LIMIT' | 'MODEL_NOT_FOUND' | 'API_KEY_MISSING' | 'TIMEOUT' | 'UNKNOWN';
@@ -150,10 +151,9 @@ MANDATE: 16:9 Aspect ratio. Quality reconstruction.`;
     });
 
     try {
-        const response = await ai.models.generateContent({
-            model: "gemini-1.5-flash",
+        const response = await generateWithFallback(ai, IMAGE_MODELS, () => ({
             contents: [{ parts: [...parts, { text: imagePrompt }] }]
-        });
+        }));
 
         for (const part of response.candidates?.[0]?.content?.parts || []) {
             if (part.inlineData) {
