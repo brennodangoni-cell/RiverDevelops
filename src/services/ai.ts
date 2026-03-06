@@ -54,6 +54,10 @@ function parseBase64(base64: string): { data: string; mimeType: string } {
     return { data: base64, mimeType: 'image/jpeg' };
 }
 
+function sanitizeJson(text: string): string {
+    return text.replace(/```json\n?|```/g, '').trim();
+}
+
 async function generateWithFallback(ai: any, models: string[], contentsBuilder: () => any): Promise<any> {
     let lastError: any;
     for (const modelName of models) {
@@ -103,7 +107,7 @@ RETURN JSON with: description (English), productType (PT), concepts (Array of 4 
     }));
 
     const text = response.text || "";
-    return JSON.parse(text);
+    return JSON.parse(sanitizeJson(text));
 }
 
 export async function generatePrompts(
@@ -128,7 +132,7 @@ Return as a JSON array of 1 string.`;
     }));
 
     const text = response.text || "";
-    return JSON.parse(text);
+    return JSON.parse(sanitizeJson(text));
 }
 
 export async function generateMockup(
