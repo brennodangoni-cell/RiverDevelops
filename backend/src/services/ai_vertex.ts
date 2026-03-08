@@ -23,7 +23,7 @@ export async function analyzeProductPhotos(base64Images: string[], userContext: 
     // as it's more stable for simple API Key authentication than Vertex SDK.
     if (apiKey) {
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
         const parts = [
             {
@@ -69,7 +69,7 @@ Contexto do usuário: ${userContext}`
 
     // Default Vertex SDK Flow (for Service Accounts or Tokens)
     const generativeModel = vertexAI.getGenerativeModel({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-3-flash-preview',
         generationConfig: {
             maxOutputTokens: 2048,
             temperature: 0.7,
