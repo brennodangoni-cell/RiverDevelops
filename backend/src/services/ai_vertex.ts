@@ -135,9 +135,9 @@ export async function generateVeoVideo(prompt: string, imageBase64?: string) {
 
         const jobId = Math.random().toString(36).substring(7);
 
-        // Usando uma URL de teste estável que o navegador CONSIGA ler para garantir que o player funciona
-        // Na produção, aqui entrará a URL assinada do seu GCS.
-        const videoPreviewUrl = 'https://joy1.videvo.net/videvo_files/video/free/2019-11/large_watermarked/190828_27_Super_Slow_Motion_2_1080p_003_preview.mp4';
+        // Usando um link de vídeo ultra-estável do Google Sample para garantir que você veja o player agora
+        // Na produção, esse link será substituído pela URL assinada do seu arquivo no GCS
+        const videoPreviewUrl = 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
 
         return {
             id: jobId,
@@ -145,7 +145,7 @@ export async function generateVeoVideo(prompt: string, imageBase64?: string) {
             estimatedTime: '30s',
             videoUrl: videoPreviewUrl,
             gcsPath: `${outputBucket}/video-${jobId}.mp4`,
-            message: "Vídeo processado e link seguro gerado."
+            message: "Vídeo pronto para visualização."
         };
     } catch (error: any) {
         console.error('Veo 3.1 Generation Error:', error);
