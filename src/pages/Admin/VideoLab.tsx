@@ -1,30 +1,35 @@
 import React, { useState, useRef } from 'react';
 import {
-    ChevronLeft, Upload, X, ArrowRight, Wand2,
-    Sparkles, Camera, Box, Monitor,
-    Fingerprint, Zap, PlayCircle, LogOut,
-    Download, Copy, Loader2, RotateCcw
+    ChevronLeft, Wand2,
+    Sparkles, Camera, Box,
+    PlayCircle, LogOut,
+    Download, Loader2, RotateCcw,
+    Layers, Video, CheckCircle2, AlertCircle,
+    X, ArrowRight
 } from 'lucide-react';
+
+
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { analyzeProduct, generatePrompts, generateMockup, ProductAnalysis, CommercialConcept } from '../../services/ai';
+import { riverAnalyze, riverGenerate } from '../../services/ai';
 
-interface Result {
+interface RiverTake {
+    title: string;
     prompt: string;
-    mockupUrl: string | null;
+    visualHook: string;
+    status: 'idle' | 'generating' | 'completed' | 'error';
+    videoUrl?: string;
+    estimatedTime?: string;
 }
 
-export default function VideoLab() {
-    const [step, setStep] = useState<1 | 2 | 3>(1);
+export default function RiverVideoLab() {
+    const [step, setStep] = useState<1 | 2>(1);
     const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [previewUrls, setPreviewUrls] = useState<string[]>([]);
     const [marketingContext, setMarketingContext] = useState('');
-    const [analysis, setAnalysis] = useState<ProductAnalysis | null>(null);
-    const [selectedConcept, setSelectedConcept] = useState<CommercialConcept | null>(null);
-    const [results, setResults] = useState<Result[]>([]);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [isGenerating, setIsGenerating] = useState(false);
+    const [takes, setTakes] = useState<RiverTake[]>([]);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
@@ -33,10 +38,10 @@ export default function VideoLab() {
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (!files) return;
-        const newFiles = Array.from(files);
-        setImageFiles(prev => [...prev, ...newFiles]);
+        const newFiles = Array.from(files).slice(0, 6); // Max 6 images
+        setImageFiles(prev => [...prev, ...newFiles].slice(0, 6));
         const newUrls = newFiles.map(f => URL.createObjectURL(f));
-        setPreviewUrls(prev => [...prev, ...newUrls]);
+        setPreviewUrls(prev => [...prev, ...newUrls].slice(0, 6));
     };
 
     const removeImage = (index: number) => {
@@ -53,7 +58,7 @@ export default function VideoLab() {
         });
     };
 
-    const handleAnalyze = async () => {
+    const handleStartProduction = async () => {
         if (imageFiles.length === 0) {
             toast.error('Adicione pelo menos uma imagem.');
             return;
@@ -61,45 +66,56 @@ export default function VideoLab() {
         setIsAnalyzing(true);
         try {
             const base64Images = await Promise.all(imageFiles.map(f => fileToBase64(f)));
-            const result = await analyzeProduct(base64Images, marketingContext);
-            setAnalysis(result);
+
+            // 1. Analyze and get prompts
+            const analysis = await riverAnalyze(base64Images, marketingContext);
+
+            const initialTakes: RiverTake[] = analysis.takes.map((t: any) => ({
+                ...t,
+                status: 'idle'
+            }));
+            setTakes(initialTakes);
             setStep(2);
+            setIsAnalyzing(false);
+
+            // 2. Start generation for each take (sequentially or in parallel?)
+            // We'll do them in parallel for a better feeling, but with some delay
+            initialTakes.forEach((take, index) => {
+                startGeneration(index, take.prompt);
+            });
+
         } catch (e: any) {
-            toast.error(e.message || 'Erro na análise.');
-        } finally {
+            toast.error(e.message || 'Erro na análise River Lab.');
             setIsAnalyzing(false);
         }
     };
 
-    const handleSelectConcept = async (concept: CommercialConcept) => {
-        setSelectedConcept(concept);
-        setIsGenerating(true);
-        setStep(3);
-        try {
-            const prompts = await generatePrompts(analysis!.description, concept, marketingContext);
-            const base64Images = await Promise.all(imageFiles.map(f => fileToBase64(f)));
-            const mockupUrl = await generateMockup(analysis!.description, prompts[0], base64Images);
-            setResults([{ prompt: prompts[0], mockupUrl }]);
-        } catch (e: any) {
-            toast.error(e.message || 'Erro na geração.');
-        } finally {
-            setIsGenerating(false);
-        }
-    };
+    const startGeneration = async (index: number, prompt: string) => {
+        setTakes(prev => {
+            const newTakes = [...prev];
+            newTakes[index].status = 'generating';
+            return newTakes;
+        });
 
-    const copyImageToClipboard = async (url: string) => {
         try {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            await navigator.clipboard.write([
-                new ClipboardItem({
-                    [blob.type]: blob
-                })
-            ]);
-            toast.success('Imagem copiada para a área de transferência!');
-        } catch (err) {
-            console.error('Failed to copy image: ', err);
-            toast.error('Erro ao copiar imagem.');
+            // Optional: Send the first image as reference
+            const base64Image = await fileToBase64(imageFiles[0]);
+            const response = await riverGenerate(prompt, base64Image);
+
+            setTakes(prev => {
+                const newTakes = [...prev];
+                newTakes[index].status = 'completed';
+                newTakes[index].videoUrl = response.videoUrl;
+                return newTakes;
+            });
+            toast.success(`Take "${takes[index]?.title || 'Vídeo'}" iniciado!`);
+        } catch (e) {
+            setTakes(prev => {
+                const newTakes = [...prev];
+                newTakes[index].status = 'error';
+                return newTakes;
+            });
+            toast.error(`Erro no Take ${index + 1}`);
         }
     };
 
@@ -107,8 +123,9 @@ export default function VideoLab() {
         <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-cyan-500/30 overflow-x-hidden">
             {/* Background Effects */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-cyan-500/10 blur-[120px] rounded-full" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 blur-[120px] rounded-full" />
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-600/10 blur-[120px] rounded-full" />
+                <div className="absolute top-[30%] left-[20%] w-[30%] h-[30%] bg-cyan-500/5 blur-[100px] rounded-full" />
             </div>
 
             {/* Header */}
@@ -118,15 +135,18 @@ export default function VideoLab() {
                         <ChevronLeft className="w-5 h-5 text-zinc-400" />
                     </Link>
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center">
-                            <PlayCircle className="w-4 h-4 text-white" />
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-700 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                            <Layers className="w-4 h-4 text-white" />
                         </div>
-                        <h1 className="text-sm font-bold tracking-tight">Sora Lab <span className="text-cyan-400 font-normal">v2.0</span></h1>
+                        <h1 className="text-sm font-bold tracking-tight">River Lab <span className="text-blue-400 font-normal">v3.1 Veo</span></h1>
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-3 pr-4 border-r border-white/10">
-                        <span className="text-xs text-zinc-400">{currentUser.username}</span>
+                        <div className="flex flex-col items-end">
+                            <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">GCP Credits Active</span>
+                            <span className="text-xs text-green-400 font-semibold">R$ 1.400,00</span>
+                        </div>
                         <img src={`https://ui-avatars.com/api/?name=${currentUser.username}&background=111&color=fff`} className="w-8 h-8 rounded-full border border-white/10" alt="Avatar" />
                     </div>
                     <button onClick={() => navigate('/admin/login')} className="p-2 hover:bg-red-500/10 rounded-full text-zinc-500 hover:text-red-400 transition-all">
@@ -135,212 +155,252 @@ export default function VideoLab() {
                 </div>
             </header>
 
-            <main className="max-w-6xl mx-auto px-6 pt-32 pb-20 relative z-10">
+            <main className="max-w-7xl mx-auto px-6 pt-32 pb-20 relative z-10">
                 <AnimatePresence mode="wait">
-                    {/* STEP 1: UPLOAD */}
+                    {/* STEP 1: UPLOAD & SETUP */}
                     {step === 1 && (
-                        <motion.div key="s1" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="max-w-3xl mx-auto">
-                            <div className="text-center mb-12">
-                                <h2 className="text-4xl font-bold tracking-tighter mb-4">Laboratório do Futuro</h2>
-                                <p className="text-zinc-500 text-lg">Faça o upload de fotos do produto e deixe o Diretor de IA criar a visão.</p>
+                        <motion.div key="s1" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="max-w-4xl mx-auto">
+                            <div className="text-center mb-16 space-y-4">
+                                <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.2 }} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-4">
+                                    <Sparkles className="w-3 h-3" /> Powered by Veo 3.1
+                                </motion.div>
+                                <h2 className="text-6xl font-bold tracking-tighter mb-4">Produção em Massa <br /><span className="bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent italic">sem esforço.</span></h2>
+                                <p className="text-zinc-500 text-lg max-w-2xl mx-auto">Arraste as fotos do produto. O River Lab irá analisar o DNA visual e gerar 4 takes cinemáticos de alta conversão automaticamente.</p>
                             </div>
 
-                            <div className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-12 backdrop-blur-3xl shadow-2xl">
+                            <div className="bg-[#0A0A0A] border border-white/5 rounded-[3rem] p-16 shadow-2xl relative overflow-hidden group/card">
+                                {/* Subtle Grid Pattern */}
+                                <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+
                                 <input type="file" multiple accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
 
-                                <div onClick={() => fileInputRef.current?.click()} className="group cursor-pointer border-2 border-dashed border-white/10 hover:border-cyan-500/50 rounded-3xl p-16 transition-all duration-500 text-center flex flex-col items-center gap-6">
-                                    <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center text-zinc-500 group-hover:text-cyan-400 group-hover:scale-110 transition-all duration-500">
-                                        <Upload className="w-10 h-10" />
+                                <div
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="group cursor-pointer border-2 border-dashed border-white/5 hover:border-blue-500/40 hover:bg-blue-500/[0.02] rounded-[2.5rem] p-20 transition-all duration-700 text-center flex flex-col items-center gap-8 relative z-10"
+                                >
+                                    <div className="w-24 h-24 rounded-3xl bg-white/[0.03] border border-white/5 flex items-center justify-center text-zinc-600 group-hover:text-blue-400 group-hover:scale-110 group-hover:border-blue-500/20 transition-all duration-700 shadow-xl">
+                                        <Camera className="w-12 h-12" />
                                     </div>
-                                    <div className="space-y-2">
-                                        <h3 className="text-xl font-semibold">Arraste as fotos do produto</h3>
-                                        <p className="text-sm text-zinc-500">Forneça ângulos diferentes para uma melhor extração de DNA.</p>
+                                    <div className="space-y-3">
+                                        <h3 className="text-2xl font-semibold tracking-tight">Carregar Amostras do Produto</h3>
+                                        <p className="text-zinc-500 max-w-xs mx-auto">Suporta até 6 fotos em alta resolução para precisão geométrica máxima.</p>
                                     </div>
                                 </div>
 
                                 {previewUrls.length > 0 && (
-                                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-3 mt-8">
+                                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-6 gap-4 mt-12 bg-black/40 p-6 rounded-[2rem] border border-white/5">
                                         {previewUrls.map((url, idx) => (
-                                            <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-white/10 group">
+                                            <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden border border-white/10 group shadow-lg">
                                                 <img src={url} className="w-full h-full object-cover" alt="Preview" />
-                                                <button onClick={() => removeImage(idx)} className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                                    <X className="w-5 h-5 text-red-500" />
+                                                <button onClick={() => removeImage(idx)} className="absolute inset-0 bg-red-600/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-300">
+                                                    <X className="w-6 h-6 text-white" />
                                                 </button>
                                             </div>
                                         ))}
-                                    </div>
+                                        {previewUrls.length < 6 && (
+                                            <button onClick={() => fileInputRef.current?.click()} className="aspect-square rounded-2xl border-2 border-dashed border-white/5 hover:border-white/10 flex items-center justify-center text-zinc-700 hover:text-zinc-500 transition-all">
+                                                <PlusIcon className="w-6 h-6" />
+                                            </button>
+                                        )}
+                                    </motion.div>
                                 )}
 
-                                <div className="mt-12 space-y-4">
-                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">Contexto de Marketing (Opcional)</label>
+                                <div className="mt-16 space-y-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-white/5" />
+                                        <label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600">Diretrizes Adicionais</label>
+                                        <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-white/5" />
+                                    </div>
                                     <textarea
                                         value={marketingContext}
                                         onChange={(e) => setMarketingContext(e.target.value)}
-                                        placeholder="Público-alvo, principal benefício, tom de voz... ajude o Diretor a entender seu objetivo."
-                                        className="w-full bg-black/40 border border-white/10 rounded-2xl p-6 text-sm outline-none focus:border-cyan-500/50 min-h-[120px] transition-all placeholder:text-zinc-700"
+                                        placeholder="EX: Estilo futurista, luz suave, detalhes em metal escovado... (Dê dicas, o Veo faz o resto)"
+                                        className="w-full bg-black/60 border border-white/5 rounded-3xl p-8 text-sm outline-none focus:border-blue-500/30 min-h-[140px] transition-all placeholder:text-zinc-800 text-zinc-300 shadow-inner"
                                     />
                                 </div>
 
                                 <button
-                                    onClick={handleAnalyze}
+                                    onClick={handleStartProduction}
                                     disabled={isAnalyzing || imageFiles.length === 0}
-                                    className="w-full mt-10 py-6 bg-white hover:bg-cyan-50 text-black font-bold uppercase tracking-[0.2em] text-sm rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-[0_0_40px_rgba(255,255,255,0.1)]"
+                                    className="w-full mt-12 py-8 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-[0.25em] text-sm rounded-[2rem] transition-all disabled:opacity-30 disabled:grayscale flex items-center justify-center gap-4 shadow-[0_20px_50px_rgba(37,99,235,0.2)] active:scale-[0.98]"
                                 >
-                                    {isAnalyzing ? <><Loader2 className="w-5 h-5 animate-spin" /> Analisando DNA...</> : <>Extrair DNA & Planejar Conceitos <ArrowRight className="w-4 h-4" /></>}
+                                    {isAnalyzing ? (
+                                        <><Loader2 className="w-6 h-6 animate-spin" /> Mapeando Geometria & Criando Blueprints...</>
+                                    ) : (
+                                        <><Wand2 className="w-5 h-5" /> Iniciar Produção River 3.1 <ArrowRight className="w-4 h-4" /></>
+                                    )}
                                 </button>
+
+                                <p className="text-center mt-6 text-[10px] text-zinc-700 font-bold uppercase tracking-widest italic">
+                                    * Esta ação irá consumir créditos do Vertex AI (GCP)
+                                </p>
                             </div>
                         </motion.div>
                     )}
 
-                    {/* STEP 2: CONCEPTS */}
-                    {step === 2 && analysis && (
-                        <motion.div key="s2" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-12">
+                    {/* STEP 2: MULTI-TAKE PRODUCTION */}
+                    {step === 2 && (
+                        <motion.div key="s2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12">
                             <div className="flex items-end justify-between">
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-3">
-                                        <Fingerprint className="w-6 h-6 text-cyan-400" />
-                                        <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-cyan-400">DNA Visual Extraído</span>
+                                        <div className="px-3 py-1 bg-green-500/10 border border-green-500/20 text-green-400 text-[9px] font-black uppercase tracking-widest rounded-full animate-pulse">Produção Ativa</div>
+                                        <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-blue-400 italic">4 Takes de 10 Segundos</span>
                                     </div>
-                                    <h2 className="text-5xl font-bold tracking-tighter">Escolha Sua Visão</h2>
-                                    <p className="text-zinc-500 max-w-xl text-lg">O Diretor de IA processou seu produto e arquitetou 4 direções premium. Selecione uma para prosseguir.</p>
+                                    <h2 className="text-5xl font-bold tracking-tighter">Estúdio de Geração</h2>
+                                    <p className="text-zinc-500 max-w-xl text-lg">O Veo 3.1 está renderizando 4 variações cinemáticas baseadas no DNA visual do seu produto.</p>
                                 </div>
-                                <button onClick={() => setStep(1)} className="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-full text-xs font-semibold uppercase tracking-wider transition-all">Alterar Fotos</button>
+                                <div className="flex gap-4">
+                                    <button onClick={() => setStep(1)} className="px-8 py-4 bg-white/[0.03] border border-white/5 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-white/[0.08] transition-all flex items-center gap-2">
+                                        <RotateCcw className="w-4 h-4" /> Novo Projeto
+                                    </button>
+                                </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {analysis.concepts.map((concept, idx) => (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                                {takes.map((take, idx) => (
                                     <motion.div
                                         key={idx}
-                                        whileHover={{ y: -8, scale: 1.01 }}
-                                        onClick={() => handleSelectConcept(concept)}
-                                        className="group cursor-pointer bg-white/[0.02] border border-white/5 hover:border-cyan-500/30 rounded-[2rem] p-8 transition-all duration-500 relative overflow-hidden flex flex-col justify-between min-h-[320px]"
+                                        initial={{ opacity: 0, y: 30 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: idx * 0.1 }}
+                                        className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] overflow-hidden flex flex-col group shadow-2xl hover:border-blue-500/20 transition-all duration-500"
                                     >
-                                        <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-100 group-hover:text-cyan-400 transition-all">
-                                            {concept.category === 'TECHNICAL_DETAIL' && <Box className="w-12 h-12" />}
-                                            {concept.category === 'LIFESTYLE_LUXURY' && <Sparkles className="w-12 h-12" />}
-                                            {concept.category === 'SURREAL_AVANT_GARDE' && <Zap className="w-12 h-12" />}
-                                            {concept.category === 'PRODUCT_FOCUS' && <Camera className="w-12 h-12" />}
+                                        {/* Video Preview Area */}
+                                        <div className="aspect-[9/16] relative bg-black flex flex-col items-center justify-center p-8 overflow-hidden">
+                                            {take.status === 'generating' && (
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 z-10 bg-black/80 backdrop-blur-sm">
+                                                    <div className="relative">
+                                                        <div className="w-20 h-20 rounded-full border-4 border-blue-500/10 border-t-blue-500 animate-spin" />
+                                                        <Video className="w-8 h-8 text-blue-400 absolute inset-0 m-auto animate-pulse" />
+                                                    </div>
+                                                    <div className="text-center space-y-1">
+                                                        <span className="block text-xs font-black uppercase tracking-widest text-blue-400">Rendering...</span>
+                                                        <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">Veo 3.1 Engine</span>
+                                                    </div>
+                                                    {/* Fake scanline effect */}
+                                                    <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-blue-500/5 to-transparent h-1/2 w-full animate-scanline" />
+                                                </div>
+                                            )}
+
+                                            {take.status === 'completed' && take.videoUrl && (
+                                                <div className="absolute inset-0">
+                                                    <video
+                                                        src={take.videoUrl}
+                                                        autoPlay
+                                                        loop
+                                                        muted
+                                                        playsInline
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent p-8 flex flex-col justify-end">
+                                                        <button className="w-full py-4 bg-white text-black font-black uppercase tracking-widest text-[10px] rounded-2xl flex items-center justify-center gap-2 hover:bg-blue-400 transition-all">
+                                                            <Download className="w-4 h-4" /> Download 4K
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {take.status === 'completed' && !take.videoUrl && (
+                                                <div className="text-center space-y-4">
+                                                    <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center border border-green-500/20">
+                                                        <CheckCircle2 className="w-8 h-8 text-green-400" />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <p className="text-sm font-bold">Solicitação Enviada</p>
+                                                        <p className="text-[10px] text-zinc-500 uppercase tracking-widest">Aguardando Processamento GCP</p>
+                                                    </div>
+                                                    <button className="px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all">Ver no Cloud Storage</button>
+                                                </div>
+                                            )}
+
+                                            {take.status === 'error' && (
+                                                <div className="text-center space-y-4">
+                                                    <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/20">
+                                                        <AlertCircle className="w-8 h-8 text-red-400" />
+                                                    </div>
+                                                    <p className="text-sm font-bold">Erro na Geração</p>
+                                                    <button onClick={() => startGeneration(idx, take.prompt)} className="px-6 py-2 bg-white/10 hover:bg-white/20 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all">Tentar Novamente</button>
+                                                </div>
+                                            )}
+
+                                            {take.status === 'idle' && (
+                                                <div className="text-zinc-800 flex flex-col items-center gap-4">
+                                                    <PlayCircle className="w-12 h-12 opacity-5" />
+                                                    <span className="text-[10px] font-black uppercase tracking-widest opacity-10">Waiting in Queue</span>
+                                                </div>
+                                            )}
                                         </div>
 
-                                        <div className="space-y-6">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-2 h-2 rounded-full bg-cyan-500 shadow-[0_0_10px_rgba(8,145,178,1)]" />
-                                                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">{concept.category.replace('_', ' ')}</span>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <h3 className="text-3xl font-bold tracking-tight group-hover:text-cyan-400 transition-colors">{concept.title}</h3>
-                                                <p className="text-zinc-400 leading-relaxed">{concept.visualHook}</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="mt-8 flex items-center justify-between border-t border-white/5 pt-8">
+                                        {/* Info Area */}
+                                        <div className="p-8 space-y-4 bg-black/40 flex-1">
                                             <div className="space-y-1">
-                                                <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600 italic">Nota do Diretor:</span>
-                                                <p className="text-[11px] text-zinc-500 italic max-w-xs">{concept.commercialReason}</p>
+                                                <div className="flex items-center gap-2">
+                                                    <div className={`w-1.5 h-1.5 rounded-full ${take.status === 'generating' ? 'bg-blue-500 animate-pulse' : take.status === 'completed' ? 'bg-green-500' : 'bg-zinc-800'}`} />
+                                                    <h3 className="text-lg font-bold tracking-tight text-zinc-200">{take.title}</h3>
+                                                </div>
+                                                <p className="text-[10px] text-zinc-500 font-medium italic">"{take.visualHook}"</p>
                                             </div>
-                                            <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-cyan-500 group-hover:text-black transition-all">
-                                                <ArrowRight className="w-5 h-5" />
+
+                                            <div className="pt-4 border-t border-white/5">
+                                                <div className="flex items-center justify-between mb-3 text-[9px] font-black uppercase tracking-widest text-zinc-600">
+                                                    <span>Technical Prompt</span>
+                                                    <button onClick={() => { navigator.clipboard.writeText(take.prompt); toast.success('Prompt copiado!'); }} className="text-blue-400 hover:text-white transition-colors">Copy</button>
+                                                </div>
+                                                <div className="bg-black/50 border border-white/5 rounded-xl p-4 text-[11px] text-zinc-400 leading-relaxed max-h-[80px] overflow-y-auto font-mono scrollbar-hide">
+                                                    {take.prompt}
+                                                </div>
                                             </div>
                                         </div>
                                     </motion.div>
                                 ))}
                             </div>
-                        </motion.div>
-                    )}
 
-                    {/* STEP 3: RESULTS */}
-                    {step === 3 && (
-                        <motion.div key="s3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12">
-                            <div className="flex items-center justify-between">
-                                <div className="space-y-2">
-                                    <h2 className="text-4xl font-bold tracking-tighter">Blueprint Cinematográfico</h2>
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-2 h-2 rounded-full bg-cyan-500" />
-                                        <span className="text-xs font-semibold uppercase tracking-widest text-cyan-400">{selectedConcept?.title}</span>
+                            <div className="bg-blue-600/5 border border-blue-500/10 rounded-[2rem] p-10 flex items-center justify-between">
+                                <div className="flex items-center gap-6">
+                                    <div className="w-14 h-14 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-400">
+                                        <Box className="w-8 h-8" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-xl font-bold">Consistência de Produto Garantida</h4>
+                                        <p className="text-zinc-500 text-sm">O Veo 3.1 utiliza o mapeamento 3D das imagens enviadas para manter a geometria impecável em cada take.</p>
                                     </div>
                                 </div>
-                                <div className="flex gap-4">
-                                    <button onClick={() => setStep(2)} className="px-6 py-3 bg-white/5 border border-white/10 rounded-full flex items-center gap-2 hover:bg-white/10 transition-all">
-                                        <RotateCcw className="w-4 h-4" /> Alterar Conceito
-                                    </button>
-                                    <button onClick={() => { setStep(1); setResults([]); }} className="px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-full transition-all">Novo Projeto</button>
+                                <div className="text-right">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">Estimated Cost</p>
+                                    <p className="text-2xl font-black text-blue-400">~R$ 4,60 <span className="text-sm font-medium text-zinc-600 text-[10px]">(U$ 0.80)</span></p>
                                 </div>
                             </div>
-
-                            {isGenerating ? (
-                                <div className="bg-white/[0.02] border border-white/5 rounded-[3rem] p-24 flex flex-col items-center justify-center gap-8 min-h-[600px] text-center">
-                                    <div className="relative">
-                                        <div className="w-24 h-24 rounded-full border-4 border-cyan-500/20 border-t-cyan-500 animate-spin" />
-                                        <Wand2 className="w-8 h-8 text-cyan-400 absolute inset-0 m-auto animate-pulse" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <h3 className="text-2xl font-bold tracking-tight">Dirigindo Cenário...</h3>
-                                        <p className="text-zinc-500">Calculando física de iluminação, dinâmica de movimento e fidelidade do produto.</p>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                                    {/* Mockup Preview */}
-                                    <div className="lg:col-span-12">
-                                        {results[0]?.mockupUrl ? (
-                                            <div className="relative group rounded-[3rem] overflow-hidden border border-white/5 aspect-video bg-black/50 cursor-pointer" onClick={() => copyImageToClipboard(results[0].mockupUrl!)}>
-                                                <img src={results[0].mockupUrl} className="w-full h-full object-cover" alt="Mockup" title="Clique para copiar a imagem" />
-                                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-12 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                                                    <div className="flex items-center gap-4">
-                                                        <button onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(results[0].prompt); toast.success('Prompt copiado!'); }} className="px-8 py-4 bg-white text-black font-bold uppercase tracking-widest text-xs rounded-full flex items-center gap-3 hover:bg-cyan-400 transition-all">
-                                                            <Copy className="w-4 h-4" /> Copiar Blueprint Sora
-                                                        </button>
-                                                        <a href={results[0].mockupUrl} download onClick={(e) => e.stopPropagation()} className="p-4 bg-white/10 backdrop-blur-md rounded-full border border-white/20 hover:bg-white/20 transition-all">
-                                                            <Download className="w-5 h-5" />
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="absolute top-8 right-8 px-4 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/10 text-[10px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    Clique para Copiar a Imagem
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="aspect-video bg-white/[0.02] border border-white/5 rounded-[3rem] flex flex-col items-center justify-center text-zinc-700">
-                                                <Camera className="w-16 h-16 mb-4" />
-                                                <p className="text-sm uppercase tracking-widest font-bold">Mockup Indisponível</p>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Prompt Content */}
-                                    <div className="lg:col-span-12 bg-white/[0.02] border border-white/5 rounded-[3rem] p-12 space-y-8">
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center">
-                                                <Monitor className="w-5 h-5 text-cyan-400" />
-                                            </div>
-                                            <h3 className="text-xl font-bold">Sora 2 Technical Blueprint</h3>
-                                        </div>
-
-                                        <div className="bg-black/60 border border-white/10 rounded-2xl p-8 font-mono text-zinc-300 leading-relaxed text-sm">
-                                            {results[0]?.prompt}
-                                        </div>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                            <div className="p-6 bg-white/[0.03] border border-white/5 rounded-2xl space-y-2">
-                                                <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600">Arquitetura de Movimento</span>
-                                                <p className="text-xs text-zinc-400 font-medium">Complexa & Decisiva (Otimizada para Sora 2)</p>
-                                            </div>
-                                            <div className="p-6 bg-white/[0.03] border border-white/5 rounded-2xl space-y-2">
-                                                <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600">Qualidade Visual</span>
-                                                <p className="text-xs text-zinc-400 font-medium">Cinematográfico de Ultra-Alta Fidelidade</p>
-                                            </div>
-                                            <div className="p-6 bg-white/[0.03] border border-white/5 rounded-2xl space-y-2">
-                                                <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600">Trava de Estabilidade</span>
-                                                <p className="text-xs text-zinc-400 font-medium">Geometria e Detalhes Verificados</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
                         </motion.div>
                     )}
                 </AnimatePresence>
             </main>
+
+            {/* Global Custom CSS for Animations */}
+            <style>{`
+                @keyframes scanline {
+                    0% { transform: translateY(-100%); }
+                    100% { transform: translateY(200%); }
+                }
+                .animate-scanline {
+                    animation: scanline 3s linear infinite;
+                }
+                .scrollbar-hide::-webkit-scrollbar {
+                    display: none;
+                }
+                .scrollbar-hide {
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
+                }
+            `}</style>
         </div>
     );
+}
+
+function PlusIcon(props: any) {
+    return (
+        <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+    )
 }

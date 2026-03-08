@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proposta Comercial - Brenno Dangoni</title>
+    <!-- Fontes Premium & Sóbrias -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primaria: #000000;
+            --acento: #1D4ED8;
+            /* Azul Royal Profissional */
+            --texto: #1F2937;
+            --cinza-claro: #F9FAFB;
+            --borda: #E5E7EB;
+            --fonte-titulo: 'Outfit', sans-serif;
+            --fonte-corpo: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* Ajustes de Impressão (PDF) */
+        @media print {
+            body {
+                background: white !important;
+                margin: 0;
+                padding: 0;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .container {
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            .card {
+                break-inside: avoid;
+                border: 1px solid #eee !important;
+                box-shadow: none !important;
+            }
+
+            .secao {
+                break-inside: avoid;
+            }
+
+            @page {
+                margin: 1cm;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+        }
+
+        body {
+            background-color: #fcfcfc;
+            color: var(--texto);
+            font-family: var(--fonte-corpo);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 80px 40px;
+            background: white;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            border-bottom: 2px solid var(--primaria);
+            padding-bottom: 30px;
+            margin-bottom: 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .nome-marca {
+            font-family: var(--fonte-titulo);
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primaria);
+            letter-spacing: -1px;
+        }
+
+        .tipo-documento {
+            text-align: right;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--acento);
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+
+        /* Introdução */
+        .intro {
+            margin-bottom: 60px;
+        }
+
+        .intro h1 {
+            font-family: var(--fonte-titulo);
+            font-size: 2.5rem;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            color: var(--primaria);
+        }
+
+        .intro p {
+            font-size: 1.1rem;
+            color: #4B5563;
+            max-width: 700px;
+        }
+
+        /* Grid de Pacotes */
+        .pacotes-container {
+            margin-bottom: 60px;
+        }
+
+        .pacote-card {
+            background: white;
+            border: 1px solid var(--borda);
+            padding: 35px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: 1fr 250px;
+            gap: 40px;
+            position: relative;
+        }
+
+        .pacote-info h2 {
+            font-family: var(--fonte-titulo);
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: var(--primaria);
+        }
+
+        .pacote-info p {
+            font-size: 0.9rem;
+            color: #6B7280;
+            margin-bottom: 20px;
+        }
+
+        /* Lista de Benefícios */
+        .beneficios {
+            list-style: none;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .beneficios li {
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .beneficios li i {
+            color: var(--acento);
+        }
+
+        /* Preços */
+        .pacote-preco {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-left: 1px solid var(--borda);
+            padding-left: 40px;
+        }
+
+        .valor {
+            font-family: var(--fonte-titulo);
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primaria);
+        }
+
+        .whatsapp-label {
+            font-size: 0.75rem;
+            color: var(--acento);
+            font-weight: 700;
+            margin-top: 5px;
+            text-transform: uppercase;
+        }
+
+        .bonus-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #EFF6FF;
+            color: var(--acento);
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        /* Destaque 3 Dias */
+        .compromisso-brenno {
+            background: var(--primaria);
+            color: white;
+            padding: 30px;
+            margin-bottom: 60px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .compromisso-brenno i {
+            color: var(--acento);
+        }
+
+        .compromisso-texto h3 {
+            font-family: var(--fonte-titulo);
+            margin-bottom: 5px;
+        }
+
+        .compromisso-texto p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Rodapé de Condições */
+        .condicoes {
+            border-top: 1px solid var(--borda);
+            padding-top: 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        .condicao-bloco h4 {
+            font-family: var(--fonte-titulo);
+            font-size: 1rem;
+            margin-bottom: 15px;
+            color: var(--primaria);
+        }
+
+        .condicao-bloco ul {
+            list-style: none;
+        }
+
+        .condicao-bloco li {
+            font-size: 0.85rem;
+            color: #6B7280;
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 15px;
+        }
+
+        .condicao-bloco li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--acento);
+        }
+
+        .btn-print {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--acento);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <button class="btn-print no-print" onclick="window.print()">
+        <i data-lucide="file-text"></i> GERAR PDF PARA WHATSAPP
+    </button>
+
+    <div class="container">
+        <header>
+            <div class="nome-marca">BRENNO DANGONI</div>
+            <div class="tipo-documento">Proposta de Desenvolvimento Web</div>
+        </header>
+
+        <section class="intro">
+            <h1>Sua vitrine profissional em escala.</h1>
+            <p>Abaixo estão os modelos de projeto ideais para impulsionar sua presença digital. Todos os pacotes focam
+                em velocidade, design limpo e resultados diretos.</p>
+        </section>
+
+        <div class="pacotes-container">
+            <!-- PACOTE 1 -->
+            <div class="pacote-card">
+                <div class="pacote-info">
+                    <div class="bonus-badge"><i data-lucide="check"></i> Hospedagem e Domínio Grátis</div>
+                    <h2>Página Essencial</h2>
+                    <p>Ideal para quem precisa de um cartão de visitas digital rápido e eficiente.</p>
+                    <ul class="beneficios">
+                        <li><i data-lucide="zap"></i> Design Limpo e Profissional</li>
+                        <li><i data-lucide="smartphone"></i> Totalmente Responsivo</li>
+                        <li><i data-lucide="edit-3"></i> Até 10 alterações inclusas</li>
+                        <li><i data-lucide="x-circle" style="color:#D1D5DB"></i> Sem animações dinâmicas</li>
+                    </ul>
+                </div>
+                <div class="pacote-preco">
+                    <div class="valor">R$ 500</div>
+                    <div class="whatsapp-label">Valor Final à vista</div>
+                </div>
+            </div>
+
+            <!-- PACOTE 2 -->
+            <div class="pacote-card" style="border-left: 4px solid var(--acento);">
+                <div class="pacote-info">
+                    <div class="bonus-badge"><i data-lucide="check"></i> Hospedagem e Domínio Grátis</div>
+                    <h2>Página Profissional</h2>
+                    <p>O equilíbrio perfeito entre beleza e performance com foco em conversão.</p>
+                    <ul class="beneficios">
+                        <li><i data-lucide="sparkles"></i> <strong>Animações Interativas</strong></li>
+                        <li><i data-lucide="trending-up"></i> Otimização para Google</li>
+                        <li><i data-lucide="edit-3"></i> Até 15 alterações inclusas</li>
+                        <li><i data-lucide="message-square"></i> Botão Direto para WhatsApp</li>
+                    </ul>
+                </div>
+                <div class="pacote-preco">
+                    <div class="valor">R$ 700</div>
+                    <div class="whatsapp-label">R$ 630 À VISTA NO PIX</div>
+                    <div style="font-size: 0.7rem; color: #6B7280; margin-top: 5px;">OU 2X NO PIX (Entrada + Entrega)
+                    </div>
+                </div>
+            </div>
+
+            <!-- PACOTE 3 -->
+            <div class="pacote-card">
+                <div class="pacote-info">
+                    <div class="bonus-badge"><i data-lucide="check"></i> Hospedagem e Domínio Grátis</div>
+                    <h2>Site Master Premium</h2>
+                    <p>A estrutura completa para quem não aceita menos que a perfeição digital.</p>
+                    <ul class="beneficios">
+                        <li><i data-lucide="layers"></i> Site Multi-páginas</li>
+                        <li><i data-lucide="video"></i> Efeitos de Movimento Complexos</li>
+                        <li><i data-lucide="edit-3"></i> Até 20 alterações inclusas</li>
+                        <li><i data-lucide="shield-check"></i> Suporte Prioritário</li>
+                    </ul>
+                </div>
+                <div class="pacote-preco">
+                    <div class="valor">R$ 900</div>
+                    <div class="whatsapp-label">R$ 810 À VISTA NO PIX</div>
+                    <div style="font-size: 0.7rem; color: #6B7280; margin-top: 5px;">OU 2X NO PIX (Entrada + Entrega)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="compromisso-brenno">
+            <i data-lucide="clock" size="40"></i>
+            <div class="compromisso-texto">
+                <h3>Entrega Ultrarrápida</h3>
+                <p><strong>Projeto no ar em até 3 dias corridos.</strong></p>
+            </div>
+        </section>
+
+        <section class="condicoes">
+            <div class="condicao-bloco">
+                <h4>Informações Importantes</h4>
+                <ul>
+                    <li><strong>Hospedagem e Domínio:</strong> Inclusos por 1 ano em todos os projetos caso o cliente
+                        não possua.</li>
+                    <li><strong>Prazos:</strong> Contados a partir do fechamento do projeto.</li>
+                </ul>
+            </div>
+            <div class="condicao-bloco">
+                <h4>Formas de Pagamento</h4>
+                <ul>
+                    <li>Pagamento à vista via PIX conforme valores indicados nos pacotes.</li>
+                    <li>Parcelamento em 2x disponível conforme indicado nos pacotes (50% de entrada + 50% na entrega).
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <footer
+            style="margin-top: 60px; padding-top: 30px; border-top: 1px solid var(--borda); text-align: center; color: #9CA3AF; font-size: 0.8rem;">
+            Proposta gerada para apresentação comercial. Direitos Reservados &copy; Brenno Dangoni.
+        </footer>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

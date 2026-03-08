@@ -8,6 +8,8 @@ import multer from 'multer';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import { runMigrations } from './migrate';
+import { analyzeProductPhotos, generateVeoVideo } from './services/ai_vertex';
+
 
 dotenv.config();
 
@@ -587,6 +589,37 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     }
     res.status(500).json({ error: err?.message || 'Erro interno' });
 });
+
+// ==========================================
+// RIVER VIDEO LAB (VERTEX AI - VEO 3.1)
+// ==========================================
+
+app.post('/api/river/analyze', authenticate, async (req: Request, res: Response) => {
+    const { images, context } = req.body;
+    try {
+        if (!images || !Array.isArray(images) || images.length === 0) {
+            return res.status(400).json({ error: 'Envie pelo menos uma imagem.' });
+        }
+        const result = await analyzeProductPhotos(images, context || '');
+        res.json(result);
+    } catch (e: any) {
+        console.error('RIVER ANALYZE ERROR:', e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/river/generate', authenticate, async (req: Request, res: Response) => {
+    const { prompt, image } = req.body;
+    try {
+        if (!prompt) return res.status(400).json({ error: 'Prompt é obrigatório.' });
+        const result = await generateVeoVideo(prompt, image);
+        res.json(result);
+    } catch (e: any) {
+        console.error('RIVER GENERATE ERROR:', e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
 
 const PORT = process.env.PORT || 10000;
 
