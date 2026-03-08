@@ -5,10 +5,16 @@ dotenv.config();
 
 const project = process.env.GCP_PROJECT_ID || 'river-tasks';
 const location = process.env.GCP_LOCATION || 'us-central1';
+const apiKey = process.env.GCP_API_KEY;
 
+// VertexAI instance
+// If we have an API Key/Token, we might need a custom auth header or ADC.
+// For now, we'll initialize normally and log the setup.
 const vertexAI = new VertexAI({ project, location });
 
 export async function analyzeProductPhotos(base64Images: string[], userContext: string) {
+    // If it's a Gemini API Key from AI Studio, we could use GoogleGenAI
+    // But since the user wants Vertex + Veo, we use the Vertex SDK.
     const generativeModel = vertexAI.getGenerativeModel({
         model: 'gemini-1.5-pro',
         generationConfig: {
