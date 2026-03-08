@@ -293,10 +293,16 @@ export default function RiverVideoLab() {
                                                         playsInline
                                                         className="w-full h-full object-cover"
                                                     />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent p-8 flex flex-col justify-end">
-                                                        <button className="w-full py-4 bg-white text-black font-black uppercase tracking-widest text-[10px] rounded-2xl flex items-center justify-center gap-2 hover:bg-blue-400 transition-all">
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent p-6 flex flex-col justify-end">
+                                                        <a
+                                                            href={take.videoUrl}
+                                                            download={`river-take-${idx}.mp4`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="w-full py-4 bg-blue-600 text-white font-black uppercase tracking-widest text-[10px] rounded-2xl flex items-center justify-center gap-2 hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20 active:scale-95 text-center"
+                                                        >
                                                             <Download className="w-4 h-4" /> Download 4K
-                                                        </button>
+                                                        </a>
                                                     </div>
                                                 </div>
                                             )}
