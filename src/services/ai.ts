@@ -199,37 +199,54 @@ DO NOT add text or watermarks. Just the visual image board.`;
 
 export async function riverAnalyze(images: string[], context: string): Promise<any> {
     const token = localStorage.getItem('rivertasks_token');
-    const baseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "http://localhost:10000";
-    const response = await fetch(`${baseUrl}/api/river/analyze`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ images, context })
-    });
-    if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error || 'Falha na análise River Lab');
+    const baseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://riverdevelops.onrender.com";
+    try {
+        const response = await fetch(`${baseUrl}/api/river/analyze`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ images, context })
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({ error: 'Erro desconhecido no servidor' }));
+            throw new Error(`[Server Error ${response.status}]: ${err.error || JSON.stringify(err)}`);
+        }
+        return response.json();
+    } catch (e: any) {
+        console.error('RIVER ANALYZE FETCH ERROR:', e);
+        if (e.message.includes('Failed to fetch')) {
+            throw new Error(`Falha de conexão com a API (${baseUrl}). Verifique se o backend está online.`);
+        }
+        throw e;
     }
-    return response.json();
 }
 
 export async function riverGenerate(prompt: string, image?: string): Promise<any> {
     const token = localStorage.getItem('rivertasks_token');
-    const baseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "http://localhost:10000";
-    const response = await fetch(`${baseUrl}/api/river/generate`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ prompt, image })
-    });
-    if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error || 'Falha na geração River Lab');
+    const baseUrl = (import.meta as any).env?.VITE_API_BASE_URL || "https://riverdevelops.onrender.com";
+    try {
+        const response = await fetch(`${baseUrl}/api/river/generate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ prompt, image })
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({ error: 'Erro desconhecido no servidor' }));
+            throw new Error(`[Server Error ${response.status}]: ${err.error || JSON.stringify(err)}`);
+        }
+        return response.json();
+    } catch (e: any) {
+        console.error('RIVER GENERATE FETCH ERROR:', e);
+        if (e.message.includes('Failed to fetch')) {
+            throw new Error(`Falha de conexão com a API (${baseUrl}). Verifique se o backend está online.`);
+        }
+        throw e;
     }
-    return response.json();
 }
+
 
