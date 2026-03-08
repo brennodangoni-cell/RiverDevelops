@@ -8,19 +8,20 @@ const project = process.env.GCP_PROJECT_ID || 'gen-lang-client-0291671037';
 const location = process.env.GCP_LOCATION || 'us-central1';
 const apiKey = process.env.GCP_API_KEY;
 
+console.log(`[RIVER LAB] Starting with Project: ${project}, Location: ${location}`);
+if (apiKey) console.log(`[RIVER LAB] API Key detected (prefix: ${apiKey.substring(0, 5)})`);
+
 // VertexAI instance
-// If we have an API Key (common for Google AI Studio keys), we initialize with it.
-// If it's a service account, it will use GOOGLE_APPLICATION_CREDENTIALS automatically.
 const vertexAI = new VertexAI({
     project,
     location,
-    googleAuthOptions: apiKey && apiKey.startsWith('AIza') ? { apiKey } : undefined
+    googleAuthOptions: apiKey ? { apiKey } : undefined
 });
 
 export async function analyzeProductPhotos(base64Images: string[], userContext: string) {
-    // FALLBACK: If the user provided an "AIza..." key, use the GoogleGenAI SDK for Gemini 
+    // FALLBACK: Use GoogleGenAI SDK for Gemini if an API key is present
     // as it's more stable for simple API Key authentication than Vertex SDK.
-    if (apiKey && apiKey.startsWith('AIza')) {
+    if (apiKey) {
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
