@@ -14,7 +14,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1002.0",
     "@google-cloud/vertexai": "^1.10.0",
-    "@google/generative-ai": "^0.24.1",
+    "@google/generative-ai": "latest",
     "@supabase/supabase-js": "^2.98.0",
     "@whiskeysockets/baileys": "latest",
     "axios": "^1.13.6",
