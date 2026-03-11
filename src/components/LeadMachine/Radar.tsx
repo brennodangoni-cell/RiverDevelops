@@ -255,7 +255,7 @@ export function Radar({ onQueue, queue, onRemove }: { onQueue: (l: any) => void;
 
             {/* Loading */}
             {loading && (
-                <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center">
+                <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center">
                     <div className="bg-[#161616] border border-white/[0.08] rounded-2xl p-10 flex flex-col items-center gap-4 shadow-2xl">
                         <Loader2 size={28} className="text-cyan-500 animate-spin" />
                         <p className="text-sm font-semibold text-white">Buscando leads...</p>
