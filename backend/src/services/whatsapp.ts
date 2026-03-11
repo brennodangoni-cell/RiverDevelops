@@ -2,6 +2,7 @@ import { Client, LocalAuth, MessageMedia } from 'whatsapp-web.js';
 import qrcode from 'qrcode-terminal';
 import path from 'path';
 import fs from 'fs';
+import puppeteer from 'puppeteer';
 
 let client: Client;
 let qrCodeData: string | null = null;
@@ -14,6 +15,7 @@ export const initWhatsApp = () => {
     client = new Client({
         authStrategy: new LocalAuth({ dataPath: path.join(__dirname, '../../whatsapp-session') }),
         puppeteer: {
+            executablePath: puppeteer.executablePath(),
             // Running without sandbox to avoid issues on cloud platforms like Render
             args: [
                 '--no-sandbox',

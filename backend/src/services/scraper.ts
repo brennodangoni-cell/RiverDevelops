@@ -1,6 +1,7 @@
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const puppeteerMain = require('puppeteer');
 
 puppeteer.use(StealthPlugin());
 
@@ -113,6 +114,7 @@ export async function scrapeGoogleMaps(query: string, limit = 20) {
     console.log(`[Scraper] Searching for "${query}" (limit: ${limit})`);
 
     const browser = await puppeteer.launch({
+        executablePath: puppeteerMain.executablePath(),
         headless: true, // Render fails on headless: false
         args: [
             '--no-sandbox',
