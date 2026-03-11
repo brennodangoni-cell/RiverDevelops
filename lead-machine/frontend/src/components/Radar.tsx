@@ -164,7 +164,17 @@ export function Radar({ onQueue, queueCount }: { onQueue: (l: any) => void, queu
                                 value={limit}
                                 min="1"
                                 max="200"
-                                onChange={e => setLimit(e.target.value === '' ? '' : Math.min(200, Math.max(1, Number(e.target.value))))}
+                                onChange={e => {
+                                    const val = e.target.value;
+                                    if (val === '') {
+                                        setLimit('');
+                                    } else {
+                                        const num = Number(val);
+                                        if (!isNaN(num)) {
+                                            setLimit(Math.min(200, num));
+                                        }
+                                    }
+                                }}
                                 className="w-full h-[48px] bg-[#121214] border border-[#27272A] hover:border-[#3f3f46] rounded-xl px-4 text-[#FAFAFA] text-sm font-medium focus:outline-none focus:ring-2 ring-primary/50 transition-colors text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
                         </div>
