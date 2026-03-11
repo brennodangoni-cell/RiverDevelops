@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Loader2, MapPin, Instagram, Check, Globe, ChevronDown, X } from 'lucide-react';
+import { Search, Loader2, MapPin, Instagram, Check, Globe, ChevronDown, X, Share2 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { WhatsAppIcon } from './WhatsAppIcon';
@@ -119,7 +119,7 @@ function getCategoryColor(category: string) {
 }
 
 /* ── Componente Principal ─────────────────────────── */
-export function Radar() {
+export function Radar({ onAddToQueue }: { onAddToQueue: (lead: any) => void }) {
     const [loading, setLoading] = useState(false);
     const [leads, setLeads] = useState<Lead[]>([]);
     const [categoria, setCategoria] = useState('');
@@ -287,6 +287,13 @@ export function Radar() {
                                                 <Globe size={14} />
                                             </a>
                                         )}
+                                        <button
+                                            onClick={() => onAddToQueue(lead)}
+                                            className="ml-auto w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 hover:bg-cyan-500 hover:text-black transition-all"
+                                            title="Adicionar à fila do disparador"
+                                        >
+                                            <Share2 size={16} />
+                                        </button>
                                     </div>
                                 </div>
                             );

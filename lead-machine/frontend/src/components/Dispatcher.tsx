@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Smartphone, Send, Ghost, ShieldAlert, CheckCircle2, ListMinus, Play, Pause, Trash2 } from 'lucide-react';
+import { Smartphone, Send, Ghost, ShieldAlert, CheckCircle2, ListMinus, Play, Pause, Trash2, LogOut } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import axios from 'axios';
 
@@ -19,6 +19,16 @@ export function Dispatcher({ queue, onRemove }: { queue: any[], onRemove: (num: 
         const interval = setInterval(fetchStatus, 3000);
         return () => clearInterval(interval);
     }, []);
+
+    const handleDisconnect = async () => {
+        if (!confirm("Tem certeza que deseja desconectar o WhatsApp?")) return;
+        try {
+            await axios.post('http://localhost:3001/api/wa/disconnect');
+            setStatus({ isReady: false, qr: null });
+        } catch (e) {
+            console.error("Erro ao desconectar:", e);
+        }
+    };
 
     const handleStartQueue = async () => {
         if (queue.length === 0) return alert("Fila vazia. Rastrei leads primeiro no Radar!");
@@ -62,9 +72,20 @@ export function Dispatcher({ queue, onRemove }: { queue: any[], onRemove: (num: 
                         <p className="text-[#A1A1AA] text-sm md:text-base max-w-md">Os leads adicionados no Radar serão processados aqui um por um, simulando interação real.</p>
                     </div>
 
-                    <div className={`px-4 py-2 flex items-center gap-2 rounded-xl text-sm font-semibold border shrink-0 ${status.isReady ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
-                        <Smartphone size={16} />
-                        {status.isReady ? 'Conectado e Online' : 'Aguardando Login'}
+                    <div className="flex items-center gap-2 shrink-0">
+                        <div className={`px-4 py-2 flex items-center gap-2 rounded-xl text-sm font-semibold border ${status.isReady ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
+                            <Smartphone size={16} />
+                            {status.isReady ? 'Conectado e Online' : 'Aguardando Login'}
+                        </div>
+                        {status.isReady && (
+                            <button
+                                onClick={handleDisconnect}
+                                className="h-9 w-9 flex items-center justify-center rounded-xl bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all"
+                                title="Desconectar WhatsApp"
+                            >
+                                <LogOut size={16} />
+                            </button>
+                        )}
                     </div>
                 </div>
 

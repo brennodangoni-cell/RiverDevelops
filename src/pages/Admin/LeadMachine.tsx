@@ -1,16 +1,33 @@
 import { useState } from 'react';
-import { Target, FileText, ArrowLeft } from 'lucide-react';
+import { Target, FileText, ArrowLeft, Share2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { Radar } from '../../components/LeadMachine/Radar';
 import { History } from '../../components/LeadMachine/History';
+import { Dispatcher } from '../../components/LeadMachine/Dispatcher';
 
 export default function LeadMachine() {
     const [activeTab, setActiveTab] = useState('radar');
 
+    const [queue, setQueue] = useState<any[]>([]);
+
     const tabs = [
         { id: 'radar', label: 'Buscar Leads', icon: Target },
         { id: 'history', label: 'Banco de Leads', icon: FileText },
+        { id: 'dispatcher', label: 'Disparador', icon: Share2 },
     ];
+
+    const addToQueue = (lead: any) => {
+        setQueue(prev => {
+            if (prev.find(l => l.whatsapp === lead.whatsapp)) return prev;
+            return [...prev, lead];
+        });
+        toast.success(`${lead.name} adicionado à fila`);
+    };
+
+    const removeFromQueue = (whatsapp: string) => {
+        setQueue(prev => prev.filter(l => l.whatsapp !== whatsapp));
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a] text-white font-sans selection:bg-cyan-500/30">
@@ -59,8 +76,9 @@ export default function LeadMachine() {
 
             {/* Conteúdo */}
             <div className="max-w-[1500px] mx-auto px-4 sm:px-6 md:px-10 pt-[100px] lg:pt-[110px] pb-20">
-                {activeTab === 'radar' && <Radar />}
-                {activeTab === 'history' && <History />}
+                {activeTab === 'radar' && <Radar onAddToQueue={addToQueue} />}
+                {activeTab === 'history' && <History onAddToQueue={addToQueue} />}
+                {activeTab === 'dispatcher' && <Dispatcher queue={queue} onRemove={removeFromQueue} />}
             </div>
         </div>
     );

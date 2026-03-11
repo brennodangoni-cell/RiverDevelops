@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, MapPin, Instagram, ChevronDown, Check, Globe, Trash2, CheckSquare } from 'lucide-react';
+import { Search, MapPin, Instagram, ChevronDown, Check, Globe, Trash2, CheckSquare, Share2 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { WhatsAppIcon } from './WhatsAppIcon';
@@ -126,7 +126,7 @@ function FilterDropdown({ value, options, onChange, placeholder }: {
 }
 
 /* ── Componente Principal ─────────────────────────── */
-export function History() {
+export function History({ onAddToQueue }: { onAddToQueue: (lead: any) => void }) {
     const [leads, setLeads] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({ search: '', category: 'todos', status: 'todos', state: 'todos', city: 'todos' });
@@ -336,10 +336,19 @@ export function History() {
                                             />
                                         </td>
                                         <td className="px-4 py-4">
-                                            <button onClick={() => deleteLead(lead.id)}
-                                                className="w-8 h-8 rounded-lg flex items-center justify-center text-white/15 hover:text-red-400 hover:bg-red-500/10 transition-all">
-                                                <Trash2 size={14} />
-                                            </button>
+                                            <div className="flex items-center gap-1">
+                                                <button
+                                                    onClick={() => onAddToQueue(lead)}
+                                                    className="w-8 h-8 rounded-lg flex items-center justify-center text-white/15 hover:text-cyan-400 hover:bg-cyan-500/10 transition-all"
+                                                    title="Adicionar ao disparador"
+                                                >
+                                                    <Share2 size={14} />
+                                                </button>
+                                                <button onClick={() => deleteLead(lead.id)}
+                                                    className="w-8 h-8 rounded-lg flex items-center justify-center text-white/15 hover:text-red-400 hover:bg-red-500/10 transition-all">
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 );
@@ -354,6 +363,17 @@ export function History() {
                 <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-[#161616] border border-white/[0.08] rounded-2xl px-6 py-3 flex items-center gap-4 shadow-[0_16px_48px_rgba(0,0,0,0.6)]">
                     <span className="text-sm text-white font-medium">{selected.size} selecionado{selected.size > 1 ? 's' : ''}</span>
                     <button onClick={() => setSelected(new Set())} className="text-xs text-white/40 hover:text-white transition-colors">Limpar</button>
+                    <button
+                        onClick={() => {
+                            selected.forEach(id => {
+                                const lead = leads.find(l => String(l.id) === id);
+                                if (lead) onAddToQueue(lead);
+                            });
+                        }}
+                        className="h-9 px-5 bg-cyan-500 text-black rounded-xl text-xs font-semibold flex items-center gap-2 hover:bg-cyan-400 transition-all"
+                    >
+                        <Share2 size={13} /> Enviar p/ Disparador
+                    </button>
                     <button onClick={deleteSelected} disabled={deleting}
                         className="h-9 px-5 bg-red-500 text-white rounded-xl text-xs font-semibold flex items-center gap-2 hover:bg-red-400 transition-all disabled:opacity-50">
                         <Trash2 size={13} /> {deleting ? 'Excluindo...' : 'Excluir'}

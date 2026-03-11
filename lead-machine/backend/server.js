@@ -26,6 +26,12 @@ app.get('/api/wa/status', (req, res) => {
     res.json({ isReady: getStatus(), qr: getQrCode() });
 });
 
+app.post('/api/wa/disconnect', async (req, res) => {
+    const { disconnectWhatsApp } = require('./whatsapp');
+    const success = await disconnectWhatsApp();
+    res.json({ success });
+});
+
 app.post('/api/wa/send', async (req, res) => {
     const { number, message, video, leadName } = req.body;
     if (!number || !message) return res.status(400).json({ error: "Missing number or message" });
