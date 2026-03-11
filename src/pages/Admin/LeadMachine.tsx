@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Target, MessageSquare, Sparkles, FileText, Activity, Home } from 'lucide-react';
+import { Target, MessageSquare, FileText, Activity, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Radar } from '../../components/LeadMachine/Radar';
 import { Dispatcher } from '../../components/LeadMachine/Dispatcher';
@@ -25,8 +25,13 @@ export default function LeadMachine() {
             {/* Sidebar */}
             <aside className="w-[280px] shrink-0 border-r border-white/10 bg-[#050505] flex flex-col items-center py-8 z-20">
                 <div className="flex items-center gap-4 mb-14 px-8 w-full group">
-                    <div className="w-12 h-12 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.15)] group-hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] transition-all">
-                        <Sparkles size={24} className="animate-pulse" />
+                    <div className="relative">
+                        <div className="absolute -inset-2 bg-cyan-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                        <img
+                            src="/logo.webp"
+                            alt="River Logo"
+                            className="relative w-14 h-14 object-contain rounded-2xl group-hover:scale-105 transition-transform"
+                        />
                     </div>
                     <div>
                         <h1 className="font-black text-2xl leading-tight tracking-tighter text-white uppercase italic">River</h1>
