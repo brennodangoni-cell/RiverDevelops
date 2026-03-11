@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Loader2, MapPin, Instagram, PlusCircle, MinusCircle, ChevronDown, Check, Globe, Database, Zap, Sparkles, ExternalLink } from 'lucide-react';
+import { Search, Loader2, MapPin, Instagram, PlusCircle, MinusCircle, ChevronDown, Check, Globe, Database, Zap, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
