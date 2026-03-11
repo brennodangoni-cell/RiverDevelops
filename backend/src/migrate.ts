@@ -30,6 +30,26 @@ export async function runMigrations(): Promise<void> {
             ALTER TABLE leads ADD COLUMN IF NOT EXISTS website TEXT;
         `);
         console.log('[migrate] Colunas de localização em leads verificadas/criadas.');
+
+        // Backfill: extrair cidade/estado do campo source para leads antigos
+        // source tem formato "Categoria em Cidade, UF"
+        const { rows: emptyLeads } = await pool.query(`
+            SELECT id, source FROM leads WHERE city IS NULL AND source IS NOT NULL AND source LIKE '%em %'
+        `);
+        for (const lead of emptyLeads) {
+            const afterEm = lead.source.split(' em ').slice(1).join(' em ').trim();
+            if (afterEm) {
+                const parts = afterEm.split(',').map((s: string) => s.trim());
+                const city = parts[0] || null;
+                const state = parts[1] || null;
+                if (city) {
+                    await pool.query(`UPDATE leads SET city = $1, state = $2 WHERE id = $3`, [city, state, lead.id]);
+                }
+            }
+        }
+        if (emptyLeads.length > 0) {
+            console.log(`[migrate] Backfill: ${emptyLeads.length} leads atualizados com cidade/estado.`);
+        }
     } catch (e: any) {
         console.warn('[migrate] Erro (pode ignorar se coluna já existe):', e.message);
     } finally {
