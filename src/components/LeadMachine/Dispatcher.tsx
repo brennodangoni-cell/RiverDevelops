@@ -82,8 +82,8 @@ export function Dispatcher({ queue, onRemove }: { queue: any[], onRemove: (num: 
                     <div className={`px-6 py-4 rounded-2xl flex items-center gap-4 border transition-all duration-500 ${status.isReady ? 'bg-green-500/10 text-green-500 border-green-500/20 shadow-[0_0_40px_rgba(34,197,94,0.1)]' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
                         <div className={`w-2.5 h-2.5 rounded-full ${status.isReady ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
                         <div className="text-left">
-                            <p className="text-[10px] font-black uppercase tracking-widest leading-none mb-1">Driver Instance</p>
-                            <p className="text-[11px] font-black uppercase tracking-[0.2em] opacity-40">{status.isReady ? 'ONLINE CONNECTION' : 'OFFLINE - ACTION REQUIRED'}</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest leading-none mb-1">Conexão WhatsApp</p>
+                            <p className="text-[11px] font-black uppercase tracking-[0.2em] opacity-40">{status.isReady ? 'CONECTADO' : 'DESCONECTADO'}</p>
                         </div>
                     </div>
                 </div>
@@ -91,7 +91,7 @@ export function Dispatcher({ queue, onRemove }: { queue: any[], onRemove: (num: 
                 <div className="space-y-8 relative z-10">
                     <div className="space-y-4">
                         <label className="flex items-center gap-3 text-[10px] font-black text-white/20 uppercase tracking-[0.4em] ml-2">
-                            <MessageSquare size={14} className="text-cyan-500" /> Script da Mensagem
+                            <MessageSquare size={14} className="text-cyan-500" /> Mensagem
                         </label>
                         <div className="relative group">
                             <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 to-transparent rounded-[2rem] blur opacity-0 group-hover:opacity-100 transition-all" />
@@ -109,14 +109,14 @@ export function Dispatcher({ queue, onRemove }: { queue: any[], onRemove: (num: 
                         <div className="px-10 py-6 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
                             <div className="flex items-center gap-3">
                                 <ListMinus size={18} className="text-cyan-500" />
-                                <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Fila de Processamento ({queue.length})</span>
+                                <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Fila de Envio ({queue.length})</span>
                             </div>
                             {queue.length > 0 && !sending && (
                                 <button
                                     onClick={() => { queue.forEach(l => onRemove(l.whatsapp)); toast.success("Fila limpa!"); }}
                                     className="text-[9px] font-black text-red-500/40 hover:text-red-500 uppercase tracking-widest transition-colors py-2 px-4 rounded-xl border border-transparent hover:border-red-500/20"
                                 >
-                                    Esvaziar Matriz
+                                    Limpar Fila
                                 </button>
                             )}
                         </div>
@@ -125,7 +125,7 @@ export function Dispatcher({ queue, onRemove }: { queue: any[], onRemove: (num: 
                                 {queue.length === 0 ? (
                                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-white/5 py-32 flex flex-col items-center gap-6">
                                         <Activity size={60} className="opacity-10" />
-                                        <span className="text-xs font-black uppercase tracking-[0.5em] opacity-20">Matriz de Destinos Vazia</span>
+                                        <span className="text-xs font-black uppercase tracking-[0.5em] opacity-20">Fila vazia</span>
                                     </motion.div>
                                 ) : queue.map((l, idx) => (
                                     <motion.div
@@ -159,7 +159,7 @@ export function Dispatcher({ queue, onRemove }: { queue: any[], onRemove: (num: 
                                 <ShieldAlert size={18} />
                             </div>
                             <p className="text-[10px] font-black uppercase tracking-widest text-white/20 italic leading-relaxed">
-                                Proteção Humanizada Ativa: <br /><span className="text-white/40">Latência Variável 10s-20s Detectada</span>
+                                Proteção Ativa: <br /><span className="text-white/40">Intervalo de 10-20s entre envios</span>
                             </p>
                         </div>
                         <button
@@ -168,9 +168,9 @@ export function Dispatcher({ queue, onRemove }: { queue: any[], onRemove: (num: 
                             className={`h-[72px] min-w-[300px] rounded-[1.8rem] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-4 text-xs shadow-2xl ${sending ? 'bg-amber-500 text-black' : 'bg-white text-black hover:bg-cyan-400'}`}
                         >
                             {sending ? (
-                                <><Pause size={20} className="animate-pulse" /> Disparando {progressCount}/{queue.length}</>
+                                <><Pause size={20} className="animate-pulse" /> Enviando {progressCount}/{queue.length}</>
                             ) : (
-                                <><Play size={20} className="fill-current" /> Iniciar Sequência</>
+                                <><Play size={20} className="fill-current" /> Iniciar Envio</>
                             )}
                         </button>
                     </div>
@@ -186,8 +186,8 @@ export function Dispatcher({ queue, onRemove }: { queue: any[], onRemove: (num: 
                                 <div className="p-4 rounded-[2rem] bg-white/5 border border-white/5 w-fit mx-auto mb-6">
                                     <Smartphone size={32} className="text-cyan-500" />
                                 </div>
-                                <h4 className="font-black text-2xl text-white uppercase tracking-tighter italic">Vincular Nexus</h4>
-                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 mt-2">Sincronização de Instância</p>
+                                <h4 className="font-black text-2xl text-white uppercase tracking-tighter italic">Conectar WhatsApp</h4>
+                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 mt-2">Escaneie o QR Code</p>
                             </div>
 
                             {status.qr ? (
@@ -201,7 +201,7 @@ export function Dispatcher({ queue, onRemove }: { queue: any[], onRemove: (num: 
                                         <div className="flex gap-1.5">
                                             {[0, 1, 2].map(i => <motion.div key={i} animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }} className="w-1.5 h-1.5 rounded-full bg-black/20" />)}
                                         </div>
-                                        <span className="text-[10px] text-black/40 font-black uppercase tracking-widest">Digitalize para Ativar</span>
+                                        <span className="text-[10px] text-black/40 font-black uppercase tracking-widest">Escaneie para conectar</span>
                                     </div>
                                 </motion.div>
                             ) : (
@@ -229,14 +229,14 @@ export function Dispatcher({ queue, onRemove }: { queue: any[], onRemove: (num: 
                             >
                                 <CheckCircle2 size={56} />
                             </motion.div>
-                            <h4 className="font-black text-3xl text-white uppercase italic tracking-tighter">Nexus Ativo</h4>
-                            <p className="text-green-500 text-[10px] font-black uppercase tracking-[0.4em] mt-3">Linkage Optimal: 100%</p>
+                            <h4 className="font-black text-3xl text-white uppercase italic tracking-tighter">Conectado</h4>
+                            <p className="text-green-500 text-[10px] font-black uppercase tracking-[0.4em] mt-3">WhatsApp Ativo</p>
 
                             <button
                                 onClick={() => axios.post('/api/wa/restart')}
                                 className="mt-16 text-[9px] font-black text-red-500/30 hover:text-red-500 uppercase tracking-[0.3em] transition-colors border border-transparent hover:border-red-500/10 px-6 py-3 rounded-xl"
                             >
-                                Encerrar Sessão Ativa
+                                Desconectar
                             </button>
                         </div>
                     )}
@@ -247,15 +247,15 @@ export function Dispatcher({ queue, onRemove }: { queue: any[], onRemove: (num: 
                         <Command size={100} />
                     </div>
                     <div className="relative z-10 space-y-4">
-                        <h4 className="text-xl font-black uppercase italic tracking-tighter">Inteligência de Fluxo</h4>
+                        <h4 className="text-xl font-black uppercase italic tracking-tighter">Como Funciona</h4>
                         <p className="text-[11px] font-bold uppercase leading-relaxed opacity-70">
-                            Nossa engine utiliza intervalos orgânicos para garantir que seu número permaneça seguro durante expansões de alta escala.
+                            O sistema utiliza intervalos aleatórios entre 10 e 20 segundos para simular digitação humana e proteger seu número.
                         </p>
                         <div className="pt-4 flex items-center gap-4">
                             <div className="h-1 flex-1 bg-black/10 rounded-full overflow-hidden">
                                 <motion.div initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ duration: 2 }} className="h-full bg-black/30" />
                             </div>
-                            <span className="text-[10px] font-black uppercase">Secure</span>
+                            <span className="text-[10px] font-black uppercase">Seguro</span>
                         </div>
                     </div>
                 </div>

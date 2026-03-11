@@ -22,9 +22,9 @@ export default function LeadMachine() {
     }
 
     const menuItems = [
-        { id: 'radar', label: 'Matrix Radar', icon: Target, desc: 'Extração Neural' },
-        { id: 'dispatcher', label: 'Dispatcher', icon: MessageSquare, desc: 'Disparos em Lote', badge: queue.length },
-        { id: 'history', label: 'Lead Bank', icon: FileText, desc: 'Database Central' },
+        { id: 'radar', label: 'Radar', icon: Target, desc: 'Buscar Leads' },
+        { id: 'dispatcher', label: 'Disparador', icon: MessageSquare, desc: 'Envio em Massa', badge: queue.length },
+        { id: 'history', label: 'Banco de Leads', icon: FileText, desc: 'Histórico Completo' },
     ];
 
     return (
@@ -57,7 +57,7 @@ export default function LeadMachine() {
                                 </div>
                                 <div className="flex flex-col">
                                     <h1 className="font-black text-xl leading-none tracking-tighter uppercase italic">River</h1>
-                                    <span className="text-[8px] uppercase tracking-[0.5em] text-cyan-400 font-bold mt-1">Lead System</span>
+                                    <span className="text-[8px] uppercase tracking-[0.5em] text-cyan-400 font-bold mt-1">Sistema de Leads</span>
                                 </div>
                             </div>
                             <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-white/20 hover:text-white">
@@ -98,9 +98,9 @@ export default function LeadMachine() {
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <Activity size={12} className="text-cyan-400 animate-pulse" />
-                                        <span className="text-[9px] uppercase tracking-widest font-black text-white/30">System Status</span>
+                                        <span className="text-[9px] uppercase tracking-widest font-black text-white/30">Status do Sistema</span>
                                     </div>
-                                    <span className="text-[9px] font-black text-green-500">OPTIMAL</span>
+                                    <span className="text-[9px] font-black text-green-500">ATIVO</span>
                                 </div>
                                 <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
                                     <motion.div initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ duration: 1.5 }} className="h-full bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]" />
@@ -115,7 +115,7 @@ export default function LeadMachine() {
                             >
                                 <div className="flex items-center gap-4">
                                     <Home size={18} className="text-white/20 group-hover:text-white transition-colors" />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 group-hover:text-white transition-colors">Voltar Hub</span>
+                                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 group-hover:text-white transition-colors">Voltar ao Painel</span>
                                 </div>
                                 <ArrowUpRight size={14} className="text-white/10 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
                             </Link>
@@ -144,9 +144,9 @@ export default function LeadMachine() {
                                         animate={{ opacity: 1, x: 0 }}
                                         exit={{ opacity: 0, x: 10 }}
                                     >
-                                        {activeTab === 'radar' && 'Deep Reconnaissance'}
-                                        {activeTab === 'dispatcher' && 'Lançador de Campanha'}
-                                        {activeTab === 'history' && 'Matriz de Inteligência'}
+                                        {activeTab === 'radar' && 'Buscar Leads'}
+                                        {activeTab === 'dispatcher' && 'Disparador'}
+                                        {activeTab === 'history' && 'Banco de Leads'}
                                     </motion.span>
                                 </AnimatePresence>
                             </h2>
@@ -154,7 +154,7 @@ export default function LeadMachine() {
                     </div>
                     <div className="hidden sm:flex items-center gap-3 px-4 py-2 rounded-xl bg-white/5 border border-white/5">
                         <Zap size={14} className="text-cyan-400" />
-                        <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Core v5.0 Active</span>
+                        <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">River v5.0</span>
                     </div>
                 </header>
 

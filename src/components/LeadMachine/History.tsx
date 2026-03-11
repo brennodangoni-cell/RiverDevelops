@@ -150,7 +150,7 @@ export function History({ onQueue, queue, onRemove }: { onQueue: (l: any) => voi
                         <div className="h-10 w-px bg-white/5 mx-2 hidden xl:block" />
                         <div className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-cyan-500/5 border border-cyan-500/10">
                             <TrendingUp size={16} className="text-cyan-400" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Market Density:</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Total:</span>
                             <span className="text-xs font-black text-white">{filteredLeads.length}</span>
                         </div>
                     </div>
