@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, MapPin, Instagram, PlusCircle, MinusCircle, ChevronDown, Check, Globe } from 'lucide-react';
+import { Search, MapPin, Instagram, ChevronDown, Check, Globe } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { WhatsAppIcon } from './WhatsAppIcon';
@@ -11,7 +11,7 @@ const STATUS_OPTIONS = [
     { value: 'Fechado', label: 'Convertido', dot: 'bg-emerald-400', bg: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
 ];
 
-/* ── Status Dropdown Custom ────────────────────────── */
+/* ── Status Badge Dropdown ─────────────────────────── */
 function StatusBadge({ value, onChange }: { value: string; onChange: (v: string) => void }) {
     const [open, setOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
@@ -32,7 +32,7 @@ function StatusBadge({ value, onChange }: { value: string; onChange: (v: string)
                 <ChevronDown size={12} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
             </button>
             {open && (
-                <div className="absolute top-full left-0 mt-1 w-44 bg-[#161616] border border-white/[0.08] rounded-xl shadow-[0_12px_40px_rgba(0,0,0,0.5)] z-[100] overflow-hidden py-1">
+                <div className="absolute top-full left-0 mt-1 w-44 bg-[#161616] border border-white/[0.08] rounded-xl shadow-[0_12px_40px_rgba(0,0,0,0.5)] z-[100] py-1">
                     {STATUS_OPTIONS.map(s => (
                         <button key={s.value} onClick={() => { onChange(s.value); setOpen(false); }}
                             className={`w-full px-4 py-2.5 text-xs text-left flex items-center gap-2.5 transition-colors ${s.value === value ? 'bg-white/[0.04]' : 'hover:bg-white/[0.03]'}`}>
@@ -52,32 +52,50 @@ function FilterDropdown({ value, options, onChange, placeholder }: {
     value: string; options: { value: string; label: string }[]; onChange: (v: string) => void; placeholder: string;
 }) {
     const [open, setOpen] = useState(false);
+    const [query, setQuery] = useState('');
     const ref = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        const close = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+        const close = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) { setOpen(false); setQuery(''); } };
         document.addEventListener('mousedown', close);
         return () => document.removeEventListener('mousedown', close);
     }, []);
 
+    useEffect(() => { if (open && inputRef.current) inputRef.current.focus(); }, [open]);
+
     const selected = options.find(o => o.value === value);
+    const filtered = options.filter(o => o.label.toLowerCase().includes(query.toLowerCase()));
+    const showSearch = options.length > 8;
 
     return (
         <div className="relative" ref={ref}>
-            <button onClick={() => setOpen(!open)}
+            <button onClick={() => { setOpen(!open); setQuery(''); }}
                 className={`flex items-center gap-2 h-10 bg-[#111] border border-white/[0.06] rounded-xl px-4 text-xs font-medium transition-all hover:border-white/15 ${open ? 'border-cyan-500/30' : ''} ${value !== 'todos' ? 'text-cyan-400' : 'text-white/40'}`}>
                 {selected ? selected.label : placeholder}
                 <ChevronDown size={13} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
             </button>
             {open && (
-                <div className="absolute top-full left-0 mt-1 w-48 bg-[#161616] border border-white/[0.08] rounded-xl shadow-[0_12px_40px_rgba(0,0,0,0.5)] z-[100] overflow-hidden py-1">
-                    {options.map(opt => (
-                        <button key={opt.value} onClick={() => { onChange(opt.value); setOpen(false); }}
-                            className={`w-full px-4 py-2.5 text-xs text-left transition-colors flex items-center justify-between ${opt.value === value ? 'text-cyan-400 bg-cyan-500/5 font-semibold' : 'text-white/50 hover:bg-white/[0.03] hover:text-white'}`}>
-                            {opt.label}
-                            {opt.value === value && <Check size={12} className="text-cyan-400" />}
-                        </button>
-                    ))}
+                <div className="absolute top-full left-0 mt-1 w-52 bg-[#161616] border border-white/[0.08] rounded-xl shadow-[0_12px_40px_rgba(0,0,0,0.5)] z-[100] overflow-hidden">
+                    {showSearch && (
+                        <div className="p-2 border-b border-white/[0.04]">
+                            <input ref={inputRef} type="text" placeholder="Digitar para buscar..."
+                                className="w-full bg-white/[0.04] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/20 border-none focus:outline-none"
+                                value={query} onChange={e => setQuery(e.target.value)} />
+                        </div>
+                    )}
+                    <div className="max-h-[200px] overflow-y-auto custom-scrollbar py-1">
+                        {filtered.map(opt => (
+                            <button key={opt.value} onClick={() => { onChange(opt.value); setOpen(false); setQuery(''); }}
+                                className={`w-full px-4 py-2.5 text-xs text-left transition-colors flex items-center justify-between ${opt.value === value ? 'text-cyan-400 bg-cyan-500/5 font-semibold' : 'text-white/50 hover:bg-white/[0.03] hover:text-white'}`}>
+                                {opt.label}
+                                {opt.value === value && <Check size={12} className="text-cyan-400" />}
+                            </button>
+                        ))}
+                        {filtered.length === 0 && (
+                            <div className="px-4 py-6 text-center text-white/20 text-xs">Sem resultados</div>
+                        )}
+                    </div>
                 </div>
             )}
         </div>
@@ -85,10 +103,10 @@ function FilterDropdown({ value, options, onChange, placeholder }: {
 }
 
 /* ── Componente Principal ─────────────────────────── */
-export function History({ onQueue, queue, onRemove }: { onQueue: (l: any) => void; queue: any[]; onRemove: (num: string) => void }) {
+export function History(_props: { onQueue: (l: any) => void; queue: any[]; onRemove: (num: string) => void }) {
     const [leads, setLeads] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [filters, setFilters] = useState({ search: '', category: 'todos', status: 'todos' });
+    const [filters, setFilters] = useState({ search: '', category: 'todos', status: 'todos', state: 'todos', city: 'todos' });
 
     useEffect(() => { fetchLeads(); }, []);
 
@@ -108,24 +126,35 @@ export function History({ onQueue, queue, onRemove }: { onQueue: (l: any) => voi
         } catch { toast.error("Erro ao atualizar"); }
     };
 
+    // Montar opções dinâmicas baseado nos dados reais
     const categories = ['todos', ...Array.from(new Set(leads.map(l => l.category).filter(Boolean)))];
+    const states = ['todos', ...Array.from(new Set(leads.map(l => l.state).filter(Boolean))).sort()];
+    const citiesForState = filters.state === 'todos'
+        ? ['todos', ...Array.from(new Set(leads.map(l => l.city).filter(Boolean))).sort()]
+        : ['todos', ...Array.from(new Set(leads.filter(l => l.state === filters.state).map(l => l.city).filter(Boolean))).sort()];
+
     const categoryOpts = categories.map(c => ({ value: c, label: c === 'todos' ? 'Todas categorias' : c }));
     const statusOpts = [{ value: 'todos', label: 'Todos status' }, ...STATUS_OPTIONS.map(s => ({ value: s.value, label: s.label }))];
+    const stateOpts = states.map(s => ({ value: s, label: s === 'todos' ? 'Todos estados' : s }));
+    const cityOpts = citiesForState.map(c => ({ value: c, label: c === 'todos' ? 'Todas cidades' : c }));
 
     const filtered = leads.filter(lead => {
         const s = filters.search.toLowerCase();
         const matchSearch = !s || lead.name?.toLowerCase().includes(s) || lead.whatsapp?.includes(s);
         const matchCat = filters.category === 'todos' || lead.category === filters.category;
         const matchStatus = filters.status === 'todos' || lead.status === filters.status;
-        return matchSearch && matchCat && matchStatus;
+        const matchState = filters.state === 'todos' || lead.state === filters.state;
+        const matchCity = filters.city === 'todos' || lead.city === filters.city;
+        return matchSearch && matchCat && matchStatus && matchState && matchCity;
     });
 
     return (
         <div className="space-y-6">
             {/* Filtros */}
             <div className="bg-[#131313] border border-white/[0.06] rounded-2xl p-5">
-                <div className="flex flex-col md:flex-row gap-3 items-start md:items-center">
-                    <div className="relative flex-1 w-full">
+                <div className="flex flex-col gap-3">
+                    {/* Busca */}
+                    <div className="relative w-full">
                         <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/15" />
                         <input
                             type="text"
@@ -135,10 +164,13 @@ export function History({ onQueue, queue, onRemove }: { onQueue: (l: any) => voi
                             onChange={e => setFilters({ ...filters, search: e.target.value })}
                         />
                     </div>
+                    {/* Filtros em linha */}
                     <div className="flex items-center gap-2 flex-wrap">
                         <FilterDropdown value={filters.category} options={categoryOpts} onChange={v => setFilters({ ...filters, category: v })} placeholder="Categoria" />
+                        <FilterDropdown value={filters.state} options={stateOpts} onChange={v => setFilters({ ...filters, state: v, city: 'todos' })} placeholder="Estado" />
+                        <FilterDropdown value={filters.city} options={cityOpts} onChange={v => setFilters({ ...filters, city: v })} placeholder="Cidade" />
                         <FilterDropdown value={filters.status} options={statusOpts} onChange={v => setFilters({ ...filters, status: v })} placeholder="Status" />
-                        <span className="text-xs text-white/25 px-3">{filtered.length} leads</span>
+                        <span className="text-xs text-white/25 px-2 ml-auto">{filtered.length} leads</span>
                     </div>
                 </div>
             </div>
@@ -151,9 +183,9 @@ export function History({ onQueue, queue, onRemove }: { onQueue: (l: any) => voi
                             <tr>
                                 <th className="px-6 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Nome</th>
                                 <th className="px-6 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Local</th>
+                                <th className="px-6 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Categoria</th>
                                 <th className="px-6 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Contato</th>
                                 <th className="px-6 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider text-right">Ação</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/[0.03]">
@@ -162,8 +194,7 @@ export function History({ onQueue, queue, onRemove }: { onQueue: (l: any) => voi
                             ) : filtered.length === 0 ? (
                                 <tr><td colSpan={5} className="py-20 text-center text-white/20 text-sm">Nenhum lead encontrado</td></tr>
                             ) : filtered.map((lead, idx) => {
-                                const inQueue = queue.some(l => l.whatsapp === lead.whatsapp);
-                                const location = [lead.city, lead.state, lead.address].filter(Boolean).join(', ') || '—';
+                                const location = [lead.city, lead.state].filter(Boolean).join(', ') || lead.address || '—';
                                 return (
                                     <tr key={lead.id || idx} className="hover:bg-white/[0.015] transition-colors">
                                         <td className="px-6 py-4">
@@ -171,10 +202,17 @@ export function History({ onQueue, queue, onRemove }: { onQueue: (l: any) => voi
                                             <div className="text-[11px] text-white/25 mt-0.5">{lead.whatsapp}</div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="flex items-center gap-1.5 text-white/35 text-xs max-w-[200px]">
+                                            <div className="flex items-center gap-1.5 text-white/35 text-xs max-w-[180px]">
                                                 <MapPin size={12} className="shrink-0" />
                                                 <span className="truncate">{location}</span>
                                             </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {lead.category ? (
+                                                <span className="inline-block px-2.5 py-1 rounded-lg bg-white/[0.04] text-white/40 text-[11px] font-medium">{lead.category}</span>
+                                            ) : (
+                                                <span className="text-white/15 text-xs">—</span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-1.5">
@@ -201,14 +239,6 @@ export function History({ onQueue, queue, onRemove }: { onQueue: (l: any) => voi
                                                 value={lead.status || 'Pendente'}
                                                 onChange={(v) => updateStatus(lead.id, v)}
                                             />
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <button
-                                                onClick={() => inQueue ? onRemove(lead.whatsapp) : onQueue(lead)}
-                                                className={`inline-flex items-center gap-1.5 h-8 px-3.5 rounded-lg text-xs font-semibold transition-all ${inQueue ? 'bg-red-500/10 text-red-400 border border-red-500/15 hover:bg-red-500/20' : 'bg-cyan-500 text-black hover:bg-cyan-400'}`}
-                                            >
-                                                {inQueue ? <><MinusCircle size={13} /> Remover</> : <><PlusCircle size={13} /> Fila</>}
-                                            </button>
                                         </td>
                                     </tr>
                                 );

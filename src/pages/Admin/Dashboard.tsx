@@ -395,7 +395,7 @@ export default function Dashboard() {
                                 </Link>
                                 <Link
                                     to="/admin/lead-machine"
-                                    className="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center hover:bg-cyan-500/20 hover:border-cyan-500   shrink-0"
+                                    className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center hover:bg-red-500/20 hover:border-red-500   shrink-0"
                                     title="Lead Machine"
                                 >
                                     <Target className="w-4 h-4" />
@@ -464,7 +464,7 @@ export default function Dashboard() {
                             </Link>
                             <Link
                                 to="/admin/lead-machine"
-                                className="h-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center px-4 hover:bg-cyan-500/20 hover:border-cyan-500   shrink-0 gap-2"
+                                className="h-10 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center px-4 hover:bg-red-500/20 hover:border-red-500   shrink-0 gap-2"
                                 title="Lead Machine"
                             >
                                 <Target className="w-4 h-4" />
