@@ -18,41 +18,45 @@ let isReady = false;
 const logger = pino({ level: 'silent' });
 
 export const initWhatsApp = async () => {
+    console.log('[WhatsApp] Inicializando serviço...');
+
+    // Caminho absoluto para evitar confusão no Render
+    const sessionDir = path.resolve(process.cwd(), 'whatsapp-session');
+
     // Proactively close old socket to avoid conflicts on restart
     if (sock) {
         try {
+            console.log('[WhatsApp] Fechando socket anterior...');
             sock.ev.removeAllListeners('connection.update');
             sock.ev.removeAllListeners('creds.update');
-            sock.logout();
             sock.end(undefined);
             sock = null;
         } catch (e) {
-            console.error('[WhatsApp] Erro ao fechar socket antigo:', e);
+            console.error('[WhatsApp] Erro ao fechar socket:', e);
         }
     }
 
-    const sessionDir = path.join(__dirname, '../../whatsapp-session');
-
     // Ensure session dir exists
     if (!fs.existsSync(sessionDir)) {
+        console.log('[WhatsApp] Criando diretório de sessão:', sessionDir);
         fs.mkdirSync(sessionDir, { recursive: true });
     }
 
     const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
 
-    console.log('[WhatsApp] Iniciando instância Baileys...');
-
     sock = makeWASocket({
         auth: state,
         logger,
         printQRInTerminal: false,
-        browser: Browsers.macOS('Desktop'),
+        browser: Browsers.ubuntu('Chrome'), // Render costuma rodar em Ubuntu
         mobile: false,
         syncFullHistory: false,
         defaultQueryTimeoutMs: 60000,
         connectTimeoutMs: 60000,
         retryRequestDelayMs: 5000
     });
+
+    console.log('[WhatsApp] Socket criado. Aguardando eventos...');
 
     sock.ev.on('creds.update', saveCreds);
 
@@ -62,7 +66,7 @@ export const initWhatsApp = async () => {
         if (qr) {
             qrCodeData = qr;
             isReady = false;
-            console.log('[WhatsApp] Novo QR Code gerado.');
+            console.log('[WhatsApp] NOVO QR CODE GERADO. Pronto para scan.');
         }
 
         if (connection === 'close') {

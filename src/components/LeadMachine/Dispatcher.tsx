@@ -10,13 +10,22 @@ export function Dispatcher({ queue, onRemove }: { queue: any[]; onRemove: (num: 
     const [sending, setSending] = useState(false);
     const [progressCount, setProgressCount] = useState(0);
     const [status, setStatus] = useState({ isReady: false, qr: '' });
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const check = async () => {
             try {
                 const r = await axios.get('/api/wa/status');
                 setStatus(r.data);
-            } catch (err) {
+                setError(null);
+            } catch (err: any) {
+                if (err.code === 'ERR_NETWORK' || err.response?.status === 503) {
+                    setError("Acordando servidor... aguarde 15s");
+                } else if (err.response?.status === 401) {
+                    setError("Sessão expirada. Logue novamente.");
+                } else {
+                    setError("Erro de conexão");
+                }
                 console.error("Erro ao buscar status WA:", err);
             }
         };
@@ -165,9 +174,18 @@ export function Dispatcher({ queue, onRemove }: { queue: any[]; onRemove: (num: 
                                     <QRCode value={status.qr} size={200} />
                                 </div>
                             ) : (
-                                <div className="flex flex-col items-center justify-center gap-3 py-10">
+                                <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
                                     <Loader2 size={32} className="animate-spin text-cyan-500/50" />
-                                    <span className="text-xs text-white/20 font-medium">Gerando nova sessão...</span>
+                                    <span className="text-xs text-white/20 font-medium px-6">{error || "Gerando nova sessão... Isso pode levar até 1 minuto no Render."}</span>
+                                    <button
+                                        onClick={() => {
+                                            axios.post('/api/wa/restart');
+                                            toast.success("Reiniciando motor... aguarde");
+                                        }}
+                                        className="mt-4 text-[10px] text-white/10 hover:text-cyan-500 transition-colors uppercase tracking-widest font-bold bg-white/5 px-4 py-2 rounded-lg"
+                                    >
+                                        Forçar Reinício
+                                    </button>
                                 </div>
                             )}
                         </>

@@ -9,11 +9,19 @@ export function Dispatcher({ queue, onRemove }: { queue: any[], onRemove: (num: 
     const [sending, setSending] = useState(false);
     const [progressCount, setProgressCount] = useState(0);
 
+    const [error, setError] = useState<string | null>(null);
+
     useEffect(() => {
         const fetchStatus = () => {
             axios.get('http://localhost:3001/api/wa/status')
-                .then(res => setStatus(res.data))
-                .catch(() => { });
+                .then(res => {
+                    setStatus(res.data);
+                    setError(null);
+                })
+                .catch((err) => {
+                    setError("Servidor Offline");
+                    console.error("Erro ao conectar no backend:", err);
+                });
         };
         fetchStatus();
         const interval = setInterval(fetchStatus, 3000);
@@ -148,12 +156,14 @@ export function Dispatcher({ queue, onRemove }: { queue: any[], onRemove: (num: 
                             <p className="text-[#A1A1AA] text-sm mb-8">Escaneie o código abaixo com um número de operação comercial. <b>Nunca use seu pessoal.</b></p>
 
                             {status.qr ? (
-                                <div className="bg-white p-4 rounded-3xl border-4 border-[#121214]">
-                                    <QRCode value={status.qr} size={200} />
+                                <div className="bg-white p-4 rounded-3xl border-4 border-[#121214] shadow-2xl">
+                                    <QRCode value={status.qr} size={200} style={{ height: "auto", maxWidth: "100%", width: "100%" }} />
                                 </div>
                             ) : (
                                 <div className="w-[200px] h-[200px] border-2 border-dashed border-[#27272A] rounded-3xl flex items-center justify-center bg-[#121214]">
-                                    <span className="text-[#A1A1AA] text-sm font-semibold animate-pulse">Iniciando Driver...</span>
+                                    <span className="text-[#A1A1AA] text-sm font-semibold animate-pulse text-center px-4">
+                                        {error ? `ERRO: ${error}` : 'Iniciando Driver...'}
+                                    </span>
                                 </div>
                             )}
                         </>
