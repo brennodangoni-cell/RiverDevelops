@@ -84,7 +84,7 @@ export function History({ onQueue, queue, onRemove }: { onQueue: (l: any) => voi
     const fetchLeads = async () => {
         try {
             const res = await axios.get('/api/history');
-            setLeads(res.data || []);
+            setLeads(Array.isArray(res.data) ? res.data : (res.data?.leads || []));
         } catch (err) {
             toast.error("Erro ao carregar banco de leads");
         } finally {
@@ -94,7 +94,7 @@ export function History({ onQueue, queue, onRemove }: { onQueue: (l: any) => voi
 
     const updateLeadStatus = async (id: string, newStatus: string) => {
         try {
-            await axios.put(`/api/history/${id}`, { status: newStatus });
+            await axios.patch(`/api/leads/${id}/status`, { status: newStatus });
             setLeads(leads.map(l => l.id === id ? { ...l, status: newStatus } : l));
             toast.success("Status atualizado");
         } catch (err) {
