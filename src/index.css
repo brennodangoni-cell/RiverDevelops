@@ -124,4 +124,12 @@
   .mask-gradient-b {
     mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
   }
+
+  .font-outfit {
+    font-family: 'Outfit', sans-serif;
+  }
+
+  .font-jakarta {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
 }

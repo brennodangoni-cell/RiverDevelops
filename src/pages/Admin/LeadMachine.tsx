@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Target, MessageSquare, FileText, Activity, Home, Zap } from 'lucide-react';
+import { Target, MessageSquare, FileText, Activity, Home, Zap, Command, Menu, X, ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Radar } from '../../components/LeadMachine/Radar';
@@ -9,6 +9,7 @@ import { History as LMHistory } from '../../components/LeadMachine/History';
 export default function LeadMachine() {
     const [activeTab, setActiveTab] = useState('radar');
     const [queue, setQueue] = useState<any[]>([]);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     const addToQueue = (lead: any) => {
         if (!queue.some(l => l.whatsapp === lead.whatsapp)) {
@@ -20,126 +21,151 @@ export default function LeadMachine() {
         setQueue(prev => prev.filter(l => l.whatsapp !== whatsapp));
     }
 
+    const menuItems = [
+        { id: 'radar', label: 'Matrix Radar', icon: Target, desc: 'Extração Neural' },
+        { id: 'dispatcher', label: 'Dispatcher', icon: MessageSquare, desc: 'Disparos em Lote', badge: queue.length },
+        { id: 'history', label: 'Lead Bank', icon: FileText, desc: 'Database Central' },
+    ];
+
     return (
-        <div className="min-h-screen bg-black text-white flex overflow-hidden font-sans selection:bg-cyan-500/30">
-            {/* Ambient Background Glow */}
-            <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-cyan-500/5 blur-[120px] rounded-full animate-pulse" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/5 blur-[120px] rounded-full animate-pulse delay-1000" />
+        <div className="min-h-screen bg-black text-white flex flex-col md:flex-row overflow-hidden font-jakarta selection:bg-cyan-500/30">
+            {/* Liquid Background Background */}
+            <div className="fixed inset-0 pointer-events-none z-0">
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-cyan-500/[0.03] blur-[150px] rounded-full" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-500/[0.03] blur-[150px] rounded-full" />
             </div>
 
-            {/* Sidebar */}
-            <aside className="w-[300px] shrink-0 border-r border-white/5 bg-[#050505] flex flex-col py-12 z-30 relative backdrop-blur-3xl">
-                <div className="px-10 mb-16 group">
-                    <div className="flex items-center gap-5 relative">
-                        <div className="relative">
-                            <div className="absolute -inset-3 bg-cyan-500/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-700" />
-                            <img
-                                src="/logo.webp"
-                                alt="River Logo"
-                                className="relative w-16 h-16 object-contain rounded-[1.5rem] group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 bg-black border border-white/10"
-                            />
-                        </div>
-                        <div>
-                            <h1 className="font-black text-3xl leading-none tracking-tighter text-white uppercase italic">River</h1>
-                            <div className="flex items-center gap-2 mt-2">
-                                <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
-                                <p className="text-[10px] uppercase tracking-[0.4em] text-cyan-400 font-black">Lead Machine</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <nav className="w-full px-6 space-y-4 flex-grow flex flex-col">
-                    {[
-                        { id: 'radar', label: 'Radar Tático', icon: Target },
-                        { id: 'dispatcher', label: 'Lançador', icon: MessageSquare, badge: queue.length },
-                        { id: 'history', label: 'Lead Bank', icon: FileText },
-                    ].map((btn) => (
-                        <button
-                            key={btn.id}
-                            onClick={() => setActiveTab(btn.id)}
-                            className={`w-full flex items-center justify-between px-6 py-5 rounded-[1.5rem] transition-all duration-300 relative group ${activeTab === btn.id ? 'bg-white/[0.03] text-cyan-400 border border-white/10 shadow-2xl' : 'text-white/20 hover:text-white hover:bg-white/[0.01]'}`}
-                        >
-                            {activeTab === btn.id && (
-                                <motion.div layoutId="activeNav" className="absolute inset-0 bg-cyan-500/5 rounded-[1.5rem] z-0" />
-                            )}
-                            <div className="flex items-center gap-4 relative z-10">
-                                <btn.icon size={20} className={`transition-colors duration-300 ${activeTab === btn.id ? 'text-cyan-400' : 'group-hover:text-white'}`} strokeWidth={activeTab === btn.id ? 2.5 : 2} />
-                                <span className={`text-[11px] font-black uppercase tracking-[0.2em] ${activeTab === btn.id ? 'text-white' : ''}`}>{btn.label}</span>
-                            </div>
-                            {btn.badge !== undefined && btn.badge > 0 && (
-                                <div className="relative z-10 flex h-6 min-w-[24px] items-center justify-center rounded-lg bg-cyan-500 px-1.5 text-[9px] font-black text-black shadow-[0_0_15px_rgba(6,182,212,0.5)]">
-                                    {btn.badge}
+            {/* Precision Sidebar */}
+            <AnimatePresence mode="wait">
+                {isSidebarOpen && (
+                    <motion.aside
+                        initial={{ x: -300, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        exit={{ x: -300, opacity: 0 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        className="w-full md:w-[320px] shrink-0 border-r border-white/5 bg-[#050505] flex flex-col py-10 z-40 relative backdrop-blur-3xl overflow-y-auto custom-scrollbar shadow-2xl"
+                    >
+                        <div className="px-10 mb-16 flex items-center justify-between">
+                            <div className="flex items-center gap-4 group">
+                                <div className="relative">
+                                    <div className="absolute -inset-2 bg-cyan-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700" />
+                                    <img
+                                        src="/logo.webp"
+                                        alt="River Logo"
+                                        className="relative w-12 h-12 object-contain rounded-xl border border-white/10 p-1 bg-black"
+                                    />
                                 </div>
-                            )}
-                        </button>
-                    ))}
-
-                    <div className="flex-grow" />
-
-                    <div className="pt-8 border-t border-white/5 space-y-8">
-                        <div className="px-6 py-8 rounded-3xl bg-gradient-to-br from-white/[0.02] to-transparent border border-white/5">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="w-8 h-8 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400"><Zap size={16} /></div>
-                                <span className="text-[10px] uppercase tracking-[0.3em] font-black text-white/40">Sessão Ativa</span>
+                                <div className="flex flex-col">
+                                    <h1 className="font-black text-xl leading-none tracking-tighter uppercase italic">River</h1>
+                                    <span className="text-[8px] uppercase tracking-[0.5em] text-cyan-400 font-bold mt-1">Lead System</span>
+                                </div>
                             </div>
-                            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                                <motion.div animate={{ width: '100%' }} transition={{ duration: 2 }} className="h-full bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]" />
-                            </div>
-                            <p className="text-[8px] text-white/10 mt-3 uppercase tracking-widest font-bold">Latency: 24ms • v4.0.2</p>
+                            <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-white/20 hover:text-white">
+                                <X size={20} />
+                            </button>
                         </div>
 
-                        <Link
-                            to="/admin"
-                            className="w-full flex items-center gap-4 px-6 py-6 rounded-[1.5rem] transition-all duration-300 font-black text-white/20 hover:text-white hover:bg-white/[0.02] group"
-                        >
-                            <Home size={20} className="group-hover:translate-x-[-2px] transition-transform" />
-                            <span className="text-[10px] uppercase tracking-[0.3em]">Hub Central</span>
-                        </Link>
-                    </div>
-                </nav>
-            </aside>
+                        <nav className="w-full px-6 space-y-2 flex-grow">
+                            {menuItems.map((item) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => setActiveTab(item.id)}
+                                    className={`w-full flex items-center justify-between p-5 rounded-2xl transition-all duration-300 relative group overflow-hidden ${activeTab === item.id ? 'bg-white/[0.03] border border-white/10 ring-1 ring-white/5' : 'hover:bg-white/[0.01]'}`}
+                                >
+                                    {activeTab === item.id && (
+                                        <motion.div layoutId="navActive" className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-transparent z-0" />
+                                    )}
+                                    <div className="flex items-center gap-4 relative z-10">
+                                        <div className={`p-2.5 rounded-xl border transition-all duration-500 ${activeTab === item.id ? 'bg-cyan-500 text-black border-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.3)]' : 'bg-white/5 text-white/20 border-white/5 group-hover:text-white'}`}>
+                                            <item.icon size={18} />
+                                        </div>
+                                        <div className="text-left">
+                                            <p className={`text-[11px] font-black uppercase tracking-widest leading-none ${activeTab === item.id ? 'text-white' : 'text-white/40 group-hover:text-white'}`}>{item.label}</p>
+                                            <p className="text-[8px] text-white/10 uppercase tracking-[0.2em] mt-1.5 font-bold group-hover:text-white/20 transition-colors">{item.desc}</p>
+                                        </div>
+                                    </div>
+                                    {item.badge !== undefined && item.badge > 0 && (
+                                        <div className="relative z-10 h-5 px-1.5 flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-[9px] font-black text-cyan-400">
+                                            {item.badge}
+                                        </div>
+                                    )}
+                                </button>
+                            ))}
+                        </nav>
 
-            <main className="flex-1 overflow-x-hidden overflow-y-auto bg-[#020202] relative custom-scrollbar z-10">
-                {/* Floating Glass Header */}
-                <header className="h-[100px] border-b border-white/5 flex items-center justify-between px-12 lg:px-20 bg-[#050505]/60 backdrop-blur-3xl sticky top-0 z-40 transition-all duration-500">
+                        <div className="px-6 mt-10">
+                            <div className="p-6 rounded-3xl bg-white/[0.01] border border-white/5 space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <Activity size={12} className="text-cyan-400 animate-pulse" />
+                                        <span className="text-[9px] uppercase tracking-widest font-black text-white/30">System Status</span>
+                                    </div>
+                                    <span className="text-[9px] font-black text-green-500">OPTIMAL</span>
+                                </div>
+                                <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                                    <motion.div initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ duration: 1.5 }} className="h-full bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-auto px-6 pt-10">
+                            <Link
+                                to="/admin"
+                                className="w-full flex items-center justify-between p-5 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/20 transition-all group"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <Home size={18} className="text-white/20 group-hover:text-white transition-colors" />
+                                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 group-hover:text-white transition-colors">Voltar Hub</span>
+                                </div>
+                                <ArrowUpRight size={14} className="text-white/10 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                            </Link>
+                        </div>
+                    </motion.aside>
+                )}
+            </AnimatePresence>
+
+            {/* Main Surface */}
+            <main className="flex-1 h-screen overflow-y-auto relative z-10 custom-scrollbar bg-black">
+                {/* Minimalist Top Nav */}
+                <header className="h-[80px] border-b border-white/5 flex items-center justify-between px-8 lg:px-12 bg-black/60 backdrop-blur-3xl sticky top-0 z-50">
                     <div className="flex items-center gap-6">
-                        <div className="w-2 h-10 bg-cyan-500/20 rounded-full" />
-                        <div>
-                            <h2 className="text-2xl font-black text-white tracking-tighter uppercase italic leading-none">
+                        {!isSidebarOpen && (
+                            <button onClick={() => setIsSidebarOpen(true)} className="p-2.5 rounded-xl border border-white/5 bg-white/5 text-white/40 hover:text-white transition-all">
+                                <Menu size={20} />
+                            </button>
+                        )}
+                        <div className="flex items-center gap-4">
+                            <Command size={16} className="text-cyan-500" />
+                            <h2 className="text-lg font-black text-white tracking-widest uppercase italic leading-none">
                                 <AnimatePresence mode="wait">
                                     <motion.span
                                         key={activeTab}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: 10 }}
                                     >
-                                        {activeTab === 'radar' && 'Deep Radar Matrix'}
-                                        {activeTab === 'dispatcher' && 'Tactical Dispatcher'}
-                                        {activeTab === 'history' && 'Neural Lead Bank'}
+                                        {activeTab === 'radar' && 'Deep Reconnaissance'}
+                                        {activeTab === 'dispatcher' && 'Lançador de Campanha'}
+                                        {activeTab === 'history' && 'Matriz de Inteligência'}
                                     </motion.span>
                                 </AnimatePresence>
                             </h2>
-                            <p className="text-[10px] text-white/20 uppercase tracking-[0.4em] font-black mt-2">River Operational System</p>
                         </div>
                     </div>
-
-                    <div className="hidden md:flex items-center gap-6">
-                        <div className="flex items-center gap-4 text-[10px] uppercase tracking-[0.3em] font-black px-6 py-3.5 rounded-2xl bg-white/[0.03] text-cyan-400 border border-white/5 shadow-xl">
-                            <Activity size={14} className="animate-pulse" /> AI Grounding Status: Locked
-                        </div>
+                    <div className="hidden sm:flex items-center gap-3 px-4 py-2 rounded-xl bg-white/5 border border-white/5">
+                        <Zap size={14} className="text-cyan-400" />
+                        <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Core v5.0 Active</span>
                     </div>
                 </header>
 
-                <div className="p-12 lg:p-20 max-w-7xl mx-auto">
+                <div className="p-8 lg:p-14 max-w-[1600px] mx-auto">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={activeTab}
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: 15 }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.4, ease: "easeOut" }}
+                            exit={{ opacity: 0, y: -15 }}
+                            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                         >
                             {activeTab === 'radar' && <Radar onQueue={addToQueue} queue={queue} onRemove={removeQueue} />}
                             {activeTab === 'dispatcher' && <Dispatcher queue={queue} onRemove={removeQueue} />}
