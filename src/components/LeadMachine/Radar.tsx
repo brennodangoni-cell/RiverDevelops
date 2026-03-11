@@ -110,6 +110,8 @@ export function Radar({ onQueue, queue, onRemove }: { onQueue: (l: any) => void;
     const [cidade, setCidade] = useState('');
     const [buscaLivre, setBuscaLivre] = useState('');
     const [limite, setLimite] = useState(20);
+    const [loadingStep, setLoadingStep] = useState(0);
+    const [revealCount, setRevealCount] = useState(0);
 
     // IBGE data
     const [estados, setEstados] = useState<{ sigla: string; nome: string }[]>([]);
@@ -145,14 +147,34 @@ export function Radar({ onQueue, queue, onRemove }: { onQueue: (l: any) => void;
         const location = [cidade, estado].filter(Boolean).join(', ');
 
         setLoading(true);
+        setLeads([]);
+        setRevealCount(0);
+        setLoadingStep(0);
+
+        // Simular steps de progresso
+        const stepTimers = [
+            setTimeout(() => setLoadingStep(1), 2000),
+            setTimeout(() => setLoadingStep(2), 5000),
+            setTimeout(() => setLoadingStep(3), 10000),
+        ];
+
         try {
             const query = location ? `${keyword} em ${location}` : keyword;
             const res = await axios.post('/api/scraper/maps', { query, limit: limite });
-            setLeads(res.data.leads || []);
-            toast.success(`${res.data.leads?.length || 0} leads encontrados`);
-        } catch {
-            toast.error("Erro ao buscar leads");
-        } finally {
+            const results = res.data.leads || [];
+            setLoading(false);
+            stepTimers.forEach(clearTimeout);
+
+            // Revelar leads um a um
+            setLeads(results);
+            for (let i = 1; i <= results.length; i++) {
+                await new Promise(r => setTimeout(r, 120));
+                setRevealCount(i);
+            }
+            toast.success(`${results.length} leads encontrados`);
+        } catch (err: any) {
+            stepTimers.forEach(clearTimeout);
+            toast.error(err?.response?.data?.error || "Erro ao buscar leads");
             setLoading(false);
         }
     };
@@ -204,20 +226,22 @@ export function Radar({ onQueue, queue, onRemove }: { onQueue: (l: any) => void;
             {/* Resultados */}
             {leads.length > 0 && (
                 <div className="space-y-4">
-                    <h3 className="text-sm font-semibold text-white/60">{leads.length} leads encontrados</h3>
+                    <h3 className="text-sm font-semibold text-white/60">{revealCount < leads.length ? `${revealCount}/${leads.length} leads carregando...` : `${leads.length} leads encontrados`}</h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                         {leads.map((lead, idx) => {
                             const inQueue = queue.some(l => l.whatsapp === lead.whatsapp);
                             return (
-                                <div key={idx} className="bg-[#131313] border border-white/[0.06] rounded-2xl p-5 flex flex-col hover:border-white/10 transition-all group">
+                                <div key={idx}
+                                    className={`bg-[#131313] border border-white/[0.06] rounded-2xl p-5 flex flex-col hover:border-white/10 transition-all duration-300 group ${idx < revealCount ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3 pointer-events-none'}`}>
                                     <div className="mb-4">
                                         {lead.category && (
                                             <span className="inline-block px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 text-[10px] font-semibold mb-2">{lead.category}</span>
                                         )}
                                         <h4 className="text-[15px] font-semibold text-white leading-snug">{lead.name}</h4>
                                         <p className="text-white/25 text-xs mt-1.5 flex items-start gap-1.5 leading-relaxed">
-                                            <MapPin size={12} className="shrink-0 mt-0.5" /> {lead.address}
+                                            <MapPin size={12} className="shrink-0 mt-0.5" />
+                                            {[lead.city, lead.state].filter(Boolean).join(', ') || lead.address || '—'}
                                         </p>
                                     </div>
 
@@ -256,10 +280,18 @@ export function Radar({ onQueue, queue, onRemove }: { onQueue: (l: any) => void;
             {/* Loading */}
             {loading && (
                 <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center">
-                    <div className="bg-[#161616] border border-white/[0.08] rounded-2xl p-10 flex flex-col items-center gap-4 shadow-2xl">
+                    <div className="bg-[#161616] border border-white/[0.08] rounded-2xl p-10 flex flex-col items-center gap-5 shadow-2xl w-[340px]">
                         <Loader2 size={28} className="text-cyan-500 animate-spin" />
                         <p className="text-sm font-semibold text-white">Buscando leads...</p>
-                        <p className="text-xs text-white/25">Extraindo dados do Google Maps</p>
+                        <div className="w-full space-y-2.5">
+                            {['Conectando ao Google', 'Pesquisando empresas', 'Extraindo contatos', 'Validando dados'].map((step, i) => (
+                                <div key={i} className={`flex items-center gap-2.5 text-xs transition-all duration-500 ${loadingStep >= i ? 'text-cyan-400' : 'text-white/15'}`}>
+                                    <div className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${loadingStep >= i ? 'bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.5)]' : 'bg-white/10'}`} />
+                                    {step}{loadingStep === i && '...'}
+                                </div>
+                            ))}
+                        </div>
+                        <p className="text-[11px] text-white/20">Buscando até {limite} resultados</p>
                     </div>
                 </div>
             )}

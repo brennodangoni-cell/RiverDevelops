@@ -15,8 +15,6 @@ export async function scrapeGoogleMaps(query: string, limit = 20) {
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
 
-        // Migrando para o modelo solicitado pelo usuário (gemini-3-flash-preview)
-        // Adicionando grounding para garantir acesso a dados reais da web em 2026
         const model = genAI.getGenerativeModel({
             model: "gemini-3-flash-preview",
             tools: [{ googleSearch: {} }] as any
@@ -32,13 +30,17 @@ export async function scrapeGoogleMaps(query: string, limit = 20) {
         2. phone: Telefone de contato formatado (ex: (11) 99999-9999).
         3. whatsapp: Apenas os números com prefixo 55 (ex: 5511999999999). Se o telefone for celular, use-o como WhatsApp.
         4. instagram: O @perfil do Instagram se disponível, ou "Não Listado".
+        5. city: Cidade onde a empresa está localizada.
+        6. state: Sigla do estado (ex: SP, RJ, MG).
+        7. address: Endereço completo da empresa se disponível.
+        8. website: Site da empresa se disponível.
         
         SAÍDA OBRIGATÓRIA:
         Retorne APENAS um array JSON puro, sem markdown, sem explicações.
         Se encontrar menos que ${limit}, retorne o máximo possível.
         
         EXEMPLO:
-        [{"name": "Exemplo LTDA", "phone": "(11) 98888-7777", "whatsapp": "5511988887777", "instagram": "@exemplo"}]`;
+        [{"name": "Exemplo LTDA", "phone": "(11) 98888-7777", "whatsapp": "5511988887777", "instagram": "@exemplo", "city": "São Paulo", "state": "SP", "address": "Rua Exemplo 123, Centro", "website": "https://exemplo.com.br"}]`;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;

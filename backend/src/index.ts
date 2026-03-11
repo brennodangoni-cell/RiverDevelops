@@ -667,6 +667,10 @@ app.post('/api/scraper/maps', authenticate, async (req: Request, res: Response) 
                 name: l.name,
                 phone: l.phone,
                 instagram: l.instagram,
+                city: l.city || null,
+                state: l.state || null,
+                address: l.address || null,
+                website: l.website || null,
                 source: query,
                 category: query.split(' em ')[0] || 'Geral',
                 created_at: new Date().toISOString()
