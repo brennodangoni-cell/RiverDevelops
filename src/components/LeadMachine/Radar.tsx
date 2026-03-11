@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Loader2, MapPin, Instagram, PlusCircle, MinusCircle, Check, Globe, ChevronDown, X } from 'lucide-react';
+import { Search, Loader2, MapPin, Instagram, Check, Globe, ChevronDown, X } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { WhatsAppIcon } from './WhatsAppIcon';
@@ -101,8 +101,25 @@ function Dropdown({ label, value, options, onChange, disabled, loading: isLoadin
     );
 }
 
+// Cores para categorias
+const CATEGORY_COLORS = [
+    { bg: 'bg-cyan-500/10 text-cyan-400', border: 'border-cyan-500/20' },
+    { bg: 'bg-emerald-500/10 text-emerald-400', border: 'border-emerald-500/20' },
+    { bg: 'bg-pink-500/10 text-pink-400', border: 'border-pink-500/20' },
+    { bg: 'bg-amber-500/10 text-amber-400', border: 'border-amber-500/20' },
+    { bg: 'bg-purple-500/10 text-purple-400', border: 'border-purple-500/20' },
+    { bg: 'bg-blue-500/10 text-blue-400', border: 'border-blue-500/20' },
+    { bg: 'bg-red-500/10 text-red-400', border: 'border-red-500/20' },
+    { bg: 'bg-teal-500/10 text-teal-400', border: 'border-teal-500/20' },
+];
+function getCategoryColor(category: string) {
+    let hash = 0;
+    for (let i = 0; i < category.length; i++) hash = category.charCodeAt(i) + ((hash << 5) - hash);
+    return CATEGORY_COLORS[Math.abs(hash) % CATEGORY_COLORS.length];
+}
+
 /* ── Componente Principal ─────────────────────────── */
-export function Radar({ onQueue, queue, onRemove }: { onQueue: (l: any) => void; queue: any[]; onRemove: (num: string) => void }) {
+export function Radar() {
     const [loading, setLoading] = useState(false);
     const [leads, setLeads] = useState<Lead[]>([]);
     const [categoria, setCategoria] = useState('');
@@ -230,14 +247,14 @@ export function Radar({ onQueue, queue, onRemove }: { onQueue: (l: any) => void;
 
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                         {leads.map((lead, idx) => {
-                            const inQueue = queue.some(l => l.whatsapp === lead.whatsapp);
                             return (
                                 <div key={idx}
                                     className={`bg-[#131313] border border-white/[0.06] rounded-2xl p-5 flex flex-col hover:border-white/10 transition-all duration-300 group ${idx < revealCount ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3 pointer-events-none'}`}>
                                     <div className="mb-4">
-                                        {lead.category && (
-                                            <span className="inline-block px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 text-[10px] font-semibold mb-2">{lead.category}</span>
-                                        )}
+                                        {lead.category && (() => {
+                                            const c = getCategoryColor(lead.category);
+                                            return <span className={`inline-block px-2.5 py-1 rounded-lg text-[10px] font-semibold mb-2 ${c.bg}`}>{lead.category}</span>;
+                                        })()}
                                         <h4 className="text-[15px] font-semibold text-white leading-snug">{lead.name}</h4>
                                         <p className="text-white/25 text-xs mt-1.5 flex items-start gap-1.5 leading-relaxed">
                                             <MapPin size={12} className="shrink-0 mt-0.5" />
@@ -262,13 +279,6 @@ export function Radar({ onQueue, queue, onRemove }: { onQueue: (l: any) => void;
                                                 <Globe size={14} />
                                             </a>
                                         )}
-                                        <div className="flex-1" />
-                                        <button
-                                            onClick={() => inQueue ? onRemove(lead.whatsapp) : onQueue(lead)}
-                                            className={`h-9 px-4 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${inQueue ? 'bg-red-500/10 text-red-400 border border-red-500/15 hover:bg-red-500/20' : 'bg-cyan-500 text-black hover:bg-cyan-400'}`}
-                                        >
-                                            {inQueue ? <><MinusCircle size={13} /> Remover</> : <><PlusCircle size={13} /> Fila</>}
-                                        </button>
                                     </div>
                                 </div>
                             );

@@ -242,9 +242,18 @@ export function History() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            {lead.category ? (
-                                                <span className="inline-block px-2.5 py-1 rounded-lg bg-white/[0.04] text-white/40 text-[11px] font-medium">{lead.category}</span>
-                                            ) : (
+                                            {lead.category ? (() => {
+                                                const colors = [
+                                                    'bg-cyan-500/10 text-cyan-400', 'bg-emerald-500/10 text-emerald-400',
+                                                    'bg-pink-500/10 text-pink-400', 'bg-amber-500/10 text-amber-400',
+                                                    'bg-purple-500/10 text-purple-400', 'bg-blue-500/10 text-blue-400',
+                                                    'bg-red-500/10 text-red-400', 'bg-teal-500/10 text-teal-400',
+                                                ];
+                                                let h = 0;
+                                                for (let i = 0; i < lead.category.length; i++) h = lead.category.charCodeAt(i) + ((h << 5) - h);
+                                                const c = colors[Math.abs(h) % colors.length];
+                                                return <span className={`inline-block px-2.5 py-1 rounded-lg text-[11px] font-medium ${c}`}>{lead.category}</span>;
+                                            })() : (
                                                 <span className="text-white/15 text-xs">—</span>
                                             )}
                                         </td>
