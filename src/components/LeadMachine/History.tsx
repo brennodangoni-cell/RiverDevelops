@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Database, Clock, MessageCircle, Instagram, Search, PlusCircle, MinusCircle, ExternalLink, Globe, MapPin, Tag, CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
+import { Database, Clock, MessageCircle, Instagram, Search, PlusCircle, MinusCircle, ExternalLink, CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
