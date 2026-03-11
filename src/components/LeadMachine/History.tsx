@@ -130,6 +130,8 @@ export function History() {
     const [leads, setLeads] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({ search: '', category: 'todos', status: 'todos', state: 'todos', city: 'todos' });
+    const [selected, setSelected] = useState<Set<string>>(new Set());
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => { fetchLeads(); }, []);
 
@@ -154,11 +156,40 @@ export function History() {
         try {
             await axios.delete(`/api/leads/${id}`);
             setLeads(leads.filter(l => l.id !== id));
+            setSelected(prev => { const n = new Set(prev); n.delete(id); return n; });
             toast.success("Lead excluído");
         } catch (err: any) {
             const msg = err?.response?.data?.error || err?.message || "Erro desconhecido";
             toast.error(`Erro ao excluir: ${msg}`);
-            console.error('Delete lead error:', err?.response?.status, msg);
+        }
+    };
+
+    const deleteSelected = async () => {
+        if (!confirm(`Excluir ${selected.size} leads permanentemente?`)) return;
+        setDeleting(true);
+        let ok = 0;
+        for (const id of selected) {
+            try { await axios.delete(`/api/leads/${id}`); ok++; } catch { }
+        }
+        setLeads(prev => prev.filter(l => !selected.has(String(l.id))));
+        setSelected(new Set());
+        setDeleting(false);
+        toast.success(`${ok} leads excluídos`);
+    };
+
+    const toggleSelect = (id: string) => {
+        setSelected(prev => {
+            const n = new Set(prev);
+            n.has(id) ? n.delete(id) : n.add(id);
+            return n;
+        });
+    };
+
+    const toggleAll = () => {
+        if (selected.size === filtered.length) {
+            setSelected(new Set());
+        } else {
+            setSelected(new Set(filtered.map(l => String(l.id))));
         }
     };
 
@@ -214,24 +245,34 @@ export function History() {
                     <table className="w-full text-left min-w-[850px]">
                         <thead className="border-b border-white/[0.04]">
                             <tr>
-                                <th className="px-6 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Nome</th>
-                                <th className="px-6 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Local</th>
-                                <th className="px-6 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Categoria</th>
-                                <th className="px-6 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Contato</th>
-                                <th className="px-6 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider w-12"></th>
+                                <th className="pl-5 pr-2 py-3.5 w-10">
+                                    <input type="checkbox" checked={filtered.length > 0 && selected.size === filtered.length}
+                                        onChange={toggleAll}
+                                        className="w-4 h-4 rounded bg-white/5 border-white/10 text-cyan-500 focus:ring-cyan-500/30 cursor-pointer" />
+                                </th>
+                                <th className="px-4 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Nome</th>
+                                <th className="px-4 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Local</th>
+                                <th className="px-4 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Categoria</th>
+                                <th className="px-4 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Contato</th>
+                                <th className="px-4 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Status</th>
+                                <th className="px-4 py-3.5 w-12"></th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/[0.03]">
                             {loading ? (
-                                <tr><td colSpan={6} className="py-20 text-center text-white/20 text-sm">Carregando...</td></tr>
+                                <tr><td colSpan={7} className="py-20 text-center text-white/20 text-sm">Carregando...</td></tr>
                             ) : filtered.length === 0 ? (
-                                <tr><td colSpan={6} className="py-20 text-center text-white/20 text-sm">Nenhum lead encontrado</td></tr>
+                                <tr><td colSpan={7} className="py-20 text-center text-white/20 text-sm">Nenhum lead encontrado</td></tr>
                             ) : filtered.map((lead, idx) => {
                                 const location = [lead.city, lead.state].filter(Boolean).join(', ') || lead.address || '—';
                                 return (
-                                    <tr key={lead.id || idx} className="hover:bg-white/[0.015] transition-colors">
-                                        <td className="px-6 py-4">
+                                    <tr key={lead.id || idx} className={`transition-colors ${selected.has(String(lead.id)) ? 'bg-cyan-500/[0.04]' : 'hover:bg-white/[0.015]'}`}>
+                                        <td className="pl-5 pr-2 py-4">
+                                            <input type="checkbox" checked={selected.has(String(lead.id))}
+                                                onChange={() => toggleSelect(String(lead.id))}
+                                                className="w-4 h-4 rounded bg-white/5 border-white/10 text-cyan-500 focus:ring-cyan-500/30 cursor-pointer" />
+                                        </td>
+                                        <td className="px-4 py-4">
                                             <div className="text-sm font-medium text-white">{lead.name}</div>
                                             <div className="text-[11px] text-white/25 mt-0.5">{lead.whatsapp}</div>
                                         </td>
@@ -296,6 +337,18 @@ export function History() {
                     </table>
                 </div>
             </div>
+
+            {/* Barra de ação bulk */}
+            {selected.size > 0 && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-[#161616] border border-white/[0.08] rounded-2xl px-6 py-3 flex items-center gap-4 shadow-[0_16px_48px_rgba(0,0,0,0.6)]">
+                    <span className="text-sm text-white font-medium">{selected.size} selecionado{selected.size > 1 ? 's' : ''}</span>
+                    <button onClick={() => setSelected(new Set())} className="text-xs text-white/40 hover:text-white transition-colors">Limpar</button>
+                    <button onClick={deleteSelected} disabled={deleting}
+                        className="h-9 px-5 bg-red-500 text-white rounded-xl text-xs font-semibold flex items-center gap-2 hover:bg-red-400 transition-all disabled:opacity-50">
+                        <Trash2 size={13} /> {deleting ? 'Excluindo...' : 'Excluir'}
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
