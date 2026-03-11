@@ -27,12 +27,16 @@ export function Dispatcher({ queue, onRemove }: { queue: any[]; onRemove: (num: 
 
                 setError(null);
             } catch (err: any) {
-                if (err.code === 'ERR_NETWORK' || err.response?.status === 503) {
-                    setError("Acordando servidor... aguarde 15s");
+                if (err.code === 'ERR_NETWORK') {
+                    setError("Servidor offline ou acordando... aguarde 15s");
+                } else if (err.response?.status === 503) {
+                    setError("Servidor carregando... aguarde");
+                } else if (err.response?.status === 404) {
+                    setError(`Erro 404: Rota não encontrada em ${axios.defaults.baseURL}`);
                 } else if (err.response?.status === 401) {
-                    setError("Sessão expirada. Logue novamente.");
+                    setError("Acesso negado. Refaça o login admin.");
                 } else {
-                    setError("Erro de conexão");
+                    setError(`Erro de conexão: ${err.message}`);
                 }
                 console.error("Erro ao buscar status WA:", err);
             }

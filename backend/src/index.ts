@@ -625,6 +625,10 @@ app.post('/api/river/generate', authenticate, async (req: Request, res: Response
 // LEAD MACHINE & WHATSAPP ROUTES
 // ==========================================
 
+app.get('/api/wa/ping', (_req, res) => {
+    res.json({ status: "pong", time: new Date().toISOString() });
+});
+
 app.get('/api/wa/status', authenticate, (req: Request, res: Response) => {
     res.json({ isReady: getStatus(), qr: getQrCode() });
 });

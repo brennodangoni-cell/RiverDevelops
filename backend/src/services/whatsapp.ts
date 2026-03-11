@@ -3,7 +3,8 @@ import makeWASocket, {
     useMultiFileAuthState,
     delay as baileysDelay,
     WASocket,
-    Browsers
+    Browsers,
+    makeCacheableSignalKeyStore
 } from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
 import path from 'path';
@@ -67,7 +68,7 @@ export const initWhatsApp = async () => {
 
     sock.ev.on('creds.update', saveCreds);
 
-    sock.ev.on('connection.update', (update) => {
+    sock.ev.on('connection.update', (update: any) => {
         const { connection, lastDisconnect, qr } = update;
 
         if (qr) {
