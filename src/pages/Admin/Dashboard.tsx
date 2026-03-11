@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Check, Clock, LogOut, Trash2, Loader2, X, CircleDashed, CheckCircle2, Edit2, DollarSign, Sparkles, Users, Eye, EyeOff, Image, Video, FileText, Copy, Download, Paperclip } from 'lucide-react';
+import { Plus, Check, Clock, LogOut, Trash2, Loader2, X, CircleDashed, CheckCircle2, Edit2, DollarSign, Sparkles, Users, Eye, EyeOff, Image, Video, FileText, Copy, Download, Paperclip, Target } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
@@ -393,6 +393,13 @@ export default function Dashboard() {
                                 >
                                     <Users className="w-4 h-4" />
                                 </Link>
+                                <Link
+                                    to="/admin/lead-machine"
+                                    className="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center hover:bg-cyan-500/20 hover:border-cyan-500   shrink-0"
+                                    title="Lead Machine"
+                                >
+                                    <Target className="w-4 h-4" />
+                                </Link>
                                 <button
                                     onClick={() => setIsHistoryModalOpen(true)}
                                     className="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center hover:bg-cyan-500/20 hover:border-cyan-500   shrink-0"
@@ -454,6 +461,14 @@ export default function Dashboard() {
                             >
                                 <Users className="w-4 h-4" />
                                 <span className="font-bold text-[10px] tracking-widest uppercase">Clientes</span>
+                            </Link>
+                            <Link
+                                to="/admin/lead-machine"
+                                className="h-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center px-4 hover:bg-cyan-500/20 hover:border-cyan-500   shrink-0 gap-2"
+                                title="Lead Machine"
+                            >
+                                <Target className="w-4 h-4" />
+                                <span className="font-bold text-[10px] tracking-widest uppercase">Leads</span>
                             </Link>
                             <button
                                 onClick={() => setIsHistoryModalOpen(true)}
@@ -675,48 +690,48 @@ export default function Dashboard() {
                                                 <Plus className="w-3.5 h-3.5" /> Adicionar
                                             </button>
                                         </div>
-                                            <div className="space-y-2 max-h-32 overflow-y-auto custom-scrollbar">
-                                                {(demandMaterialsMap[demand.id] ?? []).map(m => (
-                                                    <div key={m.id} className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl p-3 group/material">
-                                                        {m.media_type === 'image' && m.media_url && (
-                                                            <a href={m.media_url} target="_blank" rel="noreferrer" className="shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-white/5">
-                                                                <img src={m.media_url} alt="" className="w-full h-full object-cover" />
-                                                            </a>
-                                                        )}
-                                                        {m.media_type === 'video' && m.media_url && (
-                                                            <div className="shrink-0 w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center">
-                                                                <Video className="w-6 h-6 text-white/50" />
-                                                            </div>
-                                                        )}
-                                                        {m.media_type === 'text' && (
-                                                            <div className="shrink-0 w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center">
-                                                                <FileText className="w-6 h-6 text-white/50" />
-                                                            </div>
-                                                        )}
-                                                        <div className="flex-1 min-w-0">
-                                                            {m.title && <div className="text-[10px] text-white/50 truncate">{m.title}</div>}
-                                                            <div className="text-xs text-white/80 truncate">{m.media_type === 'text' ? (m.content || '').slice(0, 40) + (m.content && m.content.length > 40 ? '...' : '') : (m.media_url || '').slice(-30)}</div>
+                                        <div className="space-y-2 max-h-32 overflow-y-auto custom-scrollbar">
+                                            {(demandMaterialsMap[demand.id] ?? []).map(m => (
+                                                <div key={m.id} className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl p-3 group/material">
+                                                    {m.media_type === 'image' && m.media_url && (
+                                                        <a href={m.media_url} target="_blank" rel="noreferrer" className="shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-white/5">
+                                                            <img src={m.media_url} alt="" className="w-full h-full object-cover" />
+                                                        </a>
+                                                    )}
+                                                    {m.media_type === 'video' && m.media_url && (
+                                                        <div className="shrink-0 w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center">
+                                                            <Video className="w-6 h-6 text-white/50" />
                                                         </div>
-                                                        <div className="flex items-center gap-1 opacity-0 group-hover/material:opacity-100 transition-opacity">
-                                                            {m.media_type === 'text' ? (
-                                                                <button onClick={() => { navigator.clipboard.writeText(m.content || ''); toast.success('Texto copiado!'); }} className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/70" title="Copiar"><Copy className="w-3.5 h-3.5" /></button>
-                                                            ) : m.media_url ? (
-                                                                <>
-                                                                    <button onClick={() => { navigator.clipboard.writeText(m.media_url!); toast.success('Link copiado!'); }} className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/70" title="Copiar link"><Copy className="w-3.5 h-3.5" /></button>
-                                                                    <a href={m.media_url} download target="_blank" rel="noreferrer" className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/70" title="Baixar"><Download className="w-3.5 h-3.5" /></a>
-                                                                </>
-                                                            ) : null}
+                                                    )}
+                                                    {m.media_type === 'text' && (
+                                                        <div className="shrink-0 w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center">
+                                                            <FileText className="w-6 h-6 text-white/50" />
                                                         </div>
+                                                    )}
+                                                    <div className="flex-1 min-w-0">
+                                                        {m.title && <div className="text-[10px] text-white/50 truncate">{m.title}</div>}
+                                                        <div className="text-xs text-white/80 truncate">{m.media_type === 'text' ? (m.content || '').slice(0, 40) + (m.content && m.content.length > 40 ? '...' : '') : (m.media_url || '').slice(-30)}</div>
                                                     </div>
-                                                ))}
-                                                {demand.has_material === 1 && demand.material_link && !(demandMaterialsMap[demand.id]?.length) && (
-                                                    <a href={demand.material_link} target="_blank" rel="noreferrer" className="text-[10px] text-blue-400 hover:text-blue-300 underline tracking-wider block truncate">Link legado</a>
-                                                )}
-                                                {(demandMaterialsMap[demand.id]?.length ?? 0) === 0 && !(demand.has_material === 1 && demand.material_link) && (
-                                                    <div className="text-[10px] text-white/30 italic py-2">Nenhum material ainda</div>
-                                                )}
-                                            </div>
+                                                    <div className="flex items-center gap-1 opacity-0 group-hover/material:opacity-100 transition-opacity">
+                                                        {m.media_type === 'text' ? (
+                                                            <button onClick={() => { navigator.clipboard.writeText(m.content || ''); toast.success('Texto copiado!'); }} className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/70" title="Copiar"><Copy className="w-3.5 h-3.5" /></button>
+                                                        ) : m.media_url ? (
+                                                            <>
+                                                                <button onClick={() => { navigator.clipboard.writeText(m.media_url!); toast.success('Link copiado!'); }} className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/70" title="Copiar link"><Copy className="w-3.5 h-3.5" /></button>
+                                                                <a href={m.media_url} download target="_blank" rel="noreferrer" className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/70" title="Baixar"><Download className="w-3.5 h-3.5" /></a>
+                                                            </>
+                                                        ) : null}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {demand.has_material === 1 && demand.material_link && !(demandMaterialsMap[demand.id]?.length) && (
+                                                <a href={demand.material_link} target="_blank" rel="noreferrer" className="text-[10px] text-blue-400 hover:text-blue-300 underline tracking-wider block truncate">Link legado</a>
+                                            )}
+                                            {(demandMaterialsMap[demand.id]?.length ?? 0) === 0 && !(demand.has_material === 1 && demand.material_link) && (
+                                                <div className="text-[10px] text-white/30 italic py-2">Nenhum material ainda</div>
+                                            )}
                                         </div>
+                                    </div>
 
                                     <div className="mt-auto pt-4 border-t border-white/10 flex justify-between items-center">
                                         <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full ${demand.status === 'completed' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : demand.status === 'partial' ? 'bg-amber-400/10 text-amber-500 border border-amber-400/20' : 'bg-white/5 text-white/50 border border-white/10'}`}>

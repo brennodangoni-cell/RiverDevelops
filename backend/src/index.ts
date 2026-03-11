@@ -9,6 +9,8 @@ import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import { runMigrations } from './migrate';
 import { analyzeProductPhotos, generateVeoVideo } from './services/ai_vertex';
+import { initWhatsApp, getQrCode, getStatus, sendCampaignMessage } from './services/whatsapp';
+import { scrapeGoogleMaps } from './services/scraper';
 
 
 dotenv.config();
@@ -619,12 +621,89 @@ app.post('/api/river/generate', authenticate, async (req: Request, res: Response
         res.status(500).json({ error: e.message });
     }
 });
+// ==========================================
+// LEAD MACHINE & WHATSAPP ROUTES
+// ==========================================
 
+app.get('/api/wa/status', authenticate, (req: Request, res: Response) => {
+    res.json({ isReady: getStatus(), qr: getQrCode() });
+});
+
+app.post('/api/wa/send', authenticate, async (req: Request, res: Response) => {
+    const { number, message, video, leadName } = req.body;
+    if (!number || !message) return res.status(400).json({ error: "Número ou mensagem ausente" });
+
+    try {
+        const result = await sendCampaignMessage(number, message, video ? `./videos/${video}` : null);
+
+        // Log into Supabase
+        await supabase.from('sent_messages').insert([{
+            name: leadName || "Desconhecido",
+            number,
+            status: result.success ? "Sucesso" : "Falhou (" + result.error + ")",
+            created_at: new Date().toISOString()
+        }]);
+
+        res.json(result);
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/scraper/maps', authenticate, async (req: Request, res: Response) => {
+    const { query, limit } = req.body;
+    if (!query) return res.status(400).json({ error: "Termo de busca ausente" });
+
+    try {
+        const leads = await scrapeGoogleMaps(query, Number(limit) || 20);
+
+        // Save Search
+        await supabase.from('searches').insert([{ query, count: leads.length, created_at: new Date().toISOString() }]);
+
+        // Save Leads (Upsert by WhatsApp)
+        for (const l of leads) {
+            await supabase.from('leads').upsert({
+                whatsapp: l.whatsapp,
+                name: l.name,
+                phone: l.phone,
+                instagram: l.instagram,
+                source: query,
+                created_at: new Date().toISOString()
+            }, { onConflict: 'whatsapp' });
+        }
+
+        res.json({ success: true, count: leads.length, leads });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.get('/api/history', authenticate, async (req: Request, res: Response) => {
+    try {
+        const { data: searches } = await supabase.from('searches').select('*').order('created_at', { ascending: false }).limit(50);
+        const { data: leads } = await supabase.from('leads').select('*').order('created_at', { ascending: false }).limit(500);
+        const { data: sent } = await supabase.from('sent_messages').select('*').order('created_at', { ascending: false }).limit(500);
+
+        res.json({ searches: searches || [], leads: leads || [], sent: sent || [] });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/wa/restart', authenticate, (req: Request, res: Response) => {
+    try {
+        initWhatsApp();
+        res.json({ success: true, message: "WhatsApp reiniciado" });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
 
 const PORT = process.env.PORT || 10000;
 
 (async () => {
     await runMigrations();
+    initWhatsApp();
     app.listen(PORT, () => {
         console.log(`RiverTasks API Supabase (HTTP-Mode) em execução na porta ${PORT}`);
     });

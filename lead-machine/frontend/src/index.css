@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #09090B;
+  /* Fundo principal escuro e sólido (Zinc 950) */
+  --color-foreground: #FAFAFA;
+  --color-primary: #6366f1;
+  --color-secondary: #18181B;
+  /* Cor dos painéis (Zinc 900) */
+  --color-border: #27272A;
+  /* Bordas sutis (Zinc 800) */
+  --color-input: #121214;
+  /* Fundo dos inputs */
+}
+
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Redefinindo o painel para remover o glassmorphism e usar um design sólido, limpo e premium */
+.glass-panel {
+  background-color: var(--color-secondary);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+}
+
+/* Custom Webkit Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}

@@ -9,6 +9,7 @@ import Dashboard from './pages/Admin/Dashboard.tsx'
 import Finance from './pages/Admin/Finance.tsx'
 import VideoLab from './pages/Admin/VideoLab.tsx'
 import AdminClients from './pages/Admin/Clients.tsx'
+import LeadMachine from './pages/Admin/LeadMachine.tsx'
 import ClientLogin from './pages/Client/Login.tsx'
 import ClientDashboard from './pages/Client/Dashboard.tsx'
 import './index.css'
@@ -38,6 +39,7 @@ const router = createBrowserRouter([
             { path: 'financeiro', element: <Finance /> },
             { path: 'laboratorio', element: <VideoLab /> },
             { path: 'clientes', element: <AdminClients /> },
+            { path: 'lead-machine', element: <LeadMachine /> },
             { path: '', element: <Dashboard /> }
         ]
     },
