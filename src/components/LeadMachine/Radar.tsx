@@ -302,6 +302,7 @@ export function Radar({ onQueue, queue, onRemove }: { onQueue: (l: any) => void,
                                 </motion.div>
 
                                 <div className="absolute inset-0 flex items-center justify-center flex-col">
+                                    <Sparkles className="text-cyan-400 w-8 h-8 mb-2 animate-pulse opacity-50" />
                                     <img src="/logo.webp" alt="River Logo" className="w-16 h-16 rounded-full border border-white/10 shadow-[0_0_20px_rgba(255,255,255,0.05)] mb-3" />
                                     <div className="text-white font-black text-2xl tracking-widest uppercase italic leading-none">River</div>
                                     <div className="text-[8px] text-cyan-400 font-bold tracking-[0.4em] uppercase mt-1">Sales Engine</div>
