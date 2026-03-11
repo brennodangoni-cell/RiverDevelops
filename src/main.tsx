@@ -17,7 +17,7 @@ import axios from 'axios'
 
 // Set globally the API base URL (Vercel Env or Localhost)
 axios.defaults.baseURL = 'https://riverdevelops.onrender.com';
-axios.defaults.timeout = 60000; // 60s for Render cold start
+axios.defaults.timeout = 300000; // 5min for long scrapes on Render
 
 // Add auth token to every request (set once at app load)
 axios.interceptors.request.use(config => {
