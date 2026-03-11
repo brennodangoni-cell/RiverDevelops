@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Smartphone, Ghost, ShieldAlert, CheckCircle2, ListMinus, Play, Pause, Trash2, Rocket, MessageSquareDot } from 'lucide-react';
+import { Smartphone, Ghost, ShieldAlert, CheckCircle2, ListMinus, Play, Pause, Trash2, Rocket, MessageSquare } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -86,7 +86,7 @@ export function Dispatcher({ queue, onRemove }: { queue: any[], onRemove: (num: 
                 <div className="space-y-6 flex-1 flex flex-col relative z-10">
                     <div className="relative">
                         <label className="flex items-center gap-2 text-[10px] font-black mb-3 text-white/30 uppercase tracking-[0.2em]">
-                            <MessageSquareDot size={14} className="text-cyan-400" /> Script da Campanha (Suporta Spintax)
+                            <MessageSquare size={14} className="text-cyan-400" /> Script da Campanha (Suporta Spintax)
                         </label>
                         <textarea
                             rows={5}

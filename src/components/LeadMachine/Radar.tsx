@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Loader2, Phone, MapPin, Instagram, PlusCircle, ChevronDown, Check, Globe, Database, ShieldCheck, Zap, Sparkles } from 'lucide-react';
+import { Search, Loader2, Phone, MapPin, Instagram, PlusCircle, ChevronDown, Check, Globe, Database, Zap, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -83,7 +83,7 @@ function Select({ label, value, options, onChange, icon: Icon }: any) {
     );
 }
 
-export function Radar({ onQueue }: { onQueue: (l: any) => void }) {
+export function Radar({ onQueue, queueCount }: { onQueue: (l: any) => void, queueCount: number }) {
     const [niche, setNiche] = useState(NICHES[0]);
     const [stateObj, setStateObj] = useState(STATES.find(s => s.uf === 'SP'));
     const [cities, setCities] = useState<string[]>([]);
