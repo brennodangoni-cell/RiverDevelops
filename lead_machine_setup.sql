@@ -1,4 +1,4 @@
--- Tabelas para o Lead Machine
+-- Tabelas para o Lead Machine (V2 - Organização Pro)
 -- Execute no Editor SQL do Supabase
 
 -- 1. Buscas Realizadas
@@ -9,13 +9,15 @@ CREATE TABLE IF NOT EXISTS searches (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. Leads Extraídos (com prevenção de duplicata pelo WhatsApp)
+-- 2. Leads Extraídos (com Ciclo de Vida)
 CREATE TABLE IF NOT EXISTS leads (
     id SERIAL PRIMARY KEY,
     name TEXT,
     phone TEXT,
     whatsapp TEXT UNIQUE,
     instagram TEXT,
+    category TEXT DEFAULT 'Geral',
+    status TEXT DEFAULT 'Novo', -- Status: Novo, Em Negociação, Fechado, Perdido
     source TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -31,4 +33,5 @@ CREATE TABLE IF NOT EXISTS sent_messages (
 
 -- Index para performance
 CREATE INDEX IF NOT EXISTS idx_leads_whatsapp ON leads(whatsapp);
+CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status);
 CREATE INDEX IF NOT EXISTS idx_sent_whatsapp ON sent_messages(number);

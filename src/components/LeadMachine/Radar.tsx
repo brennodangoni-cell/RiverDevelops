@@ -187,7 +187,7 @@ export function Radar({ onQueue, queue, onRemove }: { onQueue: (l: any) => void,
                                         type="number"
                                         value={limit}
                                         onChange={e => setLimit(e.target.value)}
-                                        className="w-full bg-[#050505] border border-white/10 rounded-2xl py-4 pl-12 pr-5 text-sm font-bold text-white focus:outline-none focus:ring-2 ring-cyan-500/30 transition-all hover:border-white/20"
+                                        className="w-full bg-[#050505] border border-white/10 rounded-2xl py-4 pl-12 pr-5 text-sm font-bold text-white focus:outline-none focus:ring-2 ring-cyan-500/30 transition-all hover:border-white/20 hide-number-spin text-center"
                                     />
                                 </div>
                             </div>

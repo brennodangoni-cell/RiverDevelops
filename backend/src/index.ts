@@ -691,6 +691,18 @@ app.get('/api/history', authenticate, async (req: Request, res: Response) => {
     }
 });
 
+app.patch('/api/leads/:id/status', authenticate, async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    try {
+        const { error } = await supabase.from('leads').update({ status }).eq('id', parseInt(id as string));
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 app.post('/api/wa/restart', authenticate, (req: Request, res: Response) => {
     try {
         initWhatsApp();

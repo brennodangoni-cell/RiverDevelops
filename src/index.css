@@ -72,7 +72,7 @@
 
   .hide-number-spin {
     -moz-appearance: textfield;
-    /* Firefox */
+    appearance: none;
   }
 
   /* Hide default calendar icon but keep clickable area */
