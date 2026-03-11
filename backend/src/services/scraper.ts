@@ -15,9 +15,9 @@ export async function scrapeGoogleMaps(query: string, limit = 20) {
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
 
-        // Em 2026, usamos o modelo mais estável com busca integrada
+        // Migrando para Gemini 3 conforme solicitado (Março de 2026)
         const model = genAI.getGenerativeModel({
-            model: "gemini-2.0-flash",
+            model: "gemini-3-flash-preview",
             tools: [{ googleSearch: {} }] as any
         } as any);
 
