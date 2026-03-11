@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, MapPin, Instagram, ChevronDown, Check, Globe, Trash2 } from 'lucide-react';
+import { Search, MapPin, Instagram, ChevronDown, Check, Globe, Trash2, CheckSquare } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { WhatsAppIcon } from './WhatsAppIcon';
@@ -132,6 +132,7 @@ export function History() {
     const [filters, setFilters] = useState({ search: '', category: 'todos', status: 'todos', state: 'todos', city: 'todos' });
     const [selected, setSelected] = useState<Set<string>>(new Set());
     const [deleting, setDeleting] = useState(false);
+    const [selectMode, setSelectMode] = useState(false);
 
     useEffect(() => { fetchLeads(); }, []);
 
@@ -235,6 +236,10 @@ export function History() {
                         <FilterDropdown value={filters.city} options={cityOpts} onChange={v => setFilters({ ...filters, city: v })} placeholder="Cidade" />
                         <FilterDropdown value={filters.status} options={statusOpts} onChange={v => setFilters({ ...filters, status: v })} placeholder="Status" />
                         <span className="text-xs text-white/25 px-2 ml-auto">{filtered.length} leads</span>
+                        <button onClick={() => { setSelectMode(!selectMode); if (selectMode) setSelected(new Set()); }}
+                            className={`h-9 px-4 rounded-xl text-xs font-medium flex items-center gap-2 transition-all border ${selectMode ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' : 'bg-white/[0.03] text-white/40 border-white/[0.06] hover:text-white/60 hover:border-white/10'}`}>
+                            <CheckSquare size={13} /> {selectMode ? 'Cancelar' : 'Selecionar'}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -245,11 +250,14 @@ export function History() {
                     <table className="w-full text-left min-w-[850px]">
                         <thead className="border-b border-white/[0.04]">
                             <tr>
-                                <th className="pl-5 pr-2 py-3.5 w-10">
-                                    <input type="checkbox" checked={filtered.length > 0 && selected.size === filtered.length}
-                                        onChange={toggleAll}
-                                        className="w-4 h-4 rounded bg-white/5 border-white/10 text-cyan-500 focus:ring-cyan-500/30 cursor-pointer" />
-                                </th>
+                                {selectMode && (
+                                    <th className="pl-5 pr-2 py-3.5 w-12">
+                                        <button onClick={toggleAll}
+                                            className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${filtered.length > 0 && selected.size === filtered.length ? 'bg-cyan-500 border-cyan-500' : 'border-white/15 hover:border-white/30'}`}>
+                                            {filtered.length > 0 && selected.size === filtered.length && <Check size={12} className="text-black" />}
+                                        </button>
+                                    </th>
+                                )}
                                 <th className="px-4 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Nome</th>
                                 <th className="px-4 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Local</th>
                                 <th className="px-4 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Categoria</th>
@@ -267,11 +275,14 @@ export function History() {
                                 const location = [lead.city, lead.state].filter(Boolean).join(', ') || lead.address || '—';
                                 return (
                                     <tr key={lead.id || idx} className={`transition-colors ${selected.has(String(lead.id)) ? 'bg-cyan-500/[0.04]' : 'hover:bg-white/[0.015]'}`}>
-                                        <td className="pl-5 pr-2 py-4">
-                                            <input type="checkbox" checked={selected.has(String(lead.id))}
-                                                onChange={() => toggleSelect(String(lead.id))}
-                                                className="w-4 h-4 rounded bg-white/5 border-white/10 text-cyan-500 focus:ring-cyan-500/30 cursor-pointer" />
-                                        </td>
+                                        {selectMode && (
+                                            <td className="pl-5 pr-2 py-4">
+                                                <button onClick={() => toggleSelect(String(lead.id))}
+                                                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${selected.has(String(lead.id)) ? 'bg-cyan-500 border-cyan-500' : 'border-white/15 hover:border-white/30'}`}>
+                                                    {selected.has(String(lead.id)) && <Check size={12} className="text-black" />}
+                                                </button>
+                                            </td>
+                                        )}
                                         <td className="px-4 py-4">
                                             <div className="text-sm font-medium text-white">{lead.name}</div>
                                             <div className="text-[11px] text-white/25 mt-0.5">{lead.whatsapp}</div>
