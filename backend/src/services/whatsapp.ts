@@ -15,7 +15,6 @@ export const initWhatsApp = () => {
     client = new Client({
         authStrategy: new LocalAuth({ dataPath: path.join(__dirname, '../../whatsapp-session') }),
         puppeteer: {
-            executablePath: puppeteer.executablePath(),
             // Running without sandbox to avoid issues on cloud platforms like Render
             args: [
                 '--no-sandbox',

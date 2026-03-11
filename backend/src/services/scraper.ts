@@ -114,7 +114,6 @@ export async function scrapeGoogleMaps(query: string, limit = 20) {
     console.log(`[Scraper] Searching for "${query}" (limit: ${limit})`);
 
     const browser = await puppeteer.launch({
-        executablePath: puppeteerMain.executablePath(),
         headless: true, // Render fails on headless: false
         args: [
             '--no-sandbox',
