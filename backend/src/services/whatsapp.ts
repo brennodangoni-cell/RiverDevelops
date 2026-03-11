@@ -15,12 +15,21 @@ export const initWhatsApp = () => {
         authStrategy: new LocalAuth({ dataPath: path.join(__dirname, '../../whatsapp-session') }),
         puppeteer: {
             // Running without sandbox to avoid issues on cloud platforms like Render
-            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-accelerated-2d-canvas',
+                '--no-first-run',
+                '--no-zygote',
+                '--single-process',
+                '--disable-gpu'
+            ],
             headless: true
         }
     });
 
-    client.on('qr', (qr) => {
+    client.on('qr', (qr: string) => {
         qrCodeData = qr;
         isReady = false;
         console.log('WhatsApp QR Code generated.');
@@ -32,7 +41,7 @@ export const initWhatsApp = () => {
         isReady = true;
     });
 
-    client.on('disconnected', (reason) => {
+    client.on('disconnected', (reason: string) => {
         console.log('WhatsApp Client was disconnected', reason);
         isReady = false;
         // Re-initialize after disconnection

@@ -114,7 +114,16 @@ export async function scrapeGoogleMaps(query: string, limit = 20) {
 
     const browser = await puppeteer.launch({
         headless: true, // Render fails on headless: false
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--single-process',
+            '--disable-gpu'
+        ]
     });
 
     try {
