@@ -33,11 +33,11 @@ function CustomSelect({ label, value, options, onChange, icon: Icon }: any) {
 
     return (
         <div className="relative flex-1" ref={ref}>
-            <label className="block text-[9px] uppercase tracking-[0.4em] font-black text-white/20 mb-3 ml-1">{label}</label>
+            <label className="block text-[10px] uppercase tracking-[0.3em] font-black text-white/20 mb-3 ml-1">{label}</label>
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-5 text-left flex items-center justify-between group transition-all duration-300 ${isOpen ? 'border-cyan-500/50 hover:bg-white/[0.05]' : 'hover:border-white/10 hover:bg-white/[0.02]'}`}
+                className={`w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-5 text-left flex items-center justify-between group transition-all duration-300 ${isOpen ? 'border-cyan-500/50 ring-4 ring-cyan-500/5 hover:bg-white/[0.05]' : 'hover:border-white/10 hover:bg-white/[0.02]'}`}
             >
                 <div className="flex items-center gap-4">
                     <Icon size={16} className={`transition-colors ${isOpen ? 'text-cyan-400' : 'text-white/20'}`} />
