@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, MapPin, Instagram, ChevronDown, Check, Globe } from 'lucide-react';
+import { Search, MapPin, Instagram, ChevronDown, Check, Globe, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { WhatsAppIcon } from './WhatsAppIcon';
@@ -142,6 +142,15 @@ export function History() {
         } catch { toast.error("Erro ao atualizar"); }
     };
 
+    const deleteLead = async (id: string) => {
+        if (!confirm('Excluir este lead permanentemente?')) return;
+        try {
+            await axios.delete(`/api/leads/${id}`);
+            setLeads(leads.filter(l => l.id !== id));
+            toast.success("Lead excluído");
+        } catch { toast.error("Erro ao excluir"); }
+    };
+
     const categories = ['todos', ...Array.from(new Set(leads.map(l => l.category).filter(Boolean)))];
     const states = ['todos', ...Array.from(new Set(leads.map(l => l.state).filter(Boolean))).sort()];
     const citiesForState = filters.state === 'todos'
@@ -199,13 +208,14 @@ export function History() {
                                 <th className="px-6 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Categoria</th>
                                 <th className="px-6 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Contato</th>
                                 <th className="px-6 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Status</th>
+                                <th className="px-6 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider w-12"></th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/[0.03]">
                             {loading ? (
-                                <tr><td colSpan={5} className="py-20 text-center text-white/20 text-sm">Carregando...</td></tr>
+                                <tr><td colSpan={6} className="py-20 text-center text-white/20 text-sm">Carregando...</td></tr>
                             ) : filtered.length === 0 ? (
-                                <tr><td colSpan={5} className="py-20 text-center text-white/20 text-sm">Nenhum lead encontrado</td></tr>
+                                <tr><td colSpan={6} className="py-20 text-center text-white/20 text-sm">Nenhum lead encontrado</td></tr>
                             ) : filtered.map((lead, idx) => {
                                 const location = [lead.city, lead.state].filter(Boolean).join(', ') || lead.address || '—';
                                 return (
@@ -252,6 +262,12 @@ export function History() {
                                                 value={lead.status || 'Pendente'}
                                                 onChange={(v) => updateStatus(lead.id, v)}
                                             />
+                                        </td>
+                                        <td className="px-4 py-4">
+                                            <button onClick={() => deleteLead(lead.id)}
+                                                className="w-8 h-8 rounded-lg flex items-center justify-center text-white/15 hover:text-red-400 hover:bg-red-500/10 transition-all">
+                                                <Trash2 size={14} />
+                                            </button>
                                         </td>
                                     </tr>
                                 );
