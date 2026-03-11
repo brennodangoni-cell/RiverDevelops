@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { MessageSquare, Play, Pause, Smartphone, Loader2, Trash2, ShieldCheck, X } from 'lucide-react';
+import { MessageSquare, Play, Pause, Smartphone, Loader2, Trash2, ShieldCheck, X, LogOut } from 'lucide-react';
 import axios from 'axios';
+import QRCode from 'react-qr-code';
 import toast from 'react-hot-toast';
 import { WhatsAppIcon } from './WhatsAppIcon';
 
@@ -12,10 +13,15 @@ export function Dispatcher({ queue, onRemove }: { queue: any[]; onRemove: (num: 
 
     useEffect(() => {
         const check = async () => {
-            try { const r = await axios.get('/api/wa/status'); setStatus(r.data); } catch { }
+            try {
+                const r = await axios.get('/api/wa/status');
+                setStatus(r.data);
+            } catch (err) {
+                console.error("Erro ao buscar status WA:", err);
+            }
         };
         check();
-        const i = setInterval(check, 5000);
+        const i = setInterval(check, 4000);
         return () => clearInterval(i);
     }, []);
 
@@ -25,26 +31,45 @@ export function Dispatcher({ queue, onRemove }: { queue: any[]; onRemove: (num: 
         if (sending) { setSending(false); return; }
 
         setSending(true);
-        setProgressCount(0);
+        toast.success("Iniciando campanha...");
 
         for (let i = 0; i < queue.length; i++) {
-            if (!sending && i > 0) break;
+            // Check if user stopped manually
+            setProgressCount(i);
+            const lead = queue[i];
+
             try {
                 await axios.post('/api/wa/send', {
-                    number: queue[i].whatsapp.replace(/\D/g, ''),
-                    message: msg
+                    number: lead.whatsapp.replace(/\D/g, ''),
+                    message: msg,
+                    leadName: lead.name
                 });
-                setProgressCount(i + 1);
-            } catch {
-                toast.error(`Erro ao enviar para ${queue[i].name}`);
+                onRemove(lead.whatsapp);
+            } catch (err: any) {
+                toast.error(`Erro ao enviar para ${lead.name}`);
+                console.error("Erro envio:", err);
             }
+
             if (i < queue.length - 1) {
-                const delay = 10000 + Math.random() * 10000;
-                await new Promise(r => setTimeout(r, delay));
+                // Delay entre envios
+                const wait = 6000 + Math.random() * 8000;
+                await new Promise(r => setTimeout(r, wait));
             }
         }
+
         setSending(false);
         toast.success("Envio finalizado!");
+    };
+
+    const handleLogout = async () => {
+        if (!confirm("Deseja desconectar sua conta do WhatsApp?")) return;
+        try {
+            await axios.post('/api/wa/restart');
+            setStatus({ isReady: false, qr: '' });
+            toast.success("Sessão encerrada");
+        } catch (err) {
+            toast.error("Erro ao desconectar");
+        }
     };
 
     return (
@@ -135,28 +160,29 @@ export function Dispatcher({ queue, onRemove }: { queue: any[]; onRemove: (num: 
                             <h4 className="text-base font-semibold text-white mb-1">Conectar WhatsApp</h4>
                             <p className="text-xs text-white/25 mb-6 text-center">Escaneie o QR Code com seu celular</p>
                             {status.qr ? (
-                                <div className="bg-white rounded-2xl p-5 w-fit mx-auto">
-                                    <img src={status.qr} alt="QR Code" className="w-48 h-48" />
+                                <div className="bg-white rounded-3xl p-6 w-fit mx-auto shadow-2xl border-4 border-black/5">
+                                    {/* @ts-ignore */}
+                                    <QRCode value={status.qr} size={200} />
                                 </div>
                             ) : (
-                                <div className="flex items-center gap-2 text-white/25 py-8">
-                                    <Loader2 size={16} className="animate-spin" />
-                                    <span className="text-xs">Carregando QR Code...</span>
+                                <div className="flex flex-col items-center justify-center gap-3 py-10">
+                                    <Loader2 size={32} className="animate-spin text-cyan-500/50" />
+                                    <span className="text-xs text-white/20 font-medium">Gerando nova sessão...</span>
                                 </div>
                             )}
                         </>
                     ) : (
                         <>
-                            <div className="w-16 h-16 rounded-full bg-[#25D366]/10 flex items-center justify-center mb-4">
-                                <WhatsAppIcon size={28} className="text-[#25D366]" />
+                            <div className="w-16 h-16 rounded-3xl bg-emerald-500/20 flex items-center justify-center mb-4 shadow-[0_0_30px_-5px_rgba(16,185,129,0.3)] border border-emerald-500/20">
+                                <WhatsAppIcon size={32} className="text-emerald-400" />
                             </div>
-                            <h4 className="text-base font-semibold text-white mb-1">Conectado</h4>
-                            <p className="text-xs text-emerald-400 mb-6">WhatsApp ativo e pronto</p>
+                            <h4 className="text-base font-bold text-white mb-1">Conta Ativa</h4>
+                            <p className="text-[11px] text-emerald-400/70 font-medium mb-6 px-4">Conectado e pronto para realizar disparos em massa.</p>
                             <button
-                                onClick={() => axios.post('/api/wa/restart')}
-                                className="text-xs text-red-400/40 hover:text-red-400 font-medium transition-colors"
+                                onClick={handleLogout}
+                                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-red-500/5 border border-red-500/10 text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-all text-[11px] font-bold uppercase tracking-wider"
                             >
-                                Desconectar
+                                <LogOut size={14} /> Encerrar Sessão
                             </button>
                         </>
                     )}
