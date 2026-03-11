@@ -226,7 +226,15 @@ export function Radar() {
                                 type="number"
                                 className="w-12 bg-transparent border-none p-0 text-sm font-semibold text-white focus:ring-0 text-center hide-number-spin"
                                 value={limite}
-                                onChange={e => setLimite(parseInt(e.target.value) || 20)}
+                                onChange={e => {
+                                    const val = e.target.value;
+                                    if (val === '') {
+                                        setLimite('' as any);
+                                    } else {
+                                        const num = parseInt(val);
+                                        if (!isNaN(num)) setLimite(num);
+                                    }
+                                }}
                             />
                         </div>
                         <button
