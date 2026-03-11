@@ -155,7 +155,11 @@ export function History() {
             await axios.delete(`/api/leads/${id}`);
             setLeads(leads.filter(l => l.id !== id));
             toast.success("Lead excluído");
-        } catch { toast.error("Erro ao excluir"); }
+        } catch (err: any) {
+            const msg = err?.response?.data?.error || err?.message || "Erro desconhecido";
+            toast.error(`Erro ao excluir: ${msg}`);
+            console.error('Delete lead error:', err?.response?.status, msg);
+        }
     };
 
     const categories = ['todos', ...Array.from(new Set(leads.map(l => l.category).filter(Boolean)))];
