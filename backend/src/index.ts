@@ -668,6 +668,7 @@ app.post('/api/scraper/maps', authenticate, async (req: Request, res: Response) 
                 phone: l.phone,
                 instagram: l.instagram,
                 source: query,
+                category: query.split(' em ')[0] || 'Geral',
                 created_at: new Date().toISOString()
             }, { onConflict: 'whatsapp' });
         }

@@ -21,9 +21,10 @@ export const initWhatsApp = async () => {
 
     sock = makeWASocket({
         auth: state,
-        printQRInTerminal: true,
         logger,
-        browser: ['Sales Engine', 'Chrome', '1.0.0']
+        browser: ['Sales Engine', 'Chrome', '1.0.0'],
+        mobile: false,
+        syncFullHistory: false
     });
 
     sock.ev.on('creds.update', saveCreds);
