@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Loader2, Phone, MapPin, Instagram, PlusCircle, ChevronDown, Check, Globe, Database, Zap, Sparkles } from 'lucide-react';
+import { Search, Loader2, Phone, MapPin, Instagram, PlusCircle, MinusCircle, ChevronDown, Check, Globe, Database, Zap, Sparkles, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -41,7 +41,7 @@ function Select({ label, value, options, onChange, icon: Icon }: any) {
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full bg-[#0A0A0A] border border-white/10 rounded-2xl px-5 py-4 text-left flex items-center justify-between group hover:border-cyan-500/50 transition-all"
+                className="w-full bg-[#0A0A0A] border border-white/10 rounded-2xl px-5 py-4 text-left flex items-center justify-between group hover:border-cyan-500/50 transition-all font-sans"
             >
                 <div className="flex items-center gap-3">
                     <Icon size={18} className="text-white/20 group-hover:text-cyan-400 transition-colors" />
@@ -62,10 +62,12 @@ function Select({ label, value, options, onChange, icon: Icon }: any) {
                     >
                         <div className="max-h-60 overflow-y-auto custom-scrollbar p-2">
                             {options.map((opt: any) => {
-                                const isSelected = (typeof opt === 'string' ? opt : opt.uf || opt.name) === (typeof value === 'string' ? value : value?.uf || value?.name);
+                                const optVal = typeof opt === 'string' ? opt : opt.uf || opt.name;
+                                const currentVal = typeof value === 'string' ? value : value?.uf || value?.name;
+                                const isSelected = optVal === currentVal;
                                 return (
                                     <button
-                                        key={typeof opt === 'string' ? opt : opt.uf || opt.name}
+                                        key={optVal}
                                         type="button"
                                         onClick={() => { onChange(opt); setIsOpen(false); }}
                                         className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-left text-sm font-bold transition-all mb-1 ${isSelected ? 'bg-cyan-500 text-black' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}
@@ -83,7 +85,7 @@ function Select({ label, value, options, onChange, icon: Icon }: any) {
     );
 }
 
-export function Radar({ onQueue, queueCount }: { onQueue: (l: any) => void, queueCount: number }) {
+export function Radar({ onQueue, queue, onRemove }: { onQueue: (l: any) => void, queue: any[], onRemove: (num: string) => void }) {
     const [niche, setNiche] = useState(NICHES[0]);
     const [stateObj, setStateObj] = useState(STATES.find(s => s.uf === 'SP'));
     const [cities, setCities] = useState<string[]>([]);
@@ -117,7 +119,7 @@ export function Radar({ onQueue, queueCount }: { onQueue: (l: any) => void, queu
         if (loading) {
             interval = setInterval(() => {
                 setLoadingStage(prev => (prev + 1) % stages.length);
-            }, 3500);
+            }, 3000);
         } else {
             setLoadingStage(0);
         }
@@ -149,11 +151,13 @@ export function Radar({ onQueue, queueCount }: { onQueue: (l: any) => void, queu
         }
     };
 
+    const isInQueue = (num: string) => queue.some(q => q.whatsapp === num);
+
     return (
-        <div className="space-y-10">
+        <div className="space-y-10 font-sans">
             {/* Form Glass Card */}
             <div className="bg-[#0A0A0A] rounded-[2.5rem] border border-white/10 p-8 md:p-12 shadow-2xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
                     <Globe size={180} className="text-cyan-500 rotate-12" />
                 </div>
 
@@ -163,7 +167,7 @@ export function Radar({ onQueue, queueCount }: { onQueue: (l: any) => void, queu
                             <Zap size={28} />
                         </div>
                         <div>
-                            <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Deep Radar 2.0</h3>
+                            <h3 className="text-2xl font-black text-white uppercase tracking-tighter italic">Deep Radar 2.0</h3>
                             <p className="text-white/40 text-xs font-bold uppercase tracking-widest mt-1">Grounding AI Search Engine (Alpha)</p>
                         </div>
                     </div>
@@ -204,39 +208,73 @@ export function Radar({ onQueue, queueCount }: { onQueue: (l: any) => void, queu
                         animate={{ opacity: 1, y: 0 }}
                         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                     >
-                        {leads.map((l, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: i * 0.05 }}
-                                className="bg-[#0A0A0A] rounded-[2rem] border border-white/10 p-6 hover:border-cyan-500/40 transition-all group relative overflow-hidden"
-                            >
-                                <div className="absolute top-0 right-0 px-4 py-2 bg-cyan-500/10 text-cyan-400 text-[10px] font-black uppercase tracking-widest rounded-bl-2xl opacity-0 group-hover:opacity-100 transition-opacity">
-                                    Top Lead
-                                </div>
-
-                                <h4 className="font-black text-white text-lg mb-4 truncate pr-10 uppercase tracking-tight">{l.name}</h4>
-
-                                <div className="space-y-3 mb-8">
-                                    <div className="flex items-center gap-3 text-white/60 text-sm font-medium">
-                                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/30"><Phone size={14} /></div>
-                                        {l.phone}
-                                    </div>
-                                    <div className="flex items-center gap-3 text-white/60 text-sm font-medium">
-                                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/30"><Instagram size={14} /></div>
-                                        {l.instagram || 'Não listado'}
-                                    </div>
-                                </div>
-
-                                <button
-                                    onClick={() => { onQueue(l); toast.success("Adicionado ao Lançador!"); }}
-                                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-white/5 border border-white/10 text-white/40 text-[10px] font-black uppercase tracking-widest hover:bg-cyan-500 hover:text-black hover:border-cyan-500 transition-all"
+                        {leads.map((l, i) => {
+                            const inQueue = isInQueue(l.whatsapp);
+                            return (
+                                <motion.div
+                                    key={i}
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: i * 0.05 }}
+                                    className="bg-[#050505] rounded-[2rem] border border-white/10 p-7 hover:border-cyan-500/40 transition-all group relative overflow-hidden"
                                 >
-                                    <PlusCircle size={16} /> Enviar p/ Lançador
-                                </button>
-                            </motion.div>
-                        ))}
+                                    <div className="absolute top-0 right-0 px-4 py-2 bg-cyan-500/10 text-cyan-400 text-[9px] font-black uppercase tracking-widest rounded-bl-2xl opacity-0 group-hover:opacity-100 transition-opacity">
+                                        Grounding Info
+                                    </div>
+
+                                    <h4 className="font-black text-white text-lg mb-6 truncate pr-10 uppercase tracking-tight">{l.name}</h4>
+
+                                    <div className="space-y-4 mb-8">
+                                        <div className="flex items-center justify-between group/row">
+                                            <div className="flex items-center gap-3 text-white/50 text-xs font-bold uppercase tracking-wider">
+                                                <Phone size={14} className="text-green-500" /> WhatsApp
+                                            </div>
+                                            <a
+                                                href={`https://wa.me/${l.whatsapp}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="text-[10px] text-green-400 flex items-center gap-1.5 hover:text-green-300 font-black uppercase tracking-widest"
+                                            >
+                                                {l.phone} <ExternalLink size={10} />
+                                            </a>
+                                        </div>
+                                        <div className="flex items-center justify-between group/row">
+                                            <div className="flex items-center gap-3 text-white/50 text-xs font-bold uppercase tracking-wider">
+                                                <Instagram size={14} className="text-pink-500" /> Instagram
+                                            </div>
+                                            {l.instagram && l.instagram !== 'Não Listado' ? (
+                                                <a
+                                                    href={`https://instagram.com/${l.instagram.replace('@', '')}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="text-[10px] text-pink-400 flex items-center gap-1.5 hover:text-pink-300 font-black uppercase tracking-widest"
+                                                >
+                                                    {l.instagram} <ExternalLink size={10} />
+                                                </a>
+                                            ) : (
+                                                <span className="text-[10px] text-white/20 uppercase tracking-widest font-bold">Privado</span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        onClick={() => {
+                                            if (inQueue) {
+                                                onRemove(l.whatsapp);
+                                                toast("Removido da fila.");
+                                            } else {
+                                                onQueue(l);
+                                                toast.success("Adicionado ao Lançador!");
+                                            }
+                                        }}
+                                        className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] transition-all border ${inQueue ? 'bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white' : 'bg-white/5 border-white/10 text-white/40 hover:bg-cyan-500 hover:text-black hover:border-cyan-500'}`}
+                                    >
+                                        {inQueue ? <MinusCircle size={16} /> : <PlusCircle size={16} />}
+                                        {inQueue ? 'Tirar do Lançador' : 'Enviar p/ Lançador'}
+                                    </button>
+                                </motion.div>
+                            );
+                        })}
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -251,7 +289,7 @@ export function Radar({ onQueue, queueCount }: { onQueue: (l: any) => void, queu
                         className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-6 text-center"
                     >
                         <div className="max-w-md w-full">
-                            <div className="relative mb-12 flex justify-center">
+                            <div className="relative mb-12 flex justify-center scale-110 lg:scale-125">
                                 <motion.div
                                     animate={{ rotate: 360 }}
                                     transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
@@ -259,39 +297,41 @@ export function Radar({ onQueue, queueCount }: { onQueue: (l: any) => void, queu
                                 >
                                     <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-cyan-400 rounded-full shadow-[0_0_15px_rgba(6,182,212,0.8)]" />
                                     <div className="w-40 h-40 rounded-full border-[1px] border-cyan-500/10 flex items-center justify-center">
-                                        <div className="w-32 h-32 rounded-full border-[1px] border-cyan-500/5" />
+                                        <div className="w-32 h-32 rounded-full border-[1px] border-cyan-500/5 group-hover:border-cyan-500/20" />
                                     </div>
                                 </motion.div>
 
                                 <div className="absolute inset-0 flex items-center justify-center flex-col">
-                                    <Sparkles className="text-cyan-400 w-12 h-12 mb-2 animate-pulse" />
-                                    <div className="text-cyan-400 font-black text-3xl tracking-tighter italic uppercase">River</div>
+                                    <img src="/logo.webp" alt="River Logo" className="w-16 h-16 rounded-full border border-white/10 shadow-[0_0_20px_rgba(255,255,255,0.05)] mb-3" />
+                                    <div className="text-white font-black text-2xl tracking-widest uppercase italic leading-none">River</div>
+                                    <div className="text-[8px] text-cyan-400 font-bold tracking-[0.4em] uppercase mt-1">Sales Engine</div>
                                 </div>
                             </div>
 
-                            <div className="space-y-4">
-                                <div className="text-white font-black text-xl uppercase tracking-tighter h-8 overflow-hidden">
+                            <div className="space-y-6">
+                                <div className="text-white font-black text-xl lg:text-2xl uppercase tracking-tighter h-10 overflow-hidden">
                                     <AnimatePresence mode="wait">
                                         <motion.div
                                             key={loadingStage}
-                                            initial={{ y: 20, opacity: 0 }}
+                                            initial={{ y: 30, opacity: 0 }}
                                             animate={{ y: 0, opacity: 1 }}
-                                            exit={{ y: -20, opacity: 0 }}
+                                            exit={{ y: -30, opacity: 0 }}
+                                            className="italic font-display"
                                         >
                                             {stages[loadingStage]}
                                         </motion.div>
                                     </AnimatePresence>
                                 </div>
-                                <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden border border-white/10">
+                                <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden border border-white/10 p-[2px]">
                                     <motion.div
-                                        className="h-full bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]"
+                                        className="h-full bg-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.6)] rounded-full"
                                         animate={{ width: `${((loadingStage + 1) / stages.length) * 100}%` }}
-                                        transition={{ duration: 0.5 }}
+                                        transition={{ duration: 0.8, ease: "easeInOut" }}
                                     />
                                 </div>
-                                <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-[0.2em] text-white/30">
-                                    <span>Sistema Ativo</span>
-                                    <span>Deep Search Engine v3.1</span>
+                                <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-[0.3em] text-white/20">
+                                    <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> Sistema Estável</span>
+                                    <span>AI Model v3.1</span>
                                 </div>
                             </div>
                         </div>

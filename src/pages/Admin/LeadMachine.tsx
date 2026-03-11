@@ -86,9 +86,9 @@ export default function LeadMachine() {
                 </header>
 
                 <div className="p-10 max-w-7xl mx-auto">
-                    {activeTab === 'radar' && <Radar onQueue={addToQueue} queueCount={queue.length} />}
+                    {activeTab === 'radar' && <Radar onQueue={addToQueue} queue={queue} onRemove={removeQueue} />}
                     {activeTab === 'dispatcher' && <Dispatcher queue={queue} onRemove={removeQueue} />}
-                    {activeTab === 'history' && <LMHistory />}
+                    {activeTab === 'history' && <LMHistory onQueue={addToQueue} queue={queue} onRemove={removeQueue} />}
                 </div>
             </main>
         </div>
