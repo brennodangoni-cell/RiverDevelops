@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-    Search, Filter, MapPin, Instagram, PlusCircle, MinusCircle,
-    ChevronDown, Check, Globe, Database, Tag,
+    Search, MapPin, Instagram, PlusCircle, MinusCircle,
+    ChevronDown, Check, Globe, Tag,
     TrendingUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
