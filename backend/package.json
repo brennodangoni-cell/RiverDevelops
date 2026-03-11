@@ -1,12 +1,11 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Sales Engine Backend - AI Powered",
   "main": "index.js",
   "scripts": {
     "dev": "nodemon -w src --ext ts --exec tsx src/index.ts",
-    "start": "PUPPETEER_CACHE_DIR=./.puppeteer npx tsx src/index.ts",
-    "postinstall": "PUPPETEER_CACHE_DIR=./.puppeteer npx puppeteer browsers install chrome"
+    "start": "npx tsx src/index.ts"
   },
   "keywords": [],
   "author": "",
@@ -17,7 +16,10 @@
     "@google-cloud/vertexai": "^1.10.0",
     "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.98.0",
+    "@whiskeysockets/baileys": "latest",
+    "axios": "^1.13.6",
     "bcryptjs": "^3.0.3",
+    "cheerio": "^1.2.0",
     "cors": "^2.8.6",
     "date-fns": "^4.1.0",
     "dotenv": "^17.3.1",
@@ -25,13 +27,8 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.1.0",
     "pg": "^8.20.0",
-    "puppeteer": "latest",
-    "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2",
-    "qrcode-terminal": "latest",
-    "whatsapp-web.js": "latest",
-    "axios": "^1.13.6",
-    "cheerio": "^1.2.0"
+    "pino": "^9.0.0",
+    "qrcode-terminal": "latest"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

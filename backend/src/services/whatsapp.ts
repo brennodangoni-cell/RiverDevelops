@@ -1,71 +1,67 @@
-import { Client, LocalAuth, MessageMedia } from 'whatsapp-web.js';
-import qrcode from 'qrcode-terminal';
+import makeWASocket, {
+    DisconnectReason,
+    useMultiFileAuthState,
+    delay as baileysDelay,
+    WASocket
+} from '@whiskeysockets/baileys';
+import { Boom } from '@hapi/boom';
 import path from 'path';
 import fs from 'fs';
-import puppeteer from 'puppeteer';
+import pino from 'pino';
 
-let client: Client;
+let sock: WASocket | null = null;
 let qrCodeData: string | null = null;
 let isReady = false;
 
-// Helper function to simulate human typing delay
-export const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+// Logger for Baileys
+const logger = pino({ level: 'silent' });
 
-export const initWhatsApp = () => {
-    client = new Client({
-        authStrategy: new LocalAuth({ dataPath: path.join(__dirname, '../../whatsapp-session') }),
-        puppeteer: {
-            // Running without sandbox to avoid issues on cloud platforms like Render
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
-                '--no-first-run',
-                '--no-zygote',
-                '--single-process',
-                '--disable-gpu'
-            ],
-            headless: true
+export const initWhatsApp = async () => {
+    const { state, saveCreds } = await useMultiFileAuthState(path.join(__dirname, '../../whatsapp-session'));
+
+    sock = makeWASocket({
+        auth: state,
+        printQRInTerminal: true,
+        logger,
+        browser: ['Sales Engine', 'Chrome', '1.0.0']
+    });
+
+    sock.ev.on('creds.update', saveCreds);
+
+    sock.ev.on('connection.update', (update) => {
+        const { connection, lastDisconnect, qr } = update;
+
+        if (qr) {
+            qrCodeData = qr;
+            isReady = false;
+            console.log('WhatsApp QR Code generated (Baileys).');
+        }
+
+        if (connection === 'close') {
+            const shouldReconnect = (lastDisconnect?.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut;
+            console.log('Connection closed due to ', lastDisconnect?.error, ', reconnecting ', shouldReconnect);
+            isReady = false;
+            if (shouldReconnect) {
+                initWhatsApp(); // Try to reconnect
+            }
+        } else if (connection === 'open') {
+            console.log('WhatsApp Client is ready (Baileys)!');
+            qrCodeData = null;
+            isReady = true;
         }
     });
-
-    client.on('qr', (qr: string) => {
-        qrCodeData = qr;
-        isReady = false;
-        console.log('WhatsApp QR Code generated.');
-    });
-
-    client.on('ready', () => {
-        console.log('WhatsApp Client is ready!');
-        qrCodeData = null; // Clear QR code as it's ready
-        isReady = true;
-    });
-
-    client.on('disconnected', (reason: string) => {
-        console.log('WhatsApp Client was disconnected', reason);
-        isReady = false;
-        // Re-initialize after disconnection
-        client.destroy();
-        client.initialize();
-    });
-
-    client.initialize();
 };
 
 export const getQrCode = () => qrCodeData;
 export const getStatus = () => isReady;
 
-/**
- * Sends a message mimicking human behavior
- */
 export const sendCampaignMessage = async (number: string, spintaxMessage: string, videoPath?: string | null) => {
-    if (!isReady || !client) throw new Error("WhatsApp client is not ready");
+    if (!sock || !isReady) throw new Error("WhatsApp client is not ready");
 
-    // Format number to international format, Brazilian numbers usually 55 + DDD + Number
+    // Format number for Baileys (International digits @s.whatsapp.net)
     let formattedNumber = number.replace(/\D/g, '');
     if (!formattedNumber.startsWith('55')) formattedNumber = `55${formattedNumber}`;
-    const chatId = `${formattedNumber}@c.us`;
+    const jid = `${formattedNumber}@s.whatsapp.net`;
 
     try {
         // Parse simple spintax for variation {Oi|Olá}
@@ -74,35 +70,31 @@ export const sendCampaignMessage = async (number: string, spintaxMessage: string
             return options[Math.floor(Math.random() * options.length)];
         });
 
-        const chat = await client.getChatById(chatId);
+        // Human simulation
+        await baileysDelay(Math.random() * 2000 + 1000);
+        await sock.sendPresenceUpdate('composing', jid);
+        const typingDelay = Math.min(parsedMessage.length * 50, 8000);
+        await baileysDelay(typingDelay);
+        await sock.sendPresenceUpdate('paused', jid);
 
-        // Simulate reading history and thinking
-        await delay(Math.random() * 2000 + 1000);
+        // Send text
+        await sock.sendMessage(jid, { text: parsedMessage });
 
-        // Simulate typing
-        await chat.sendStateTyping();
-
-        // Simulating actual human typing speed (roughly calculated based on message length)
-        const typingDelay = Math.min(parsedMessage.length * 50, 10000); // max 10s of typing indication
-        await delay(typingDelay);
-        await chat.clearState();
-
-        // Send text message
-        await client.sendMessage(chatId, parsedMessage);
-
-        // If a video exists, send it
+        // If video path exists
         if (videoPath && fs.existsSync(videoPath)) {
-            await delay(Math.random() * 3000 + 2000); // pause before sending file
-
-            const media = MessageMedia.fromFilePath(videoPath);
-            await client.sendMessage(chatId, media, { caption: 'Dê uma olhada nisto!' });
+            await baileysDelay(3000);
+            const videoBuffer = fs.readFileSync(videoPath);
+            await sock.sendMessage(jid, {
+                video: videoBuffer,
+                caption: spintaxMessage.length < 20 ? 'Dê uma olhada!' : ''
+            });
         }
 
-        console.log(`Mensagem enviada com sucesso para ${formattedNumber}`);
+        console.log(`Mensagem Baileys enviada com sucesso para ${formattedNumber}`);
         return { success: true, message: parsedMessage };
 
     } catch (error: any) {
-        console.error(`Erro ao enviar mensagem para ${formattedNumber}:`, error);
+        console.error(`Erro ao enviar mensagem via Baileys para ${formattedNumber}:`, error);
         return { success: false, error: error.message };
     }
 }

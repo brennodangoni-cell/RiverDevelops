@@ -702,9 +702,13 @@ app.post('/api/wa/restart', authenticate, (req: Request, res: Response) => {
 const PORT = process.env.PORT || 10000;
 
 (async () => {
-    await runMigrations();
-    initWhatsApp();
-    app.listen(PORT, () => {
-        console.log(`RiverTasks API Supabase (HTTP-Mode) em execução na porta ${PORT}`);
-    });
+    try {
+        await runMigrations();
+        await initWhatsApp(); // Wait for Baileys to prepare state
+        app.listen(PORT, () => {
+            console.log(`[Sales Engine] API Supabase (HTTP-Mode) rodando na porta ${PORT}`);
+        });
+    } catch (e) {
+        console.error("[CRITICAL] Erro no boot do servidor:", e);
+    }
 })();
