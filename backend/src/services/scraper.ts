@@ -20,41 +20,43 @@ export async function scrapeGoogleMaps(query: string, limit = 20) {
         // Define model with Google Search Tool enabled
         const model = genAI.getGenerativeModel({
             model: "gemini-2.0-flash",
-            // Required for 2026 searching
             tools: [{ googleSearch: {} }]
-        } as any); // Cast as any if TS types for tools are not latest
+        } as any);
 
-        const prompt = `Atue como um especialista em prospecção B2B (Data: Março de 2026).
-        Pesquise por estabelecimentos/empresas de: "${query}".
-        Extraia uma lista de EXATAMENTE ${limit} empresas.
+        const prompt = `Atue como um especialista em prospecção de vendas B2B (Março de 2026).
+        Sua tarefa é encontrar empresas reais através do Google Search Grounding.
+        Query de busca: "${query}".
+        Encontre ${limit} resultados.
         
-        IMPORTANTE: Use sua busca do Google (Grounding) para encontrar dados REAIS desse ano.
-        Para cada empresa, eu preciso:
-        1. name: Nome fantasia
-        2. phone: Telefone (ex: +55DDDNÚMERO)
-        3. whatsapp: Apenas os dígitos (ex: 5534999999999)
-        4. instagram: Handle do instagram (@usuario)
+        Para cada empresa, extraia:
+        - name: Nome do local
+        - phone: Telefone com DDD (ex: (34) 99999-9999)
+        - whatsapp: Apenas números com prefixo 55 (ex: 5534999999999)
+        - instagram: Username do instagram (@perfil)
         
-        Retorne APENAS um JSON puro no formato de array de objetos:
-        [
-          {"name": "...", "phone": "...", "whatsapp": "55...", "instagram": "@..."}
-        ]
-        Não inclua markdown nem textos fora do JSON.`;
+        IMPORTANTE: Retorne APENAS um bloco de código JSON contendo um array de objetos. 
+        Não explique nada, não dê introduções.
+        Formato esperado: [{"name": "...", "phone": "...", "whatsapp": "...", "instagram": "..."}]`;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        let textResult = response.text();
+        const rawText = response.text();
 
-        // Safety cleanup for common AI responses
-        textResult = textResult.replace(/```json|```|\[json\]/g, "").trim();
+        console.log("[Gemini Raw Response]:", rawText.substring(0, 500) + "...");
 
-        const leads = JSON.parse(textResult);
+        // Robust JSON Extraction
+        const jsonMatch = rawText.match(/\[[\s\S]*\]/);
+        if (!jsonMatch) {
+            console.error("[Gemini Engine] Nenhum JSON encontrado na resposta.");
+            return [];
+        }
 
-        console.log(`[Gemini Engine] Encontrados ${leads.length} leads.`);
+        const leads = JSON.parse(jsonMatch[0]);
+        console.log(`[Gemini Engine] Sucesso: ${leads.length} leads extraídos.`);
         return leads;
 
     } catch (error: any) {
-        console.error("[Gemini Engine] Erro na busca:", error);
+        console.error("[Gemini Engine] Erro fatal:", error);
         return [];
     }
 }
