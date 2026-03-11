@@ -13,50 +13,57 @@ import pino from 'pino';
 let sock: WASocket | null = null;
 let qrCodeData: string | null = null;
 let isReady = false;
+let debugLogs: string[] = [];
+
+function addLog(msg: string) {
+    const log = `[${new Date().toLocaleTimeString()}] ${msg}`;
+    console.log(log);
+    debugLogs.push(log);
+    if (debugLogs.length > 50) debugLogs.shift();
+}
+
+export const getDebugLogs = () => debugLogs;
 
 // Logger for Baileys
 const logger = pino({ level: 'silent' });
 
 export const initWhatsApp = async () => {
-    console.log('[WhatsApp] Inicializando serviço...');
+    addLog('Iniciando serviço WhatsApp...');
 
-    // Caminho absoluto para evitar confusão no Render
     const sessionDir = path.resolve(process.cwd(), 'whatsapp-session');
 
-    // Proactively close old socket to avoid conflicts on restart
     if (sock) {
+        addLog('Encerrando socket anterior...');
         try {
-            console.log('[WhatsApp] Fechando socket anterior...');
             sock.ev.removeAllListeners('connection.update');
             sock.ev.removeAllListeners('creds.update');
             sock.end(undefined);
             sock = null;
-        } catch (e) {
-            console.error('[WhatsApp] Erro ao fechar socket:', e);
+        } catch (e: any) {
+            addLog(`Erro ao fechar socket: ${e.message}`);
         }
     }
 
-    // Ensure session dir exists
     if (!fs.existsSync(sessionDir)) {
-        console.log('[WhatsApp] Criando diretório de sessão:', sessionDir);
+        addLog('Criando diretório de sessão...');
         fs.mkdirSync(sessionDir, { recursive: true });
     }
 
+    addLog('Carregando credenciais de sessão...');
     const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
 
+    addLog('Criando socket Baileys...');
     sock = makeWASocket({
         auth: state,
         logger,
         printQRInTerminal: false,
-        browser: Browsers.ubuntu('Chrome'), // Render costuma rodar em Ubuntu
+        browser: Browsers.ubuntu('Chrome'),
         mobile: false,
         syncFullHistory: false,
         defaultQueryTimeoutMs: 60000,
         connectTimeoutMs: 60000,
         retryRequestDelayMs: 5000
     });
-
-    console.log('[WhatsApp] Socket criado. Aguardando eventos...');
 
     sock.ev.on('creds.update', saveCreds);
 
@@ -66,30 +73,27 @@ export const initWhatsApp = async () => {
         if (qr) {
             qrCodeData = qr;
             isReady = false;
-            console.log('[WhatsApp] NOVO QR CODE GERADO. Pronto para scan.');
+            addLog('NOVO QR CODE DISPONÍVEL PARA ESCANEAMENTO');
         }
 
         if (connection === 'close') {
             const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
             const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
 
-            console.log(`[WhatsApp] Conexão fechada. Status: ${statusCode}. Erro: ${lastDisconnect?.error}. Reconectando: ${shouldReconnect}`);
+            addLog(`Conexão fechada. Status: ${statusCode}. Reconectar: ${shouldReconnect}`);
 
             isReady = false;
             qrCodeData = null;
 
             if (shouldReconnect) {
-                // Delay before reconnecting to avoid infinite loops and rate limits
-                setTimeout(() => initWhatsApp(), 5000);
-            } else {
-                console.log('[WhatsApp] Deslogado ou Sessão Inválida. Limpando credenciais...');
-                // Optional: clear session folder if logged out
-                // fs.rmSync(sessionDir, { recursive: true, force: true });
+                setTimeout(() => initWhatsApp(), 8000);
             }
         } else if (connection === 'open') {
-            console.log('[WhatsApp] Conexão estabelecida com sucesso!');
+            addLog('WHATSAPP CONECTADO E PRONTO!');
             qrCodeData = null;
             isReady = true;
+        } else if (connection === 'connecting') {
+            addLog('Conectando ao WhatsApp...');
         }
     });
 
@@ -142,3 +146,27 @@ export const sendCampaignMessage = async (number: string, spintaxMessage: string
         return { success: false, error: error.message };
     }
 }
+
+export const disconnectWhatsApp = async () => {
+    addLog('Solicitando desconexão manual e limpeza de sessão...');
+    const sessionDir = path.resolve(process.cwd(), 'whatsapp-session');
+
+    if (sock) {
+        try {
+            await sock.logout();
+            sock.end(undefined);
+        } catch (e) { }
+        sock = null;
+    }
+
+    if (fs.existsSync(sessionDir)) {
+        addLog('Limpando pasta de sessão permanentemente...');
+        fs.rmSync(sessionDir, { recursive: true, force: true });
+    }
+
+    isReady = false;
+    qrCodeData = null;
+
+    // Reinicia do zero absoluto
+    setTimeout(() => initWhatsApp(), 3000);
+};

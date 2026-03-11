@@ -11,12 +11,20 @@ export function Dispatcher({ queue, onRemove }: { queue: any[]; onRemove: (num: 
     const [progressCount, setProgressCount] = useState(0);
     const [status, setStatus] = useState({ isReady: false, qr: '' });
     const [error, setError] = useState<string | null>(null);
+    const [logs, setLogs] = useState<string[]>([]);
 
     useEffect(() => {
         const check = async () => {
             try {
                 const r = await axios.get('/api/wa/status');
                 setStatus(r.data);
+
+                // Buscar logs apenas se estiver tentando conectar
+                if (!r.data.isReady) {
+                    const l = await axios.get('/api/wa/debug');
+                    setLogs(l.data.logs || []);
+                }
+
                 setError(null);
             } catch (err: any) {
                 if (err.code === 'ERR_NETWORK' || err.response?.status === 503) {
@@ -178,14 +186,29 @@ export function Dispatcher({ queue, onRemove }: { queue: any[]; onRemove: (num: 
                                     <Loader2 size={32} className="animate-spin text-cyan-500/50" />
                                     <span className="text-xs text-white/20 font-medium px-6">{error || "Gerando nova sessão... Isso pode levar até 1 minuto no Render."}</span>
                                     <button
-                                        onClick={() => {
-                                            axios.post('/api/wa/restart');
-                                            toast.success("Reiniciando motor... aguarde");
+                                        onClick={async () => {
+                                            try {
+                                                await axios.post('/api/wa/restart', { clean: true });
+                                                toast.success("Limpando tudo e reiniciando...");
+                                            } catch {
+                                                toast.error("Erro ao solicitar reinício");
+                                            }
                                         }}
-                                        className="mt-4 text-[10px] text-white/10 hover:text-cyan-500 transition-colors uppercase tracking-widest font-bold bg-white/5 px-4 py-2 rounded-lg"
+                                        className="mt-4 text-[10px] text-white/20 hover:text-cyan-500 transition-colors uppercase tracking-widest font-bold bg-white/5 border border-white/5 px-6 py-2.5 rounded-xl"
                                     >
-                                        Forçar Reinício
+                                        Hard Reset (Limpar Sessão)
                                     </button>
+
+                                    {logs.length > 0 && (
+                                        <div className="mt-8 w-full max-w-[280px] text-left space-y-1 opacity-40">
+                                            <p className="text-[9px] font-bold text-white/40 uppercase tracking-tighter mb-2">Logs do Motor:</p>
+                                            {logs.slice(-4).map((l, idx) => (
+                                                <div key={idx} className="text-[9px] font-mono text-white/50 truncate border-l border-white/10 pl-2">
+                                                    {l}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </>
