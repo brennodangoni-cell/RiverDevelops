@@ -1,5 +1,22 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Loader2, MessageCircle, MapPin, Instagram, PlusCircle, MinusCircle, ChevronDown, Check, Globe, Database, Zap, Sparkles, ExternalLink } from 'lucide-react';
+import { Search, Loader2, MapPin, Instagram, PlusCircle, MinusCircle, ChevronDown, Check, Globe, Database, Zap, Sparkles, ExternalLink } from 'lucide-react';
+
+const WhatsAppIcon = ({ size = 18, className = "" }) => (
+    <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+    >
+        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-11.3 8.38 8.38 0 0 1 3.8.9l5.7-1.1-1.1 5.7Z" />
+        <path d="M11 11a3 3 0 1 1 0 6 3 3 0 0 1 0-6Z" />
+    </svg>
+);
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -232,7 +249,7 @@ export function Radar({ onQueue, queue, onRemove }: { onQueue: (l: any) => void,
                                     <div className="space-y-4 mb-10">
                                         <div className="flex items-center justify-between group/row">
                                             <div className="flex items-center gap-3 text-white/30 text-[10px] font-black uppercase tracking-widest">
-                                                <MessageCircle size={16} className="text-green-500" /> WhatsApp
+                                                <WhatsAppIcon size={16} className="text-green-500" /> WhatsApp
                                             </div>
                                             <a
                                                 href={`https://wa.me/${l.whatsapp}`}
