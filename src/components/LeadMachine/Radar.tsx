@@ -73,6 +73,14 @@ function Dropdown({ label, value, options, onChange, disabled, loading: isLoadin
                             className="w-full bg-white/[0.04] rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/20 border-none focus:outline-none"
                             value={query}
                             onChange={e => setQuery(e.target.value)}
+                            onKeyDown={e => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    const first = options.filter(o => o.toLowerCase().includes(query.toLowerCase()))[0];
+                                    if (first) { onChange(first); setOpen(false); setQuery(''); }
+                                }
+                            }}
                         />
                     </div>
                     <div className="max-h-[200px] overflow-y-auto custom-scrollbar">
@@ -138,7 +146,8 @@ export function Radar({ onQueue, queue, onRemove }: { onQueue: (l: any) => void;
 
         setLoading(true);
         try {
-            const res = await axios.post('/api/scraper/maps', { keyword, location, limit: limite });
+            const query = location ? `${keyword} em ${location}` : keyword;
+            const res = await axios.post('/api/scraper/maps', { query, limit: limite });
             setLeads(res.data.leads || []);
             toast.success(`${res.data.leads?.length || 0} leads encontrados`);
         } catch {

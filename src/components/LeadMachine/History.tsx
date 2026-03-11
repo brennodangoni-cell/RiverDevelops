@@ -97,7 +97,14 @@ function FilterDropdown({ value, options, onChange, placeholder }: {
                         <div className="p-2 border-b border-white/[0.04]">
                             <input ref={inputRef} type="text" placeholder="Digitar para buscar..."
                                 className="w-full bg-white/[0.04] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/20 border-none focus:outline-none"
-                                value={query} onChange={e => setQuery(e.target.value)} />
+                                value={query} onChange={e => setQuery(e.target.value)}
+                                onKeyDown={e => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        const first = options.filter(o => o.label.toLowerCase().includes(query.toLowerCase()))[0];
+                                        if (first) { onChange(first.value); setOpen(false); setQuery(''); }
+                                    }
+                                }} />
                         </div>
                     )}
                     <div className="max-h-[200px] overflow-y-auto custom-scrollbar py-1">
@@ -198,7 +205,7 @@ export function History() {
             </div>
 
             {/* Tabela */}
-            <div className="bg-[#131313] border border-white/[0.06] rounded-2xl overflow-hidden">
+            <div className="bg-[#131313] border border-white/[0.06] rounded-2xl">
                 <div className="overflow-x-auto custom-scrollbar">
                     <table className="w-full text-left min-w-[850px]">
                         <thead className="border-b border-white/[0.04]">
