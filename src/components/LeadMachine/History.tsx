@@ -1,16 +1,53 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, MapPin, Instagram, PlusCircle, MinusCircle, ChevronDown, Check, Globe, TrendingUp } from 'lucide-react';
+import { Search, MapPin, Instagram, PlusCircle, MinusCircle, ChevronDown, Check, Globe } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { WhatsAppIcon } from './WhatsAppIcon';
 
 const STATUS_OPTIONS = [
-    { value: 'Pendente', label: 'Pendente', color: 'text-amber-400 bg-amber-500/10' },
-    { value: 'Chamado', label: 'Contatado', color: 'text-cyan-400 bg-cyan-500/10' },
-    { value: 'Negociando', label: 'Negociando', color: 'text-purple-400 bg-purple-500/10' },
-    { value: 'Fechado', label: 'Convertido', color: 'text-emerald-400 bg-emerald-500/10' },
+    { value: 'Pendente', label: 'Pendente', dot: 'bg-amber-400', bg: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
+    { value: 'Chamado', label: 'Contatado', dot: 'bg-cyan-400', bg: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' },
+    { value: 'Negociando', label: 'Negociando', dot: 'bg-purple-400', bg: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
+    { value: 'Fechado', label: 'Convertido', dot: 'bg-emerald-400', bg: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
 ];
 
+/* ── Status Dropdown Custom ────────────────────────── */
+function StatusBadge({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+    const [open, setOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+    const current = STATUS_OPTIONS.find(s => s.value === value) || STATUS_OPTIONS[0];
+
+    useEffect(() => {
+        const close = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+        document.addEventListener('mousedown', close);
+        return () => document.removeEventListener('mousedown', close);
+    }, []);
+
+    return (
+        <div className="relative" ref={ref}>
+            <button onClick={() => setOpen(!open)}
+                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all hover:brightness-125 ${current.bg}`}>
+                <div className={`w-1.5 h-1.5 rounded-full ${current.dot}`} />
+                {current.label}
+                <ChevronDown size={12} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+            </button>
+            {open && (
+                <div className="absolute top-full left-0 mt-1 w-44 bg-[#161616] border border-white/[0.08] rounded-xl shadow-[0_12px_40px_rgba(0,0,0,0.5)] z-[100] overflow-hidden py-1">
+                    {STATUS_OPTIONS.map(s => (
+                        <button key={s.value} onClick={() => { onChange(s.value); setOpen(false); }}
+                            className={`w-full px-4 py-2.5 text-xs text-left flex items-center gap-2.5 transition-colors ${s.value === value ? 'bg-white/[0.04]' : 'hover:bg-white/[0.03]'}`}>
+                            <div className={`w-2 h-2 rounded-full ${s.dot}`} />
+                            <span className={s.value === value ? 'text-white font-semibold' : 'text-white/50'}>{s.label}</span>
+                            {s.value === value && <Check size={12} className="text-white/40 ml-auto" />}
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
+/* ── Filter Dropdown ───────────────────────────────── */
 function FilterDropdown({ value, options, onChange, placeholder }: {
     value: string; options: { value: string; label: string }[]; onChange: (v: string) => void; placeholder: string;
 }) {
@@ -28,19 +65,15 @@ function FilterDropdown({ value, options, onChange, placeholder }: {
     return (
         <div className="relative" ref={ref}>
             <button onClick={() => setOpen(!open)}
-                className="flex items-center gap-2 bg-[#0e0e0e] border border-white/5 rounded-xl px-4 py-2.5 text-xs font-medium text-white/50 hover:text-white hover:border-white/10 transition-all">
+                className={`flex items-center gap-2 h-10 bg-[#111] border border-white/[0.06] rounded-xl px-4 text-xs font-medium transition-all hover:border-white/15 ${open ? 'border-cyan-500/30' : ''} ${value !== 'todos' ? 'text-cyan-400' : 'text-white/40'}`}>
                 {selected ? selected.label : placeholder}
-                <ChevronDown size={14} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+                <ChevronDown size={13} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
             </button>
             {open && (
-                <div className="absolute top-full left-0 mt-1 w-48 bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl z-[100] overflow-hidden py-1 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <button onClick={() => { onChange('todos'); setOpen(false); }}
-                        className={`w-full px-4 py-2.5 text-xs text-left hover:bg-white/5 transition-colors ${value === 'todos' ? 'text-cyan-400 font-semibold' : 'text-white/50'}`}>
-                        Todos
-                    </button>
-                    {options.filter(o => o.value !== 'todos').map(opt => (
+                <div className="absolute top-full left-0 mt-1 w-48 bg-[#161616] border border-white/[0.08] rounded-xl shadow-[0_12px_40px_rgba(0,0,0,0.5)] z-[100] overflow-hidden py-1">
+                    {options.map(opt => (
                         <button key={opt.value} onClick={() => { onChange(opt.value); setOpen(false); }}
-                            className={`w-full px-4 py-2.5 text-xs text-left hover:bg-white/5 transition-colors flex items-center justify-between ${opt.value === value ? 'text-cyan-400 font-semibold' : 'text-white/50'}`}>
+                            className={`w-full px-4 py-2.5 text-xs text-left transition-colors flex items-center justify-between ${opt.value === value ? 'text-cyan-400 bg-cyan-500/5 font-semibold' : 'text-white/50 hover:bg-white/[0.03] hover:text-white'}`}>
                             {opt.label}
                             {opt.value === value && <Check size={12} className="text-cyan-400" />}
                         </button>
@@ -51,6 +84,7 @@ function FilterDropdown({ value, options, onChange, placeholder }: {
     );
 }
 
+/* ── Componente Principal ─────────────────────────── */
 export function History({ onQueue, queue, onRemove }: { onQueue: (l: any) => void; queue: any[]; onRemove: (num: string) => void }) {
     const [leads, setLeads] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -75,12 +109,12 @@ export function History({ onQueue, queue, onRemove }: { onQueue: (l: any) => voi
     };
 
     const categories = ['todos', ...Array.from(new Set(leads.map(l => l.category).filter(Boolean)))];
-    const categoryOptions = categories.map(c => ({ value: c, label: c === 'todos' ? 'Todas' : c }));
-    const statusOptions = [{ value: 'todos', label: 'Todos' }, ...STATUS_OPTIONS.map(s => ({ value: s.value, label: s.label }))];
+    const categoryOpts = categories.map(c => ({ value: c, label: c === 'todos' ? 'Todas categorias' : c }));
+    const statusOpts = [{ value: 'todos', label: 'Todos status' }, ...STATUS_OPTIONS.map(s => ({ value: s.value, label: s.label }))];
 
     const filtered = leads.filter(lead => {
-        const search = filters.search.toLowerCase();
-        const matchSearch = !search || lead.name?.toLowerCase().includes(search) || lead.whatsapp?.includes(search);
+        const s = filters.search.toLowerCase();
+        const matchSearch = !s || lead.name?.toLowerCase().includes(s) || lead.whatsapp?.includes(s);
         const matchCat = filters.category === 'todos' || lead.category === filters.category;
         const matchStatus = filters.status === 'todos' || lead.status === filters.status;
         return matchSearch && matchCat && matchStatus;
@@ -89,95 +123,89 @@ export function History({ onQueue, queue, onRemove }: { onQueue: (l: any) => voi
     return (
         <div className="space-y-6">
             {/* Filtros */}
-            <div className="bg-[#141414] border border-white/5 rounded-2xl p-5 flex flex-col md:flex-row gap-4 items-start md:items-center">
-                <div className="relative flex-1 w-full">
-                    <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" />
-                    <input
-                        type="text"
-                        placeholder="Buscar por nome ou telefone..."
-                        className="w-full bg-[#0e0e0e] border border-white/5 rounded-xl pl-11 pr-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-white/10 transition-all"
-                        value={filters.search}
-                        onChange={e => setFilters({ ...filters, search: e.target.value })}
-                    />
-                </div>
-                <div className="flex items-center gap-3 flex-wrap">
-                    <FilterDropdown value={filters.category} options={categoryOptions} onChange={v => setFilters({ ...filters, category: v })} placeholder="Categoria" />
-                    <FilterDropdown value={filters.status} options={statusOptions} onChange={v => setFilters({ ...filters, status: v })} placeholder="Status" />
-                    <div className="flex items-center gap-2 px-4 py-2.5 bg-[#0e0e0e] border border-white/5 rounded-xl">
-                        <TrendingUp size={14} className="text-cyan-400" />
-                        <span className="text-xs font-bold text-white">{filtered.length}</span>
-                        <span className="text-xs text-white/30">leads</span>
+            <div className="bg-[#131313] border border-white/[0.06] rounded-2xl p-5">
+                <div className="flex flex-col md:flex-row gap-3 items-start md:items-center">
+                    <div className="relative flex-1 w-full">
+                        <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/15" />
+                        <input
+                            type="text"
+                            placeholder="Buscar por nome ou telefone..."
+                            className="w-full h-10 bg-[#111] border border-white/[0.06] rounded-xl pl-10 pr-4 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-white/15 transition-all"
+                            value={filters.search}
+                            onChange={e => setFilters({ ...filters, search: e.target.value })}
+                        />
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <FilterDropdown value={filters.category} options={categoryOpts} onChange={v => setFilters({ ...filters, category: v })} placeholder="Categoria" />
+                        <FilterDropdown value={filters.status} options={statusOpts} onChange={v => setFilters({ ...filters, status: v })} placeholder="Status" />
+                        <span className="text-xs text-white/25 px-3">{filtered.length} leads</span>
                     </div>
                 </div>
             </div>
 
             {/* Tabela */}
-            <div className="bg-[#141414] border border-white/5 rounded-2xl overflow-hidden">
+            <div className="bg-[#131313] border border-white/[0.06] rounded-2xl overflow-hidden">
                 <div className="overflow-x-auto custom-scrollbar">
-                    <table className="w-full text-left min-w-[900px]">
-                        <thead className="border-b border-white/5">
+                    <table className="w-full text-left min-w-[850px]">
+                        <thead className="border-b border-white/[0.04]">
                             <tr>
-                                <th className="px-6 py-4 text-xs font-semibold text-white/30">Nome</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-white/30">Local</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-white/30">Contato</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-white/30">Status</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-white/30 text-right">Ação</th>
+                                <th className="px-6 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Nome</th>
+                                <th className="px-6 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Local</th>
+                                <th className="px-6 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Contato</th>
+                                <th className="px-6 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider">Status</th>
+                                <th className="px-6 py-3.5 text-[11px] font-medium text-white/25 uppercase tracking-wider text-right">Ação</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/[0.03]">
                             {loading ? (
-                                <tr><td colSpan={5} className="py-16 text-center text-white/20 text-sm">Carregando...</td></tr>
+                                <tr><td colSpan={5} className="py-20 text-center text-white/20 text-sm">Carregando...</td></tr>
                             ) : filtered.length === 0 ? (
-                                <tr><td colSpan={5} className="py-16 text-center text-white/20 text-sm">Nenhum lead encontrado</td></tr>
+                                <tr><td colSpan={5} className="py-20 text-center text-white/20 text-sm">Nenhum lead encontrado</td></tr>
                             ) : filtered.map((lead, idx) => {
                                 const inQueue = queue.some(l => l.whatsapp === lead.whatsapp);
-                                const currentStatus = STATUS_OPTIONS.find(s => s.value === lead.status) || STATUS_OPTIONS[0];
+                                const location = [lead.city, lead.state, lead.address].filter(Boolean).join(', ') || '—';
                                 return (
-                                    <tr key={lead.id || idx} className="hover:bg-white/[0.02] transition-colors">
+                                    <tr key={lead.id || idx} className="hover:bg-white/[0.015] transition-colors">
                                         <td className="px-6 py-4">
-                                            <div className="text-sm font-semibold text-white">{lead.name}</div>
-                                            <div className="text-[11px] text-white/30 mt-0.5">{lead.whatsapp}</div>
+                                            <div className="text-sm font-medium text-white">{lead.name}</div>
+                                            <div className="text-[11px] text-white/25 mt-0.5">{lead.whatsapp}</div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="flex items-center gap-1.5 text-white/40 text-xs">
-                                                <MapPin size={12} /> {lead.city}{lead.state ? `, ${lead.state}` : ''}
+                                            <div className="flex items-center gap-1.5 text-white/35 text-xs max-w-[200px]">
+                                                <MapPin size={12} className="shrink-0" />
+                                                <span className="truncate">{location}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-1.5">
                                                 <a href={`https://wa.me/${lead.whatsapp?.replace(/\D/g, '')}`} target="_blank" rel="noreferrer"
-                                                    className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-[#25D366]/10 transition-all text-white/30 hover:text-[#25D366]">
-                                                    <WhatsAppIcon size={14} />
+                                                    className="w-8 h-8 rounded-lg bg-[#25D366]/10 border border-[#25D366]/15 flex items-center justify-center text-[#25D366] hover:bg-[#25D366]/20 transition-all">
+                                                    <WhatsAppIcon size={13} />
                                                 </a>
                                                 {lead.instagram && (
                                                     <a href={`https://instagram.com/${lead.instagram.replace('@', '')}`} target="_blank" rel="noreferrer"
-                                                        className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-pink-500/10 transition-all text-white/30 hover:text-pink-500">
-                                                        <Instagram size={14} />
+                                                        className="w-8 h-8 rounded-lg bg-pink-500/10 border border-pink-500/15 flex items-center justify-center text-pink-400 hover:bg-pink-500/20 transition-all">
+                                                        <Instagram size={13} />
                                                     </a>
                                                 )}
                                                 {lead.website && (
                                                     <a href={lead.website} target="_blank" rel="noreferrer"
-                                                        className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-blue-500/10 transition-all text-white/30 hover:text-blue-400">
-                                                        <Globe size={14} />
+                                                        className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/15 flex items-center justify-center text-blue-400 hover:bg-blue-500/20 transition-all">
+                                                        <Globe size={13} />
                                                     </a>
                                                 )}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <select
+                                            <StatusBadge
                                                 value={lead.status || 'Pendente'}
-                                                onChange={e => updateStatus(lead.id, e.target.value)}
-                                                className={`bg-transparent border border-white/5 rounded-lg px-3 py-1.5 text-xs font-semibold focus:ring-0 focus:outline-none cursor-pointer ${currentStatus.color}`}
-                                            >
-                                                {STATUS_OPTIONS.map(s => (
-                                                    <option key={s.value} value={s.value} className="bg-[#1a1a1a] text-white">{s.label}</option>
-                                                ))}
-                                            </select>
+                                                onChange={(v) => updateStatus(lead.id, v)}
+                                            />
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <button
                                                 onClick={() => inQueue ? onRemove(lead.whatsapp) : onQueue(lead)}
-                                                className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${inQueue ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' : 'bg-cyan-500 text-black hover:bg-cyan-400'}`}
+                                                className={`inline-flex items-center gap-1.5 h-8 px-3.5 rounded-lg text-xs font-semibold transition-all ${inQueue ? 'bg-red-500/10 text-red-400 border border-red-500/15 hover:bg-red-500/20' : 'bg-cyan-500 text-black hover:bg-cyan-400'}`}
                                             >
                                                 {inQueue ? <><MinusCircle size={13} /> Remover</> : <><PlusCircle size={13} /> Fila</>}
                                             </button>
