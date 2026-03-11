@@ -60,7 +60,7 @@ export default function LeadMachine() {
             {/* Conteúdo */}
             <div className="max-w-[1500px] mx-auto px-4 sm:px-6 md:px-10 pt-[100px] lg:pt-[110px] pb-20">
                 {activeTab === 'radar' && <Radar onQueue={() => { }} queue={[]} onRemove={() => { }} />}
-                {activeTab === 'history' && <History onQueue={() => { }} queue={[]} onRemove={() => { }} />}
+                {activeTab === 'history' && <History />}
             </div>
         </div>
     );

@@ -11,28 +11,44 @@ const STATUS_OPTIONS = [
     { value: 'Fechado', label: 'Convertido', dot: 'bg-emerald-400', bg: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
 ];
 
-/* ── Status Badge Dropdown ─────────────────────────── */
+/* ── Status Badge (fixed position - abre por fora) ── */
 function StatusBadge({ value, onChange }: { value: string; onChange: (v: string) => void }) {
     const [open, setOpen] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
+    const [pos, setPos] = useState({ top: 0, left: 0 });
+    const btnRef = useRef<HTMLButtonElement>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
     const current = STATUS_OPTIONS.find(s => s.value === value) || STATUS_OPTIONS[0];
 
     useEffect(() => {
-        const close = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+        const close = (e: MouseEvent) => {
+            if (btnRef.current?.contains(e.target as Node)) return;
+            if (menuRef.current?.contains(e.target as Node)) return;
+            setOpen(false);
+        };
         document.addEventListener('mousedown', close);
         return () => document.removeEventListener('mousedown', close);
     }, []);
 
+    const handleToggle = () => {
+        if (!open && btnRef.current) {
+            const rect = btnRef.current.getBoundingClientRect();
+            setPos({ top: rect.bottom + 4, left: rect.left });
+        }
+        setOpen(!open);
+    };
+
     return (
-        <div className="relative" ref={ref}>
-            <button onClick={() => setOpen(!open)}
+        <>
+            <button ref={btnRef} onClick={handleToggle}
                 className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all hover:brightness-125 ${current.bg}`}>
                 <div className={`w-1.5 h-1.5 rounded-full ${current.dot}`} />
                 {current.label}
                 <ChevronDown size={12} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
             </button>
             {open && (
-                <div className="absolute top-full left-0 mt-1 w-44 bg-[#161616] border border-white/[0.08] rounded-xl shadow-[0_12px_40px_rgba(0,0,0,0.5)] z-[100] py-1">
+                <div ref={menuRef}
+                    className="fixed w-44 bg-[#161616] border border-white/[0.08] rounded-xl shadow-[0_12px_40px_rgba(0,0,0,0.5)] z-[9999] py-1"
+                    style={{ top: pos.top, left: pos.left }}>
                     {STATUS_OPTIONS.map(s => (
                         <button key={s.value} onClick={() => { onChange(s.value); setOpen(false); }}
                             className={`w-full px-4 py-2.5 text-xs text-left flex items-center gap-2.5 transition-colors ${s.value === value ? 'bg-white/[0.04]' : 'hover:bg-white/[0.03]'}`}>
@@ -43,7 +59,7 @@ function StatusBadge({ value, onChange }: { value: string; onChange: (v: string)
                     ))}
                 </div>
             )}
-        </div>
+        </>
     );
 }
 
@@ -103,7 +119,7 @@ function FilterDropdown({ value, options, onChange, placeholder }: {
 }
 
 /* ── Componente Principal ─────────────────────────── */
-export function History(_props: { onQueue: (l: any) => void; queue: any[]; onRemove: (num: string) => void }) {
+export function History() {
     const [leads, setLeads] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({ search: '', category: 'todos', status: 'todos', state: 'todos', city: 'todos' });
@@ -126,7 +142,6 @@ export function History(_props: { onQueue: (l: any) => void; queue: any[]; onRem
         } catch { toast.error("Erro ao atualizar"); }
     };
 
-    // Montar opções dinâmicas baseado nos dados reais
     const categories = ['todos', ...Array.from(new Set(leads.map(l => l.category).filter(Boolean)))];
     const states = ['todos', ...Array.from(new Set(leads.map(l => l.state).filter(Boolean))).sort()];
     const citiesForState = filters.state === 'todos'
@@ -153,7 +168,6 @@ export function History(_props: { onQueue: (l: any) => void; queue: any[]; onRem
             {/* Filtros */}
             <div className="bg-[#131313] border border-white/[0.06] rounded-2xl p-5">
                 <div className="flex flex-col gap-3">
-                    {/* Busca */}
                     <div className="relative w-full">
                         <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/15" />
                         <input
@@ -164,7 +178,6 @@ export function History(_props: { onQueue: (l: any) => void; queue: any[]; onRem
                             onChange={e => setFilters({ ...filters, search: e.target.value })}
                         />
                     </div>
-                    {/* Filtros em linha */}
                     <div className="flex items-center gap-2 flex-wrap">
                         <FilterDropdown value={filters.category} options={categoryOpts} onChange={v => setFilters({ ...filters, category: v })} placeholder="Categoria" />
                         <FilterDropdown value={filters.state} options={stateOpts} onChange={v => setFilters({ ...filters, state: v, city: 'todos' })} placeholder="Estado" />
