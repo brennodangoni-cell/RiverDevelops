@@ -15,60 +15,72 @@ export async function scrapeGoogleMaps(query: string, limit = 20) {
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
 
-        // Migrando para Gemini 3 conforme solicitado (Março de 2026)
+        // Migrando para o modelo solicitado pelo usuário (gemini-3-flash-preview)
+        // Adicionando grounding para garantir acesso a dados reais da web em 2026
         const model = genAI.getGenerativeModel({
             model: "gemini-3-flash-preview",
             tools: [{ googleSearch: {} }] as any
         } as any);
 
-        const prompt = `Você é uma ferramenta de busca B2B de alta precisão. (Data Atual: Março de 2026).
-        Sua missão é PESQUISAR no Google agora e encontrar exatamente ${limit} empresas de "${query}".
+        const prompt = `Você é um especialista em prospecção B2B (Março de 2026).
+        Sua tarefa é usar a Pesquisa Google AGORA para encontrar EXATAMENTE ${limit} empresas ativas correspondentes a: "${query}".
         
-        Para cada empresa encontrada, você DEVE extrair:
-        1. name: Nome fantasia da empresa
-        2. phone: Telefone (formato legível, ex: (34) 99999-9999)
-        3. whatsapp: Apenas números com prefixo 55 (ex: 5534999999999)
-        4. instagram: Handle (@perfil) ou "Não Listado"
+        IMPORTANTE: Você deve encontrar dados REAIS e ATUAIS. Não invente empresas.
         
-        REGRAD DE OURO:
-        - Retorne APENAS um array JSON.
-        - Não escreva textos explicativos antes ou depois.
-        - Se não encontrar os ${limit}, retorne o máximo que conseguir.
+        Para cada empresa, extraia rigorosamente:
+        1. name: Nome oficial da empresa.
+        2. phone: Telefone de contato formatado (ex: (11) 99999-9999).
+        3. whatsapp: Apenas os números com prefixo 55 (ex: 5511999999999). Se o telefone for celular, use-o como WhatsApp.
+        4. instagram: O @perfil do Instagram se disponível, ou "Não Listado".
         
-        FORMATO DO JSON:
-        [{"name": "Empresa X", "phone": "(11) 98888-7777", "whatsapp": "5511988887777", "instagram": "@empresa_x"}]`;
+        SAÍDA OBRIGATÓRIA:
+        Retorne APENAS um array JSON puro, sem markdown, sem explicações.
+        Se encontrar menos que ${limit}, retorne o máximo possível.
+        
+        EXEMPLO:
+        [{"name": "Exemplo LTDA", "phone": "(11) 98888-7777", "whatsapp": "5511988887777", "instagram": "@exemplo"}]`;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text();
 
-        console.log("[Sales Engine] Resposta Bruta da IA (Primeiros 200 caracteres):", text.substring(0, 200));
+        console.log("[Sales Engine] Resposta Bruta da IA:", text.substring(0, 300));
 
-        // Limpeza agressiva para garantir que só o JSON entre no parser
+        // Limpeza do JSON
         const jsonMatch = text.match(/\[[\s\S]*\]/);
 
         if (!jsonMatch) {
             console.error("[Sales Engine] Resposta sem formato JSON:", text);
-            throw new Error("A IA respondeu mas os dados não vieram no formato correto. Verifique o termo de busca.");
+            throw new Error("A IA não conseguiu formatar os dados. Tente um termo de busca mais específico.");
         }
 
         const leads = JSON.parse(jsonMatch[0]);
 
         if (!Array.isArray(leads) || leads.length === 0) {
-            throw new Error("Busca concluída, mas 0 resultados reais foram encontrados para este nicho/cidade.");
+            console.warn(`[Sales Engine] 0 leads encontrados para: ${query}`);
+            throw new Error("Nenhum lead encontrado para este nicho nesta localização. Tente mudar o nicho ou a cidade.");
         }
 
-        console.log(`[Sales Engine] Extração concluída com sucesso: ${leads.length} leads.`);
-        return leads;
+        // Adicionar categoria baseada na busca
+        const enrichedLeads = leads.map((l: any) => ({
+            ...l,
+            category: query.split(' em ')[0] || 'Geral'
+        }));
+
+        console.log(`[Sales Engine] Extração concluída: ${enrichedLeads.length} leads.`);
+        return enrichedLeads;
 
     } catch (error: any) {
-        console.error("[Sales Engine] Erro Crítico no Scraper:", error);
+        console.error("[Sales Engine] Erro no Scraper:", error);
 
-        // Se for erro de quota ou segurança da Google
-        if (error.message?.includes("quota") || error.message?.includes("Safety")) {
-            throw new Error("A API do Gemini parou por limite de uso ou restrição de conteúdo. Tente novamente em instantes.");
+        if (error.message?.includes("404") || error.message?.includes("model")) {
+            throw new Error(`O modelo gemini-3-flash-preview pode estar indisponível ou em manutenção. Erro: ${error.message}`);
         }
 
-        throw new Error("Falha no Radar IA: " + (error.message || "Erro desconhecido na conexão com a Google AI"));
+        if (error.message?.includes("quota")) {
+            throw new Error("Limite de uso da API atingido. Aguarde alguns minutos.");
+        }
+
+        throw new Error("Falha no Radar IA: " + (error.message || "Erro de conexão"));
     }
 }

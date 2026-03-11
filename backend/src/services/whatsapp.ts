@@ -2,7 +2,8 @@ import makeWASocket, {
     DisconnectReason,
     useMultiFileAuthState,
     delay as baileysDelay,
-    WASocket
+    WASocket,
+    Browsers
 } from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
 import path from 'path';
@@ -17,14 +18,40 @@ let isReady = false;
 const logger = pino({ level: 'silent' });
 
 export const initWhatsApp = async () => {
-    const { state, saveCreds } = await useMultiFileAuthState(path.join(__dirname, '../../whatsapp-session'));
+    // Proactively close old socket to avoid conflicts on restart
+    if (sock) {
+        try {
+            sock.ev.removeAllListeners('connection.update');
+            sock.ev.removeAllListeners('creds.update');
+            sock.logout();
+            sock.end(undefined);
+            sock = null;
+        } catch (e) {
+            console.error('[WhatsApp] Erro ao fechar socket antigo:', e);
+        }
+    }
+
+    const sessionDir = path.join(__dirname, '../../whatsapp-session');
+
+    // Ensure session dir exists
+    if (!fs.existsSync(sessionDir)) {
+        fs.mkdirSync(sessionDir, { recursive: true });
+    }
+
+    const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
+
+    console.log('[WhatsApp] Iniciando instância Baileys...');
 
     sock = makeWASocket({
         auth: state,
         logger,
-        browser: ['Sales Engine', 'Chrome', '1.0.0'],
+        printQRInTerminal: false,
+        browser: Browsers.macOS('Desktop'),
         mobile: false,
-        syncFullHistory: false
+        syncFullHistory: false,
+        defaultQueryTimeoutMs: 60000,
+        connectTimeoutMs: 60000,
+        retryRequestDelayMs: 5000
     });
 
     sock.ev.on('creds.update', saveCreds);
@@ -35,22 +62,34 @@ export const initWhatsApp = async () => {
         if (qr) {
             qrCodeData = qr;
             isReady = false;
-            console.log('WhatsApp QR Code generated (Baileys).');
+            console.log('[WhatsApp] Novo QR Code gerado.');
         }
 
         if (connection === 'close') {
-            const shouldReconnect = (lastDisconnect?.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut;
-            console.log('Connection closed due to ', lastDisconnect?.error, ', reconnecting ', shouldReconnect);
+            const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
+            const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
+
+            console.log(`[WhatsApp] Conexão fechada. Status: ${statusCode}. Erro: ${lastDisconnect?.error}. Reconectando: ${shouldReconnect}`);
+
             isReady = false;
+            qrCodeData = null;
+
             if (shouldReconnect) {
-                initWhatsApp(); // Try to reconnect
+                // Delay before reconnecting to avoid infinite loops and rate limits
+                setTimeout(() => initWhatsApp(), 5000);
+            } else {
+                console.log('[WhatsApp] Deslogado ou Sessão Inválida. Limpando credenciais...');
+                // Optional: clear session folder if logged out
+                // fs.rmSync(sessionDir, { recursive: true, force: true });
             }
         } else if (connection === 'open') {
-            console.log('WhatsApp Client is ready (Baileys)!');
+            console.log('[WhatsApp] Conexão estabelecida com sucesso!');
             qrCodeData = null;
             isReady = true;
         }
     });
+
+    return sock;
 };
 
 export const getQrCode = () => qrCodeData;
@@ -72,9 +111,9 @@ export const sendCampaignMessage = async (number: string, spintaxMessage: string
         });
 
         // Human simulation
-        await baileysDelay(Math.random() * 2000 + 1000);
+        await baileysDelay(Math.random() * 2000 + 2000);
         await sock.sendPresenceUpdate('composing', jid);
-        const typingDelay = Math.min(parsedMessage.length * 50, 8000);
+        const typingDelay = Math.min(parsedMessage.length * 50, 6000);
         await baileysDelay(typingDelay);
         await sock.sendPresenceUpdate('paused', jid);
 
@@ -87,15 +126,15 @@ export const sendCampaignMessage = async (number: string, spintaxMessage: string
             const videoBuffer = fs.readFileSync(videoPath);
             await sock.sendMessage(jid, {
                 video: videoBuffer,
-                caption: spintaxMessage.length < 20 ? 'Dê uma olhada!' : ''
+                caption: ''
             });
         }
 
-        console.log(`Mensagem Baileys enviada com sucesso para ${formattedNumber}`);
+        console.log(`[WhatsApp] Mensagem enviada para ${formattedNumber}`);
         return { success: true, message: parsedMessage };
 
     } catch (error: any) {
-        console.error(`Erro ao enviar mensagem via Baileys para ${formattedNumber}:`, error);
+        console.error(`[WhatsApp] Erro ao enviar para ${formattedNumber}:`, error);
         return { success: false, error: error.message };
     }
 }

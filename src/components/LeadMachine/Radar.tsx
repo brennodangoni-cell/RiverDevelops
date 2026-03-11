@@ -1,82 +1,74 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Loader2, Phone, MapPin, Instagram, PlusCircle, ChevronDown, Check, Globe, Database, ShieldCheck, Zap } from 'lucide-react';
-import axios from 'axios';
+import { Search, Loader2, Phone, MapPin, Instagram, PlusCircle, ChevronDown, Check, Globe, Database, ShieldCheck, Zap, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
 import toast from 'react-hot-toast';
 
 const NICHES = [
-    "Clínica de Estética", "Loja de Roupas", "Petshop", "Academia",
-    "Barbearia", "Dentista", "Escritório de Advocacia", "Corretor de Imóveis",
-    "Loja de Suplementos", "Concessionária de Carros", "Restaurante", "Pizzaria", "Ótica"
+    'Academias', 'Restaurantes', 'Clínicas de Estética', 'Pet Shops',
+    'Imobiliárias', 'Auto Escolas', 'Escritórios de Advocacia', 'Contabilidades',
+    'Salões de Beleza', 'Oficinas Mecânicas', 'Lojas de Roupas', 'Dentistas'
 ];
 
 const STATES = [
-    { uf: 'AC', name: 'Acre' }, { uf: 'AL', name: 'Alagoas' }, { uf: 'AP', name: 'Amapá' }, { uf: 'AM', name: 'Amazonas' },
-    { uf: 'BA', name: 'Bahia' }, { uf: 'CE', name: 'Ceará' }, { uf: 'DF', name: 'Distrito Federal' }, { uf: 'ES', name: 'Espírito Santo' },
-    { uf: 'GO', name: 'Goiás' }, { uf: 'MA', name: 'Maranhão' }, { uf: 'MT', name: 'Mato Grosso' }, { uf: 'MS', name: 'Mato Grosso do Sul' },
-    { uf: 'MG', name: 'Minas Gerais' }, { uf: 'PA', name: 'Pará' }, { uf: 'PB', name: 'Paraíba' }, { uf: 'PR', name: 'Paraná' },
-    { uf: 'PE', name: 'Pernambuco' }, { uf: 'PI', name: 'Piauí' }, { uf: 'RJ', name: 'Rio de Janeiro' }, { uf: 'RN', name: 'Rio Grande do Norte' },
-    { uf: 'RS', name: 'Rio Grande do Sul' }, { uf: 'RO', name: 'Rondônia' }, { uf: 'RR', name: 'Roraima' }, { uf: 'SC', name: 'Santa Catarina' },
+    { uf: 'AC', name: 'Acre' }, { uf: 'AL', name: 'Alagoas' }, { uf: 'AP', name: 'Amapá' },
+    { uf: 'AM', name: 'Amazonas' }, { uf: 'BA', name: 'Bahia' }, { uf: 'CE', name: 'Ceará' },
+    { uf: 'DF', name: 'Distrito Federal' }, { uf: 'ES', name: 'Espírito Santo' },
+    { uf: 'GO', name: 'Goiás' }, { uf: 'MA', name: 'Maranhão' }, { uf: 'MT', name: 'Mato Grosso' },
+    { uf: 'MS', name: 'Mato Grosso do Sul' }, { uf: 'MG', name: 'Minas Gerais' },
+    { uf: 'PA', name: 'Pará' }, { uf: 'PB', name: 'Paraíba' }, { uf: 'PR', name: 'Paraná' },
+    { uf: 'PE', name: 'Pernambuco' }, { uf: 'PI', name: 'Piauí' }, { uf: 'RJ', name: 'Rio de Janeiro' },
+    { uf: 'RN', name: 'Rio Grande do Norte' }, { uf: 'RS', name: 'Rio Grande do Sul' },
+    { uf: 'RO', name: 'Rondônia' }, { uf: 'RR', name: 'Roraima' }, { uf: 'SC', name: 'Santa Catarina' },
     { uf: 'SP', name: 'São Paulo' }, { uf: 'SE', name: 'Sergipe' }, { uf: 'TO', name: 'Tocantins' }
 ];
 
-function CustomDropdown({ options, value, onChange, placeholder, isSearchable = false }: any) {
-    const [open, setOpen] = useState(false);
-    const [search, setSearch] = useState('');
-    const wrapperRef = useRef<HTMLDivElement>(null);
+function Select({ label, value, options, onChange, icon: Icon }: any) {
+    const [isOpen, setIsOpen] = useState(false);
+    const ref = useRef<any>(null);
 
     useEffect(() => {
-        function handleClickOutside(event: any) {
-            if (wrapperRef.current && !wrapperRef.current.contains(event.target)) setOpen(false);
-        }
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [wrapperRef]);
-
-    const filteredOptions = isSearchable
-        ? options.filter((o: any) => typeof o === 'string' ? o.toLowerCase().includes(search.toLowerCase()) : o.name.toLowerCase().includes(search.toLowerCase()))
-        : options;
+        const handleClickOutside = (event: any) => {
+            if (ref.current && !ref.current.contains(event.target)) setIsOpen(false);
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     return (
-        <div ref={wrapperRef} className="relative w-full">
+        <div className="relative flex-1" ref={ref}>
+            <label className="block text-[10px] uppercase tracking-[0.2em] font-black text-white/30 mb-2 ml-1">{label}</label>
             <button
                 type="button"
-                onClick={() => setOpen(!open)}
-                className="w-full flex items-center justify-between bg-black border border-white/10 hover:border-cyan-500/30 rounded-2xl h-[56px] px-5 text-white focus:outline-none focus:ring-2 ring-cyan-500/20 transition-all text-sm font-bold"
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full bg-[#0A0A0A] border border-white/10 rounded-2xl px-5 py-4 text-left flex items-center justify-between group hover:border-cyan-500/50 transition-all"
             >
-                <span className="truncate">{typeof value === 'string' ? value : value?.name || placeholder}</span>
-                <ChevronDown size={18} className={`text-white/20 transition-transform duration-300 ${open ? 'rotate-180 text-cyan-400' : ''}`} />
+                <div className="flex items-center gap-3">
+                    <Icon size={18} className="text-white/20 group-hover:text-cyan-400 transition-colors" />
+                    <span className="text-sm font-bold text-white/90 truncate">
+                        {typeof value === 'string' ? value || 'Selecionar...' : value?.name || value?.uf || 'Selecionar...'}
+                    </span>
+                </div>
+                <ChevronDown size={16} className={`text-white/20 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
+
             <AnimatePresence>
-                {open && (
+                {isOpen && (
                     <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="absolute z-[60] w-full mt-3 bg-[#0A0A0A] border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden backdrop-blur-xl"
+                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                        className="absolute left-0 right-0 top-[calc(100%+8px)] z-[60] bg-[#0F0F0F] border border-white/10 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl"
                     >
-                        {isSearchable && (
-                            <div className="p-3 border-b border-white/5 bg-white/5">
-                                <input
-                                    autoFocus
-                                    type="text"
-                                    className="w-full bg-black border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-cyan-500/50 placeholder:text-white/20"
-                                    placeholder="Procurar..."
-                                    value={search}
-                                    onChange={e => setSearch(e.target.value)}
-                                />
-                            </div>
-                        )}
-                        <div className="max-h-64 overflow-y-auto p-2 custom-scrollbar">
-                            {filteredOptions.length === 0 && <div className="p-4 text-center text-xs text-white/20 font-bold uppercase tracking-widest">Vazio</div>}
-                            {filteredOptions.map((opt: any, i: number) => {
-                                const isSelected = typeof opt === 'string' ? value === opt : value?.uf === opt.uf;
+                        <div className="max-h-60 overflow-y-auto custom-scrollbar p-2">
+                            {options.map((opt: any) => {
+                                const isSelected = (typeof opt === 'string' ? opt : opt.uf || opt.name) === (typeof value === 'string' ? value : value?.uf || value?.name);
                                 return (
                                     <button
-                                        key={i}
+                                        key={typeof opt === 'string' ? opt : opt.uf || opt.name}
                                         type="button"
-                                        onClick={() => { onChange(opt); setOpen(false); setSearch(''); }}
-                                        className={`w-full flex items-center justify-between text-left px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${isSelected ? 'bg-cyan-500 text-black' : 'text-white/40 hover:bg-white/5 hover:text-white'}`}
+                                        onClick={() => { onChange(opt); setIsOpen(false); }}
+                                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-left text-sm font-bold transition-all mb-1 ${isSelected ? 'bg-cyan-500 text-black' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}
                                     >
                                         <span className="truncate">{typeof opt === 'string' ? opt : opt.name}</span>
                                         {isSelected && <Check size={14} />}
@@ -91,7 +83,7 @@ function CustomDropdown({ options, value, onChange, placeholder, isSearchable = 
     );
 }
 
-export function Radar({ onQueue }: { onQueue: (l: any) => void, queueCount: number }) {
+export function Radar({ onQueue }: { onQueue: (l: any) => void }) {
     const [niche, setNiche] = useState(NICHES[0]);
     const [stateObj, setStateObj] = useState(STATES.find(s => s.uf === 'SP'));
     const [cities, setCities] = useState<string[]>([]);
@@ -103,13 +95,13 @@ export function Radar({ onQueue }: { onQueue: (l: any) => void, queueCount: numb
     const [loadingStage, setLoadingStage] = useState(0);
 
     const stages = [
-        "Iniciando Motores...",
-        "Acessando Grounding Hub...",
-        "Escaneando Google Maps...",
-        "Filtrando Dados Reais...",
-        "Localizando Instagram...",
-        "Validando WhatsApp...",
-        "Finalizando Dossiê..."
+        "Sincronizando com Satélites...",
+        "Acessando Grounding AI Protocol...",
+        "Escaneando Digital Footprint...",
+        "Extraindo Metadados de Contato...",
+        "Validando Canais de WhatsApp...",
+        "Mapeando Perfis Instagram...",
+        "Finalizando Dossiê Estratégico..."
     ];
 
     useEffect(() => {
@@ -125,7 +117,7 @@ export function Radar({ onQueue }: { onQueue: (l: any) => void, queueCount: numb
         if (loading) {
             interval = setInterval(() => {
                 setLoadingStage(prev => (prev + 1) % stages.length);
-            }, 2500);
+            }, 3500);
         } else {
             setLoadingStage(0);
         }
@@ -142,188 +134,166 @@ export function Radar({ onQueue }: { onQueue: (l: any) => void, queueCount: numb
 
         try {
             const res = await axios.post('/api/scraper/maps', { query, limit });
-            setLeads(res.data.leads || []);
-            toast.success(`${res.data.leads?.length || 0} leads extraídos com sucesso!`);
+
+            if (res.data.success && res.data.leads?.length > 0) {
+                setLeads(res.data.leads);
+                toast.success(`${res.data.leads.length} leads extraídos com sucesso!`);
+            } else {
+                toast.error("Busca concluída, mas 0 resultados retornaram.");
+            }
         } catch (err: any) {
-            toast.error(err.response?.data?.error || err.message);
+            console.error(err);
+            toast.error(err.response?.data?.error || "Tempo limite excedido ou erro na conexão.");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 relative">
-
-            <div className="bg-[#0A0A0A] p-8 md:p-12 rounded-[40px] border border-white/10 shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none">
-                    <Search size={300} />
+        <div className="space-y-10">
+            {/* Form Glass Card */}
+            <div className="bg-[#0A0A0A] rounded-[2.5rem] border border-white/10 p-8 md:p-12 shadow-2xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <Globe size={180} className="text-cyan-500 rotate-12" />
                 </div>
 
-                <div className="relative z-10 mb-12">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[10px] font-black uppercase tracking-[0.2em] mb-4">
-                        <Zap size={14} /> Sistema de Grounding Ativo
-                    </div>
-                    <h3 className="text-3xl md:text-5xl font-black mb-3 tracking-tighter text-white uppercase italic">Radar de Captação</h3>
-                    <p className="text-white/40 text-sm md:text-lg max-w-2xl font-medium leading-relaxed">Localize leads qualificados em tempo real usando a inteligência de busca River.</p>
-                </div>
-
-                <form onSubmit={handleSearch} className="relative z-20 w-full">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
-                        <div className="w-full">
-                            <label className="block text-[10px] font-black mb-3 text-white/30 uppercase tracking-[0.2em]">Segmento Profissional</label>
-                            <CustomDropdown options={NICHES} value={niche} onChange={setNiche} isSearchable />
+                <div className="relative z-10">
+                    <div className="flex items-center gap-4 mb-10">
+                        <div className="w-14 h-14 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl flex items-center justify-center text-cyan-400">
+                            <Zap size={28} />
                         </div>
-
-                        <div className="w-full">
-                            <label className="block text-[10px] font-black mb-3 text-white/30 uppercase tracking-[0.2em]">Unidade Federativa</label>
-                            <CustomDropdown options={STATES} value={stateObj} onChange={setStateObj} isSearchable />
-                        </div>
-
-                        <div className="relative w-full">
-                            <label className="block text-[10px] font-black mb-3 text-white/30 uppercase tracking-[0.2em]">Município Alvo</label>
-                            {cities.length === 0 ? (
-                                <div className="h-[56px] rounded-2xl bg-black border border-white/10 flex items-center px-6 animate-pulse shadow-inner"><span className="text-white/10 text-xs font-bold uppercase tracking-widest">IBGE SYNCING...</span></div>
-                            ) : (
-                                <CustomDropdown options={cities} value={city} onChange={setCity} placeholder="Selecionar..." isSearchable />
-                            )}
-                        </div>
-
-                        <div className="w-full">
-                            <label className="block text-[10px] font-black mb-3 text-white/30 uppercase tracking-[0.2em]">Volume de Leads</label>
-                            <input
-                                type="number"
-                                value={limit}
-                                min="1"
-                                max="200"
-                                onChange={e => setLimit(e.target.value === '' ? '' : Math.min(200, Math.max(1, Number(e.target.value))))}
-                                className="w-full h-[56px] bg-black border border-white/10 hover:border-cyan-500/30 rounded-2xl px-6 text-white text-sm font-bold focus:outline-none focus:ring-2 ring-cyan-500/20 transition-all text-center placeholder:text-white/20"
-                            />
+                        <div>
+                            <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Deep Radar 2.0</h3>
+                            <p className="text-white/40 text-xs font-bold uppercase tracking-widest mt-1">Grounding AI Search Engine (Alpha)</p>
                         </div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row justify-between items-center pt-10 gap-6">
-                        <div className="flex items-center gap-4">
-                            <div className="flex -space-x-3">
-                                {[1, 2, 3].map(i => <div key={i} className="w-8 h-8 rounded-full bg-[#111] border-2 border-black flex items-center justify-center text-[10px] font-bold text-white/20">...</div>)}
+                    <form onSubmit={handleSearch} className="flex flex-col gap-8">
+                        <div className="flex flex-col lg:flex-row gap-6">
+                            <Select label="Nicho / Atividade" value={niche} options={NICHES} onChange={setNiche} icon={Database} />
+                            <Select label="Estado" value={stateObj} options={STATES} onChange={setStateObj} icon={MapPin} />
+                            <Select label="Cidade Próxima" value={city} options={cities} onChange={setCity} icon={Globe} />
+                            <div className="lg:w-32">
+                                <label className="block text-[10px] uppercase tracking-[0.2em] font-black text-white/30 mb-2 ml-1">Volume</label>
+                                <input
+                                    type="number"
+                                    value={limit}
+                                    onChange={e => setLimit(e.target.value)}
+                                    className="w-full bg-[#0A0A0A] border border-white/10 rounded-2xl px-5 py-4 text-sm font-bold text-white hover:border-cyan-500/50 transition-all focus:outline-none focus:ring-2 ring-cyan-500/30"
+                                />
                             </div>
-                            <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Algoritmo de varredura pronto para ação</p>
                         </div>
 
                         <button
                             type="submit"
-                            disabled={loading || !city}
-                            className={`group relative h-[64px] min-w-[280px] rounded-2xl font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3 overflow-hidden shadow-2xl ${loading ? 'bg-white/5 text-white/40' : 'bg-cyan-500 hover:bg-cyan-400 text-black shadow-[0_10px_40px_rgba(6,182,212,0.3)]'}`}
+                            disabled={loading}
+                            className="w-full bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed text-black font-black uppercase tracking-[0.2em] text-sm py-6 rounded-3xl transition-all shadow-[0_0_30px_rgba(6,182,212,0.3)] flex items-center justify-center gap-3 active:scale-95"
                         >
-                            {loading ? (
-                                <><Loader2 className="animate-spin w-5 h-5 text-cyan-400" /> {stages[loadingStage]}</>
-                            ) : (
-                                <><Search size={22} /> Iniciar Varredura</>
-                            )}
+                            {loading ? <Loader2 className="animate-spin" /> : <Search size={20} />}
+                            {loading ? 'EXECUTANDO VARREDURA PROFUNDA...' : 'INICIAR RASTREAMENTO'}
                         </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
 
-            <AnimatePresence>
-                {loading && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-6"
-                    >
-                        <div className="bg-[#0A0A0A] border border-white/10 p-12 rounded-[40px] shadow-2xl flex flex-col items-center gap-8 max-w-md w-full text-center relative overflow-hidden">
-                            <div className="absolute inset-0 bg-cyan-500/5 animate-pulse" />
-                            <div className="relative w-32 h-32 flex items-center justify-center">
-                                <div className="absolute inset-0 border-4 border-cyan-500/10 rounded-full" />
-                                <div className="absolute inset-0 border-4 border-t-cyan-500 rounded-full animate-spin" />
-                                <Globe size={48} className="text-cyan-400 animate-pulse" />
-                            </div>
-                            <div className="relative space-y-3">
-                                <h4 className="text-2xl font-black text-white uppercase italic tracking-tighter">Searching Web</h4>
-                                <div className="h-6 overflow-hidden">
-                                    <AnimatePresence mode="wait">
-                                        <motion.p
-                                            key={loadingStage}
-                                            initial={{ y: 20, opacity: 0 }}
-                                            animate={{ y: 0, opacity: 1 }}
-                                            exit={{ y: -20, opacity: 0 }}
-                                            className="text-cyan-400 text-xs font-black uppercase tracking-[0.3em]"
-                                        >
-                                            {stages[loadingStage]}
-                                        </motion.p>
-                                    </AnimatePresence>
-                                </div>
-                                <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest mt-4">Extraindo coordenadas de ${niche}</p>
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
+            {/* Leads Grid */}
             <AnimatePresence>
                 {leads.length > 0 && (
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-[#0A0A0A] border border-white/10 rounded-[40px] overflow-hidden shadow-2xl"
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                     >
-                        <div className="px-8 py-8 border-b border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 bg-white/[0.02]">
-                            <div className="flex items-center gap-6">
-                                <div className="w-16 h-16 rounded-2xl bg-green-500/10 border border-green-500/20 flex items-center justify-center text-green-500">
-                                    <Database size={28} />
+                        {leads.map((l, i) => (
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: i * 0.05 }}
+                                className="bg-[#0A0A0A] rounded-[2rem] border border-white/10 p-6 hover:border-cyan-500/40 transition-all group relative overflow-hidden"
+                            >
+                                <div className="absolute top-0 right-0 px-4 py-2 bg-cyan-500/10 text-cyan-400 text-[10px] font-black uppercase tracking-widest rounded-bl-2xl opacity-0 group-hover:opacity-100 transition-opacity">
+                                    Top Lead
                                 </div>
-                                <div>
-                                    <h4 className="font-black text-2xl text-white uppercase italic tracking-tighter">Database Extraído</h4>
-                                    <p className="text-white/40 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                                        <ShieldCheck size={14} className="text-cyan-400" /> Sincronização: {leads.length} Leads Qualificados
-                                    </p>
+
+                                <h4 className="font-black text-white text-lg mb-4 truncate pr-10 uppercase tracking-tight">{l.name}</h4>
+
+                                <div className="space-y-3 mb-8">
+                                    <div className="flex items-center gap-3 text-white/60 text-sm font-medium">
+                                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/30"><Phone size={14} /></div>
+                                        {l.phone}
+                                    </div>
+                                    <div className="flex items-center gap-3 text-white/60 text-sm font-medium">
+                                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/30"><Instagram size={14} /></div>
+                                        {l.instagram || 'Não listado'}
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => { onQueue(l); toast.success("Adicionado ao Lançador!"); }}
+                                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-white/5 border border-white/10 text-white/40 text-[10px] font-black uppercase tracking-widest hover:bg-cyan-500 hover:text-black hover:border-cyan-500 transition-all"
+                                >
+                                    <PlusCircle size={16} /> Enviar p/ Lançador
+                                </button>
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Loading Overlay */}
+            <AnimatePresence>
+                {loading && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-6 text-center"
+                    >
+                        <div className="max-w-md w-full">
+                            <div className="relative mb-12 flex justify-center">
+                                <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
+                                    className="w-48 h-48 rounded-full border-[1px] border-cyan-500/20 flex items-center justify-center relative"
+                                >
+                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-cyan-400 rounded-full shadow-[0_0_15px_rgba(6,182,212,0.8)]" />
+                                    <div className="w-40 h-40 rounded-full border-[1px] border-cyan-500/10 flex items-center justify-center">
+                                        <div className="w-32 h-32 rounded-full border-[1px] border-cyan-500/5" />
+                                    </div>
+                                </motion.div>
+
+                                <div className="absolute inset-0 flex items-center justify-center flex-col">
+                                    <Sparkles className="text-cyan-400 w-12 h-12 mb-2 animate-pulse" />
+                                    <div className="text-cyan-400 font-black text-3xl tracking-tighter italic uppercase">River</div>
                                 </div>
                             </div>
 
-                            <button
-                                onClick={() => { leads.forEach(l => onQueue(l)); toast.success("Adicionados ao Lançador!"); }}
-                                className="w-full md:w-auto px-8 h-14 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3"
-                            >
-                                <PlusCircle size={18} className="text-cyan-400" /> Injetar Todos na Fila
-                            </button>
-                        </div>
-
-                        <div className="divide-y divide-white/5">
-                            {leads.map((lead, i) => (
-                                <div key={i} className="p-6 md:p-8 hover:bg-white/[0.03] transition-all flex items-center justify-between gap-6 group">
-                                    <div className="flex-1 min-w-0 pr-4">
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <h5 className="font-extrabold text-xl text-white tracking-tight group-hover:text-cyan-400 transition-colors">{lead.name}</h5>
-                                            <span className="px-2 py-0.5 rounded-md bg-white/5 text-[8px] font-black text-white/30 uppercase tracking-[0.2em]">{niche}</span>
-                                        </div>
-                                        <div className="text-xs flex flex-wrap items-center gap-6 text-white/40">
-                                            <span className="flex items-center gap-2 font-bold uppercase tracking-widest"><MapPin size={14} className="text-cyan-500" /> {city}</span>
-                                            {lead.instagram && lead.instagram !== "Não Listado" && (
-                                                <span className="text-pink-400/80 flex items-center gap-2 font-bold uppercase tracking-widest bg-pink-500/5 px-3 py-1 rounded-lg border border-pink-500/10">
-                                                    <Instagram size={14} /> {lead.instagram}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-8 px-4">
-                                        <div className="text-right hidden lg:block">
-                                            <div className="text-[10px] text-white/20 font-black uppercase tracking-[0.2em] mb-1">WhatsApp ID</div>
-                                            <div className="flex items-center gap-2 text-green-400 font-mono font-black text-lg">
-                                                <span>{lead.whatsapp}</span>
-                                            </div>
-                                        </div>
-
-                                        <button
-                                            onClick={() => { onQueue(lead); toast.success("Adicionado à Fila!"); }}
-                                            className="w-14 h-14 rounded-2xl bg-black border border-white/10 group-hover:bg-cyan-500 group-hover:border-cyan-500 group-hover:text-black flex items-center justify-center transition-all shadow-xl"
+                            <div className="space-y-4">
+                                <div className="text-white font-black text-xl uppercase tracking-tighter h-8 overflow-hidden">
+                                    <AnimatePresence mode="wait">
+                                        <motion.div
+                                            key={loadingStage}
+                                            initial={{ y: 20, opacity: 0 }}
+                                            animate={{ y: 0, opacity: 1 }}
+                                            exit={{ y: -20, opacity: 0 }}
                                         >
-                                            <PlusCircle size={28} />
-                                        </button>
-                                    </div>
+                                            {stages[loadingStage]}
+                                        </motion.div>
+                                    </AnimatePresence>
                                 </div>
-                            ))}
+                                <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden border border-white/10">
+                                    <motion.div
+                                        className="h-full bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]"
+                                        animate={{ width: `${((loadingStage + 1) / stages.length) * 100}%` }}
+                                        transition={{ duration: 0.5 }}
+                                    />
+                                </div>
+                                <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-[0.2em] text-white/30">
+                                    <span>Sistema Ativo</span>
+                                    <span>Deep Search Engine v3.1</span>
+                                </div>
+                            </div>
                         </div>
                     </motion.div>
                 )}
