@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Target, MessageSquare, FileText, Home, ArrowLeft } from 'lucide-react';
+import { Target, MessageSquare, FileText, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Radar } from '../../components/LeadMachine/Radar';
 import { Dispatcher } from '../../components/LeadMachine/Dispatcher';
