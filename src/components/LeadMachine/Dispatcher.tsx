@@ -188,20 +188,22 @@ export function Dispatcher({ queue, onRemove }: { queue: any[]; onRemove: (num: 
                             ) : (
                                 <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
                                     <Loader2 size={32} className="animate-spin text-cyan-500/50" />
-                                    <span className="text-xs text-white/20 font-medium px-6">{error || "Gerando nova sessão... Isso pode levar até 1 minuto no Render."}</span>
                                     <button
                                         onClick={async () => {
                                             try {
                                                 await axios.post('/api/wa/restart', { clean: true });
-                                                toast.success("Limpando tudo e reiniciando...");
+                                                toast.success("Ligando motor... aguarde 15s");
                                             } catch {
-                                                toast.error("Erro ao solicitar reinício");
+                                                toast.error("Erro ao ligar motor");
                                             }
                                         }}
-                                        className="mt-4 text-[10px] text-white/20 hover:text-cyan-500 transition-colors uppercase tracking-widest font-bold bg-white/5 border border-white/5 px-6 py-2.5 rounded-xl"
+                                        className="mt-4 flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] font-bold uppercase tracking-widest px-8 py-3 rounded-xl transition-all shadow-lg shadow-cyan-500/20"
                                     >
-                                        Hard Reset (Limpar Sessão)
+                                        <Loader2 size={14} className="animate-spin" />
+                                        Ligar Motor do WhatsApp
                                     </button>
+
+                                    <p className="mt-4 text-[10px] text-white/10 uppercase tracking-widest font-medium">O motor só liga quando você solicitar para evitar conflitos.</p>
 
                                     {logs.length > 0 && (
                                         <div className="mt-8 w-full max-w-[280px] text-left space-y-1 opacity-40">

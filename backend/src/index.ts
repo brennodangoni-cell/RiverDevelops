@@ -747,8 +747,8 @@ const PORT = process.env.PORT || 10000;
     try {
         await runMigrations();
 
-        // Inicializa o WhatsApp em background sem travar o boot do servidor no Render
-        initWhatsApp().catch(err => console.error("[WhatsApp] Erro no boot background:", err));
+        // Removido initWhatsApp automático no boot para evitar erro 405 (conflito de instâncias no Render)
+        // O motor agora deve ser ligado manualmente pelo frontend
 
         app.listen(PORT, () => {
             console.log(`[Sales Engine] API Supabase (HTTP-Mode) rodando na porta ${PORT}`);

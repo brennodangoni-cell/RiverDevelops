@@ -16,10 +16,9 @@ let qrCodeData: string | null = null;
 let isReady = false;
 let isInitializing = false;
 let debugLogs: string[] = [];
-const VERSION = "v2.1-MAC-FINAL";
 
 function addLog(msg: string) {
-    const log = `[${new Date().toLocaleTimeString()}] [${VERSION}] ${msg}`;
+    const log = `[${new Date().toLocaleTimeString()}] ${msg}`;
     console.log(log);
     debugLogs.push(log);
     if (debugLogs.length > 50) debugLogs.shift();
@@ -36,7 +35,10 @@ export const initWhatsApp = async () => {
         return;
     }
     isInitializing = true;
-    addLog('Iniciando serviço WhatsApp...');
+    addLog('Aguardando 15s de segurança para limpar instâncias antigas...');
+    await new Promise(r => setTimeout(r, 15000));
+
+    addLog('Iniciando conexão...');
 
     const sessionDir = path.resolve(process.cwd(), 'whatsapp-session');
 
@@ -65,13 +67,12 @@ export const initWhatsApp = async () => {
         auth: state,
         logger,
         printQRInTerminal: false,
-        browser: Browsers.ubuntu('Chrome'), // Tentar Ubuntu padrão
+        browser: ['Windows', 'Chrome', '11.0'],
         version: [2, 3000, 1015901307],
         connectTimeoutMs: 30000,
         keepAliveIntervalMs: 15000,
         generateHighQualityLinkPreview: false,
-        syncFullHistory: false,
-        markOnlineOnConnect: true
+        syncFullHistory: false
     });
 
     sock.ev.on('creds.update', saveCreds);
