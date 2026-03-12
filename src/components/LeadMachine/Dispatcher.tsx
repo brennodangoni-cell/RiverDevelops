@@ -206,8 +206,8 @@ export function Dispatcher({ queue, onRemove }: { queue: any[]; onRemove: (num: 
                                     {logs.length > 0 && (
                                         <div className="mt-8 w-full max-w-[280px] text-left space-y-1 opacity-40">
                                             <p className="text-[9px] font-bold text-white/40 uppercase tracking-tighter mb-2">Logs do Motor:</p>
-                                            {logs.slice(-4).map((l, idx) => (
-                                                <div key={idx} className="text-[9px] font-mono text-white/50 truncate border-l border-white/10 pl-2">
+                                            {logs.slice(-6).map((l, idx) => (
+                                                <div key={idx} className="text-[9px] font-mono text-white/50 border-l border-white/10 pl-2 break-all leading-tight py-0.5">
                                                     {l}
                                                 </div>
                                             ))}
