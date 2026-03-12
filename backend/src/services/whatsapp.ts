@@ -14,6 +14,7 @@ import pino from 'pino';
 let sock: WASocket | null = null;
 let qrCodeData: string | null = null;
 let isReady = false;
+let isInitializing = false;
 let debugLogs: string[] = [];
 const VERSION = "v2.1-MAC-FINAL";
 
@@ -30,6 +31,11 @@ export const getDebugLogs = () => debugLogs;
 const logger = pino({ level: 'silent' });
 
 export const initWhatsApp = async () => {
+    if (isInitializing) {
+        addLog('Já existe uma inicialização em curso. Ignorando...');
+        return;
+    }
+    isInitializing = true;
     addLog('Iniciando serviço WhatsApp...');
 
     const sessionDir = path.resolve(process.cwd(), 'whatsapp-session');
@@ -59,12 +65,13 @@ export const initWhatsApp = async () => {
         auth: state,
         logger,
         printQRInTerminal: false,
-        browser: Browsers.macOS('Desktop'),
-        version: [2, 3000, 1015901307], // Forçar versão web estável
-        connectTimeoutMs: 20000,
+        browser: Browsers.ubuntu('Chrome'), // Tentar Ubuntu padrão
+        version: [2, 3000, 1015901307],
+        connectTimeoutMs: 30000,
         keepAliveIntervalMs: 15000,
         generateHighQualityLinkPreview: false,
-        syncFullHistory: false
+        syncFullHistory: false,
+        markOnlineOnConnect: true
     });
 
     sock.ev.on('creds.update', saveCreds);
@@ -79,19 +86,25 @@ export const initWhatsApp = async () => {
         }
 
         if (connection === 'close') {
+            isInitializing = false;
             const error = lastDisconnect?.error as Boom;
             const statusCode = error?.output?.statusCode;
             const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
 
-            addLog(`Conexão fechada. Status: ${statusCode}. Motivo: ${error?.message || 'Desconhecido'}`);
+            let reason = `Status: ${statusCode}`;
+            if (statusCode === 405) reason = "CONEXÃO SUBSTITUÍDA (Sessão aberta em outro lugar ou reinício duplo)";
+            if (statusCode === 401) reason = "SESSÃO DESLOGADA (Precisa escanear novamente)";
+
+            addLog(`Conexão fechada. ${reason}`);
 
             isReady = false;
             qrCodeData = null;
 
             if (shouldReconnect) {
-                setTimeout(() => initWhatsApp(), 8000);
+                setTimeout(() => initWhatsApp(), 10000);
             }
         } else if (connection === 'open') {
+            isInitializing = false;
             addLog('WHATSAPP CONECTADO E PRONTO!');
             qrCodeData = null;
             isReady = true;
