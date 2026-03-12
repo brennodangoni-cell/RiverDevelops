@@ -9,7 +9,6 @@ import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import { runMigrations } from './migrate';
 import { analyzeProductPhotos, generateVeoVideo } from './services/ai_vertex';
-import { initWhatsApp, getQrCode, getStatus, sendCampaignMessage, getDebugLogs, disconnectWhatsApp } from './services/whatsapp';
 import { scrapeGoogleMaps } from './services/scraper';
 
 
@@ -624,39 +623,6 @@ app.post('/api/river/generate', authenticate, async (req: Request, res: Response
 // ==========================================
 // LEAD MACHINE & WHATSAPP ROUTES
 // ==========================================
-
-app.get('/api/wa/ping', (_req, res) => {
-    res.json({ status: "pong", time: new Date().toISOString() });
-});
-
-app.get('/api/wa/status', authenticate, (req: Request, res: Response) => {
-    res.json({ isReady: getStatus(), qr: getQrCode() });
-});
-
-app.get('/api/wa/debug', authenticate, (req: Request, res: Response) => {
-    res.json({ logs: getDebugLogs() });
-});
-
-app.post('/api/wa/send', authenticate, async (req: Request, res: Response) => {
-    const { number, message, video, leadName } = req.body;
-    if (!number || !message) return res.status(400).json({ error: "Número ou mensagem ausente" });
-
-    try {
-        const result = await sendCampaignMessage(number, message, video ? `./videos/${video}` : null);
-
-        // Log into Supabase
-        await supabase.from('sent_messages').insert([{
-            name: leadName || "Desconhecido",
-            number,
-            status: result.success ? "Sucesso" : "Falhou (" + result.error + ")",
-            created_at: new Date().toISOString()
-        }]);
-
-        res.json(result);
-    } catch (e: any) {
-        res.status(500).json({ error: e.message });
-    }
-});
 
 app.post('/api/scraper/maps', authenticate, async (req: Request, res: Response) => {
     const { query, limit } = req.body;
