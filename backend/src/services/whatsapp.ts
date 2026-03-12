@@ -15,9 +15,10 @@ let sock: WASocket | null = null;
 let qrCodeData: string | null = null;
 let isReady = false;
 let debugLogs: string[] = [];
+const VERSION = "v2.1-MAC-FINAL";
 
 function addLog(msg: string) {
-    const log = `[${new Date().toLocaleTimeString()}] ${msg}`;
+    const log = `[${new Date().toLocaleTimeString()}] [${VERSION}] ${msg}`;
     console.log(log);
     debugLogs.push(log);
     if (debugLogs.length > 50) debugLogs.shift();
@@ -59,12 +60,11 @@ export const initWhatsApp = async () => {
         logger,
         printQRInTerminal: false,
         browser: Browsers.macOS('Desktop'),
-        mobile: false,
-        syncFullHistory: false,
-        defaultQueryTimeoutMs: 60000,
-        connectTimeoutMs: 60000,
-        keepAliveIntervalMs: 30000,
-        retryRequestDelayMs: 5000
+        version: [2, 3000, 1015901307], // Forçar versão web estável
+        connectTimeoutMs: 20000,
+        keepAliveIntervalMs: 15000,
+        generateHighQualityLinkPreview: false,
+        syncFullHistory: false
     });
 
     sock.ev.on('creds.update', saveCreds);

@@ -20,6 +20,7 @@
     "@whiskeysockets/baileys": "^7.0.0-rc.9",
     "axios": "^1.13.6",
     "bcryptjs": "^3.0.3",
+    "tsx": "^4.21.0",
     "cheerio": "^1.2.0",
     "cors": "^2.8.6",
     "date-fns": "^4.1.0",
@@ -41,7 +42,6 @@
     "@types/pg": "^8.18.0",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
-    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }
 }
