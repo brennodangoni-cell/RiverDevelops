@@ -188,6 +188,7 @@ export function Dispatcher({ queue, onRemove }: { queue: any[]; onRemove: (num: 
                             ) : (
                                 <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
                                     <Loader2 size={32} className="animate-spin text-cyan-500/50" />
+                                    {error && <span className="text-xs text-red-400 font-medium px-6 mb-2">{error}</span>}
                                     <button
                                         onClick={async () => {
                                             try {
