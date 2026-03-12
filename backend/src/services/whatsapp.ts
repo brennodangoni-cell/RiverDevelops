@@ -58,11 +58,12 @@ export const initWhatsApp = async () => {
         auth: state,
         logger,
         printQRInTerminal: false,
-        browser: Browsers.ubuntu('Chrome'),
+        browser: Browsers.macOS('Desktop'),
         mobile: false,
         syncFullHistory: false,
         defaultQueryTimeoutMs: 60000,
         connectTimeoutMs: 60000,
+        keepAliveIntervalMs: 30000,
         retryRequestDelayMs: 5000
     });
 
@@ -78,10 +79,11 @@ export const initWhatsApp = async () => {
         }
 
         if (connection === 'close') {
-            const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
+            const error = lastDisconnect?.error as Boom;
+            const statusCode = error?.output?.statusCode;
             const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
 
-            addLog(`Conexão fechada. Status: ${statusCode}. Reconectar: ${shouldReconnect}`);
+            addLog(`Conexão fechada. Status: ${statusCode}. Motivo: ${error?.message || 'Desconhecido'}`);
 
             isReady = false;
             qrCodeData = null;
