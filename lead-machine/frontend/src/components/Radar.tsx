@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Search, Loader2, Phone, MapPin, Instagram, PlusCircle, ChevronDown, Check, Minus, Plus } from 'lucide-react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
+import { API_URL } from '../config';
 
 const NICHES = [
     "Clínica de Estética", "Loja de Roupas", "Petshop", "Academia",
@@ -116,10 +117,8 @@ export function Radar({ onQueue, queueCount }: { onQueue: (l: any) => void, queu
         const query = `${niche} em ${city} ${stateObj?.uf}`;
         setLoading(true);
 
-        const apiKey = localStorage.getItem('google_places_api_key') || "";
-
         try {
-            const res = await axios.post('http://localhost:3001/api/scraper/maps', { query, limit, apiKey });
+            const res = await axios.post(`${API_URL}/api/scraper/maps`, { query, limit });
             if (res.data.error) throw new Error(res.data.error);
             setLeads(res.data.leads || []);
         } catch (err: any) {

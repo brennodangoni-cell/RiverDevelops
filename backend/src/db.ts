@@ -1,56 +1,146 @@
-import { Pool } from 'pg';
+import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
-import dns from 'dns';
 
-// OBRIGATÓRIO: Forçar IPv4 no nível do sistema para evitar ENETUNREACH no Render
-dns.setDefaultResultOrder('ipv4first');
 dotenv.config();
 
 /**
- * CONFIGURAÇÃO SUPAVISOR (IPv4 Pooler)
- * Usando o modo Session (porta 5432) que é o mais compatível com Render
+ * CONFIGURAÇÃO HOSTINGER (MySQL)
+ * O host geralmente é 'localhost' se o backend estiver no mesmo servidor da Hostinger.
  */
-const pool = new Pool({
-    user: 'postgres.tctzbsjmuariwylrfbuy', // ID do projeto incluído
-    host: 'aws-0-sa-east-1.pooler.supabase.com',
-    database: 'postgres',
-    password: 'Gameroficial2*', // Senha pura no objeto
-    port: 5432,
-    ssl: { rejectUnauthorized: false },
-    max: 10,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 20000,
+const pool = mysql.createPool({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'u689348922_river',
+    password: process.env.DB_PASSWORD || 'Gameroficial2*',
+    database: process.env.DB_NAME || 'u689348922_river',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 });
 
 export async function initDb() {
-    console.log("--- [START] SETUP SUPABASE (MODO IPV4 POOLER) ---");
+    console.log("--- [START] SETUP MYSQL (HOSTINGER) ---");
     try {
-        const res = await pool.query('SELECT NOW()');
-        console.log("--- [CONECTADO] Supabase respondeu em: " + res.rows[0].now);
+        const connection = await pool.getConnection();
+        console.log("--- [CONECTADO] MySQL Hostinger pronto ---");
+        connection.release();
 
-        // Tabelas básicas
-        await pool.query(`CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT UNIQUE, password TEXT)`);
-        await pool.query(`CREATE TABLE IF NOT EXISTS tasks (id SERIAL PRIMARY KEY, title TEXT, status TEXT, assigned_to INTEGER, created_by INTEGER, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
-        await pool.query(`CREATE TABLE IF NOT EXISTS transactions (id SERIAL PRIMARY KEY, type TEXT, amount REAL, description TEXT, date TIMESTAMP, created_by INTEGER)`);
-        await pool.query(`CREATE TABLE IF NOT EXISTS clients (id SERIAL PRIMARY KEY, username TEXT UNIQUE, password TEXT, password_raw TEXT, niche TEXT, avatar_url TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
-        await pool.query(`ALTER TABLE clients ADD COLUMN IF NOT EXISTS password_raw TEXT`);
-        await pool.query(`ALTER TABLE clients ADD COLUMN IF NOT EXISTS niche TEXT`);
-        await pool.query(`ALTER TABLE clients ADD COLUMN IF NOT EXISTS avatar_url TEXT`);
+        // Tabelas básicas (Sintaxe MySQL)
+        await pool.query(`CREATE TABLE IF NOT EXISTS users (
+            id INT AUTO_INCREMENT PRIMARY KEY, 
+            username VARCHAR(255) UNIQUE, 
+            password TEXT
+        )`);
 
-        // RESET DE SENHA ADMIN (FORÇA BRUTA)
+        await pool.query(`CREATE TABLE IF NOT EXISTS tasks (
+            id INT AUTO_INCREMENT PRIMARY KEY, 
+            title TEXT, 
+            description TEXT,
+            status VARCHAR(50), 
+            urgency VARCHAR(50),
+            assigned_to INTEGER, 
+            created_by INTEGER, 
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )`);
+
+        await pool.query(`CREATE TABLE IF NOT EXISTS transactions (
+            id INT AUTO_INCREMENT PRIMARY KEY, 
+            type VARCHAR(50), 
+            amount FLOAT, 
+            description TEXT, 
+            client_name VARCHAR(255),
+            date TIMESTAMP, 
+            created_by INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`);
+
+        await pool.query(`CREATE TABLE IF NOT EXISTS clients (
+            id INT AUTO_INCREMENT PRIMARY KEY, 
+            username VARCHAR(255) UNIQUE, 
+            password TEXT, 
+            password_raw TEXT, 
+            niche TEXT, 
+            avatar_url TEXT, 
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`);
+
+        await pool.query(`CREATE TABLE IF NOT EXISTS demands (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            client_name VARCHAR(255),
+            total_videos INT,
+            assigned_videos INT DEFAULT 0,
+            duration_seconds INT,
+            has_material TINYINT(1),
+            description TEXT,
+            status VARCHAR(50) DEFAULT 'pending',
+            created_by INT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`);
+
+        await pool.query(`CREATE TABLE IF NOT EXISTS demand_materials (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            demand_id INT,
+            media_type VARCHAR(50),
+            media_url TEXT,
+            content TEXT,
+            title TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`);
+
+        await pool.query(`CREATE TABLE IF NOT EXISTS client_content (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            client_id INT,
+            title VARCHAR(255),
+            category VARCHAR(100),
+            product VARCHAR(100),
+            week_date VARCHAR(50),
+            media_url TEXT,
+            media_type VARCHAR(50),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`);
+
+        await pool.query(`CREATE TABLE IF NOT EXISTS searches (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            query TEXT,
+            count INT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`);
+
+        await pool.query(`CREATE TABLE IF NOT EXISTS leads (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            whatsapp VARCHAR(50) UNIQUE,
+            name VARCHAR(255),
+            phone VARCHAR(50),
+            instagram VARCHAR(255),
+            city VARCHAR(255),
+            state VARCHAR(50),
+            address TEXT,
+            website TEXT,
+            source TEXT,
+            category VARCHAR(255),
+            status VARCHAR(50) DEFAULT 'new',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`);
+
+        await pool.query(`CREATE TABLE IF NOT EXISTS sent_messages (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            lead_id INT,
+            status VARCHAR(50),
+            message TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`);
+
+        // RESET DE SENHA ADMIN
         const hash = bcrypt.hashSync('admin123', 10);
-        await pool.query('DELETE FROM users WHERE username = $1', ['Brenno']);
-        await pool.query('DELETE FROM users WHERE username = $1', ['admin']);
-        await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', ['Brenno', hash]);
-        await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', ['admin', hash]);
+        await pool.query('DELETE FROM users WHERE username IN (?, ?)', ['Brenno', 'admin']);
+        await pool.query('INSERT INTO users (username, password) VALUES (?, ?), (?, ?)', ['Brenno', hash, 'admin', hash]);
 
-        console.log("--- [OK] Usuários Brenno e admin prontos com senha 'admin123' ---");
+        console.log("--- [OK] Banco MySQL Hostinger inicializado ---");
 
     } catch (err: any) {
-        console.error("--- [ERRO CRÍTICO NO BANCO] ---");
+        console.error("--- [ERRO CRÍTICO NO MYSQL] ---");
         console.error("MENSAGEM: " + err.message);
-        console.error("DICA: Verifique se o Pooler no Supabase está habilitado.");
     }
 }
 

@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Database, History as HistoryIcon, Clock, Mail, CheckCircle, XCircle } from 'lucide-react';
 import axios from 'axios';
+import { API_URL } from '../config';
 
 export function History() {
     const [data, setData] = useState<any>({ searches: [], leads: [], sent: [] });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        axios.get('http://localhost:3001/api/history')
+        axios.get(`${API_URL}/api/history`)
             .then(res => { setData(res.data); setLoading(false); })
             .catch(err => { console.error(err); setLoading(false); });
     }, []);

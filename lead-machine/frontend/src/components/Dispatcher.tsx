@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Smartphone, Send, Ghost, ShieldAlert, CheckCircle2, ListMinus, Play, Pause, Trash2, LogOut } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import axios from 'axios';
+import { API_URL } from '../config';
 
 export function Dispatcher({ queue, onRemove }: { queue: any[], onRemove: (num: string) => void }) {
     const [status, setStatus] = useState({ isReady: false, qr: null });
@@ -13,7 +14,7 @@ export function Dispatcher({ queue, onRemove }: { queue: any[], onRemove: (num: 
 
     useEffect(() => {
         const fetchStatus = () => {
-            axios.get('http://localhost:3001/api/wa/status')
+            axios.get(`${API_URL}/api/wa/status`)
                 .then(res => {
                     setStatus(res.data);
                     setError(null);
@@ -31,7 +32,7 @@ export function Dispatcher({ queue, onRemove }: { queue: any[], onRemove: (num: 
     const handleDisconnect = async () => {
         if (!confirm("Tem certeza que deseja desconectar o WhatsApp?")) return;
         try {
-            await axios.post('http://localhost:3001/api/wa/disconnect');
+            await axios.post(`${API_URL}/api/wa/disconnect`);
             setStatus({ isReady: false, qr: null });
         } catch (e) {
             console.error("Erro ao desconectar:", e);
@@ -49,7 +50,7 @@ export function Dispatcher({ queue, onRemove }: { queue: any[], onRemove: (num: 
             const lead = queue[i];
 
             try {
-                await axios.post('http://localhost:3001/api/wa/send', {
+                await axios.post(`${API_URL}/api/wa/send`, {
                     number: lead.whatsapp,
                     message: formData.message,
                     leadName: lead.name

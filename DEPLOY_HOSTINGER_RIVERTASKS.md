@@ -41,6 +41,6 @@ Você precisa de *duas* janelas de terminal abertas na pasta do projeto:
 1. `cd backend && npm run dev` -> Irá rodar a API (RiverTasks) na porta 3000.
 2. `npm run dev` -> Irá rodar o Site na porta 5173 (ou 3001) e usar a API internamente via Proxy.
 
-Acesse: `http://localhost:3001/admin/login` e tente logar com `Turbalada`, senha: `admin123`. Todo o design "River" estará ativo!
+Acesse: `http://localhost:3001/admin/login` e tente logar com `admin`, senha: `admin123`. Todo o design "River" estará ativo!
 
 Boa sorte! A River vai dominar! 🌊🚀
