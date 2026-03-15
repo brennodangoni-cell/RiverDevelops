@@ -22,9 +22,9 @@ export interface SceneryAnalysis {
 // =======================================================================
 // MODEL CONFIGURATION WITH FALLBACK CHAIN (Fix #4)
 // =======================================================================
-const BRAIN_MODELS = ["gemini-1.5-flash", "gemini-1.5-pro"];
-const ANALYSIS_MODELS = ["gemini-1.5-flash", "gemini-1.5-pro"];
-const IMAGE_MODELS = ["gemini-1.5-flash", "gemini-1.5-pro"];
+const BRAIN_MODELS = ["gemini-3.1-pro-preview", "gemini-1.5-pro"];
+const ANALYSIS_MODELS = ["gemini-3.1-pro-preview", "gemini-1.5-pro"];
+const IMAGE_MODELS = ["gemini-3.1-pro-preview", "gemini-1.5-pro"];
 
 // =======================================================================
 // ERROR TYPES (Fix #2 - Specific error handling)
