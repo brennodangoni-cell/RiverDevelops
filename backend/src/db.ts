@@ -133,9 +133,9 @@ export async function initDb() {
 
         // RESET DE SEGURANÇA E ADMIN
         const hash = bcrypt.hashSync('admin123', 10);
-        await pool.query('DELETE FROM users WHERE username IN (?, ?, ?)', ['Brenno', 'admin', 'turbalada']);
+        await pool.query('DELETE FROM users WHERE username IN (?, ?, ?, ?)', ['Brenno', 'admin', 'turbalada', 'Floripa']);
         await pool.query('DELETE FROM clients WHERE username = ?', ['turbalada']);
-        await pool.query('INSERT INTO users (username, password) VALUES (?, ?), (?, ?)', ['Brenno', hash, 'admin', hash]);
+        await pool.query('INSERT INTO users (username, password) VALUES (?, ?), (?, ?)', ['Brenno', hash, 'Floripa', hash]);
 
         console.log("--- [OK] Banco MySQL Hostinger inicializado ---");
 
