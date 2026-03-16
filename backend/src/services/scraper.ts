@@ -20,30 +20,28 @@ export async function scrapeGoogleMaps(query: string, limit = 20) {
             tools: [{ googleSearch: {} }] as any
         } as any);
 
-        const prompt = `Você é um especialista em prospecção B2B (Março de 2026) focado em precisão cirúrgica.
-        Sua tarefa é usar a Pesquisa Google AGORA para encontrar EXATAMENTE ${limit} empresas correspondentes a: "${query}".
-        
-        ESTRATÉGIA DE EXTRAÇÃO (CRITICAL):
-        Para cada empresa encontrada nos resultados do Google Maps/Search, você deve:
-        1. Localizar o "Painel de Conhecimento" (Knowledge Panel) ou o "Perfil da Empresa no Google".
-        2. Ir até a seção "Perfis" ou "Social Profiles" no final do painel (onde aparecem ícones de Instagram, Facebook, etc).
-        3. Extrair o link/username do INSTAGRAM diretamente de lá. Essa é a fonte mais confiável.
-        4. Se não houver painel lateral, procure no rodapé do site oficial da empresa.
-        
-        Para cada empresa, extraia rigorosamente:
-        1. name: Nome oficial da empresa.
+        const prompt = `Você é um ROBÔ DE PRECISÃO CIRÚRGICA focado em dados REAIS. (Março de 2026).
+        Sua tarefa é encontrar EXATAMENTE ${limit} empresas para: "${query}".
+
+        ⚠️ REGRAS DE OURO (NÃO DESOBEDEÇA):
+        1. ZERO ALUCINAÇÃO: Não invente arrobas baseados no nome da loja.
+        2. FONTE ÚNICA: O Instagram SÓ PODE ser preenchido se você encontrar o LINK REAL no "Painel de Conhecimento" (Knowledge Panel) do Google ou no rodapé do site oficial.
+        3. VERIFICAÇÃO: No painel do Google, vá na seção "Perfis" (onde tem os ícones coloridos). Se o ícone do Instagram não estiver lá, o campo "instagram" DEVE ficar vazio "".
+        4. LINKS REAIS: Eu quero o arroba que está no final do link (ex: instagram.com/loja_real -> @loja_real).
+
+        Para cada uma das ${limit} empresas, extraia:
+        1. name: Nome oficial.
         2. phone: Telefone (ex: (11) 99999-9999).
-        3. whatsapp: Apenas números com prefixo 55 (ex: 5511999999999). 
-        4. instagram: O username REAL (ex: @lojaexemplo). Se o Google mostrar no painel de "Perfis", use ESSE. Se não encontrar de jeito nenhum, deixe VAZIO "".
+        3. whatsapp: Apenas números (prefixo 55).
+        4. instagram: O @perfil REAL extraído do link oficial. Se não tiver link no painel/site, deixe VAZIO "".
         5. city: Cidade.
-        6. state: Sigla do estado.
-        7. address: Endereço completo.
-        8. website: Site oficial. Se não houver, deixe vazio "".
-        
-        MANDATO: Dê preferência total a empresas que o Google Search mostra com perfis sociais vinculados ou site oficial. 
-        
-        SAÍDA: APENAS um array JSON puro.
-        EXEMPLO: [{"name": "Citerol", "phone": "(34) 3219-6559", "whatsapp": "553432196559", "instagram": "@citeroloficial", ...}]`;
+        6. state: Sigla.
+        7. website: URL oficial. Se não tiver, vazio "".
+
+        PROIBIÇÃO: É proibido colocar "Não Listado", "N/A" ou chutar nomes. Se não tem o botão/ícone de Instagram no Google, o resultado deve ser "".
+
+        SAÍDA (JSON PURO):
+        [{"name": "Nome", "phone": "...", "whatsapp": "...", "instagram": "@perfil_real_da_loja", "city": "...", "state": "...", "website": "..."}]`;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
