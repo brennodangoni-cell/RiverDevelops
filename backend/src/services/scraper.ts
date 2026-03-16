@@ -20,28 +20,34 @@ export async function scrapeGoogleMaps(query: string, limit = 20) {
             tools: [{ googleSearch: {} }] as any
         } as any);
 
-        const prompt = `Você é um ROBÔ DE PRECISÃO CIRÚRGICA focado em dados REAIS. (Março de 2026).
-        Sua tarefa é encontrar EXATAMENTE ${limit} empresas para: "${query}".
+        const prompt = `Você é um ESPECIALISTA EM INVESTIGAÇÃO DIGITAL e Prospecção B2B (Março de 2026).
+        Sua missão é localizar EXATAMENTE ${limit} empresas para: "${query}".
 
-        ⚠️ REGRAS DE OURO (NÃO DESOBEDEÇA):
-        1. ZERO ALUCINAÇÃO: Não invente arrobas baseados no nome da loja.
-        2. FONTE ÚNICA: O Instagram SÓ PODE ser preenchido se você encontrar o LINK REAL no "Painel de Conhecimento" (Knowledge Panel) do Google ou no rodapé do site oficial.
-        3. VERIFICAÇÃO: No painel do Google, vá na seção "Perfis" (onde tem os ícones coloridos). Se o ícone do Instagram não estiver lá, o campo "instagram" DEVE ficar vazio "".
-        4. LINKS REAIS: Eu quero o arroba que está no final do link (ex: instagram.com/loja_real -> @loja_real).
+        🕵️ PROTOCOLO DE PESQUISA PROFUNDA (Obrigatório):
+        Para cada empresa candidata, use o seu "Google Search Grounding" para:
+        1. Pesquisar especificamente: "[Nome da Empresa] [Cidade] Instagram".
+        2. Identificar se existe uma conta LOCAL da loja (ex: @loja_saopaulo) em vez da conta nacional da franquia.
+        3. Se encontrar um site oficial, verifique o rodapé ou página de contato em busca do link social real.
+        4. SÓ EXTRAIA o Instagram se o perfil mencionar explicitamente a CIDADE ou o ENDEREÇO no bio/postagens.
 
-        Para cada uma das ${limit} empresas, extraia:
-        1. name: Nome oficial.
-        2. phone: Telefone (ex: (11) 99999-9999).
+        🚨 REGRAS DE OURO CONTRA ALUCINAÇÃO:
+        - NUNCA invente usernames.
+        - Se o link do Instagram no Google abrir uma página que não existe (404) ou for uma conta pessoal, deixe VAZIO "".
+        - Se o perfil for de uma franquia nacional e não da loja local específica, tente achar a local; se não achar a local, deixe VAZIO "".
+        - Não use "Não Listado". Se não tem certeza absoluta que é a loja certa na cidade certa, deixe "".
+
+        Para cada uma das ${limit} empresas, retorne:
+        1. name: Nome oficial da unidade local.
+        2. phone: Telefone local (ex: (11) 99999-9999).
         3. whatsapp: Apenas números (prefixo 55).
-        4. instagram: O @perfil REAL extraído do link oficial. Se não tiver link no painel/site, deixe VAZIO "".
-        5. city: Cidade.
-        6. state: Sigla.
-        7. website: URL oficial. Se não tiver, vazio "".
-
-        PROIBIÇÃO: É proibido colocar "Não Listado", "N/A" ou chutar nomes. Se não tem o botão/ícone de Instagram no Google, o resultado deve ser "".
+        4. instagram: O @perfil LOCAL verificado. SE NÃO TIVER CERTEZA, DEIXE "".
+        5. city: Cidade da unidade.
+        6. state: Sigla do estado (ex: MG).
+        7. address: Endereço completo verificado.
+        8. website: URL oficial da unidade ou da marca.
 
         SAÍDA (JSON PURO):
-        [{"name": "Nome", "phone": "...", "whatsapp": "...", "instagram": "@perfil_real_da_loja", "city": "...", "state": "...", "website": "..."}]`;
+        [{"name": "Vila Sapatos", "phone": "(11) 98888-7777", "whatsapp": "5511988887777", "instagram": "@vilasapatos_sp", "city": "São Paulo", "state": "SP", "address": "Av. Paulista, 1000", "website": "https://vilasapatos.com.br"}]`;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
