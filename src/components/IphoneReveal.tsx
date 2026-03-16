@@ -18,9 +18,9 @@ const projects: Project[] = [
         id: 1,
         client: "Lojas Dufins",
         niche: "Tênis Esportivos",
-        logo: "https://res.cloudinary.com/dobo2yvgz/image/upload/v1771537332/dufins_2_a17a662e-2327-4f2c-97c6-91725f0a2f02_205x_2x_vjbw7k.png",
-        material: "https://res.cloudinary.com/dobo2yvgz/image/upload/v1771539425/provasocial_i5rsy6.png",
-        result: "https://res.cloudinary.com/dobo2yvgz/video/upload/v1771530888/Dufins_gpger0.mp4",
+        logo: "/logo.webp",
+        material: "/portfolio/dufins.png",
+        result: "/videos/herovideo.webm",
         caption: "Edição voltada para tração de vendas e tráfego pago."
     },
     {
@@ -28,26 +28,26 @@ const projects: Project[] = [
         client: "Fabullete",
         niche: "Moda Feminina",
         logo: "/fabullete-logo.webp",
-        material: "https://res.cloudinary.com/dobo2yvgz/image/upload/v1771797602/IMG_8899_ss9scp.webp",
-        result: "https://res.cloudinary.com/dobo2yvgz/video/upload/v1771797651/Fabullete_4_kfpygy.mp4",
+        material: "/fotonova.webp",
+        result: "/videos/herovideo.webm",
         caption: "Transformação estética premium para moda e e-commerce."
     },
     {
         id: 3,
         client: "Catalão Náutica",
         niche: "Loja Náutica",
-        logo: "https://res.cloudinary.com/dobo2yvgz/image/upload/v1772028038/catalao_nautica_loho_v9ndtv.webp",
-        material: "https://res.cloudinary.com/dobo2yvgz/image/upload/v1772028613/provasocialnova_dpvdgn.webp",
-        result: "https://res.cloudinary.com/dobo2yvgz/video/upload/v1772028151/bassbrasilboats_dpkdvm.mp4",
+        logo: "/logo.webp",
+        material: "/portfolio/nautica.png",
+        result: "/videos/herovideo.webm",
         caption: "Audiovisual de alto padrão para mercado náutico."
     },
     {
         id: 4,
         client: "Flag Watches",
         niche: "Loja de Relógios",
-        logo: "https://res.cloudinary.com/dobo2yvgz/image/upload/v1772028886/flagwatcheslogo_nwbmlr.webp",
-        material: "https://res.cloudinary.com/dobo2yvgz/image/upload/v1772029251/flagwatchesprova_dcixf6.webp",
-        result: "https://res.cloudinary.com/dobo2yvgz/video/upload/v1772029082/flagwatches_legenda_branca_final_suave_xd3sxj.mp4",
+        logo: "/logo.webp",
+        material: "/portfolio/watches.png",
+        result: "/videos/herovideo.webm",
         caption: "Visual imersivo para realçar prestígio e detalhes."
     }
 ];
@@ -136,7 +136,7 @@ const IphoneReveal = () => {
                 <div className="absolute inset-0 z-0 bg-[#070707] pointer-events-none overflow-hidden">
                     <motion.div style={{ opacity: bgOpacity, scale: bgScale }} className="absolute inset-0 transform-gpu will-change-transform">
                         <img
-                            src="https://res.cloudinary.com/dobo2yvgz/image/upload/v1771536633/3a7f0b99-39fb-43bd-aa83-2da0ff50e266_1_pot63c.png"
+                            src="/premium-bg.png"
                             alt="Background"
                             className="w-full h-full object-cover opacity-30 object-center"
                         />
@@ -257,12 +257,8 @@ const IphoneReveal = () => {
                                         <div className="absolute inset-0 w-full h-full bg-black">
                                             {projects.map((p, index) => {
                                                 const isActive = currentIndex === index;
-                                                const videoUrl = p.result.includes('cloudinary')
-                                                    ? p.result.replace('/upload/', '/upload/f_auto,q_auto,w_500/')
-                                                    : p.result;
-                                                const posterUrl = p.result.replace('.mp4', '.jpg').includes('cloudinary')
-                                                    ? p.result.replace('.mp4', '.jpg').replace('/upload/', '/upload/f_auto,q_auto,w_500/')
-                                                    : p.result.replace('.mp4', '.jpg');
+                                                const videoUrl = p.result;
+                                                const posterUrl = p.material;
 
                                                 return (
                                                     <motion.div

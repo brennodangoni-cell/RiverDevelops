@@ -16,13 +16,13 @@ const Hero = ({ onIntroComplete }: HeroProps) => {
     const [imagesLoaded, setImagesLoaded] = useState(false);
     const [videoReady, setVideoReady] = useState(false);
 
-    // Using Cloudinary URL for all devices since we cleaned up the local public folder
-    const [videoSrc] = useState('https://res.cloudinary.com/dobo2yvgz/video/upload/f_auto,q_auto/v1771527902/hero-final-v2_ggubeo.mp4');
+    // Using local WebM for maximum weight and stability
+    const [videoSrc] = useState('/videos/herovideo.webm');
 
     // EXPLICIT IMAGE PRELOADER - Only load critical above-the-fold assets
     useEffect(() => {
         const imageUrls = [
-            'https://res.cloudinary.com/dobo2yvgz/image/upload/f_auto,q_auto/v1771536633/3a7f0b99-39fb-43bd-aa83-2da0ff50e266_1_pot63c.png'
+            '/premium-bg.png'
         ];
         let loadedCount = 0;
 
@@ -166,7 +166,7 @@ const Hero = ({ onIntroComplete }: HeroProps) => {
                     playsInline
                     autoPlay
                     controls={false}
-                    preload="auto"
+                    poster="/premium-bg.png"
                     onTimeUpdate={handleTimeUpdate}
                     onEnded={handleVideoEnd}
                     onCanPlayThrough={handleCanPlay}
@@ -176,7 +176,7 @@ const Hero = ({ onIntroComplete }: HeroProps) => {
                         transition: 'transform 3s '
                     }}
                 >
-                    <source src={videoSrc} type="video/mp4" />
+                    <source src={videoSrc} type="video/webm" />
                 </video>
             </div>
 

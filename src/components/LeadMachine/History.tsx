@@ -315,13 +315,13 @@ export function History({ onAddToQueue }: { onAddToQueue: (lead: any) => void })
                                                     className="w-8 h-8 rounded-lg bg-[#25D366]/10 border border-[#25D366]/15 flex items-center justify-center text-[#25D366] hover:bg-[#25D366]/20 transition-all">
                                                     <WhatsAppIcon size={13} />
                                                 </a>
-                                                {lead.instagram && (
+                                                {lead.instagram && lead.instagram !== 'Não Listado' && lead.instagram !== "" && (
                                                     <a href={`https://instagram.com/${lead.instagram.replace('@', '')}`} target="_blank" rel="noreferrer"
                                                         className="w-8 h-8 rounded-lg bg-pink-500/10 border border-pink-500/15 flex items-center justify-center text-pink-400 hover:bg-pink-500/20 transition-all">
                                                         <Instagram size={13} />
                                                     </a>
                                                 )}
-                                                {lead.website && (
+                                                {lead.website && lead.website !== 'Não Listado' && lead.website !== "" && (
                                                     <a href={lead.website} target="_blank" rel="noreferrer"
                                                         className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/15 flex items-center justify-center text-blue-400 hover:bg-blue-500/20 transition-all">
                                                         <Globe size={13} />

@@ -275,13 +275,13 @@ export function Radar({ onAddToQueue }: { onAddToQueue: (lead: any) => void }) {
                                             className="h-9 px-3 rounded-lg bg-[#25D366]/10 border border-[#25D366]/20 flex items-center gap-2 hover:bg-[#25D366]/20 transition-all text-[#25D366] text-xs font-medium">
                                             <WhatsAppIcon size={14} /> WhatsApp
                                         </a>
-                                        {lead.instagram && (
+                                        {lead.instagram && lead.instagram !== 'Não Listado' && lead.instagram !== "" && (
                                             <a href={`https://instagram.com/${lead.instagram.replace('@', '')}`} target="_blank" rel="noreferrer"
                                                 className="w-9 h-9 rounded-lg bg-pink-500/10 border border-pink-500/15 flex items-center justify-center text-pink-400 hover:bg-pink-500/20 transition-all">
                                                 <Instagram size={14} />
                                             </a>
                                         )}
-                                        {lead.website && (
+                                        {lead.website && lead.website !== 'Não Listado' && lead.website !== "" && (
                                             <a href={lead.website} target="_blank" rel="noreferrer"
                                                 className="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/15 flex items-center justify-center text-blue-400 hover:bg-blue-500/20 transition-all">
                                                 <Globe size={14} />

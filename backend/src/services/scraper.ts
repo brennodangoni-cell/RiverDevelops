@@ -23,21 +23,22 @@ export async function scrapeGoogleMaps(query: string, limit = 20) {
         const prompt = `Você é um especialista em prospecção B2B (Março de 2026).
         Sua tarefa é usar a Pesquisa Google AGORA para encontrar EXATAMENTE ${limit} empresas ativas correspondentes a: "${query}".
         
-        IMPORTANTE: Você deve encontrar dados REAIS e ATUAIS. Não invente empresas.
+        IMPORTANTE: Você deve encontrar dados REAIS e ATUAIS. Use a Pesquisa para validar se a empresa ainda existe e busque especificamente pelo perfil delas no INSTAGRAM.
         
         Para cada empresa, extraia rigorosamente:
         1. name: Nome oficial da empresa.
         2. phone: Telefone de contato formatado (ex: (11) 99999-9999).
-        3. whatsapp: Apenas os números com prefixo 55 (ex: 5511999999999). Se o telefone for celular, use-o como WhatsApp.
-        4. instagram: O @perfil do Instagram se disponível, ou "Não Listado".
+        3. whatsapp: Apenas os números com prefixo 55 (ex: 5511999999999).
+        4. instagram: O username REAL do Instagram (ex: @lojaexemplo). BUSQUE ATIVAMENTE por isso. Se NÃO encontrar de jeito nenhum, deixe a string VAZIA "".
         5. city: Cidade onde a empresa está localizada.
-        6. state: Sigla do estado (ex: SP, RJ, MG).
-        7. address: Endereço completo da empresa se disponível.
-        8. website: Site da empresa se disponível.
+        6. state: Sigla do estado (ex: SP).
+        7. address: Endereço completo se disponível.
+        8. website: Site oficial se disponível. Se não existir, deixe vazio "".
+        
+        MANDATO DE QUALIDADE: Priorize empresas que tenham presença digital (Instagram/Site). Se o instagram for duvidoso, não invente, deixe vazio.
         
         SAÍDA OBRIGATÓRIA:
         Retorne APENAS um array JSON puro, sem markdown, sem explicações.
-        Se encontrar menos que ${limit}, retorne o máximo possível.
         
         EXEMPLO:
         [{"name": "Exemplo LTDA", "phone": "(11) 98888-7777", "whatsapp": "5511988887777", "instagram": "@exemplo", "city": "São Paulo", "state": "SP", "address": "Rua Exemplo 123, Centro", "website": "https://exemplo.com.br"}]`;

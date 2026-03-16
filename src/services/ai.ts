@@ -22,9 +22,9 @@ export interface SceneryAnalysis {
 // =======================================================================
 // MODEL CONFIGURATION WITH FALLBACK CHAIN (Fix #4)
 // =======================================================================
-const BRAIN_MODELS = ["gemini-3.1-pro-preview", "gemini-1.5-pro"];
-const ANALYSIS_MODELS = ["gemini-3.1-pro-preview", "gemini-1.5-pro"];
-const IMAGE_MODELS = ["gemini-3.1-pro-preview", "gemini-1.5-pro"];
+const BRAIN_MODELS = ["gemini-3.1-pro-preview", "gemini-3-flash-preview"];
+const ANALYSIS_MODELS = ["gemini-3.1-pro-preview", "gemini-3-flash-preview"];
+const IMAGE_MODELS = ["gemini-3.1-flash-image-preview", "gemini-3.1-pro-preview"];
 
 // =======================================================================
 // ERROR TYPES (Fix #2 - Specific error handling)
@@ -40,9 +40,11 @@ export class AIError extends Error {
 }
 
 function classifyError(e: any): AIError {
-    const msg = e?.message || e?.toString() || '';
-    if (msg.includes('API key') || msg.includes('API_KEY')) {
-        return new AIError('Chave API do Gemini n├úo encontrada ou inv├ílida.', 'API_KEY_MISSING', false);
+    const rawMsg = e?.message || e?.toString() || '';
+    const msg = rawMsg.toLowerCase();
+
+    if (msg.includes('api key') || msg.includes('api_key') || msg.includes('unauthorized') || msg.includes('invalid key')) {
+        return new AIError(`Chave API Inv├ílida ou n├úo encontrada. Detalhe: ${rawMsg.slice(0, 150)}`, 'API_KEY_MISSING', false);
     }
     if (msg.includes('safety') || msg.includes('SAFETY') || msg.includes('suggestive') || msg.includes('racy') || msg.includes('blocked')) {
         return new AIError('Conte├║do bloqueado pelo filtro de seguran├ºa. Tente ajustar as op├º├Áes.', 'SAFETY_FILTER', true);
@@ -63,11 +65,17 @@ function classifyError(e: any): AIError {
 // API KEY
 // =======================================================================
 function getApiKey(): string {
-    const localKey = localStorage.getItem('gemini_api_key');
-    if (localKey && localKey.trim().startsWith('AIzaSy')) return localKey.trim();
-
+    // 1. PRIORIDADE TOTAL: Vari├ível de Ambiente (Vite .env)
     const envKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
-    if (envKey && envKey.trim().startsWith('AIzaSy')) return envKey.trim();
+    if (envKey && envKey.trim().startsWith('AIzaSy')) {
+        return envKey.trim();
+    }
+
+    // 2. SEGUNDA PRIORIDADE: Local Storage (Usu├írio setou manualmente)
+    const localKey = localStorage.getItem('gemini_api_key');
+    if (localKey && localKey.trim().startsWith('AIzaSy')) {
+        return localKey.trim();
+    }
 
     return "";
 }
@@ -560,13 +568,15 @@ CRITICAL: Perfect symmetry, cinematic grade. The product MUST be identical to th
             model,
             contents: { parts: contentParts },
             config: {
-                // @ts-ignore
+                // @ts-ignore - Trigger image generation mode for Gemini 3
                 imageConfig: {
                     aspectRatio: "16:9",
                     imageSize: "1K"
                 }
             }
         }));
+
+        console.log(`[AI] Mockup Response from ${response.model || 'model'}:`, response);
 
         for (const part of response.candidates?.[0]?.content?.parts || []) {
             if (part.inlineData) {

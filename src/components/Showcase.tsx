@@ -6,8 +6,8 @@ const Transformation = () => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isVideoLoaded, setIsVideoLoaded] = useState(false);
 
-    // Optimized Cloudinary Assets for ALL devices to prevent stuttering
-    const [videoSrc] = useState('https://res.cloudinary.com/dobo2yvgz/video/upload/f_auto,q_auto/v1771528283/videonovo_tbftnn.mp4');
+    // Optimized Local Assets for ALL devices
+    const [videoSrc] = useState('/videos/herovideo.webm');
     const [staticImg, setStaticImg] = useState('/fotonova.webp');
     const [bgImg, setBgImg] = useState('/imagetest.webp');
 
@@ -202,7 +202,7 @@ const Transformation = () => {
                             preload="metadata"
                             onLoadedData={() => setIsVideoLoaded(true)}
                         >
-                            <source src={videoSrc} type="video/mp4" />
+                            <source src={videoSrc} type="video/webm" />
                         </video>
                     </motion.div>
 
