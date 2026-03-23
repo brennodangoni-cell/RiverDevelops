@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "type": "IN",
+    "amount": 700,
+    "description": "15 Vídeos",
+    "date": "2026-03-05T15:00:00.000Z",
+    "created_by": 4,
+    "client_name": "Yogui",
+    "created_at": "2026-03-05T20:25:20.293Z"
+  },
+  {
+    "id": 2,
+    "type": "IN",
+    "amount": 500,
+    "description": "12 Vídeos",
+    "date": "2026-03-05T15:00:00.000Z",
+    "created_by": 4,
+    "client_name": "Dufins",
+    "created_at": "2026-03-05T20:25:37.005Z"
+  },
+  {
+    "id": 3,
+    "type": "IN",
+    "amount": 500,
+    "description": "15 Vídeos\n",
+    "date": "2026-03-05T15:00:00.000Z",
+    "created_by": 4,
+    "client_name": "Equipa Pesca",
+    "created_at": "2026-03-05T20:25:48.139Z"
+  },
+  {
+    "id": 4,
+    "type": "IN",
+    "amount": 3100,
+    "description": "ss",
+    "date": "2026-03-11T15:00:00.000Z",
+    "created_by": 4,
+    "client_name": null,
+    "created_at": "2026-03-12T02:28:24.026Z"
+  }
+]

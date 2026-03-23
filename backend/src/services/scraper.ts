@@ -15,12 +15,19 @@ export async function scrapeGoogleMaps(query: string, limit = 20) {
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
 
-        const model = genAI.getGenerativeModel({
-            model: "gemini-3.1-pro-preview",
-            tools: [{ googleSearch: {} }] as any
-        } as any);
+        const modelsToTry = ["gemini-3.1-pro-preview", "gemini-2.0-flash", "gemini-1.5-pro"];
+        let lastError: any;
+        let result: any = null;
 
-        const prompt = `Você é um ESPECIALISTA EM INVESTIGAÇÃO DIGITAL e Prospecção B2B (Março de 2026).
+        for (const modelName of modelsToTry) {
+            try {
+                console.log(`[Sales Engine] Tentando usar o modelo: ${modelName}`);
+                const model = genAI.getGenerativeModel({
+                    model: modelName,
+                    tools: [{ googleSearch: {} }] as any
+                } as any);
+
+                const prompt = `Você é um ESPECIALISTA EM INVESTIGAÇÃO DIGITAL e Prospecção B2B (Março de 2026).
         Sua missão é localizar EXATAMENTE ${limit} empresas para: "${query}".
 
         🕵️ PROTOCOLO DE PESQUISA PROFUNDA (Obrigatório):
@@ -49,7 +56,19 @@ export async function scrapeGoogleMaps(query: string, limit = 20) {
         SAÍDA (JSON PURO):
         [{"name": "Vila Sapatos", "phone": "(11) 98888-7777", "whatsapp": "5511988887777", "instagram": "@vilasapatos_sp", "city": "São Paulo", "state": "SP", "address": "Av. Paulista, 1000", "website": "https://vilasapatos.com.br"}]`;
 
-        const result = await model.generateContent(prompt);
+                result = await model.generateContent(prompt);
+                break; // Sucesso, sai do loop
+            } catch (error: any) {
+                lastError = error;
+                console.warn(`[Sales Engine] Falha ao usar ${modelName}: ${error.message}`);
+                // Se o erro não for de limite/disponibilidade e for erro fixo, a gente decide se tenta o próximo
+            }
+        }
+
+        if (!result) {
+            throw lastError;
+        }
+
         const response = await result.response;
         const text = response.text();
 
@@ -82,8 +101,8 @@ export async function scrapeGoogleMaps(query: string, limit = 20) {
     } catch (error: any) {
         console.error("[Sales Engine] Erro no Scraper:", error);
 
-        if (error.message?.includes("404") || error.message?.includes("model")) {
-            throw new Error(`O modelo gemini-3-flash-preview pode estar indisponível ou em manutenção. Erro: ${error.message}`);
+        if (error.message?.includes("404") || error.message?.includes("model") || error.message?.includes("503")) {
+            throw new Error(`Os modelos do Gemini estão sob alta demanda (Erro 503) ou indisponíveis no momento. Erro detalhado: ${error.message}`);
         }
 
         if (error.message?.includes("quota")) {

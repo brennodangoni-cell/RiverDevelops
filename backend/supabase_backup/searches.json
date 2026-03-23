@@ -1,0 +1,104 @@
+[
+  {
+    "id": 1,
+    "query": "Clínica de Estética em Adolfo SP",
+    "count": 0,
+    "created_at": "2026-03-11T17:49:13.353Z"
+  },
+  {
+    "id": 2,
+    "query": "Clínica de Estética em Bauru SP",
+    "count": 0,
+    "created_at": "2026-03-11T17:49:16.410Z"
+  },
+  {
+    "id": 3,
+    "query": "Clínica de Estética em Bauru SP",
+    "count": 0,
+    "created_at": "2026-03-11T17:49:19.980Z"
+  },
+  {
+    "id": 4,
+    "query": "Loja de Roupas em Bauru SP",
+    "count": 0,
+    "created_at": "2026-03-11T17:49:22.581Z"
+  },
+  {
+    "id": 5,
+    "query": "Loja de Roupas em São Paulo SP",
+    "count": 0,
+    "created_at": "2026-03-11T17:54:25.657Z"
+  },
+  {
+    "id": 6,
+    "query": "Loja de Roupas em São Paulo SP",
+    "count": 0,
+    "created_at": "2026-03-11T17:54:31.482Z"
+  },
+  {
+    "id": 7,
+    "query": "Loja de Roupas em São Paulo SP",
+    "count": 2,
+    "created_at": "2026-03-11T18:05:31.894Z"
+  },
+  {
+    "id": 8,
+    "query": "Loja de Roupas em Belo Horizonte, MG",
+    "count": 20,
+    "created_at": "2026-03-11T19:51:58.341Z"
+  },
+  {
+    "id": 9,
+    "query": "Academia em Uberlândia, MG",
+    "count": 2,
+    "created_at": "2026-03-11T20:28:08.852Z"
+  },
+  {
+    "id": 10,
+    "query": "Academia em São Paulo, SP",
+    "count": 63,
+    "created_at": "2026-03-11T20:28:19.525Z"
+  },
+  {
+    "id": 11,
+    "query": "Loja de Calçados em São Paulo, SP",
+    "count": 29,
+    "created_at": "2026-03-11T22:32:00.133Z"
+  },
+  {
+    "id": 12,
+    "query": "Loja de Roupas em MG",
+    "count": 50,
+    "created_at": "2026-03-12T13:24:12.798Z"
+  },
+  {
+    "id": 13,
+    "query": "Loja de Calçados em MG",
+    "count": 50,
+    "created_at": "2026-03-12T13:26:18.888Z"
+  },
+  {
+    "id": 14,
+    "query": "Loja de Roupas em Uberlândia, MG",
+    "count": 50,
+    "created_at": "2026-03-12T17:12:13.641Z"
+  },
+  {
+    "id": 15,
+    "query": "Loja de Calçados em Uberlândia, MG",
+    "count": 50,
+    "created_at": "2026-03-12T17:36:28.760Z"
+  },
+  {
+    "id": 16,
+    "query": "Loja de Calçados em Uberaba, MG",
+    "count": 50,
+    "created_at": "2026-03-12T18:57:03.704Z"
+  },
+  {
+    "id": 17,
+    "query": "Loja de Calçados em Belo Horizonte, MG",
+    "count": 80,
+    "created_at": "2026-03-12T18:59:38.600Z"
+  }
+]

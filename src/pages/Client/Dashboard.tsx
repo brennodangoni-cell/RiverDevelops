@@ -43,23 +43,23 @@ export default function ClientDashboard() {
             return;
         }
 
-        const fetchContent = async () => {
-            try {
-                const res = await axios.get('/api/client/content', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                setContent(res.data);
-            } catch (error) {
-                toast.error('Sessão expirada. Faça login novamente.');
-                localStorage.removeItem('rivertasks_client_token');
-                navigate('/cliente/login');
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchContent();
     }, [navigate]);
+
+    const fetchContent = async () => {
+        const token = localStorage.getItem('rivertasks_client_token');
+        if (!token) return;
+        try {
+            const res = await axios.get('/api/client/content', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setContent(res.data);
+        } catch (error) {
+            console.error('Error fetching content:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleLogout = () => {
         localStorage.removeItem('rivertasks_client_token');
@@ -87,6 +87,9 @@ export default function ClientDashboard() {
             toast.error('Erro ao baixar. Tente novamente.');
         }
     };
+
+
+
 
     if (loading) {
         return <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a]"><Loader2 className="w-8 h-8 animate-spin text-cyan-400" /></div>;
@@ -123,27 +126,29 @@ export default function ClientDashboard() {
 
                         {/* Centered Categories (Desktop) */}
                         {showCategories && (
-                        <div className="hidden md:flex items-center gap-2 overflow-x-auto custom-scrollbar">
-                            {categories.map(cat => (
-                                <button
-                                    key={cat}
-                                    onClick={() => setSelectedCategory(cat)}
-                                    className={`px-5 py-2 rounded-full text-xs font-bold tracking-widest uppercase   ${selectedCategory === cat ? 'bg-white text-black' : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white'}`}
-                                >
-                                    {cat}
-                                </button>
-                            ))}
-                        </div>
+                            <div className="hidden md:flex items-center gap-2 overflow-x-auto custom-scrollbar">
+                                {categories.map(cat => (
+                                    <button
+                                        key={cat}
+                                        onClick={() => setSelectedCategory(cat)}
+                                        className={`px-5 py-2 rounded-full text-xs font-bold tracking-widest uppercase   ${selectedCategory === cat ? 'bg-white text-black' : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white'}`}
+                                    >
+                                        {cat}
+                                    </button>
+                                ))}
+                            </div>
                         )}
 
-                        {/* Logout */}
-                        <button
-                            onClick={handleLogout}
-                            className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 hover:bg-red-500/20 hover:border-red-500 hover:text-red-400  group shrink-0"
-                            title="Desconectar"
-                        >
-                            <LogOut className="w-4 h-4 ml-0.5 opacity-80 group-hover:opacity-100" />
-                        </button>
+                        {/* Actions */}
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={handleLogout}
+                                className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 hover:bg-red-500/20 hover:border-red-500 hover:text-red-400  group shrink-0"
+                                title="Desconectar"
+                            >
+                                <LogOut className="w-4 h-4 ml-0.5 opacity-80 group-hover:opacity-100" />
+                            </button>
+                        </div>
                     </div>
                 </div>
             </nav>
@@ -151,17 +156,17 @@ export default function ClientDashboard() {
             <main className="max-w-[1600px] mx-auto px-6 lg:px-12 pt-[140px] md:pt-[160px] min-h-[100dvh] relative z-10 pb-20">
                 {/* Mobile Categories (if many, scrollable) */}
                 {showCategories && (
-                <div className="flex md:hidden items-center gap-2 overflow-x-auto custom-scrollbar mb-8 pb-4">
-                    {categories.map(cat => (
-                        <button
-                            key={cat}
-                            onClick={() => setSelectedCategory(cat)}
-                            className={`whitespace-nowrap px-6 py-3 rounded-full text-xs font-bold tracking-widest uppercase   ${selectedCategory === cat ? 'bg-white text-black' : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white'}`}
-                        >
-                            {cat}
-                        </button>
-                    ))}
-                </div>
+                    <div className="flex md:hidden items-center gap-2 overflow-x-auto custom-scrollbar mb-8 pb-4">
+                        {categories.map(cat => (
+                            <button
+                                key={cat}
+                                onClick={() => setSelectedCategory(cat)}
+                                className={`whitespace-nowrap px-6 py-3 rounded-full text-xs font-bold tracking-widest uppercase   ${selectedCategory === cat ? 'bg-white text-black' : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white'}`}
+                            >
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
                 )}
 
                 {filteredContent.length === 0 ? (
@@ -234,6 +239,8 @@ export default function ClientDashboard() {
                     </div>
                 </div>
             )}
+
+
         </div>
     );
 }

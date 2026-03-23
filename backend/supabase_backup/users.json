@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "username": "Turbalada",
+    "password": "$2b$10$2Fk5ajOxaGyFyYQ/d2RIvOyCn0l0dpN.9UVcW2KfhT23GLCCMijHW"
+  },
+  {
+    "id": 2,
+    "username": "Floripa",
+    "password": "$2b$10$2Fk5ajOxaGyFyYQ/d2RIvOyCn0l0dpN.9UVcW2KfhT23GLCCMijHW"
+  },
+  {
+    "id": 4,
+    "username": "Brenno",
+    "password": "$2b$10$YtwWadxtpcWWJp5KPfR87.68uM2/rudKrhy37mUwM5MVTu6dO49pG"
+  }
+]

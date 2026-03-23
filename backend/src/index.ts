@@ -301,6 +301,92 @@ app.post('/api/admin/clients', authenticate, upload.single('avatarFile'), async 
 });
 
 // ==========================================
+// CLIENT ROUTES (CONSUMER FACING)
+// ==========================================
+
+app.post('/api/client/login', async (req: Request, res: Response) => {
+    const { username, password } = req.body;
+    try {
+        const [rows]: any = await pool.query('SELECT * FROM clients WHERE username = ?', [username]);
+        const client = rows[0];
+
+        if (!client) {
+            return res.status(401).json({ error: 'Cliente não encontrado' });
+        }
+
+        if (!bcrypt.compareSync(password, client.password)) {
+            return res.status(401).json({ error: 'Senha incorreta' });
+        }
+
+        const token = generateToken({ id: client.id, username: client.username, role: 'client' });
+        res.json({
+            token,
+            user: {
+                id: client.id,
+                username: client.username,
+                avatar_url: client.avatar_url
+            }
+        });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.get('/api/client/content', authenticate, async (req: Request, res: Response) => {
+    const clientId = (req as any).user.id;
+    try {
+        const [rows]: any = await pool.query(
+            'SELECT * FROM client_content WHERE client_id = ? ORDER BY created_at DESC',
+            [clientId]
+        );
+        res.json(rows);
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// NOVO: Rota para o cliente subir os próprios materiais
+app.post('/api/client/content', authenticate, upload.single('file'), async (req: Request, res: Response) => {
+    const clientId = (req as any).user.id;
+    const { title, category, product, week_date } = req.body;
+    try {
+        if (!req.file) return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+
+        const media_url = await uploadFile(req.file);
+        const media_type = req.file.mimetype.startsWith('video/') ? 'video' : 'image';
+
+        await pool.query(
+            'INSERT INTO client_content (client_id, title, category, product, week_date, media_url, media_type) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [clientId, title || 'Upload Cliente', category || 'Uploads', product || 'Manual', week_date || '', media_url, media_type]
+        );
+
+        res.json({ success: true, message: 'Material submetido com sucesso!' });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.get('/api/client/download/:id', authenticate, async (req: Request, res: Response) => {
+    const { id } = req.params;
+    try {
+        const [rows]: any = await pool.query('SELECT media_url FROM client_content WHERE id = ?', [id]);
+        if (!rows[0] || !rows[0].media_url) return res.status(404).send('Not found');
+
+        const fileName = path.basename(rows[0].media_url);
+        const filePath = path.join(__dirname, '../public/uploads', fileName);
+
+        if (fs.existsSync(filePath)) {
+            res.download(filePath);
+        } else {
+            res.status(404).send('Arquivo físico não encontrado');
+        }
+    } catch (e: any) {
+        res.status(500).send(e.message);
+    }
+});
+
+
+// ==========================================
 // LEAD MACHINE ROUTES (WHATSAPP/MAPS)
 // ==========================================
 

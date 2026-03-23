@@ -1,0 +1,92 @@
+[
+  {
+    "id": 3,
+    "username": "@equipa.pesca",
+    "password": "$2b$10$SqZ4caOFy9iCLkJiqkp24ugs0efwTASI2MWgiJ7nvQiiGB4njELVO",
+    "avatar_url": null,
+    "created_at": "2026-03-05T17:33:42.444Z",
+    "niche": "Pescaria",
+    "password_raw": null
+  },
+  {
+    "id": 4,
+    "username": "@fabullete",
+    "password": "$2b$10$YXGywslcn/MSrNlAAd7nKOjcc1EDzHpMJ7pRJVrlwTaLbqzvcHuGK",
+    "avatar_url": null,
+    "created_at": "2026-03-05T17:34:23.105Z",
+    "niche": "Moda feminina",
+    "password_raw": null
+  },
+  {
+    "id": 5,
+    "username": "@lojas.dufins",
+    "password": "$2b$10$OVD9JM.ONN4tCsNH6AZRGemQnyeZK/CRkYvO9lkhTJzlSTWSTtftK",
+    "avatar_url": null,
+    "created_at": "2026-03-05T17:34:58.308Z",
+    "niche": "Calçados",
+    "password_raw": null
+  },
+  {
+    "id": 6,
+    "username": "@catalaonautica",
+    "password": "$2b$10$UL.3etFUfNCAhIsmRwcXX.PcxeYbDoCyiSaNrILDlWb.KuxBk2MWm",
+    "avatar_url": null,
+    "created_at": "2026-03-05T17:36:31.430Z",
+    "niche": "Nautica",
+    "password_raw": null
+  },
+  {
+    "id": 7,
+    "username": "@beautyhair",
+    "password": "$2b$10$Z6F/bB36hIgLJZsbUPVUGOo0jML4itz3zJgEzOduHvDKaoAEo8.92",
+    "avatar_url": null,
+    "created_at": "2026-03-05T17:37:06.756Z",
+    "niche": "Cabelo",
+    "password_raw": null
+  },
+  {
+    "id": 8,
+    "username": "@belevita",
+    "password": "$2b$10$ldAPz4CFJ70DTvWO14YYHeCNIaEmhOMYq.JL//bq6YBfg.6QzsXHe",
+    "avatar_url": null,
+    "created_at": "2026-03-05T17:37:51.341Z",
+    "niche": "Moda feminina",
+    "password_raw": null
+  },
+  {
+    "id": 9,
+    "username": "@Roxsoluçoes",
+    "password": "$2b$10$1U3k6m7BkMtDKYfltOfGgufNq2wxT1AWFI5v6Iu7gMROcyZubPWrG",
+    "avatar_url": null,
+    "created_at": "2026-03-05T19:36:58.285Z",
+    "niche": "Drop internacional",
+    "password_raw": null
+  },
+  {
+    "id": 2,
+    "username": "@lojasyogui",
+    "password": "$2b$10$/VYj0OMlBUbYYNvkdF8W1u4FPPYaUph0LsiJEzgFPDk/W3KmmVqg.",
+    "avatar_url": "https://tctzbsjmuariwylrfbuy.supabase.co/storage/v1/object/public/rivertasks/uploads/1772722104196-337928818-logolojas-yoguicbGF4r.png",
+    "created_at": "2026-03-05T17:32:50.123Z",
+    "niche": "Calçados",
+    "password_raw": null
+  },
+  {
+    "id": 11,
+    "username": "@crmday",
+    "password": "$2b$10$xAaqCX8MDQK9pIIdebaR9OcMRNAtF69qcCCXWLpGo8Tw9ki9xhBSy",
+    "avatar_url": null,
+    "created_at": "2026-03-05T22:55:24.513Z",
+    "niche": "Automação",
+    "password_raw": null
+  },
+  {
+    "id": 10,
+    "username": "@automaall_ia",
+    "password": "$2b$10$6sZ/zvcURmXnU/gElEfswOlFTLJCJLWgTdlIqK0LqB3w4EDCMKwTe",
+    "avatar_url": null,
+    "created_at": "2026-03-05T22:53:43.312Z",
+    "niche": "Automação",
+    "password_raw": null
+  }
+]

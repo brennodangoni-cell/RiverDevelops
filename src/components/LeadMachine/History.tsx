@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, MapPin, Instagram, ChevronDown, Check, Globe, Trash2, CheckSquare, Share2 } from 'lucide-react';
+import { Search, MapPin, Instagram, ChevronDown, Check, Globe, Trash2, CheckSquare, Share2, Download } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { WhatsAppIcon } from './WhatsAppIcon';
@@ -215,6 +215,34 @@ export function History({ onAddToQueue }: { onAddToQueue: (lead: any) => void })
         return matchSearch && matchCat && matchStatus && matchState && matchCity;
     });
 
+    const downloadCSV = (leadsToExport: any[]) => {
+        if (leadsToExport.length === 0) {
+            toast.error("Nenhum lead para exportar.");
+            return;
+        }
+
+        const csvRows = leadsToExport.map(lead => {
+            let phone = (lead.whatsapp || '').replace(/\D/g, '');
+            // Força o DDI 55 se tiver tamanho padrão de celular ou fixo Brasil sem DDI
+            if (phone.length === 10 || phone.length === 11) {
+                phone = '55' + phone;
+            }
+            return phone;
+        });
+
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", "banco_de_leads.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        toast.success(`Exportado ${leadsToExport.length} leads como CSV!`);
+    };
+
     return (
         <div className="space-y-6">
             {/* Filtros */}
@@ -236,6 +264,10 @@ export function History({ onAddToQueue }: { onAddToQueue: (lead: any) => void })
                         <FilterDropdown value={filters.city} options={cityOpts} onChange={v => setFilters({ ...filters, city: v })} placeholder="Cidade" />
                         <FilterDropdown value={filters.status} options={statusOpts} onChange={v => setFilters({ ...filters, status: v })} placeholder="Status" />
                         <span className="text-xs text-white/25 px-2 ml-auto">{filtered.length} leads</span>
+                        <button onClick={() => downloadCSV(filtered)}
+                            className="h-9 px-4 rounded-xl text-xs font-medium flex items-center gap-2 transition-all border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:text-emerald-300 hover:border-emerald-500/40">
+                            <Download size={13} /> Exportar CSV
+                        </button>
                         <button onClick={() => { setSelectMode(!selectMode); if (selectMode) setSelected(new Set()); }}
                             className={`h-9 px-4 rounded-xl text-xs font-medium flex items-center gap-2 transition-all border ${selectMode ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' : 'bg-white/[0.03] text-white/40 border-white/[0.06] hover:text-white/60 hover:border-white/10'}`}>
                             <CheckSquare size={13} /> {selectMode ? 'Cancelar' : 'Selecionar'}
@@ -363,6 +395,15 @@ export function History({ onAddToQueue }: { onAddToQueue: (lead: any) => void })
                 <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-[#161616] border border-white/[0.08] rounded-2xl px-6 py-3 flex items-center gap-4 shadow-[0_16px_48px_rgba(0,0,0,0.6)]">
                     <span className="text-sm text-white font-medium">{selected.size} selecionado{selected.size > 1 ? 's' : ''}</span>
                     <button onClick={() => setSelected(new Set())} className="text-xs text-white/40 hover:text-white transition-colors">Limpar</button>
+                    <button
+                        onClick={() => {
+                            const leadsToExport = Array.from(selected).map(id => leads.find(l => String(l.id) === id)).filter(Boolean);
+                            downloadCSV(leadsToExport);
+                        }}
+                        className="h-9 px-5 bg-emerald-500 text-black rounded-xl text-xs font-semibold flex items-center gap-2 hover:bg-emerald-400 transition-all"
+                    >
+                        <Download size={13} /> Baixar CSV
+                    </button>
                     <button
                         onClick={() => {
                             selected.forEach(id => {
