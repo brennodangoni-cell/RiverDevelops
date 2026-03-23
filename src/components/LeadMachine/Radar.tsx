@@ -238,23 +238,7 @@ export function Radar({ onAddToQueue }: { onAddToQueue: (lead: any) => void }) {
                                 onChange={e => setBuscaLivre(e.target.value)}
                             />
                         </div>
-                        <div className="flex items-center gap-1.5 p-1 bg-[#111] border border-white/[0.06] rounded-xl">
-                            <button
-                                type="button"
-                                onClick={() => setSearchMode('official')}
-                                className={`flex-1 h-10 px-4 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${searchMode === 'official' ? 'bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.3)]' : 'text-white/30 hover:text-white'}`}
-                            >
-                                Oficial
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setSearchMode('free')}
-                                className={`flex-1 h-10 px-4 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${searchMode === 'free' ? 'bg-emerald-500 text-black shadow-[0_0_15px_rgba(16,185,129,0.3)]' : 'text-white/30 hover:text-white'}`}
-                            >
-                                Grátis
-                            </button>
-                        </div>
-                        <div className="flex items-center gap-3 h-12 bg-[#111] border border-white/[0.06] rounded-xl px-4">
+                        <div className="flex items-center gap-3 h-12 bg-[#111] border border-white/[0.06] rounded-xl px-4 flex-1">
                             <span className="text-white/25 text-xs whitespace-nowrap">Qtd:</span>
                             <div className="flex items-center gap-2">
                                 <input
@@ -275,9 +259,9 @@ export function Radar({ onAddToQueue }: { onAddToQueue: (lead: any) => void }) {
                         <button
                             type="submit"
                             disabled={loading}
-                            className={`h-12 px-8 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 ${searchMode === 'free' ? 'bg-emerald-500 hover:bg-emerald-400 text-black' : 'bg-cyan-500 hover:bg-cyan-400 text-black'}`}
+                            className="h-12 px-8 bg-cyan-500 hover:bg-cyan-400 text-black rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 shadow-[0_4px_20px_rgba(6,182,212,0.25)]"
                         >
-                            {loading ? <Loader2 size={16} className="animate-spin" /> : <><Search size={15} /> Buscar</>}
+                            {loading ? <Loader2 size={16} className="animate-spin" /> : <><Search size={15} /> Buscar Leads</>}
                         </button>
                     </div>
                 </form>
