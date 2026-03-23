@@ -135,11 +135,28 @@ export function Radar({ onAddToQueue }: { onAddToQueue: (lead: any) => void }) {
     const [cidades, setCidades] = useState<string[]>([]);
     const [loadingCidades, setLoadingCidades] = useState(false);
 
+    // IBGE data fallback
+    const ESTADOS_BR = [
+        { sigla: 'AC', nome: 'Acre' }, { sigla: 'AL', nome: 'Alagoas' }, { sigla: 'AP', nome: 'Amapá' },
+        { sigla: 'AM', nome: 'Amazonas' }, { sigla: 'BA', nome: 'Bahia' }, { sigla: 'CE', nome: 'Ceará' },
+        { sigla: 'DF', nome: 'Distrito Federal' }, { sigla: 'ES', nome: 'Espírito Santo' }, { sigla: 'GO', nome: 'Goiás' },
+        { sigla: 'MA', nome: 'Maranhão' }, { sigla: 'MT', nome: 'Mato Grosso' }, { sigla: 'MS', nome: 'Mato Grosso do Sul' },
+        { sigla: 'MG', nome: 'Minas Gerais' }, { sigla: 'PA', nome: 'Pará' }, { sigla: 'PB', nome: 'Paraíba' },
+        { sigla: 'PR', nome: 'Paraná' }, { sigla: 'PE', nome: 'Pernambuco' }, { sigla: 'PI', nome: 'Piauí' },
+        { sigla: 'RJ', nome: 'Rio de Janeiro' }, { sigla: 'RN', nome: 'Rio Grande do Norte' }, { sigla: 'RS', nome: 'Rio Grande do Sul' },
+        { sigla: 'RO', nome: 'Rondônia' }, { sigla: 'RR', nome: 'Roraima' }, { sigla: 'SC', nome: 'Santa Catarina' },
+        { sigla: 'SP', nome: 'São Paulo' }, { sigla: 'SE', nome: 'Sergipe' }, { sigla: 'TO', nome: 'Tocantins' }
+    ];
+
     // Buscar estados do IBGE
     useEffect(() => {
         axios.get('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome')
-            .then(res => setEstados(res.data.map((e: any) => ({ sigla: e.sigla, nome: e.nome }))))
-            .catch(() => { });
+            .then(res => {
+                const data = res.data.map((e: any) => ({ sigla: e.sigla, nome: e.nome }));
+                if (data.length > 0) setEstados(data);
+                else setEstados(ESTADOS_BR);
+            })
+            .catch(() => setEstados(ESTADOS_BR));
     }, []);
 
     // Buscar cidades quando estado muda

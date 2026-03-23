@@ -26,27 +26,26 @@ export async function scrapeGoogleMaps(query: string, limit = 20) {
             // CRITICAL: Para requisições de próxima página, a URL DEVE conter APENAS o pagetoken e a Key.
             // Qualquer outro parâmetro extra (como query ou language) causa INVALID_REQUEST.
             if (nextPageToken) {
-                console.log(`[Sales Engine] Solicitando próxima página (token ativado)...`);
+                console.log(`[Sales Engine] Aguardando 3.5s (CD do Google) para próxima página...`);
                 url = `https://maps.googleapis.com/maps/api/place/textsearch/json?pagetoken=${nextPageToken}&key=${apiKey}`;
-                // O Google exige um delay (cooldown) antes de permitir usar o nextPageToken
-                await new Promise(r => setTimeout(r, 2000));
+                await new Promise(r => setTimeout(r, 3500));
             } else {
                 url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${apiKey}&language=pt-BR`;
             }
 
             const searchRes = await axios.get(url);
-            const apiStatus = searchRes.data.status;
+            const apiData = searchRes.data;
+            const apiStatus = apiData.status;
 
             if (apiStatus !== 'OK' && apiStatus !== 'ZERO_RESULTS') {
-                const apiError = searchRes.data.error_message || "Sem mensagem detalhada do Google.";
-                console.error(`[Sales Engine] Google API Error Status: ${apiStatus}`);
-                console.error(`[Sales Engine] Google API Error Message: ${apiError}`);
+                const apiError = apiData.error_message || "O Google não forneceu detalhes no JSON de erro.";
+                console.error(`[Sales Engine] DIAGNÓSTICO GOOGLE (${apiStatus}):`, JSON.stringify(apiData, null, 2));
 
                 if (apiStatus === 'INVALID_REQUEST') {
-                    throw new Error(`Busca Rejeitada (INVALID_REQUEST). Possíveis causas: Query malformada ou uso incorreto do Token de Página. Detalhe: ${apiError}`);
+                    throw new Error(`Busca Rejeitada (INVALID_REQUEST). Causa: CD de página ou conta sem faturamento ativo. Detalhe: ${apiError}`);
                 }
                 if (apiStatus === 'REQUEST_DENIED') {
-                    throw new Error(`Acesso Negado (REQUEST_DENIED). Verifique se a 'Places API' está ATIVA no Console do Google Cloud e se não há restrições de IP vinculadas à chave. Detalhe: ${apiError}`);
+                    throw new Error(`Acesso Negado (REQUEST_DENIED). Verifique se a 'Places API' está ATIVA. Detalhe: ${apiError}`);
                 }
 
                 throw new Error(`Erro na API do Google (${apiStatus}): ${apiError}`);
