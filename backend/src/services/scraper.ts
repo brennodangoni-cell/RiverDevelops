@@ -60,7 +60,17 @@ export async function scrapeGoogleMaps(query: string, limit = 20) {
 
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
-        const jsonStr = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+
+        console.log(`[Sales Engine 4.0] Resposta da IA (Raw):`, responseText.slice(0, 500));
+
+        // Extrator de JSON por Regex (Blindado)
+        const jsonMatch = responseText.match(/\[[\s\S]*\]/);
+        if (!jsonMatch) {
+            console.error("[Sales Engine 4.0] IA não retornou um formato JSON válido.");
+            throw new Error(`A IA retornou um formato inválido. Ela disse: ${responseText.slice(0, 100)}...`);
+        }
+
+        const jsonStr = jsonMatch[0];
         const leads = JSON.parse(jsonStr);
 
         console.log(`[Sales Engine 4.0] Sucesso: ${leads.length} leads minerados.`);
@@ -75,8 +85,11 @@ export async function scrapeGoogleMaps(query: string, limit = 20) {
         }));
 
     } catch (e: any) {
-        console.error(`[Sales Engine 4.0] Erro Crítico:`, e.message);
-        throw new Error(`O motor de busca encontrou uma instabilidade. Tente novamente em alguns segundos.`);
+        const errorMsg = e.message || "Erro desconhecido na rede";
+        console.error(`[Sales Engine 4.0] Erro Real Detector:`, errorMsg);
+
+        // Passamos o erro REAL para o frontend agora
+        throw new Error(`Instabilidade na IA: ${errorMsg}`);
     }
 }
 
