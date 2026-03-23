@@ -15,7 +15,7 @@ export async function scrapeGoogleMaps(query: string, limit = 20) {
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
 
-        const modelsToTry = ["gemini-3.1-pro-preview", "gemini-2.0-flash", "gemini-1.5-pro"];
+        const modelsToTry = ["gemini-3.1-pro-preview", "gemini-3-flash-preview"];
         let lastError: any;
         let result: any = null;
 
