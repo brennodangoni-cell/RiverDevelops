@@ -1,114 +1,116 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import axios from 'axios';
 
 /**
- * Scraper 2.0 - No-Puppeteer Strategy
- * Uses Gemini AI with Google Search Grounding to generate leads in real-time.
+ * Scraper 3.0 - Official Google Places API (100% Reliable, 0% AI Hallucination)
  */
 export async function scrapeGoogleMaps(query: string, limit = 20) {
-    console.log(`[Sales Engine] Iniciando busca IA Grounding para: "${query}" (Limite: ${limit})`);
+    console.log(`[Sales Engine] Iniciando Busca Oficial Places API para: "${query}" (Limite: ${limit})`);
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
     if (!apiKey) {
-        throw new Error("Erro de Configuração: GEMINI_API_KEY não foi encontrada nas variáveis de ambiente do Render.");
+        throw new Error("Chave API ausente. Adicione GOOGLE_PLACES_API_KEY no painel de Environment Variables do Render.");
     }
 
     try {
-        const genAI = new GoogleGenerativeAI(apiKey);
+        const leads: any[] = [];
+        let nextPageToken = '';
+        const categoryMatch = query.split(' em ')[0] || 'Geral';
 
-        const modelsToTry = ["gemini-3.1-pro-preview"];
-        let lastError: any;
-        let result: any = null;
-
-        for (const modelName of modelsToTry) {
-            try {
-                console.log(`[Sales Engine] Tentando usar o modelo: ${modelName}`);
-                const model = genAI.getGenerativeModel({
-                    model: modelName,
-                    tools: [{ googleSearch: {} }] as any
-                } as any);
-
-                const prompt = `Você é um ESPECIALISTA EM INVESTIGAÇÃO DIGITAL e Prospecção B2B (Março de 2026).
-        Sua missão é localizar EXATAMENTE ${limit} empresas para: "${query}".
-
-        🕵️ PROTOCOLO DE PESQUISA PROFUNDA (Obrigatório):
-        Para cada empresa candidata, use o seu "Google Search Grounding" para:
-        1. Pesquisar especificamente: "[Nome da Empresa] [Cidade] Instagram".
-        2. Identificar se existe uma conta LOCAL da loja (ex: @loja_saopaulo) em vez da conta nacional da franquia.
-        3. Se encontrar um site oficial, verifique o rodapé ou página de contato em busca do link social real.
-        4. SÓ EXTRAIA o Instagram se o perfil mencionar explicitamente a CIDADE ou o ENDEREÇO no bio/postagens.
-
-        🚨 REGRAS DE OURO CONTRA ALUCINAÇÃO:
-        - NUNCA invente usernames.
-        - Se o link do Instagram no Google abrir uma página que não existe (404) ou for uma conta pessoal, deixe VAZIO "".
-        - Se o perfil for de uma franquia nacional e não da loja local específica, tente achar a local; se não achar a local, deixe VAZIO "".
-        - Não use "Não Listado". Se não tem certeza absoluta que é a loja certa na cidade certa, deixe "".
-
-        Para cada uma das ${limit} empresas, retorne:
-        1. name: Nome oficial da unidade local.
-        2. phone: Telefone local (ex: (11) 99999-9999).
-        3. whatsapp: Apenas números (prefixo 55).
-        4. instagram: O @perfil LOCAL verificado. SE NÃO TIVER CERTEZA, DEIXE "".
-        5. city: Cidade da unidade.
-        6. state: Sigla do estado (ex: MG).
-        7. address: Endereço completo verificado.
-        8. website: URL oficial da unidade ou da marca.
-
-        SAÍDA (JSON PURO):
-        [{"name": "Vila Sapatos", "phone": "(11) 98888-7777", "whatsapp": "5511988887777", "instagram": "@vilasapatos_sp", "city": "São Paulo", "state": "SP", "address": "Av. Paulista, 1000", "website": "https://vilasapatos.com.br"}]`;
-
-                result = await model.generateContent(prompt);
-                break; // Sucesso, sai do loop
-            } catch (error: any) {
-                lastError = error;
-                console.warn(`[Sales Engine] Falha ao usar ${modelName}: ${error.message}`);
-                // Se o erro não for de limite/disponibilidade e for erro fixo, a gente decide se tenta o próximo
+        while (leads.length < limit) {
+            let url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${apiKey}&language=pt-BR`;
+            if (nextPageToken) {
+                url = `https://maps.googleapis.com/maps/api/place/textsearch/json?pagetoken=${nextPageToken}&key=${apiKey}&language=pt-BR`;
+                // Padrão do Google: o token de próxima página leva um tempo para ficar ativo
+                await new Promise(r => setTimeout(r, 2000));
             }
+
+            const searchRes = await axios.get(url);
+
+            if (searchRes.data.status !== 'OK' && searchRes.data.status !== 'ZERO_RESULTS') {
+                throw new Error(`Google Places API falhou na busca: ${searchRes.data.status} - ${searchRes.data.error_message || ''}`);
+            }
+
+            const results = searchRes.data.results || [];
+            if (results.length === 0) break;
+
+            for (const place of results) {
+                if (leads.length >= limit) break;
+                if (!place.place_id) continue;
+
+                const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_address,international_phone_number,website,address_component&language=pt-BR&key=${apiKey}`;
+
+                try {
+                    const responseDetails = await axios.get(detailsUrl);
+                    const det = responseDetails.data.result;
+
+                    if (!det) continue;
+
+                    const phone = det.international_phone_number || '';
+                    let whatsapp = '';
+
+                    if (phone) {
+                        whatsapp = phone.replace(/\D/g, '');
+                        // Adicionar 55 se o número for BR e não tiver (Google costuma devolver +55)
+                        if (whatsapp.length >= 10 && !whatsapp.startsWith('55')) {
+                            whatsapp = '55' + whatsapp;
+                        }
+                    } else {
+                        // Sem telefone, pulamos o lead (nosso foco é WhatsApp)
+                        continue;
+                    }
+
+                    let instagram = '';
+                    const website = det.website || '';
+
+                    // Extrai o instagram direto do site se a URL já for do insta (comum no Brasil)
+                    if (website.includes('instagram.com/')) {
+                        const match = website.match(/instagram\.com\/([^/?]+)/);
+                        if (match && match[1]) {
+                            instagram = '@' + match[1];
+                        }
+                    }
+
+                    // Extrair cidade e estado certinho pelo Place Details
+                    let city = '';
+                    let state = '';
+                    if (det.address_components) {
+                        for (const comp of det.address_components) {
+                            if (comp.types.includes("administrative_area_level_2")) city = comp.long_name;
+                            if (comp.types.includes("administrative_area_level_1")) state = comp.short_name;
+                        }
+                    }
+
+                    leads.push({
+                        name: det.name || place.name,
+                        phone: phone,
+                        whatsapp: whatsapp,
+                        instagram: instagram || "Não Listado",
+                        city: city || "Desconhecida",
+                        state: state || "ND",
+                        address: det.formatted_address || place.formatted_address || "Não Listado",
+                        website: website || "Não Listado",
+                        category: categoryMatch
+                    });
+
+                } catch (e) {
+                    console.error("[Sales Engine] Erro isolado ao puxar detalhes do lead:", place.name);
+                }
+            }
+
+            nextPageToken = searchRes.data.next_page_token;
+            if (!nextPageToken) break;
         }
 
-        if (!result) {
-            throw lastError;
+        console.log(`[Sales Engine] Extração Concluída (${leads.length} leads 100% corretos obtidos via Places API)`);
+
+        if (leads.length === 0) {
+            throw new Error(`Nenhum negócio com telefone público cadastrado foi localizado para "${query}".`);
         }
 
-        const response = await result.response;
-        const text = response.text();
-
-        console.log("[Sales Engine] Resposta Bruta da IA:", text.substring(0, 300));
-
-        // Limpeza do JSON
-        const jsonMatch = text.match(/\[[\s\S]*\]/);
-
-        if (!jsonMatch) {
-            console.error("[Sales Engine] Resposta sem formato JSON:", text);
-            throw new Error("A IA não conseguiu formatar os dados. Tente um termo de busca mais específico.");
-        }
-
-        const leads = JSON.parse(jsonMatch[0]);
-
-        if (!Array.isArray(leads) || leads.length === 0) {
-            console.warn(`[Sales Engine] 0 leads encontrados para: ${query}`);
-            throw new Error("Nenhum lead encontrado para este nicho nesta localização. Tente mudar o nicho ou a cidade.");
-        }
-
-        // Adicionar categoria baseada na busca
-        const enrichedLeads = leads.map((l: any) => ({
-            ...l,
-            category: query.split(' em ')[0] || 'Geral'
-        }));
-
-        console.log(`[Sales Engine] Extração concluída: ${enrichedLeads.length} leads.`);
-        return enrichedLeads;
+        return leads;
 
     } catch (error: any) {
-        console.error("[Sales Engine] Erro no Scraper:", error);
-
-        if (error.message?.includes("404") || error.message?.includes("model") || error.message?.includes("503")) {
-            throw new Error(`Os modelos do Gemini estão sob alta demanda (Erro 503) ou indisponíveis no momento. Erro detalhado: ${error.message}`);
-        }
-
-        if (error.message?.includes("quota")) {
-            throw new Error("Limite de uso da API atingido. Aguarde alguns minutos.");
-        }
-
-        throw new Error("Falha no Radar IA: " + (error.message || "Erro de conexão"));
+        console.error("[Sales Engine] Erro no Scraper da Google Places API:", error);
+        throw new Error("Falha na Busca Via Google Geral: " + (error.response?.data?.error_message || error.message || "Erro de conexão API").slice(0, 150));
     }
 }
