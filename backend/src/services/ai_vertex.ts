@@ -6,7 +6,9 @@ dotenv.config();
 
 const project = process.env.GCP_PROJECT_ID || 'gen-lang-client-0291671037';
 const location = process.env.GCP_LOCATION || 'us-central1';
-const apiKey = process.env.GCP_API_KEY;
+const apiKey = process.env.GEMINI_API_KEY || process.env.GCP_API_KEY;
+
+const MODELS_TO_TRY = ["gemini-3.1-pro-preview", "gemini-3-flash-preview"];
 
 console.log(`[RIVER LAB] Starting with Project: ${project}, Location: ${location}`);
 if (apiKey) console.log(`[RIVER LAB] API Key detected (prefix: ${apiKey.substring(0, 5)})`);
@@ -19,57 +21,66 @@ const vertexAI = new VertexAI({
 });
 
 export async function analyzeProductPhotos(base64Images: string[], userContext: string) {
-    // FALLBACK: Use GoogleGenAI SDK for Gemini if an API key is present
-    // as it's more stable for simple API Key authentication than Vertex SDK.
     if (apiKey) {
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-3.1-pro-preview" });
+        let lastError = null;
 
-        const parts = [
-            {
-                text: `Você é um Diretor Cinematográfico especialista em vídeos de produto (E-commerce/VSL). 
-Analise as fotos deste produto e crie 4 conceitos de vídeo cinemático.
-O objetivo é gerar vídeos de 10 segundos no formato 9:16 (vertical).
-REGRAS:
-1. NÃO use fala (voiceover).
-2. NÃO use texto na tela.
-3. Foco total em movimento de câmera, iluminação dramática e detalhes físicos do produto.
-4. O tom deve ser "High-End Luxury" ou "Futuristic Minimalism".
-5. Para cada um dos 4 takes, descreva em INGLÊS o prompt técnico para o modelo Veo 3.1.
+        for (const modelName of MODELS_TO_TRY) {
+            try {
+                console.log(`[RIVER LAB] Trying model: ${modelName}`);
+                const model = genAI.getGenerativeModel({ model: modelName });
 
-Responda em JSON:
-{
-  "description": "breve descrição do produto",
-  "takes": [
-    {
-      "title": "Título do Take (ex: Macro Texture Orbit)",
-      "prompt": "Full technical prompt in English for Veo 3.1",
-      "visualHook": "O que torna esse take especial emocionalmente"
-    }
-  ]
-}
-Contexto do usuário: ${userContext}`
-            },
-            ...base64Images.map(img => {
-                const data = img.split(',')[1] || img;
-                return {
-                    inlineData: {
-                        data,
-                        mimeType: "image/jpeg"
+                const parts = [
+                    {
+                        text: `Você é um Diretor Cinematográfico especialista em vídeos de produto (E-commerce/VSL). 
+                Analise as fotos deste produto e crie 4 conceitos de vídeo cinemático.
+                O objetivo é gerar vídeos de 10 segundos no formato 9:16 (vertical).
+                REGRAS:
+                1. NÃO use fala (voiceover).
+                2. NÃO use texto na tela.
+                3. Foco total em movimento de câmera, iluminação dramática e detalhes físicos do produto.
+                4. O tom deve ser "High-End Luxury" ou "Futuristic Minimalism".
+                5. Para cada um dos 4 takes, descreva em INGLÊS o prompt técnico para o modelo Veo 3.1.
+                
+                Responda em JSON:
+                {
+                  "description": "breve descrição do produto",
+                  "takes": [
+                    {
+                      "title": "Título do Take (ex: Macro Texture Orbit)",
+                      "prompt": "Full technical prompt in English for Veo 3.1",
+                      "visualHook": "O que torna esse take especial emocionalmente"
                     }
-                };
-            })
-        ];
+                  ]
+                }
+                Contexto do usuário: ${userContext}`
+                    },
+                    ...base64Images.map(img => {
+                        const data = img.split(',')[1] || img;
+                        return {
+                            inlineData: {
+                                data,
+                                mimeType: "image/jpeg"
+                            }
+                        };
+                    })
+                ];
 
-        const result = await model.generateContent(parts);
-        const text = result.response.text();
-        const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        return JSON.parse(jsonStr);
+                const result = await model.generateContent(parts);
+                const text = result.response.text();
+                const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                return JSON.parse(jsonStr);
+            } catch (e: any) {
+                console.error(`[RIVER LAB] Model ${modelName} failed:`, e.message);
+                lastError = e;
+            }
+        }
+        throw lastError;
     }
 
     // Default Vertex SDK Flow (for Service Accounts or Tokens)
     const generativeModel = vertexAI.getGenerativeModel({
-        model: 'gemini-3.1-pro-preview',
+        model: MODELS_TO_TRY[0],
         generationConfig: {
             maxOutputTokens: 2048,
             temperature: 0.7,

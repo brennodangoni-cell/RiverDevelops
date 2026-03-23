@@ -9,7 +9,7 @@ import path from 'path';
 import fs from 'fs';
 import pool, { initDb } from './db';
 import { analyzeProductPhotos, generateVeoVideo } from './services/ai_vertex';
-import { scrapeGoogleMaps } from './services/scraper';
+import { scrapeGoogleMaps, scrapeFreeLeads } from './services/scraper';
 
 dotenv.config();
 
@@ -391,29 +391,37 @@ app.get('/api/client/download/:id', authenticate, async (req: Request, res: Resp
 // ==========================================
 
 app.post('/api/scraper/maps', authenticate, async (req: Request, res: Response) => {
-    const { query, limit } = req.body;
+    const { query, limit, mode } = req.body;
     if (!query) return res.status(400).json({ error: "Termo de busca ausente" });
 
     try {
-        const leads = await scrapeGoogleMaps(query, Number(limit) || 20);
+        let leads: any[] = [];
+
+        if (mode === 'free') {
+            leads = await scrapeFreeLeads(query, Number(limit) || 20);
+        } else {
+            leads = await scrapeGoogleMaps(query, Number(limit) || 20);
+        }
 
         // Save Search
-        await pool.query('INSERT INTO searches (query, count) VALUES (?, ?)', [query, leads.length]);
+        if (leads.length > 0) {
+            await pool.query('INSERT INTO searches (query, count) VALUES (?, ?)', [query, leads.length]);
 
-        // Save Leads
-        for (const l of leads) {
-            await pool.query(`
-                INSERT INTO leads (whatsapp, name, phone, instagram, city, state, address, website, source, category)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE 
-                name=VALUES(name), phone=VALUES(phone), instagram=VALUES(instagram), 
-                city=VALUES(city), state=VALUES(state), address=VALUES(address),
-                website=VALUES(website), source=VALUES(source), category=VALUES(category)
-            `, [
-                l.whatsapp, l.name, l.phone, l.instagram,
-                l.city || null, l.state || null, l.address || null,
-                l.website || null, query, query.split(' em ')[0] || 'Geral'
-            ]);
+            // Save Leads
+            for (const l of leads) {
+                await pool.query(`
+                    INSERT INTO leads (whatsapp, name, phone, instagram, city, state, address, website, source, category)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON DUPLICATE KEY UPDATE 
+                    name=VALUES(name), phone=VALUES(phone), instagram=VALUES(instagram), 
+                    city=VALUES(city), state=VALUES(state), address=VALUES(address),
+                    website=VALUES(website), source=VALUES(source), category=VALUES(category)
+                `, [
+                    l.whatsapp, l.name, l.phone, l.instagram,
+                    l.city || null, l.state || null, l.address || null,
+                    l.website || null, query, query.split(' em ')[0] || 'Geral'
+                ]);
+            }
         }
 
         res.json({ success: true, count: leads.length, leads });

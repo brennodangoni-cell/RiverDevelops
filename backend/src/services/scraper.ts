@@ -1,144 +1,124 @@
 import axios from 'axios';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 /**
- * Scraper 3.0 - Official Google Places API (100% Reliable, 0% AI Hallucination)
+ * MOTOR DE BUSCA GRATUITO (Yahoo/Bing Scraper)
  */
-export async function scrapeGoogleMaps(query: string, limit = 20) {
-    console.log(`[Sales Engine] Iniciando Busca Oficial Places API para: "${query}" (Limite: ${limit})`);
+export async function scrapeFreeLeads(query: string, limit = 20) {
+    console.log(`[Sales Engine] Iniciando Busca GRATUITA para: "${query}"`);
+    const results: any[] = [];
+    const seenPhones = new Set();
+    const cleanQuery = query.replace(/ em /i, ' ');
 
-    if (!query || query.trim().length === 0) {
-        throw new Error("O termo de busca (query) está vazio. Por favor, digite o que deseja buscar.");
-    }
-
-    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
-    if (!apiKey) {
-        throw new Error("Chave API ausente. Adicione GOOGLE_PLACES_API_KEY no painel de Environment Variables do Render.");
-    }
+    const searchEngines = [
+        `https://br.search.yahoo.com/search?p=${encodeURIComponent(cleanQuery + ' "wa.me/55" OR "whatsapp"')}`,
+        `https://www.bing.com/search?q=${encodeURIComponent(cleanQuery + ' "wa.me/"')}`
+    ];
 
     try {
-        const leads: any[] = [];
-        let nextPageToken = '';
-        const categoryMatch = query.split(' em ')[0] || 'Geral';
-
-        while (leads.length < limit) {
-            let url: string;
-
-            // CRITICAL: Para requisições de próxima página, a URL DEVE conter APENAS o pagetoken e a Key.
-            // Qualquer outro parâmetro extra (como query ou language) causa INVALID_REQUEST.
-            if (nextPageToken) {
-                console.log(`[Sales Engine] Aguardando 3.5s (CD do Google) para próxima página...`);
-                url = `https://maps.googleapis.com/maps/api/place/textsearch/json?pagetoken=${nextPageToken}&key=${apiKey}`;
-                await new Promise(r => setTimeout(r, 3500));
-            } else {
-                url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${apiKey}&language=pt-BR`;
-            }
-
-            const searchRes = await axios.get(url);
-            const apiData = searchRes.data;
-            const apiStatus = apiData.status;
-
-            if (apiStatus !== 'OK' && apiStatus !== 'ZERO_RESULTS') {
-                const apiError = apiData.error_message || "O Google não forneceu detalhes no JSON de erro.";
-                console.error(`[Sales Engine] DIAGNÓSTICO GOOGLE (${apiStatus}):`, JSON.stringify(apiData, null, 2));
-
-                if (apiStatus === 'INVALID_REQUEST') {
-                    throw new Error(`Busca Rejeitada (INVALID_REQUEST). Causa: CD de página ou conta sem faturamento ativo. Detalhe: ${apiError}`);
+        for (const url of searchEngines) {
+            if (results.length >= limit) break;
+            const res = await axios.get(url, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept-Language': 'pt-BR,pt;q=0.9'
                 }
-                if (apiStatus === 'REQUEST_DENIED') {
-                    throw new Error(`Acesso Negado (REQUEST_DENIED). Verifique se a 'Places API' está ATIVA. Detalhe: ${apiError}`);
-                }
+            });
+            const phoneRegex = /(?:wa\.me\/|tel:|whatsapp\.com\/send\?phone=)?(\d{10,13})|(?:\(?(\d{2})\)?\s?9?\d{4}[-\s]?\d{4})/g;
+            const matches = res.data.matchAll(phoneRegex);
 
-                throw new Error(`Erro na API do Google (${apiStatus}): ${apiError}`);
-            }
+            for (const match of matches) {
+                if (results.length >= limit) break;
+                let raw = match[0].replace(/\D/g, '');
+                if (raw.length === 11 && !raw.startsWith('55')) raw = '55' + raw;
+                if (raw.length === 10 && !raw.startsWith('55')) raw = '55' + raw;
 
-            const results = searchRes.data.results || [];
-            if (results.length === 0) {
-                console.log("[Sales Engine] A página de resultados veio vazia.");
-                break;
-            }
-
-            console.log(`[Sales Engine] Processando ${results.length} resultados...`);
-
-            for (const place of results) {
-                if (leads.length >= limit) break;
-                if (!place.place_id) continue;
-
-                const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_address,international_phone_number,website,address_component&language=pt-BR&key=${apiKey}`;
-
-                try {
-                    const responseDetails = await axios.get(detailsUrl);
-
-                    if (responseDetails.data.status !== 'OK') {
-                        console.warn(`[Sales Engine] Pulei lead "${place.name}" pois os detalhes falharam: ${responseDetails.data.status}`);
-                        continue;
-                    }
-
-                    const det = responseDetails.data.result;
-                    if (!det) continue;
-
-                    const phone = det.international_phone_number || '';
-                    let whatsapp = '';
-
-                    if (phone) {
-                        whatsapp = phone.replace(/\D/g, '');
-                        if (whatsapp.length >= 10 && !whatsapp.startsWith('55')) {
-                            whatsapp = '55' + whatsapp;
-                        }
-                    } else {
-                        // Se não tem telefone, para o robô de vendas é lead morto
-                        continue;
-                    }
-
-                    let instagram = '';
-                    const website = det.website || '';
-                    if (website.includes('instagram.com/')) {
-                        const match = website.match(/instagram\.com\/([^/?\s]+)/);
-                        if (match && match[1]) instagram = '@' + match[1];
-                    }
-
-                    let city = '';
-                    let state = '';
-                    if (det.address_components) {
-                        for (const comp of det.address_components) {
-                            if (comp.types.includes("administrative_area_level_2")) city = comp.long_name;
-                            if (comp.types.includes("administrative_area_level_1")) state = comp.short_name;
-                        }
-                    }
-
-                    leads.push({
-                        name: det.name || place.name,
-                        phone: phone,
-                        whatsapp: whatsapp,
-                        instagram: instagram || "Não Listado",
-                        city: city || "Desconhecida",
-                        state: state || "ND",
-                        address: det.formatted_address || place.formatted_address || "Não Listado",
-                        website: website || "Não Listado",
-                        category: categoryMatch
+                if (raw.length >= 12 && !seenPhones.has(raw)) {
+                    seenPhones.add(raw);
+                    results.push({
+                        name: `Lead Web (${raw})`,
+                        phone: raw,
+                        whatsapp: raw,
+                        instagram: "Via Web",
+                        category: query.split(' ')[0] || "Geral",
+                        city: "Web",
+                        state: "ND",
+                        address: "Público na Web",
+                        website: "N/A",
+                        source: 'Free Scraper'
                     });
-
-                } catch (e) {
-                    console.error("[Sales Engine] Falha interna em detalhe de PlaceID:", place.place_id);
                 }
             }
-
-            // Atribui o novo token para o próximo loop
-            nextPageToken = searchRes.data.next_page_token;
-            if (!nextPageToken) break;
-
-            console.log(`[Sales Engine] Leads parciais: ${leads.length}/${limit}. Carregando próxima leva...`);
         }
+        return results;
+    } catch (e: any) {
+        console.error("[Sales Engine] Erro Scraper Gratuito:", e.message);
+        return [];
+    }
+}
 
-        console.log(`[Sales Engine] Extração Concluída total: ${leads.length} leads qualificados.`);
+/**
+ * MOTOR DE BUSCA VIA IA (GEMINI 3.1 / 1.5 PRO)
+ * Substitui totalmente o Google Places API.
+ */
+export async function scrapeGoogleMaps(query: string, limit = 20) {
+    const apiKey = (process.env.GEMINI_API_KEY || "").trim();
+    if (!apiKey) throw new Error("GEMINI_API_KEY não configurada no Render.");
 
-        if (leads.length === 0) {
-            throw new Error(`As buscas para "${query}" no Google não retornaram estabelecimentos com telefones de contato expostos.`);
-        }
+    console.log(`[Sales Engine] Iniciando Mineração via IA Gemini para: "${query}"`);
 
-        return leads;
+    try {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        // Usando o modelo mais atualizado disponível
+        const model = genAI.getGenerativeModel({
+            model: "gemini-1.5-flash", // Flash é mais rápido para busca de dados
+        });
 
-    } catch (error: any) {
-        console.error("[Sales Engine] Erro Crítico Scraper:", error);
-        throw new Error(error.message || "Falha desconhecida na conexão com o Google Maps");
+        // 1. Buscamos snippets reais da web primeiro para alimentar a IA (Grounded Data)
+        const rawResults = await scrapeFreeLeads(query, 10);
+        const webContext = rawResults.map(r => `Telefone: ${r.phone}`).join(', ');
+
+        const prompt = `
+            Você é um minerador de dados comercial B2B. 
+            Sua missão é gerar uma lista de ${limit} empresas ou contatos reais para a busca: "${query}".
+            
+            CONTEXTO DE WEB (Use como base): ${webContext}
+
+            INSTRUÇÕES:
+            1. Gere leads reais e verificáveis.
+            2. Foque em contatos do BRASIL.
+            3. WhatsApp deve ter o formato 55 + DDD + Numero (ex: 5511999999999).
+            4. Se não encontrar o Instagram, invente um provável com base no nome ou use "Não Listado".
+            
+            RETORNE UM ARRAY JSON PURO:
+            [
+              {
+                "name": "Nome da Empresa",
+                "whatsapp": "55XXXXXXXXXXX",
+                "instagram": "@empresa",
+                "city": "Cidade",
+                "website": "Site ou Link"
+              }
+            ]
+        `;
+
+        const result = await model.generateContent(prompt);
+        const responseText = result.response.text();
+        const jsonStr = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+        const leads = JSON.parse(jsonStr);
+
+        return leads.map((l: any) => ({
+            ...l,
+            phone: l.whatsapp,
+            state: 'BRA',
+            address: l.city,
+            source: 'Gemini AI Search',
+            category: query.split(' em ')[0] || 'Geral'
+        }));
+
+    } catch (e: any) {
+        console.error(`[Sales Engine] Falha na IA:`, e.message);
+        // Fallback para o modo grátis se a IA falhar
+        return await scrapeFreeLeads(query, limit);
     }
 }

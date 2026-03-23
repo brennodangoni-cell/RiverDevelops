@@ -127,6 +127,7 @@ export function Radar({ onAddToQueue }: { onAddToQueue: (lead: any) => void }) {
     const [cidade, setCidade] = useState('');
     const [buscaLivre, setBuscaLivre] = useState('');
     const [limite, setLimite] = useState(20);
+    const [searchMode, setSearchMode] = useState<'free' | 'official'>('official');
     const [loadingStep, setLoadingStep] = useState(0);
     const [revealCount, setRevealCount] = useState(0);
 
@@ -194,7 +195,7 @@ export function Radar({ onAddToQueue }: { onAddToQueue: (lead: any) => void }) {
 
         try {
             const query = location ? `${keyword} em ${location}` : keyword;
-            const res = await axios.post('/api/scraper/maps', { query, limit: limite });
+            const res = await axios.post('/api/scraper/maps', { query, limit: limite, mode: searchMode });
             const results = res.data.leads || [];
             setLoading(false);
             stepTimers.forEach(clearTimeout);
@@ -237,27 +238,44 @@ export function Radar({ onAddToQueue }: { onAddToQueue: (lead: any) => void }) {
                                 onChange={e => setBuscaLivre(e.target.value)}
                             />
                         </div>
+                        <div className="flex items-center gap-1.5 p-1 bg-[#111] border border-white/[0.06] rounded-xl">
+                            <button
+                                type="button"
+                                onClick={() => setSearchMode('official')}
+                                className={`flex-1 h-10 px-4 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${searchMode === 'official' ? 'bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.3)]' : 'text-white/30 hover:text-white'}`}
+                            >
+                                Oficial
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setSearchMode('free')}
+                                className={`flex-1 h-10 px-4 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${searchMode === 'free' ? 'bg-emerald-500 text-black shadow-[0_0_15px_rgba(16,185,129,0.3)]' : 'text-white/30 hover:text-white'}`}
+                            >
+                                Grátis
+                            </button>
+                        </div>
                         <div className="flex items-center gap-3 h-12 bg-[#111] border border-white/[0.06] rounded-xl px-4">
                             <span className="text-white/25 text-xs whitespace-nowrap">Qtd:</span>
-                            <input
-                                type="number"
-                                className="w-12 bg-transparent border-none p-0 text-sm font-semibold text-white focus:ring-0 text-center hide-number-spin"
-                                value={limite}
-                                onChange={e => {
-                                    const val = e.target.value;
-                                    if (val === '') {
-                                        setLimite('' as any);
-                                    } else {
-                                        const num = parseInt(val);
-                                        if (!isNaN(num)) setLimite(num);
-                                    }
-                                }}
-                            />
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="number"
+                                    className="w-10 bg-transparent border-none p-0 text-sm font-semibold text-white focus:ring-0 text-center hide-number-spin"
+                                    value={limite}
+                                    onChange={e => {
+                                        const val = e.target.value;
+                                        if (val === '') setLimite('' as any);
+                                        else {
+                                            const num = parseInt(val);
+                                            if (!isNaN(num)) setLimite(num);
+                                        }
+                                    }}
+                                />
+                            </div>
                         </div>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="h-12 px-8 bg-cyan-500 text-black rounded-xl font-semibold text-sm hover:bg-cyan-400 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
+                            className={`h-12 px-8 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 ${searchMode === 'free' ? 'bg-emerald-500 hover:bg-emerald-400 text-black' : 'bg-cyan-500 hover:bg-cyan-400 text-black'}`}
                         >
                             {loading ? <Loader2 size={16} className="animate-spin" /> : <><Search size={15} /> Buscar</>}
                         </button>
