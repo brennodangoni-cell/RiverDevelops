@@ -127,7 +127,6 @@ export function Radar({ onAddToQueue }: { onAddToQueue: (lead: any) => void }) {
     const [cidade, setCidade] = useState('');
     const [buscaLivre, setBuscaLivre] = useState('');
     const [limite, setLimite] = useState(20);
-    const [searchMode, setSearchMode] = useState<'free' | 'official'>('official');
     const [loadingStep, setLoadingStep] = useState(0);
     const [revealCount, setRevealCount] = useState(0);
 
@@ -195,7 +194,7 @@ export function Radar({ onAddToQueue }: { onAddToQueue: (lead: any) => void }) {
 
         try {
             const query = location ? `${keyword} em ${location}` : keyword;
-            const res = await axios.post('/api/scraper/maps', { query, limit: limite, mode: searchMode });
+            const res = await axios.post('/api/scraper/maps', { query, limit: limite });
             const results = res.data.leads || [];
             setLoading(false);
             stepTimers.forEach(clearTimeout);
