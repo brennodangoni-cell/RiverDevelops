@@ -43,7 +43,7 @@ export async function scrapeGoogleMaps(query: string, limit = 20) {
 
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-preview-0409" });
+        const model = genAI.getGenerativeModel({ model: "gemini-3.1-pro-preview" });
 
         // Coleta contexto real da web (snippets puros, filtrados)
         const htmlContext = await fetchWebSnippets(query);
