@@ -7,46 +7,54 @@ import * as cheerio from 'cheerio';
  * Objetivo: Mineração de leads via IA de alta performance SEM alucinações (inventar números/instagram).
  */
 
-// Função interna de auxílio para extração bruta da web via Yahoo + Cheerio
-async function fetchWebSnippets(query: string) {
+// Função interna de auxílio para extração bruta da web via Yahoo + Cheerio (Múltiplas Páginas)
+async function fetchWebSnippets(query: string, limit: number) {
     const searchUrl = 'https://br.search.yahoo.com/search?p=';
-    const enhancedQuery = query + ' "whatsapp" OR "wa.me"';
-    try {
-        const res = await axios.get(searchUrl + encodeURIComponent(enhancedQuery), {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
-            },
-            timeout: 8000
-        });
-        const $ = cheerio.load(res.data);
-        const results: string[] = [];
-        $('.algo').each((i, el) => {
-            const title = $(el).find('h3').text().trim();
-            const snippet = $(el).find('.compTitle ~ div').text().trim();
-            if (title || snippet) {
-                results.push(`Título: ${title}\nContexto: ${snippet}`);
-            }
-        });
-        return results.join('\n\n');
-    } catch (e: any) {
-        console.warn("[Sales Engine 4.0] Erro ao buscar snippets no Yahoo:", e.message);
-        return "";
+    const enhancedQuery = query + ' "whatsapp" OR "wa.me/" "instagram"';
+
+    let allResults: string[] = [];
+    const maxPages = limit > 10 ? 5 : 2; // Busca até 5 páginas (50 resultados) para compensar filtros
+
+    for (let page = 0; page < maxPages; page++) {
+        const b = (page * 10) + 1; // Paginação do Yahoo: b=1, b=11, b=21...
+        try {
+            const res = await axios.get(`${searchUrl}${encodeURIComponent(enhancedQuery)}&b=${b}`, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+                },
+                timeout: 8000
+            });
+            const $ = cheerio.load(res.data);
+            $('.algo').each((i, el) => {
+                const title = $(el).find('h3').text().trim();
+                const snippet = $(el).find('.compTitle ~ div').text().trim();
+                if (title || snippet) {
+                    allResults.push(`Título: ${title}\nContexto: ${snippet}`);
+                }
+            });
+        } catch (e: any) {
+            console.warn(`[Sales Engine 4.0] Erro ao buscar snippets no Yahoo (Página ${page + 1}):`, e.message);
+        }
     }
+
+    // Filtra duplicados basico
+    const uniqueResults = [...new Set(allResults)];
+    return uniqueResults.join('\n\n');
 }
 
 export async function scrapeGoogleMaps(query: string, limit = 20) {
     const apiKey = (process.env.GEMINI_API_KEY || "").trim();
     if (!apiKey) throw new Error("GEMINI_API_KEY ausente no Render.");
 
-    console.log(`[Sales Engine 4.0] Iniciando Refatoração Perfeita para: "${query}"`);
+    console.log(`[Sales Engine 4.0] Iniciando Refatoração Perfeita para: "${query}" (Limit: ${limit})`);
 
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ model: "gemini-3.1-pro-preview" });
 
-        // Coleta contexto real da web (snippets puros, filtrados)
-        const htmlContext = await fetchWebSnippets(query);
+        // Coleta contexto real da web de múltiplas páginas
+        const htmlContext = await fetchWebSnippets(query, limit);
 
         const prompt = `
             Você é um LeadScraper Expert. Sua missão é extrair leads REAIS de empresas/contatos para: "${query}".
