@@ -430,6 +430,16 @@ app.post('/api/scraper/maps', authenticate, async (req: Request, res: Response) 
     }
 });
 
+app.delete('/api/leads/:id', authenticate, async (req: Request, res: Response) => {
+    const { id } = req.params;
+    try {
+        await pool.query('DELETE FROM leads WHERE id = ?', [id]);
+        res.json({ success: true });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 app.get('/api/history', authenticate, async (req: Request, res: Response) => {
     try {
         const [searches]: any = await pool.query('SELECT * FROM searches ORDER BY created_at DESC LIMIT 50');

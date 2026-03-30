@@ -7,30 +7,30 @@ import * as cheerio from 'cheerio';
  * Objetivo: Mineração de leads via IA de alta performance SEM alucinações (inventar números/instagram).
  */
 
-// Função interna de auxílio para extração bruta da web via DuckDuckGo HTML
+// Função interna de auxílio para extração bruta da web via Bing + Cheerio
 async function fetchWebSnippets(query: string) {
-    const searchUrl = 'https://html.duckduckgo.com/html/';
+    const searchUrl = 'https://www.bing.com/search?q=';
     const enhancedQuery = query + ' "whatsapp" OR "wa.me/"';
     try {
-        const res = await axios.post(searchUrl, 'q=' + encodeURIComponent(enhancedQuery), {
+        const res = await axios.get(searchUrl + encodeURIComponent(enhancedQuery), {
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
                 'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
             },
             timeout: 8000
         });
         const $ = cheerio.load(res.data);
         const results: string[] = [];
-        $('.result__body').each((i, el) => {
-            const title = $(el).find('.result__title').text().trim();
-            const snippet = $(el).find('.result__snippet').text().trim();
-            results.push(`Título: ${title}\nContexto: ${snippet}`);
+        $('.b_algo').each((i, el) => {
+            const title = $(el).find('h2').text().trim();
+            const snippet = $(el).find('.b_caption p').text().trim();
+            if (title || snippet) {
+                results.push(`Título: ${title}\nContexto: ${snippet}`);
+            }
         });
         return results.join('\n\n');
     } catch (e: any) {
-        console.warn("[Sales Engine 4.0] Erro ao buscar snippets na web:", e.message);
+        console.warn("[Sales Engine 4.0] Erro ao buscar snippets no Bing:", e.message);
         return "";
     }
 }
