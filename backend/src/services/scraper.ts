@@ -10,11 +10,11 @@ import * as cheerio from 'cheerio';
 // Função interna de auxílio para extração bruta da web via Yahoo + Cheerio (Múltiplas Páginas)
 async function fetchWebSnippets(query: string, limit: number) {
     const searchUrl = 'https://br.search.yahoo.com/search?p=';
-    // Removed strict quotes so Yahoo yields more matches
-    const enhancedQuery = query + ' whatsapp telefone instagram';
+    // Force Instagram profiles so bio snippets contain direct whatsapp numbers and handles
+    const enhancedQuery = 'site:instagram.com ' + query + ' whatsapp';
 
     let allResults: string[] = [];
-    const maxPages = limit > 10 ? 4 : 2; // Busca até 4 páginas
+    const maxPages = limit > 10 ? 8 : 3; // Busca até 8 páginas (80 resultados max)
 
     for (let page = 0; page < maxPages; page++) {
         const b = (page * 10) + 1; // Paginação do Yahoo: b=1, b=11, b=21...
@@ -24,7 +24,7 @@ async function fetchWebSnippets(query: string, limit: number) {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                     'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
                 },
-                timeout: 8000
+                timeout: 10000
             });
             const $ = cheerio.load(res.data);
             $('.algo').each((i, el) => {
