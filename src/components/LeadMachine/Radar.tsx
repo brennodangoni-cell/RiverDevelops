@@ -289,10 +289,22 @@ export function Radar({ onAddToQueue }: { onAddToQueue: (lead: any) => void }) {
                                     </div>
 
                                     <div className="flex items-center gap-2 mt-auto pt-3 border-t border-white/[0.04]">
-                                        <a href={`https://wa.me/${lead.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer"
-                                            className="h-9 px-3 rounded-lg bg-[#25D366]/10 border border-[#25D366]/20 flex items-center gap-2 hover:bg-[#25D366]/20 transition-all text-[#25D366] text-xs font-medium">
-                                            <WhatsAppIcon size={14} /> WhatsApp
-                                        </a>
+                                        {(() => {
+                                            const rawPhone = (lead.whatsapp || lead.phone || '').replace(/\D/g, '');
+                                            if (!rawPhone || rawPhone.length < 8) {
+                                                return (
+                                                    <div className="h-9 px-3 rounded-lg bg-white/5 border border-white/10 flex items-center gap-2 text-white/30 text-xs font-medium cursor-not-allowed" title="Sem WhatsApp Válido">
+                                                        <WhatsAppIcon size={14} /> WhatsApp
+                                                    </div>
+                                                );
+                                            }
+                                            return (
+                                                <a href={`https://wa.me/${rawPhone}`} target="_blank" rel="noreferrer"
+                                                    className="h-9 px-3 rounded-lg bg-[#25D366]/10 border border-[#25D366]/20 flex items-center gap-2 hover:bg-[#25D366]/20 transition-all text-[#25D366] text-xs font-medium">
+                                                    <WhatsAppIcon size={14} /> WhatsApp
+                                                </a>
+                                            );
+                                        })()}
                                         {lead.instagram && lead.instagram !== 'Não Listado' && lead.instagram !== "" && (
                                             <a href={`https://instagram.com/${lead.instagram.replace('@', '')}`} target="_blank" rel="noreferrer"
                                                 className="w-9 h-9 rounded-lg bg-pink-500/10 border border-pink-500/15 flex items-center justify-center text-pink-400 hover:bg-pink-500/20 transition-all">

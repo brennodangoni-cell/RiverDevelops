@@ -343,10 +343,22 @@ export function History({ onAddToQueue }: { onAddToQueue: (lead: any) => void })
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-1.5">
-                                                <a href={`https://wa.me/${lead.whatsapp?.replace(/\D/g, '')}`} target="_blank" rel="noreferrer"
-                                                    className="w-8 h-8 rounded-lg bg-[#25D366]/10 border border-[#25D366]/15 flex items-center justify-center text-[#25D366] hover:bg-[#25D366]/20 transition-all">
-                                                    <WhatsAppIcon size={13} />
-                                                </a>
+                                                {(() => {
+                                                    const rawPhone = (lead.whatsapp || lead.phone || '').replace(/\D/g, '');
+                                                    if (!rawPhone || rawPhone.length < 8) {
+                                                        return (
+                                                            <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white/30 cursor-not-allowed" title="Sem WhatsApp Válido">
+                                                                <WhatsAppIcon size={13} />
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return (
+                                                        <a href={`https://wa.me/${rawPhone}`} target="_blank" rel="noreferrer"
+                                                            className="w-8 h-8 rounded-lg bg-[#25D366]/10 border border-[#25D366]/15 flex items-center justify-center text-[#25D366] hover:bg-[#25D366]/20 transition-all">
+                                                            <WhatsAppIcon size={13} />
+                                                        </a>
+                                                    );
+                                                })()}
                                                 {lead.instagram && lead.instagram !== 'Não Listado' && lead.instagram !== "" && (
                                                     <a href={`https://instagram.com/${lead.instagram.replace('@', '')}`} target="_blank" rel="noreferrer"
                                                         className="w-8 h-8 rounded-lg bg-pink-500/10 border border-pink-500/15 flex items-center justify-center text-pink-400 hover:bg-pink-500/20 transition-all">
