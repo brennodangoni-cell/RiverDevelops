@@ -10,10 +10,11 @@ import * as cheerio from 'cheerio';
 // Função interna de auxílio para extração bruta da web via Yahoo + Cheerio (Múltiplas Páginas)
 async function fetchWebSnippets(query: string, limit: number) {
     const searchUrl = 'https://br.search.yahoo.com/search?p=';
-    const enhancedQuery = query + ' "whatsapp" OR "wa.me/" "instagram"';
+    // Removed strict quotes so Yahoo yields more matches
+    const enhancedQuery = query + ' whatsapp telefone instagram';
 
     let allResults: string[] = [];
-    const maxPages = limit > 10 ? 5 : 2; // Busca até 5 páginas (50 resultados) para compensar filtros
+    const maxPages = limit > 10 ? 4 : 2; // Busca até 4 páginas
 
     for (let page = 0; page < maxPages; page++) {
         const b = (page * 10) + 1; // Paginação do Yahoo: b=1, b=11, b=21...
@@ -33,6 +34,9 @@ async function fetchWebSnippets(query: string, limit: number) {
                     allResults.push(`Título: ${title}\nContexto: ${snippet}`);
                 }
             });
+
+            // Artificial delay to prevent aggressive 429 throttles from Yahoo datacenters
+            await new Promise(r => setTimeout(r, 800));
         } catch (e: any) {
             console.warn(`[Sales Engine 4.0] Erro ao buscar snippets no Yahoo (Página ${page + 1}):`, e.message);
         }
