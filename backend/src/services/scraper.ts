@@ -7,10 +7,10 @@ import * as cheerio from 'cheerio';
  * Objetivo: Mineração de leads via IA de alta performance SEM alucinações (inventar números/instagram).
  */
 
-// Função interna de auxílio para extração bruta da web via Bing + Cheerio
+// Função interna de auxílio para extração bruta da web via Yahoo + Cheerio
 async function fetchWebSnippets(query: string) {
-    const searchUrl = 'https://www.bing.com/search?q=';
-    const enhancedQuery = query + ' "whatsapp" OR "wa.me/"';
+    const searchUrl = 'https://br.search.yahoo.com/search?p=';
+    const enhancedQuery = query + ' "whatsapp" OR "wa.me"';
     try {
         const res = await axios.get(searchUrl + encodeURIComponent(enhancedQuery), {
             headers: {
@@ -21,16 +21,16 @@ async function fetchWebSnippets(query: string) {
         });
         const $ = cheerio.load(res.data);
         const results: string[] = [];
-        $('.b_algo').each((i, el) => {
-            const title = $(el).find('h2').text().trim();
-            const snippet = $(el).find('.b_caption p').text().trim();
+        $('.algo').each((i, el) => {
+            const title = $(el).find('h3').text().trim();
+            const snippet = $(el).find('.compTitle ~ div').text().trim();
             if (title || snippet) {
                 results.push(`Título: ${title}\nContexto: ${snippet}`);
             }
         });
         return results.join('\n\n');
     } catch (e: any) {
-        console.warn("[Sales Engine 4.0] Erro ao buscar snippets no Bing:", e.message);
+        console.warn("[Sales Engine 4.0] Erro ao buscar snippets no Yahoo:", e.message);
         return "";
     }
 }
@@ -57,18 +57,18 @@ export async function scrapeGoogleMaps(query: string, limit = 20) {
             """
 
             INSTRUÇÕES CRÍTICAS E OBRIGATÓRIAS:
-            1. Encontre até ${limit} leads, baseando-se RIGOROSAMENTE nos resultados da web acima.
+            1. Encontre até ${limit} leads baseando-se RIGOROSAMENTE nos resultados da web acima. Se houver APENAS 1 ou 2 leads no texto, retorne apenas 1 ou 2. Retorne o máximo que conseguir SEM inventar.
             2. WhatsApp formato 55 + DDD + Numero (ex: 5511999999999).
             3. Descubra nome, whatsapp, instagram, cidade e o ESTADO (apenas a sigla, ex: SP, MG, RJ). 
             4. PROIBIDO INVENTAR OU ALUCINAR DADOS. Retorne APENAS informações (números de telefone, nomes, instagrams) que aparecerem no texto da web fornecido.
-            5. Se algum dado não for encontrado para uma empresa no texto, deixe em branco "".
-            6. NÃO invente telefones aleatórios. NÃO invente instagrams. SE VOCÊ INVENTAR ALGO QUE NÃO ESTEJA NO TEXTO, A EXECUÇÃO SERÁ PENALIZADA REDONDAMENTE. A informação DEVE refletir estritamente o texto recebido.
+            5. Se algum dado (como instagram, whatsapp ou cidade) não for encontrado para uma empresa no texto, deixe em branco "". Porém, todo lead PRECISA ter pelo menos Nome E WhatsApp.
+            6. NÃO invente telefones aleatórios. NÃO invente instagrams. A informação DEVE refletir estritamente o texto recebido.
             
             RETORNE APENAS O ARRAY JSON PURO E ESTRITAMENTE FORMATADO:
             [
               {
                 "name": "Nome da Empresa real do texto",
-                "whatsapp": "55XXXXXXXXXXX ou vazio se não achar",
+                "whatsapp": "55XXXXXXXXXXX",
                 "instagram": "@empresa ou vazio",
                 "city": "Cidade ou vazia",
                 "state": "UF ou vazio",
@@ -86,20 +86,20 @@ export async function scrapeGoogleMaps(query: string, limit = 20) {
         const jsonMatch = responseText.match(/\[[\s\S]*\]/);
         if (!jsonMatch) {
             console.error("[Sales Engine 4.0] IA não retornou um formato JSON válido.");
-            throw new Error(`A IA retornou um formato inválido. Ela disse: ${responseText.slice(0, 100)}...`);
+            return [];
         }
 
         const jsonStr = jsonMatch[0];
         const leads = JSON.parse(jsonStr);
 
-        console.log(`[Sales Engine 4.0] Sucesso: ${leads.length} leads minerados.`);
+        console.log(`[Sales Engine 4.0] Sucesso: ${leads.length} leads minerados no Yahoo.`);
 
         return leads.map((l: any) => ({
             ...l,
             phone: l.whatsapp,
             state: l.state || 'ND',
             address: l.city || 'Brasil',
-            source: 'Gemini AI Pro 4.0 (DDG Source)',
+            source: 'Gemini IA (Yahoo)',
             category: query.split(' em ')[0] || 'Geral'
         }));
 
