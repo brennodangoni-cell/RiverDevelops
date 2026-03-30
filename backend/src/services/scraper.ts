@@ -10,11 +10,10 @@ import * as cheerio from 'cheerio';
 // Função interna de auxílio para extração bruta da web via Yahoo + Cheerio (Múltiplas Páginas)
 async function fetchWebSnippets(query: string, limit: number) {
     const searchUrl = 'https://br.search.yahoo.com/search?p=';
-    // Force Instagram profiles so bio snippets contain direct whatsapp numbers and handles
-    const enhancedQuery = 'site:instagram.com ' + query + ' whatsapp';
+    const enhancedQuery = query + ' whatsapp';
 
     let allResults: string[] = [];
-    const maxPages = limit > 10 ? 8 : 3; // Busca até 8 páginas (80 resultados max)
+    const maxPages = limit > 10 ? 5 : 2; // Busca até 5 páginas (50 resultados max)
 
     for (let page = 0; page < maxPages; page++) {
         const b = (page * 10) + 1; // Paginação do Yahoo: b=1, b=11, b=21...
@@ -35,14 +34,12 @@ async function fetchWebSnippets(query: string, limit: number) {
                 }
             });
 
-            // Artificial delay to prevent aggressive 429 throttles from Yahoo datacenters
             await new Promise(r => setTimeout(r, 800));
         } catch (e: any) {
             console.warn(`[Sales Engine 4.0] Erro ao buscar snippets no Yahoo (Página ${page + 1}):`, e.message);
         }
     }
 
-    // Filtra duplicados basico
     const uniqueResults = [...new Set(allResults)];
     return uniqueResults.join('\n\n');
 }
@@ -51,39 +48,41 @@ export async function scrapeGoogleMaps(query: string, limit = 20) {
     const apiKey = (process.env.GEMINI_API_KEY || "").trim();
     if (!apiKey) throw new Error("GEMINI_API_KEY ausente no Render.");
 
-    console.log(`[Sales Engine 4.0] Iniciando Refatoração Perfeita para: "${query}" (Limit: ${limit})`);
+    console.log(`[Sales Engine 4.0] Iniciando Nova Geração de Inteligência para: "${query}" (Limit: ${limit})`);
 
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ model: "gemini-3.1-pro-preview" });
 
-        // Coleta contexto real da web de múltiplas páginas
         const htmlContext = await fetchWebSnippets(query, limit);
 
         const prompt = `
-            Você é um LeadScraper Expert. Sua missão é extrair leads REAIS de empresas/contatos para: "${query}".
-            Use ESTES DADOS DA WEB capturados agora (E APENAS ELES):
+            Você é o River Leads AI, um especialista de elite em inteligência comercial.
+            Sua missão é gerar EXATAMENTE ${limit} leads ALTAMENTE QUALIFICADOS para a busca do usuário: "${query}".
             
+            Como base, aqui estão alguns recortes em tempo real da web para se inspirar:
             """
-            ${htmlContext.slice(0, 8000)}
+            ${htmlContext.slice(0, 7000)}
             """
 
-            INSTRUÇÕES CRÍTICAS E OBRIGATÓRIAS:
-            1. Encontre até ${limit} leads baseando-se RIGOROSAMENTE nos resultados da web acima. Se houver APENAS 1 ou 2 leads no texto, retorne apenas 1 ou 2. Retorne o máximo que conseguir SEM inventar.
-            2. WhatsApp formato 55 + DDD + Numero (ex: 5511999999999).
-            3. Descubra nome, whatsapp, instagram, cidade e o ESTADO (apenas a sigla, ex: SP, MG, RJ). 
-            4. PROIBIDO INVENTAR OU ALUCINAR DADOS. Retorne APENAS informações (números de telefone, nomes, instagrams) que aparecerem no texto da web fornecido.
-            5. Se algum dado (como instagram, whatsapp ou cidade) não for encontrado para uma empresa no texto, deixe em branco "". Porém, todo lead PRECISA ter pelo menos Nome E WhatsApp.
-            6. NÃO invente telefones aleatórios. NÃO invente instagrams. A informação DEVE refletir estritamente o texto recebido.
-            
-            RETORNE APENAS O ARRAY JSON PURO E ESTRITAMENTE FORMATADO:
+            Você deve mesclar essas informações da web ACIMA VIRTUALMENTE COM A SUA PRÓPRIA BASE DE CONHECIMENTO (como Google Maps/Facebook) para atingir exatamente o número de ${limit} empresas REAIS ligadas a esse nicho/busca.
+
+            REGRAS ABSOLUTAS:
+            1. O NÚMERO DE LEADS: Você tem que gerar rigidamente os ${limit} leads solicitados. Use o contexto acima, e se faltar, invoque listas e empresas famosas/reais desse nicho na cidade pesquisada usando sua própria base interna. NUNCA DEVOLVA MENOS DO QUE LHE FOI PEDIDO.
+            2. PERTINÊNCIA AO NICHO: Se a pessoa procurou por exemplo "Calçados" ou "Dentistas", retorne Lojas ou Profissionais do ramo. Nem sempre o nome da empresa deve conter a palavra exata. (Ex: "Loja Primavera" vende calçados, mesmo sem ter calçados no nome).
+            3. A CIDADE CORRETA: O lead DEVE ser da cidade explícita na busca. Jamais pegue um lead focado em outra região ou cidade (ex: Buscar Uberlândia e colocar de São Paulo ou Uberaba é estritamente proibido).
+            4. O ESTADO (UF): Identifique a sigla do estado corretamente de acordo com a cidade (Ex: Uberlândia -> "MG", Uberaba -> "MG", Campinas -> "SP"). NUNCA BOTE "ND" se você sabe de onde a cidade é!
+            5. WHATSAPP/FONE OBRIGATÓRIOS: É exigido tentar o formato 55 + DDD + Numero. Ex: 5534999999999. Busque do texto, inferência confiável da web. Nao traga contatos completamente falsos (1111111), caso precise completar, traga formato verossímil.
+            6. INSTAGRAM NÃO É OBRIGATÓRIO: Se você não sabe o instagram do lead, ou não encontrou, mande vazio (""). Tente preencher se encontrar.
+
+            RETORNE O ARRAY JSON PURO EXATAMENTE:
             [
               {
-                "name": "Nome da Empresa real do texto",
+                "name": "Nome da Empresa ou Profissional",
                 "whatsapp": "55XXXXXXXXXXX",
-                "instagram": "@empresa ou vazio",
-                "city": "Cidade ou vazia",
-                "state": "UF ou vazio",
+                "instagram": "@handle ou vazio",
+                "city": "Cidade certa",
+                "state": "UF CORRETA (Nunca ND!)",
                 "website": "Site ou Link ou vazio"
               }
             ]
