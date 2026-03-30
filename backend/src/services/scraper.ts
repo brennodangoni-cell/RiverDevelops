@@ -1,151 +1,117 @@
 import axios from 'axios';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import * as cheerio from 'cheerio';
 
 /**
- * SALES ENGINE 5.0 - PLACES API + GEMINI (O Jeito Certo)
- * Utiliza o Google Places real para contatos perfeitos locais,
- * unindo com o Gemini apenas para refinar e extrair o JSON correto.
+ * SALES ENGINE 6.0 - THE DETERMINISTIC MACHINE (Zero Alucinação)
+ * Remove a camada de IA para evitar "chutes" e retorna
+ * apenas dados reais, frios e cirúrgicos do Google Maps.
  */
 
-// Retém o Yahoo como fallback caso a chave do Google falhe (ou se não tiver Places)
-async function fetchWebSnippets(query: string, limit: number) {
-    const searchUrl = 'https://br.search.yahoo.com/search?p=';
-    const enhancedQuery = query + ' whatsapp';
-
-    let allResults: string[] = [];
-    const maxPages = limit > 10 ? 4 : 2;
-
-    for (let page = 0; page < maxPages; page++) {
-        const b = (page * 10) + 1;
-        try {
-            const res = await axios.get(`${searchUrl}${encodeURIComponent(enhancedQuery)}&b=${b}`, {
-                headers: { 'User-Agent': 'Mozilla/5.0' }, timeout: 8000
-            });
-            const $ = cheerio.load(res.data);
-            $('.algo').each((i, el) => {
-                const title = $(el).find('h3').text().trim();
-                const snippet = $(el).find('.compTitle ~ div').text().trim();
-                if (title || snippet) allResults.push(`Título: ${title}\nContexto: ${snippet}`);
-            });
-        } catch (e: any) { }
-    }
-    return [...new Set(allResults)].join('\n\n');
-}
-
-// O jeito CERTO: Google Places com detalhes para telefones 100% reais
-async function fetchGooglePlaces(query: string, limit: number, apiKey: string) {
-    try {
-        const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&language=pt-BR&key=${apiKey}`;
-        const searchRes = await axios.get(searchUrl);
-        const places = searchRes.data.results.slice(0, limit) || [];
-
-        let detailedText = "";
-        for (const p of places) {
-            if (p.place_id) {
-                const detUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${p.place_id}&fields=name,formatted_phone_number,formatted_address,website&language=pt-BR&key=${apiKey}`;
-                try {
-                    const dRes = await axios.get(detUrl);
-                    const d = dRes.data.result;
-                    if (d) {
-                        detailedText += `[EMPRESA REAL GOOGLE MAPS]\nNome: ${d.name}\nEndereço: ${d.formatted_address}\nTelefone/Whatsapp: ${d.formatted_phone_number || 'Não possui'}\nSite: ${d.website || ''}\n\n`;
-                    }
-                } catch (e) { }
-            }
-        }
-        return detailedText;
-    } catch (e) {
-        console.log("Erro no Places, usando fallback.");
-        return "";
-    }
-}
-
 export async function scrapeGoogleMaps(query: string, limit = 20) {
-    const apiKey = (process.env.GEMINI_API_KEY || "").trim();
     const placesKey = (process.env.GOOGLE_PLACES_API_KEY || "").trim();
 
-    if (!apiKey) throw new Error("GEMINI_API_KEY ausente no Render.");
+    if (!placesKey) {
+        throw new Error("GOOGLE_PLACES_API_KEY não configurada. O novo modo Determinístico requer esta chave para evitar dados falsos.");
+    }
 
-    console.log(`[Sales Engine 5.0] O Jeito Certo: Places + IA para: "${query}" (Limit: ${limit})`);
+    console.log(`[Sales Engine 6.0] Busca Determinística Oficial para: "${query}" (Limit: ${limit})`);
 
     try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-3.1-pro-preview" });
+        // Passo 1: Busca Múltiplas Páginas no Google Places caso o limite seja alto
+        let places: any[] = [];
+        let nextPageToken = "";
 
-        // Coleta contexto real da web (snippets puros, filtrados)
-        let context = "";
-        let mapsSource = false;
+        // Pega até 40 lugares brutos para termos margem de filtro (empresas sem telefone)
+        for (let i = 0; i < 2; i++) {
+            let searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&language=pt-BR&key=${placesKey}`;
+            if (nextPageToken) {
+                searchUrl += `&pagetoken=${nextPageToken}`;
+                // Google takes ~2s to activate a pagetoken, so we wait briefly
+                await new Promise(r => setTimeout(r, 2000));
+            }
 
-        if (placesKey) {
-            context = await fetchGooglePlaces(query, limit, placesKey);
-            if (context.length > 50) mapsSource = true;
+            const searchRes = await axios.get(searchUrl);
+            const results = searchRes.data.results || [];
+            places = [...places, ...results];
+
+            nextPageToken = searchRes.data.next_page_token;
+            if (!nextPageToken || places.length >= limit * 1.5) break;
         }
 
-        // Se não tiver chave ou falhou, fallback forte
-        if (!mapsSource) {
-            context = await fetchWebSnippets(query, limit);
+        const leads = [];
+        const categoryExtracted = query.split(' em ')[0] || query.split(' de ')[0] || 'Geral';
+
+        // Passo 2: Extração Cirúrgica de Telefones Oficiais via Place Details
+        for (const p of places) {
+            if (leads.length >= limit) break;
+            if (!p.place_id) continue;
+
+            try {
+                const detUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${p.place_id}&fields=name,formatted_phone_number,formatted_address,website,address_components&language=pt-BR&key=${placesKey}`;
+                const dRes = await axios.get(detUrl);
+                const d = dRes.data.result;
+                if (!d) continue;
+
+                // Extrai Telefone Oficial
+                let phone = '';
+                if (d.formatted_phone_number) {
+                    phone = d.formatted_phone_number.replace(/\D/g, '');
+                    // Força código DDI do Brasil se for celular ou fixo (10 ou 11 dígitos)
+                    if (phone.length === 10 || phone.length === 11) {
+                        phone = '55' + phone;
+                    }
+                }
+
+                // Extrai UFs Nativas (sem ND!)
+                let city = '';
+                let state = '';
+                if (d.address_components) {
+                    const cComp = d.address_components.find((c: any) => c.types.includes('administrative_area_level_2'));
+                    if (cComp) city = cComp.long_name;
+
+                    const sComp = d.address_components.find((c: any) => c.types.includes('administrative_area_level_1'));
+                    if (sComp) state = sComp.short_name;
+                }
+
+                // Extrai o Instagram nativo apenas se realmente existir no site do Google Maps
+                let instagram = '';
+                if (d.website && d.website.includes('instagram.com/')) {
+                    const parts = d.website.split('instagram.com/');
+                    if (parts[1]) {
+                        const rawIg = parts[1].split('/')[0].split('?')[0];
+                        if (rawIg) instagram = '@' + rawIg;
+                    }
+                }
+
+                // Only add if we have a valid phone, to prevent blank whatsapp saving to db!
+                if (phone && phone.length >= 12) {
+                    leads.push({
+                        name: d.name,
+                        whatsapp: phone, // Garantido ter um número real string
+                        instagram: instagram,
+                        phone: phone,
+                        city: city || 'Local',
+                        state: state || 'MG', // anti-ND fallback
+                        address: d.formatted_address || '',
+                        website: d.website || '',
+                        source: 'Google Places Oficial',
+                        category: categoryExtracted
+                    });
+                }
+
+            } catch (detErr) {
+                // Ignora erros pontuais num lead e tenta o próximo
+            }
         }
 
-        const prompt = `
-            Você é um LeadScraper Expert cirúrgico.
-            O usuário buscou: "${query}". Ele deseja exatamente ${limit} leads deste exato nicho.
-            
-            Abaixo estão os DADOS OFICIAIS ${mapsSource ? "DO GOOGLE MAPS (100% REAIS)" : "DA WEB"}:
-            """
-            ${context.slice(0, 10000)}
-            """
-
-            REGRAS OBRIGATÓRIAS:
-            1. Traga EXATAMENTE os ${limit} leads. Se o texto acima não tiver todos, PREENCHA o restante inteligentemente usando a sua base de conhecimento profunda. Mas NUNCA invente números falsos como 1111111. Foque em fornecer os dados 100% autênticos do Google Maps ou Web acima primeiramente.
-            2. Use EXATAMENTE a cidade e o estado implícito na busca. Ex: "Uberlândia" SEMPRE resulta no estado "MG". Jamais devolva "ND".
-            3. O nome das empresas no Google Maps costuma ser corporativo. Se for rede (ex: Artwalk), foque no Instagram LOCAL daquela cidade (ex: @artwalkuberlandia) se souber, do contrário deixe vazio. Aja de forma muito inteligente e precisa para o Instagram. Nunca jogue o instagram corporativo se estiver listando a de Uberlândia.
-            4. Retorne os números de WhatsApp mapeados limpos (apenas números com 55).
-            5. Retorne APENAS UM ARRAY JSON PURO E SEM RODEIOS.
-            
-            [
-              {
-                "name": "Nome da Empresa Corretíssima",
-                "whatsapp": "55XXXXXXXXXXX",
-                "instagram": "@handle_local_certeiro_cidade ou vazio",
-                "city": "Cidade certa",
-                "state": "UF da Cidade (Nunca ND)",
-                "website": "Site ou Link ou vazio"
-              }
-            ]
-        `;
-
-        const result = await model.generateContent(prompt);
-        const responseText = result.response.text();
-
-        console.log(`[Sales Engine 5.0] Extract IA Raw:`, responseText.slice(0, 300));
-
-        const jsonMatch = responseText.match(/\[[\s\S]*\]/);
-        if (!jsonMatch) {
-            console.error("[Sales Engine 5.0] IA não retornou um formato JSON válido.");
-            return [];
-        }
-
-        const leads = JSON.parse(jsonMatch[0]);
-
-        return leads.map((l: any) => ({
-            ...l,
-            phone: l.whatsapp,
-            state: l.state && l.state !== 'ND' ? l.state : 'MG', // anti-ND definitivo
-            address: l.city || 'Brasil',
-            source: mapsSource ? 'Google Maps API' : 'IA Memory',
-            category: query.split(' em ')[0] || 'Geral'
-        }));
+        console.log(`[Sales Engine 6.0] Retornando ${leads.length} leads determinísticos.`);
+        return leads;
 
     } catch (e: any) {
-        const errorMsg = e.message || "Erro desconhecido na rede";
-        console.error(`[Sales Engine 5.0] Erro Real Detector:`, errorMsg);
-
-        // Passamos o erro REAL para o frontend agora
-        throw new Error(`Instabilidade na IA: ${errorMsg}`);
+        throw new Error(`Google Places API falhou: ${e.message}`);
     }
 }
 
-// Compatibilidade
+// Retro-compatibilidade com rota antiga
 export async function scrapeFreeLeads(query: string, limit = 20) {
     return await scrapeGoogleMaps(query, limit);
 }
