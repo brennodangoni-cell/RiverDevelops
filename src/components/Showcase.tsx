@@ -7,7 +7,7 @@ const Transformation = () => {
     const [isVideoLoaded, setIsVideoLoaded] = useState(false);
 
     // Optimized Local Assets for ALL devices
-    const [videoSrc] = useState('https://res.cloudinary.com/dv9sj9gp9/video/upload/v1775836496/Bon%C3%A9_lwvbtd.mp4');
+    const [videoSrc] = useState('https://res.cloudinary.com/dv9sj9gp9/video/upload/v1775842092/Bon%C3%A9_otimizado_qbcjlv.mp4');
     const [staticImg, setStaticImg] = useState('/fotonova.webp');
     const [bgImg, setBgImg] = useState('/imagetest.webp');
 

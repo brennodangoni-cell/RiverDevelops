@@ -7,6 +7,7 @@ import { WhatsAppIcon } from './WhatsAppIcon';
 interface Lead {
     name: string;
     whatsapp: string;
+    phone?: string;
     address: string;
     website?: string;
     instagram?: string;
