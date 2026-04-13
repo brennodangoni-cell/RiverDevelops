@@ -12,8 +12,13 @@ const projects = [
 
 const Portfolio = () => {
     return (
-        <section id="work" className="py-24 px-6 bg-background relative z-10">
-            <div className="max-w-7xl mx-auto">
+        <section
+            id="work"
+            className="py-24 px-6 relative z-10 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: "url('https://res.cloudinary.com/dv9sj9gp9/image/upload/v1776109778/3a7f0b99-39fb-43bd-aa83-2da0ff50e266_jjsxpx.png')" }}
+        >
+            <div className="absolute inset-0 bg-background/80 md:bg-background/90 z-0"></div>
+            <div className="max-w-7xl mx-auto relative z-10">
                 <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
                     <div>
                         <h2 className="text-4xl md:text-6xl font-display font-bold text-white tracking-tighter mb-4">
