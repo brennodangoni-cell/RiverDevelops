@@ -121,7 +121,7 @@ const Hero = ({ onIntroComplete }: HeroProps) => {
     const handleCanPlay = async (e: React.SyntheticEvent<HTMLVideoElement>) => {
         // Aumentando a velocidade do vídeo
         if (e.currentTarget) {
-            e.currentTarget.playbackRate = 1.25;
+            e.currentTarget.playbackRate = 2.0;
         }
         if (videoReady) return;
         setVideoReady(true);
