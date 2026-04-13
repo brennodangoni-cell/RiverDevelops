@@ -118,7 +118,11 @@ const Hero = ({ onIntroComplete }: HeroProps) => {
         setPhase('done');
     };
 
-    const handleCanPlay = async () => {
+    const handleCanPlay = async (e: React.SyntheticEvent<HTMLVideoElement>) => {
+        // Aumentando a velocidade do vídeo
+        if (e.currentTarget) {
+            e.currentTarget.playbackRate = 1.25;
+        }
         if (videoReady) return;
         setVideoReady(true);
     };
