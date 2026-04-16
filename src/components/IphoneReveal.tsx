@@ -34,12 +34,12 @@ const projects: Project[] = [
     },
     {
         id: 3,
-        client: "Urban Sneaks",
-        niche: "Streetwear & Sneakers",
+        client: "Power Run",
+        niche: "Sportswear & Training",
         logo: "/portfolio_assets/logo3.png",
         material: "/portfolio_assets/foto3.jpeg",
         result: "https://res.cloudinary.com/dv9sj9gp9/video/upload/v1776374841/video3_tlrrit.mp4",
-        caption: "Estética urbana para marcas de alto engajamento."
+        caption: "Estética focada em alta performance e tração visual."
     },
     {
         id: 4,
