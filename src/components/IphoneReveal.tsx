@@ -16,48 +16,48 @@ interface Project {
 const projects: Project[] = [
     {
         id: 1,
-        client: "Logística & Frota",
-        niche: "Serviços Premium",
+        client: "Arezzo & Co",
+        niche: "Sandálias & Lifestyle",
         logo: "/portfolio_assets/logo1.png",
         material: "/portfolio_assets/foto1.jpeg",
         result: "https://res.cloudinary.com/dv9sj9gp9/video/upload/v1776374823/video1_lhnftx.mp4",
-        caption: "Produção de alto impacto para setor logístico."
+        caption: "Produção cinematográfica focada em elegância e movimento."
     },
     {
         id: 2,
-        client: "Moda & Estilo",
-        niche: "E-commerce",
+        client: "Sport Elite",
+        niche: "Performance Esportiva",
         logo: "/portfolio_assets/logo2.png",
         material: "/portfolio_assets/foto2.jpeg",
         result: "https://res.cloudinary.com/dv9sj9gp9/video/upload/v1776374827/video2_pzxopj.mp4",
-        caption: "Visual imersivo para realçar detalhes e conversão."
+        caption: "Visual dinâmico para realçar tecnologia e performance."
     },
     {
         id: 3,
-        client: "Luxury Watches",
-        niche: "Relógios de Luxo",
+        client: "Urban Sneaks",
+        niche: "Streetwear & Sneakers",
         logo: "/portfolio_assets/logo3.png",
         material: "/portfolio_assets/foto3.jpeg",
         result: "https://res.cloudinary.com/dv9sj9gp9/video/upload/v1776374841/video3_tlrrit.mp4",
-        caption: "Estética refinada para marcas de alto padrão."
+        caption: "Estética urbana para marcas de alto engajamento."
     },
     {
         id: 4,
-        client: "Dimitri",
-        niche: "Lifestyle & Branding",
+        client: "Everest Man",
+        niche: "Moda Masculina Premium",
         logo: "/portfolio_assets/logo4.png",
         material: "/portfolio_assets/foto4.jpeg",
         result: "https://res.cloudinary.com/dv9sj9gp9/video/upload/v1776375058/dimitri5semlegenda_wcn96r.mp4",
-        caption: "Branding pessoal com narrativa cinematográfica."
+        caption: "Branding focado em autoridade e presença visual."
     },
     {
         id: 5,
-        client: "Cinta Modeladora",
-        niche: "Estética",
+        client: "Silk & Soul",
+        niche: "Lingerie & Wellness",
         logo: "/portfolio_assets/logo5.png",
         material: "/portfolio_assets/foto5.jpeg",
         result: "https://res.cloudinary.com/dv9sj9gp9/video/upload/v1776375049/cinta5_3_qbgqn5.mp4",
-        caption: "Demonstração técnica com foco em desejo de compra."
+        caption: "Narrativa visual delicada e conversão estética."
     }
 ];
 
