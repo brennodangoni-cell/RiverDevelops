@@ -16,39 +16,48 @@ interface Project {
 const projects: Project[] = [
     {
         id: 1,
-        client: "Lojas Dufins",
-        niche: "Tênis Esportivos",
-        logo: "/logo.webp",
-        material: "/portfolio/dufins.png",
-        result: "/videos/herovideo.webm",
-        caption: "Edição voltada para tração de vendas e tráfego pago."
+        client: "Logística & Frota",
+        niche: "Serviços Premium",
+        logo: "/portfolio_assets/logo1.png",
+        material: "/portfolio_assets/foto1.jpeg",
+        result: "https://res.cloudinary.com/dv9sj9gp9/video/upload/v1776374823/video1_lhnftx.mp4",
+        caption: "Produção de alto impacto para setor logístico."
     },
     {
         id: 2,
-        client: "Fabullete",
-        niche: "Moda Feminina",
-        logo: "/fabullete-logo.webp",
-        material: "/fotonova.webp",
-        result: "/videos/herovideo.webm",
-        caption: "Transformação estética premium para moda e e-commerce."
+        client: "Moda & Estilo",
+        niche: "E-commerce",
+        logo: "/portfolio_assets/logo2.png",
+        material: "/portfolio_assets/foto2.jpeg",
+        result: "https://res.cloudinary.com/dv9sj9gp9/video/upload/v1776374827/video2_pzxopj.mp4",
+        caption: "Visual imersivo para realçar detalhes e conversão."
     },
     {
         id: 3,
-        client: "Catalão Náutica",
-        niche: "Loja Náutica",
-        logo: "/logo.webp",
-        material: "/portfolio/nautica.png",
-        result: "/videos/herovideo.webm",
-        caption: "Audiovisual de alto padrão para mercado náutico."
+        client: "Luxury Watches",
+        niche: "Relógios de Luxo",
+        logo: "/portfolio_assets/logo3.png",
+        material: "/portfolio_assets/foto3.jpeg",
+        result: "https://res.cloudinary.com/dv9sj9gp9/video/upload/v1776374841/video3_tlrrit.mp4",
+        caption: "Estética refinada para marcas de alto padrão."
     },
     {
         id: 4,
-        client: "Flag Watches",
-        niche: "Loja de Relógios",
-        logo: "/logo.webp",
-        material: "/portfolio/watches.png",
-        result: "/videos/herovideo.webm",
-        caption: "Visual imersivo para realçar prestígio e detalhes."
+        client: "Dimitri",
+        niche: "Lifestyle & Branding",
+        logo: "/portfolio_assets/logo4.png",
+        material: "/portfolio_assets/foto4.jpeg",
+        result: "https://res.cloudinary.com/dv9sj9gp9/video/upload/v1776375058/dimitri5semlegenda_wcn96r.mp4",
+        caption: "Branding pessoal com narrativa cinematográfica."
+    },
+    {
+        id: 5,
+        client: "Cinta Modeladora",
+        niche: "Estética",
+        logo: "/portfolio_assets/logo5.png",
+        material: "/portfolio_assets/foto5.jpeg",
+        result: "https://res.cloudinary.com/dv9sj9gp9/video/upload/v1776375049/cinta5_3_qbgqn5.mp4",
+        caption: "Demonstração técnica com foco em desejo de compra."
     }
 ];
 
@@ -203,7 +212,7 @@ const IphoneReveal = () => {
                                             alt={currentProject.client}
                                             loading="lazy"
                                             decoding="async"
-                                            className="h-full w-auto max-w-[150px] md:max-w-[220px] object-contain brightness-0 invert opacity-100 drop-"
+                                            className="h-full w-auto max-w-[150px] md:max-w-[220px] object-contain opacity-100 drop-"
                                         />
                                     </div>
                                     <span key={`niche-${currentProject.id}`} className="text-[9px] md:text-xs font-semibold tracking-wider text-white/40 uppercase truncate w-full px-2">
@@ -228,6 +237,7 @@ const IphoneReveal = () => {
                                     <div className="absolute inset-0 bg-black/40 group-hover/back:bg-black/0   z-50 pointer-events-none"></div>
 
                                     <div className="absolute top-2 left-1/2 -translate-x-1/2 w-[35%] h-[4%] bg-black rounded-full z-40"></div>
+                                    <div className="absolute top-10 left-4 z-50 bg-green-500 text-white text-[8px] font-bold px-2 py-1 rounded-full animate-pulse uppercase tracking-tighter">Prova Social</div>
                                     <div className="w-full h-full p-[6px] relative overflow-hidden rounded-[2.5vh] md:rounded-[40px]">
                                         <div className="w-full h-full relative overflow-hidden rounded-[2vh] md:rounded-[34px] bg-black">
                                             <img
