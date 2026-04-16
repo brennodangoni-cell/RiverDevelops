@@ -289,13 +289,13 @@ const IphoneReveal = () => {
                                                     >
                                                         <video
                                                             ref={isActive ? videoRef : null}
-                                                            src={videoUrl}
+                                                            src={videoUrl.includes('cloudinary') ? videoUrl.replace('/upload/', '/upload/f_auto,q_auto/') : videoUrl}
                                                             poster={posterUrl}
                                                             className="w-full h-full object-cover "
                                                             playsInline
                                                             loop
                                                             muted
-                                                            preload="none"
+                                                            preload="metadata"
                                                             onPlay={() => isActive && setIsPlaying(true)}
                                                             onPause={() => isActive && setIsPlaying(false)}
                                                         />

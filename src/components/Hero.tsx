@@ -170,6 +170,8 @@ const Hero = ({ onIntroComplete }: HeroProps) => {
                     playsInline
                     autoPlay
                     controls={false}
+                    preload="auto"
+                    {...({ fetchPriority: "high" } as any)}
                     poster="/premium-bg.png"
                     onTimeUpdate={handleTimeUpdate}
                     onEnded={handleVideoEnd}
