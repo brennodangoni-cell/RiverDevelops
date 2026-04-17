@@ -12,9 +12,10 @@ const Transformation = () => {
     const [bgImg, setBgImg] = useState('/imagetest.webp');
 
     useEffect(() => {
-        if (window.innerWidth < 768) {
-            setStaticImg('/fotonova-mobile.webp');
-            setBgImg('/imagetest-mobile.webp');
+        // Simple and robust way to check mobile
+        if (typeof window !== 'undefined' && window.innerWidth < 768) {
+            setStaticImg('/fotonova.webp'); // Using main images to avoid potential broken mobile-only assets
+            setBgImg('/imagetest.webp');
         }
     }, []);
 
@@ -201,6 +202,7 @@ const Transformation = () => {
                             controls={false}
                             preload="metadata"
                             onLoadedData={() => setIsVideoLoaded(true)}
+                            onCanPlay={() => setIsVideoLoaded(true)}
                         >
                             <source src={videoSrc} type="video/mp4" />
                         </video>
@@ -253,12 +255,8 @@ const Transformation = () => {
                         </div>
                     </motion.div>
 
-                    {/* Loading State */}
-                    {!isVideoLoaded && (
-                        <div className="absolute inset-0 bg-zinc-900 flex items-center justify-center z-50">
-                            <div className="w-8 h-8 border-2 border-white/20 border-t-cyan-500 rounded-full animate-spin" />
-                        </div>
-                    )}
+                    {/* Minor opacity transition for video instead of hard blocking */}
+                    <div className={`absolute inset-0 bg-black transition-opacity duration-700 pointer-events-none z-40 ${isVideoLoaded ? 'opacity-0' : 'opacity-30'}`} />
                 </motion.div>
             </div>
         </section>
