@@ -7,7 +7,7 @@ const Transformation = () => {
     const [isVideoLoaded, setIsVideoLoaded] = useState(false);
 
     // Optimized Local Assets for ALL devices
-    const [videoSrc] = useState('https://res.cloudinary.com/dv9sj9gp9/video/upload/f_auto,q_auto/v1775842092/Bon%C3%A9_otimizado_qbcjlv.mp4');
+    const [videoSrc] = useState('https://res.cloudinary.com/dv9sj9gp9/video/upload/f_auto,q_auto,vc_h264/v1775842092/Bon%C3%A9_otimizado_qbcjlv.mp4');
     const [staticImg, setStaticImg] = useState('/fotonova.webp');
     const [bgImg, setBgImg] = useState('/imagetest.webp');
 
@@ -83,9 +83,8 @@ const Transformation = () => {
     // Toca o vídeo apenas após a fase de foto
     useEffect(() => {
         const unsubscribe = smoothProgress.on("change", (latest) => {
-            if (videoRef.current && isVideoLoaded) {
-                // More precise range to prevent excessive playback on edge cases
-                const shouldPlay = latest > 0.34 && latest < 0.94;
+            if (videoRef.current) {
+                const shouldPlay = latest > 0.30 && latest < 0.96;
                 if (shouldPlay) {
                     if (videoRef.current.paused) {
                         videoRef.current.play().catch(() => { });
@@ -98,7 +97,7 @@ const Transformation = () => {
             }
         });
         return () => unsubscribe();
-    }, [smoothProgress, isVideoLoaded]);
+    }, [smoothProgress]); // Removed isVideoLoaded from dependency to ensure play trigger works
 
     return (
         <section ref={containerRef} className="relative z-10 bg-black min-h-[300vh]">
@@ -199,8 +198,9 @@ const Transformation = () => {
                             muted
                             loop
                             playsInline
+                            autoPlay
                             controls={false}
-                            preload="metadata"
+                            preload="auto"
                             onLoadedData={() => setIsVideoLoaded(true)}
                             onCanPlay={() => setIsVideoLoaded(true)}
                         >
