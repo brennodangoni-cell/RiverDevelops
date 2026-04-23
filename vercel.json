@@ -5,6 +5,10 @@
             "destination": "https://river-tasks-production.up.railway.app/api/$1"
         },
         {
+            "source": "/KRON/(.*)",
+            "destination": "/KRON/$1"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }
